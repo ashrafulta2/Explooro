@@ -170,7 +170,7 @@ test('6. Warranty Claims Review & Resolution', async (t) => {
   });
 
   await t.test('The admin page shows one unit of the item as the refund', async () => {
-    const { unitRefundAmount } = await import('../src/pages/admin/AdminWarrantyClaimsPage.js');
+    const { unitRefundAmount } = await import('../src/pages/admin/AdminWarrantyClaimsPage.ts');
     assert.equal(unitRefundAmount({ item_qty: 3, item_line_total: '1000.00' }), 333.33);
     assert.equal(unitRefundAmount({ item_qty: 1, item_line_total: '200.00' }), 200);
   });

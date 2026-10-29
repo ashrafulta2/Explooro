@@ -1,5 +1,5 @@
 /**
- * TwoFactorPage.js — Staff 2FA challenge and enrollment screen (Prompt 2.8).
+ * TwoFactorPage.ts — Staff 2FA challenge and enrollment screen (Prompt 2.8).
  *
  * Implements Prompt 2.8 Requirement 1:
  * - 2FA challenge step for staff.
@@ -12,9 +12,10 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.ts';
+import type { PageContext } from '../types.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
 
-export default function TwoFactorPage(container, { query = {}, navigate }) {
+export default function TwoFactorPage(container, { query = {}, navigate }: PageContext) {
   container.replaceChildren();
 
   const challengeToken = query.challenge_token ? decodeURIComponent(query.challenge_token) : '';

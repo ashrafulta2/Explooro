@@ -1,5 +1,5 @@
 /**
- * WalletTopUpPage.js — add money to your vault with bKash, Nagad or a card (/wallet/top-up, migration 088).
+ * WalletTopUpPage.ts — add money to your vault with bKash, Nagad or a card (/wallet/top-up, migration 088).
  *
  * Anyone can advertise (Phase C), and a Boost is paid from the vault, so a shopper who has never sold
  * anything needs a way to put money in. The amount, the methods and the limits all come from the API
@@ -20,7 +20,7 @@ import '../styles/components/advertise.css';
 const PRESETS = [100, 500, 1000, 2000];
 const METHOD_ICON = { BKASH: '📱', NAGAD: '📲', CARD: '💳' };
 
-const el = (tag, cls, text) => {
+const el = (tag: string, cls?: string, text?: string) => {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
   if (text !== undefined) n.textContent = text;
@@ -33,7 +33,7 @@ function safeReturnPath(value) {
   return p.startsWith('/') && !p.startsWith('//') && !p.startsWith('/\\') && p.length < 300 ? p : null;
 }
 
-export default function WalletTopUpPage(root) {
+export default function WalletTopUpPage(root: HTMLElement) {
   const params = new URLSearchParams(window.location.search);
   const returnPath = safeReturnPath(params.get('return'));
   const page = el('div', 'advertise-page');
@@ -75,7 +75,7 @@ export default function WalletTopUpPage(root) {
     amount.input.addEventListener('input', () => { state.amount = amount.value; });
     const chips = el('div', 'advertise-chips');
     for (const v of PRESETS.filter((x) => x >= rules.min_amount && x <= rules.max_amount)) {
-      const c = el('button', 'advertise-chip', formatCurrency(v));
+      const c = el('button', 'advertise-chip', formatCurrency(v)) as HTMLButtonElement;
       c.type = 'button';
       c.setAttribute('aria-pressed', String(Number(state.amount) === v));
       c.addEventListener('click', () => { state.amount = String(v); render(); });
@@ -86,7 +86,7 @@ export default function WalletTopUpPage(root) {
     card.append(el('p', 'advertise-label', t('topup.method')));
     const methods = el('div', 'advertise-options');
     for (const m of rules.methods) {
-      const b = el('button', 'advertise-option');
+      const b = el('button', 'advertise-option') as HTMLButtonElement;
       b.type = 'button';
       b.setAttribute('aria-pressed', String(state.method === m));
       b.append(el('span', 'advertise-option__icon', METHOD_ICON[m] || '💰'), el('span', 'advertise-option__name', t(`topup.method_${m.toLowerCase()}`)));

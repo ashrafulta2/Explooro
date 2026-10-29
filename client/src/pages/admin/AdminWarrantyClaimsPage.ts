@@ -1,5 +1,5 @@
 /**
- * AdminWarrantyClaimsPage.js — the admin queue for warranty claims.
+ * AdminWarrantyClaimsPage.ts — the admin queue for warranty claims.
  *
  * A supplier may not refund a warranty claim on their own: their REFUND escalates the claim here,
  * and the money moves only when an admin approves it (decided 2026-10-15). One claim refunds one
@@ -25,7 +25,7 @@ export function unitRefundAmount(claim) {
   return Math.floor(linePaisa / qty) / 100;
 }
 
-export default function AdminWarrantyClaimsPage(root) {
+export default function AdminWarrantyClaimsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'admin-warranty-claims';
   container.style.cssText = 'max-width: 1280px; margin: 0 auto; padding: 24px 20px 48px; display: flex; flex-direction: column; gap: 20px;';
@@ -66,12 +66,12 @@ export default function AdminWarrantyClaimsPage(root) {
   }
 
   function approveRefund(claim) {
-    const notes = container.querySelector(`.admin-warranty-claims__notes[data-id="${claim.id}"]`)?.value.trim() || '';
+    const notes = container.querySelector<HTMLInputElement>(`.admin-warranty-claims__notes[data-id="${claim.id}"]`)?.value.trim() || '';
     decide(claim, { action: 'APPROVE', resolution: 'REFUND', notes }, 'warranty_admin.refund_approved', 'Refund approved and paid to the customer wallet.');
   }
 
   function reject(claim) {
-    const reason = container.querySelector(`.admin-warranty-claims__notes[data-id="${claim.id}"]`)?.value.trim() || '';
+    const reason = container.querySelector<HTMLInputElement>(`.admin-warranty-claims__notes[data-id="${claim.id}"]`)?.value.trim() || '';
     if (reason.length < 5) {
       toast.error(t('warranty_admin.reason_required', 'Write a reason of at least 5 characters before rejecting.'));
       return;
@@ -132,17 +132,17 @@ export default function AdminWarrantyClaimsPage(root) {
           : `<div style="display: flex; flex-direction: column; gap: 12px;">${claims.map(claimCard).join('')}</div>`}
     `;
 
-    container.querySelectorAll('.admin-warranty-claims__tab').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.admin-warranty-claims__tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         currentTab = btn.dataset.tab;
         fetchQueue();
       });
     });
     const byId = (id) => claims.find((c) => String(c.id) === String(id));
-    container.querySelectorAll('.admin-warranty-claims__approve').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.admin-warranty-claims__approve').forEach((btn) => {
       btn.addEventListener('click', () => approveRefund(byId(btn.dataset.id)));
     });
-    container.querySelectorAll('.admin-warranty-claims__reject').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.admin-warranty-claims__reject').forEach((btn) => {
       btn.addEventListener('click', () => reject(byId(btn.dataset.id)));
     });
   }

@@ -158,7 +158,7 @@ async function bootRouterDemo() {
       // Prompt 4.5: real marketplace home replaces the Prompt 1.5 stub.
       { path: '/', title: 'Explooro — Marketplace', permission: null, module: 'core', load: () => import('./pages/HomePage.js') },
       // Prompt 4.4 (plan A): TopBar search results page.
-      { path: '/search', title: 'Search — Explooro', permission: null, module: 'core', load: () => import('./pages/SearchResultsPage.js') },
+      { path: '/search', title: 'Search — Explooro', permission: null, module: 'core', load: () => import('./pages/SearchResultsPage.ts') },
       // Prompt 4.6: real product detail page replaces the Prompt 1.5 stub.
       { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
@@ -203,7 +203,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/saler/SalerIncentivesPage.js')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/saler/SalerIncentivesPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/samples',
@@ -211,7 +211,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerSamplesPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerSamplesPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/saler/marketing-kits',
@@ -244,7 +244,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'ai.creative.use',
         module: 'ai_creative_studio',
-        load: () => import('./pages/saler/CreativeStudioPage.js'),
+        load: () => import('./pages/saler/CreativeStudioPage.ts'),
       },
       // Prompt 10.4: Digital Warranty & Claims Engine
       {
@@ -663,7 +663,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/supplier/SupplierIncentivePage.js')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/supplier/SupplierIncentivePage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/samples',
@@ -671,7 +671,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierSamplesPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierSamplesPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/marketing-kits',
@@ -679,7 +679,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierMarketingKitsPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierMarketingKitsPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/fast-payout',
@@ -695,7 +695,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierReturnProtectionPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierReturnProtectionPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/orders',
@@ -1320,8 +1320,8 @@ async function bootRouterDemo() {
       // Referral Hub share links: /join/<custom-slug> and /join?ref=<code> open sign-up prefilled.
       { path: '/join', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
       { path: '/join/:slug', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
-      { path: '/auth/otp', title: 'Verify OTP — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/OtpPage.js') },
-      { path: '/auth/2fa', title: 'Staff 2FA — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/TwoFactorPage.js') },
+      { path: '/auth/otp', title: 'Verify OTP — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/OtpPage.ts') },
+      { path: '/auth/2fa', title: 'Staff 2FA — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/TwoFactorPage.ts') },
       // Prompt 3.2: Module Control Panel
       {
         path: '/admin/platform/modules',
@@ -1563,7 +1563,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.override',
         module: 'digital_warranty',
-        load: () => import('./pages/admin/AdminWarrantyClaimsPage.js'),
+        load: () => import('./pages/admin/AdminWarrantyClaimsPage.ts'),
       },
       {
         path: '/admin/returns/queue',
@@ -1866,7 +1866,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.wallet.topup',
         module: 'core',
-        load: () => import('./pages/WalletTopUpPage.js'),
+        load: () => import('./pages/WalletTopUpPage.ts'),
       },
       // Phase C (migration 087): anyone can advertise, through the simple 3-step Boost wizard.
       {

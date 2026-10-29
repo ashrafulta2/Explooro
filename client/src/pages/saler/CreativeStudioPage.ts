@@ -1,5 +1,5 @@
 /**
- * CreativeStudioPage.js — AI Ad Copy Generator for Shop Partners (Prompt 10.3).
+ * CreativeStudioPage.ts — AI Ad Copy Generator for Shop Partners (Prompt 10.3).
  *
  * Route: /saler/creative-studio
  * Gated by: `ai_creative_studio` module flag, `ai.creative.use` permission.
@@ -19,7 +19,7 @@ import { toast } from '../../services/toast.ts';
 
 const TONES = ['friendly', 'urgent', 'premium'];
 
-export default function CreativeStudioPage(root) {
+export default function CreativeStudioPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'creative-studio-page';
   container.setAttribute('data-module', 'ai_creative_studio');

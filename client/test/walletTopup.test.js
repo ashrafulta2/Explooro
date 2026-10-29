@@ -35,7 +35,7 @@ describe('top-up strings and wiring', () => {
     assert.deepEqual(Object.keys(en.topup).sort(), Object.keys(bn.topup).sort());
     assert.ok(en.nav.shared.topup && bn.nav.shared.topup);
     assert.ok(en.advertise.budget.add_money && bn.advertise.budget.add_money);
-    const src = read('../src/pages/WalletTopUpPage.js') + read('../src/services/walletTopup.api.ts');
+    const src = read('../src/pages/WalletTopUpPage.ts') + read('../src/services/walletTopup.api.ts');
     for (const [, k] of src.matchAll(/'topup\.([a-z_]+)'/g)) assert.ok(k in en.topup, k);
     for (const m of ['bkash', 'nagad', 'card']) assert.ok(en.topup[`method_${m}`], m);
     for (const s of ['initiated', 'pending', 'success', 'failed', 'timeout', 'reversed']) assert.ok(en.topup[`status_${s}`], s);
@@ -47,7 +47,7 @@ describe('top-up strings and wiring', () => {
       assert.match(nav, new RegExp(`path: '/wallet/top-up', group: '[a-z.]+', permission: 'finance\\.wallet\\.topup', module: 'core', roles: \\['${role}'\\]`), role);
     }
     const main = read('../src/main.js');
-    const block = main.slice(main.indexOf("path: '/wallet/top-up'"), main.indexOf('WalletTopUpPage.js'));
+    const block = main.slice(main.indexOf("path: '/wallet/top-up'"), main.indexOf('WalletTopUpPage.ts'));
     assert.ok(block.includes("permission: 'finance.wallet.topup'") && block.includes("module: 'core'"));
   });
 
@@ -59,7 +59,7 @@ describe('top-up strings and wiring', () => {
   });
 
   it('only a path on this site can be the "go back" target', () => {
-    const src = read('../src/pages/WalletTopUpPage.js');
+    const src = read('../src/pages/WalletTopUpPage.ts');
     assert.ok(src.includes("!p.startsWith('//')"));
   });
 

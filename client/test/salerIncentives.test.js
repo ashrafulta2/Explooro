@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { progressPercent } from '../src/pages/saler/SalerIncentivesPage.js';
+import { progressPercent } from '../src/pages/saler/SalerIncentivesPage.ts';
 
 const tiers = [{ min_volume: 10000, rebate_pct: 1 }, { min_volume: 50000, rebate_pct: 2 }];
 

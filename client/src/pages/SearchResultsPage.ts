@@ -6,6 +6,7 @@
  * for free. The full Bengali-aware engine + grouped store/category results land with Prompt 4.4
  * proper; this page is deliberately a thin catalog view over the existing product list endpoint.
  */
+import type { PageContext } from './types.ts';
 import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { t, getLanguage } from '../services/i18n.ts';
@@ -16,7 +17,7 @@ import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { updateHead } from '../services/seo.ts';
 import { trackSearch } from '../services/signals.ts';
 
-export default function SearchResultsPage(root, { query, navigate }) {
+export default function SearchResultsPage(root: HTMLElement, { query, navigate }: PageContext) {
   const cleanups = [];
   const lang = getLanguage();
   const { auth, modules } = appStore.get();

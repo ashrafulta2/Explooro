@@ -415,8 +415,8 @@ describe('wiring — every surface reports through the one tracker, once', () =>
     const card = src('components/product/ProductCard.ts');
     assert.match(card, /signalContext\?\.query \? 'SEARCH_CLICK' : 'CLICK'/);
     assert.match(card, /observeImpression\(card, product/);
-    assert.match(src('pages/SearchResultsPage.js'), /signalContext: \{ query: term \}/);
-    assert.match(src('pages/SearchResultsPage.js'), /trackSearch\(/);
+    assert.match(src('pages/SearchResultsPage.ts'), /signalContext: \{ query: term \}/);
+    assert.match(src('pages/SearchResultsPage.ts'), /trackSearch\(/);
     assert.match(src('components/product/ProductGrid.ts'), /signalContext/);
   });
 

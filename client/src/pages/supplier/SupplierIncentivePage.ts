@@ -1,5 +1,5 @@
 /**
- * SupplierIncentivePage.js — A supplier sets the monthly rebate they pay their top-selling shop partners.
+ * SupplierIncentivePage.ts — A supplier sets the monthly rebate they pay their top-selling shop partners.
  *
  * Route: /supplier/incentive  (module: sourcing, read: supplier.analytics.view, write: supplier.incentive.manage)
  *
@@ -18,7 +18,7 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -35,7 +35,7 @@ function tierSummary(tiers) {
   return (tiers || []).map((x) => `${formatCurrency(x.min_volume)} → ${Number(x.rebate_pct)}%`).join('  ·  ');
 }
 
-export default function SupplierIncentivePage(root) {
+export default function SupplierIncentivePage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
 
   const header = el('header', 'supplier-header');
@@ -109,7 +109,7 @@ export default function SupplierIncentivePage(root) {
 
   function editorCard() {
     const card = section(t('incentive.tiers_title'));
-    const form = el('form', 'incentive-form');
+    const form = el('form', 'incentive-form') as HTMLFormElement;
     form.noValidate = true;
 
     form.append(

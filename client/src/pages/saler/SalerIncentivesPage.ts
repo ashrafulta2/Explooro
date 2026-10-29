@@ -1,5 +1,5 @@
 /**
- * SalerIncentivesPage.js — A shop partner's progress towards each supplier's monthly volume rebate.
+ * SalerIncentivesPage.ts — A shop partner's progress towards each supplier's monthly volume rebate.
  *
  * Route: /saler/incentives  (module: sourcing, permission: shop partner.sourcing.view)
  *
@@ -15,7 +15,7 @@ import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -68,7 +68,7 @@ function programCard(program) {
   return card;
 }
 
-export default function SalerIncentivesPage(root) {
+export default function SalerIncentivesPage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
 
   const header = el('header', 'supplier-header');

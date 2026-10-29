@@ -1,5 +1,5 @@
 /**
- * SalerSamplesPage.js — A shop partner orders a paid sample of a supplier's product, and follows it to the door.
+ * SalerSamplesPage.ts — A shop partner orders a paid sample of a supplier's product, and follows it to the door.
  *
  * Route: /saler/samples  (module: sourcing, read: shop partner.sourcing.view, act: shop partner.sample.request)
  *
@@ -19,28 +19,28 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
 
-function textField(labelText, { rows = 0, maxLength, value = '', type = 'text', autocomplete = '' } = {}) {
+function textField(labelText, { rows = 0, maxLength, value = '', type = 'text', autocomplete = '' }: { rows?: number; maxLength?: number; value?: string; type?: string; autocomplete?: string } = {}) {
   const wrap = el('label', 'incentive-field');
   wrap.append(el('span', 'incentive-field__label', labelText));
-  const input = document.createElement(rows ? 'textarea' : 'input');
+  const input = document.createElement(rows ? 'textarea' : 'input') as HTMLInputElement & HTMLTextAreaElement;
   if (rows) input.rows = rows;
   else input.type = type;
   input.className = rows ? 'incentive-input kit-textarea' : 'incentive-input';
   if (maxLength) input.maxLength = maxLength;
-  if (autocomplete) input.autocomplete = autocomplete;
+  if (autocomplete) input.autocomplete = autocomplete as AutoFill;
   input.value = value;
   wrap.append(input);
   return { wrap, input };
 }
 
-export default function SalerSamplesPage(root) {
+export default function SalerSamplesPage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
 
   const header = el('header', 'supplier-header');
@@ -80,7 +80,7 @@ export default function SalerSamplesPage(root) {
   }
 
   function openRequestDialog(offer, trigger) {
-    const form = el('form', 'incentive-form');
+    const form = el('form', 'incentive-form') as HTMLFormElement;
     form.noValidate = true;
     const name = textField(t('sample.ship_name'), { maxLength: 100, autocomplete: 'name' });
     const phone = textField(t('sample.ship_phone'), { maxLength: 20, type: 'tel', autocomplete: 'tel' });

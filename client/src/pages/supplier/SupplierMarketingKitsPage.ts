@@ -1,5 +1,5 @@
 /**
- * SupplierMarketingKitsPage.js — A supplier writes the promotion a shop partner can copy for each product:
+ * SupplierMarketingKitsPage.ts — A supplier writes the promotion a shop partner can copy for each product:
  * captions in both languages, hashtags, selling points and a video link.
  *
  * Route: /supplier/marketing-kits  (module: sourcing, read: supplier.analytics.view, write: supplier.sample.manage)
@@ -17,22 +17,22 @@ import { toast } from '../../services/toast.ts';
 import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
 
-function field(labelText, control, hint) {
+function field(labelText, control, hint?) {
   const wrap = el('label', 'incentive-field');
   wrap.append(el('span', 'incentive-field__label', labelText), control);
   if (hint) wrap.append(el('span', 'incentive-card__note', hint));
   return wrap;
 }
 
-function textInput(value, { rows = 0, placeholder = '', maxLength } = {}) {
-  const node = document.createElement(rows ? 'textarea' : 'input');
+function textInput(value, { rows = 0, placeholder = '', maxLength }: { rows?: number; placeholder?: string; maxLength?: number } = {}) {
+  const node = document.createElement(rows ? 'textarea' : 'input') as HTMLInputElement & HTMLTextAreaElement;
   if (rows) node.rows = rows;
   else node.type = 'text';
   node.className = rows ? 'incentive-input kit-textarea' : 'incentive-input';
@@ -47,7 +47,7 @@ export function splitEntries(value, separator) {
   return String(value || '').split(separator).map((s) => s.trim()).filter(Boolean);
 }
 
-export default function SupplierMarketingKitsPage(root) {
+export default function SupplierMarketingKitsPage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
 
   const header = el('header', 'supplier-header');
@@ -74,7 +74,7 @@ export default function SupplierMarketingKitsPage(root) {
   }
 
   function productForm(p) {
-    const form = el('form', 'incentive-form');
+    const form = el('form', 'incentive-form') as HTMLFormElement;
     form.noValidate = true;
 
     const rules = view.rules;

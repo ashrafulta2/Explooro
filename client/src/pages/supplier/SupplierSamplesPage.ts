@@ -1,5 +1,5 @@
 /**
- * SupplierSamplesPage.js — A supplier sets which products they will send as a paid sample, and answers
+ * SupplierSamplesPage.ts — A supplier sets which products they will send as a paid sample, and answers
  * the shop partners who ask for one.
  *
  * Route: /supplier/samples  (module: sourcing, read: supplier.analytics.view, write: supplier.sample.manage)
@@ -20,7 +20,7 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -48,7 +48,7 @@ function numberInput(value, { min, max, step = '0.01', label }) {
   return { wrap, input };
 }
 
-export default function SupplierSamplesPage(root) {
+export default function SupplierSamplesPage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
 
   const header = el('header', 'supplier-header');
@@ -69,7 +69,7 @@ export default function SupplierSamplesPage(root) {
     render();
   }
 
-  async function respond(row, action, extra) {
+  async function respond(row, action, extra?) {
     try {
       await sampleKitApi.respond(row.id, action, extra);
       await load();

@@ -270,7 +270,7 @@ route you are on, and clicking it lists and highlights each violation.
 streak curve and leaderboard), `client/src/mocks/handlers/referral.js` (programme rules, fraud
 controls, flagged queue).
 
-**Auth** — `LoginPage.js`, `OtpPage.js`, `TwoFactorPage.js` (role-aware landing).
+**Auth** — `LoginPage.js`, `OtpPage.ts`, `TwoFactorPage.ts` (role-aware landing).
 
 **Admin pages** — 30 of the 41 files under `client/src/pages/admin/`, 3 under `pages/moderator/`, 7 under
 `pages/editor/`, plus `components/moderation/ReviewCard.ts`.

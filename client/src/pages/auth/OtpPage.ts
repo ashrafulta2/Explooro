@@ -1,5 +1,5 @@
 /**
- * OtpPage.js — 6-digit OTP verification screen (Prompt 2.8).
+ * OtpPage.ts — 6-digit OTP verification screen (Prompt 2.8).
  *
  * Implements Prompt 2.8 Requirement 1:
  * - 6-digit OTP input with seamless auto-advance, backspace handling, and clean clipboard paste.
@@ -12,9 +12,10 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.ts';
+import type { PageContext } from '../types.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
 
-export default function OtpPage(container, { query = {}, navigate }) {
+export default function OtpPage(container, { query = {}, navigate }: PageContext) {
   container.replaceChildren();
 
   const phone = query.phone ? decodeURIComponent(query.phone) : '';
@@ -101,7 +102,7 @@ export default function OtpPage(container, { query = {}, navigate }) {
 
     box.addEventListener('paste', (e) => {
       e.preventDefault();
-      const pasted = (e.clipboardData || window.clipboardData).getData('text');
+      const pasted = (e.clipboardData || (window as unknown as { clipboardData?: DataTransfer }).clipboardData).getData('text');
       const digits = pasted.replace(/[^0-9]/g, '').slice(0, 6);
       if (!digits) return;
 

@@ -1,5 +1,5 @@
 /**
- * SupplierReturnProtectionPage.js — A supplier opts in to protect shop partners' commission against returns.
+ * SupplierReturnProtectionPage.ts — A supplier opts in to protect shop partners' commission against returns.
  *
  * Route: /supplier/return-protection  (module: sourcing, read: supplier.analytics.view, act: supplier.return_protection.manage)
  *
@@ -17,7 +17,7 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -30,7 +30,7 @@ function stat(value, label) {
   return box;
 }
 
-export default function SupplierReturnProtectionPage(root) {
+export default function SupplierReturnProtectionPage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
   const header = el('header', 'supplier-header');
   header.append(el('h1', '', t('rprot.supplier_title')), el('p', 'supplier-header__sub', t('rprot.supplier_subtitle')));

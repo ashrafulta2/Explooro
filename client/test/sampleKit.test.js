@@ -9,7 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { pickCaption } from '../src/components/sampleKit/MarketingKitCard.ts';
 import { filterKits } from '../src/pages/saler/SalerMarketingKitsPage.ts';
-import { splitEntries } from '../src/pages/supplier/SupplierMarketingKitsPage.js';
+import { splitEntries } from '../src/pages/supplier/SupplierMarketingKitsPage.ts';
 import en from '../src/locales/en.json' with { type: 'json' };
 import bn from '../src/locales/bn.json' with { type: 'json' };
 
