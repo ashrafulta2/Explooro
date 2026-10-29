@@ -18,7 +18,7 @@ import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatNumber } from '../../services/format.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 import type { PageContext } from '../types.ts';
 
 export default function WarehousesPage(root: HTMLElement, { navigate }: PageContext = {}) {

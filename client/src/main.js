@@ -2186,13 +2186,13 @@ if (routerOutlet) {
 // Prompt 1.9: Dev-only in-page accessibility auditor and floating badge.
 // import.meta.env.DEV is a compile-time constant dead-code-eliminated in production builds.
 if (import.meta.env.DEV) {
-  import('./dev/a11y-audit.js').then(({ initA11yAudit }) => {
+  import('./dev/a11y-audit.ts').then(({ initA11yAudit }) => {
     initA11yAudit();
   });
 }
 
 // Prompt 11.6: PWA, Service Worker, Offline Resilience & Install Prompt
-import { registerServiceWorker } from './sw.js';
+import { registerServiceWorker } from './sw.ts';
 import { initOfflineBanner } from './services/offlineQueue.ts';
 import { initPwaInstallPrompt } from './components/pwa/PwaInstallPrompt.ts';
 

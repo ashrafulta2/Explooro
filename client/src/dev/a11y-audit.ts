@@ -1,5 +1,5 @@
 /**
- * a11y-audit.js — In-Page Accessibility Auditor & Floating Dev Badge (Prompt 1.9).
+ * a11y-audit.ts — In-Page Accessibility Auditor & Floating Dev Badge (Prompt 1.9).
  *
  * Scans the live DOM for 7 core accessibility rules without any external dependencies:
  *  1. Images without alt attribute.
@@ -234,7 +234,7 @@ export function runA11yAudit(root = document.body) {
   });
 
   // 5. Buttons without accessible names
-  const buttons = root.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]');
+  const buttons = root.querySelectorAll<HTMLButtonElement>('button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"]');
   buttons.forEach((btn) => {
     if (btn.closest('.a11y-badge-root') || !isElementVisible(btn)) return;
     const hasText = (btn.innerText || btn.textContent || '').trim().length > 0;
@@ -276,7 +276,7 @@ export function runA11yAudit(root = document.body) {
   });
 
   // 7. Contrast AA Compliance (Normal text ≥ 4.5:1, Large text ≥ 3.0:1)
-  const textElements = root.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th, dt, dd, button, input');
+  const textElements = root.querySelectorAll<HTMLInputElement>('p, h1, h2, h3, h4, h5, h6, span, a, label, li, td, th, dt, dd, button, input');
   textElements.forEach((el) => {
     if (el.closest('.a11y-badge-root') || !isElementVisible(el)) return;
     if (el.disabled || el.getAttribute('aria-disabled') === 'true') return; // WCAG exempts disabled controls
@@ -495,7 +495,7 @@ export function initA11yAudit() {
   // Watch DOM mutations to auto-rescan
   observer = new MutationObserver((mutations) => {
     const isInternal = mutations.some((m) =>
-      m.target.closest ? m.target.closest('.a11y-badge-root') : false
+      (m.target as Element).closest ? (m.target as Element).closest('.a11y-badge-root') : false
     );
     if (!isInternal) {
       scheduleAudit();

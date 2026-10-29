@@ -19,7 +19,7 @@ import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 
 const STATUS_BADGE = {
   ACTIVE: 'system-table__badge--info',

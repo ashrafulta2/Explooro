@@ -21,7 +21,7 @@ import { formatCurrency, formatDate } from '../../services/format.ts';
 import { listB2bDeals, releaseMilestone } from '../../services/b2bEscrow.api.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { trackStyleLoad } from '../../core/styleGate.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 import type { PageContext } from '../types.ts';
 
 // WHY dynamic: Vite splits this into the route's CSS chunk (keeping it out of the entry bundle's

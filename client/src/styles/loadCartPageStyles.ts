@@ -1,7 +1,7 @@
 /**
  * loadCartPageStyles.ts — dynamically loads cart-page.css for the /cart page.
  *
- * Same pattern as loadSystemHealthStyles.js: keeps the bytes out of main.css (70KB gzip budget)
+ * Same pattern as loadSystemHealthStyles.ts: keeps the bytes out of main.css (70KB gzip budget)
  * and avoids a static .css import in a page module, which Node's test runner cannot load.
  */
 

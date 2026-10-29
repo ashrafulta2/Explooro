@@ -23,7 +23,7 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatDate, formatNumber } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 import type { PageContext } from '../types.ts';
 
 const STATUS_TABS = ['LOCKED', 'FROZEN', 'RELEASED', 'ALL'];

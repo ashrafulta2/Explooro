@@ -1,5 +1,5 @@
 /**
- * loadSystemHealthStyles.js — dynamically loads system-health.css for SystemHealthPage and the
+ * loadSystemHealthStyles.ts — dynamically loads system-health.css for SystemHealthPage and the
  * admin governance pages that borrow its `.system-table` / `.system-panel` / `.system-infra-card`.
  *
  * Same pattern as loadCategoriesStyles.ts: keeps the bytes out of main.css (70KB gzip budget) and
@@ -9,9 +9,9 @@
 
 import { trackStyleLoad } from '../core/styleGate.ts';
 
-let stylesPromise = null;
+let stylesPromise: Promise<unknown> | null = null;
 
-export function loadSystemHealthStyles() {
+export function loadSystemHealthStyles(): Promise<unknown> {
   if (!stylesPromise) {
     stylesPromise = trackStyleLoad(
       import('./components/system-health.css').catch(() => {

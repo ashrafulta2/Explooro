@@ -63,7 +63,7 @@
      customer-coupons.css CouponsPage, CouponCard
      team-purchases.css   TeamPurchasePage
      customer-reviews.css ReviewsPage, CustomerReviewCard, PendingReviewCard, WriteReviewModal
-     system-health.css    via styles/loadSystemHealthStyles.js — SystemHealthPage + the 13 admin
+     system-health.css    via styles/loadSystemHealthStyles.ts — SystemHealthPage + the 13 admin
                           pages that borrow .system-table / .system-panel / .system-infra-card
                           (dynamic, because node:test imports those pages and can't load .css)
    WHY: returns.css was shipping twice (here AND in ReturnsPage's chunk), and the entry CSS was

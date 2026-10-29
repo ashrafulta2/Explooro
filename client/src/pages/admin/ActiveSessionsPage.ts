@@ -16,7 +16,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 import type { PageContext } from '../types.ts';
 
 export default function ActiveSessionsPage(root: HTMLElement, { navigate }: PageContext = {}) {

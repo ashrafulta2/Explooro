@@ -13,7 +13,7 @@ The core web vitals and quality metrics are measured against production builds o
 | Metric | Target | Verification Method |
 | :--- | :--- | :--- |
 | **Performance** | **≥ 95** | Chrome DevTools Lighthouse / Core Web Vitals (FCP < 1.0s, LCP < 1.8s, CLS < 0.05, TBT < 150ms) |
-| **Accessibility (A11y)** | **100** | Lighthouse A11y 100/100 + `a11y-audit.js` in-page scanner 0 violations |
+| **Accessibility (A11y)** | **100** | Lighthouse A11y 100/100 + `a11y-audit.ts` in-page scanner 0 violations |
 | **Best Practices** | **≥ 95** | Modern Web Standards, HTTPS, safe targets, zero console errors |
 | **SEO** | **≥ 95** | Semantic HTML5, canonical metadata, OpenGraph tags, JSON-LD structured data |
 
@@ -41,7 +41,7 @@ Every component, surface, or page created must be evaluated against these 12 req
 - [ ] Large text (≥ 18pt / 24px regular, or ≥ 14pt / 18.66px bold) achieves **≥ 3.0:1** contrast ratio.
 - [ ] UI components and graphical objects (borders, icons, status dots) maintain **≥ 3.0:1** contrast against adjacent surfaces.
 - [ ] Contrast compliance is verified under **both** `:root` (light) and `data-theme="dark"` (dark) modes.
-- [ ] Verified via `a11y-audit.js` and `/dev/gallery` contrast inspector panel.
+- [ ] Verified via `a11y-audit.ts` and `/dev/gallery` contrast inspector panel.
 
 ### 4. 📱 44px Minimum Touch Targets
 - [ ] Every tappable element (buttons, icon triggers, tabs, pagination links, checkboxes, switches) has a touch bounding box of at least **44×44px** under coarse pointer / mobile viewports.

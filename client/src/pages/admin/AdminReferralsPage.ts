@@ -20,7 +20,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { toast } from '../../services/toast.ts';
 import { getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 
 // WHY these are read-only: the engine always applies them (referral.service.ts recordReferralAttribution).
 // Only the daily velocity cap is a number an admin can change, so only that is a form field.

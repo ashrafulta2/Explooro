@@ -52,24 +52,24 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     );
   });
 
-  await t.test('4. a11y-audit.js source code includes WCAG 1.4.3 logotype exemption', () => {
-    const auditPath = path.join(clientRoot, 'src', 'dev', 'a11y-audit.js');
+  await t.test('4. a11y-audit.ts source code includes WCAG 1.4.3 logotype exemption', () => {
+    const auditPath = path.join(clientRoot, 'src', 'dev', 'a11y-audit.ts');
     const content = fs.readFileSync(auditPath, 'utf8');
 
     assert.match(
       content,
       /WCAG 1\.4\.3/,
-      'a11y-audit.js must cite WCAG 1.4.3 logotype exemption'
+      'a11y-audit.ts must cite WCAG 1.4.3 logotype exemption'
     );
     assert.match(
       content,
       /\.topbar__brand/,
-      'a11y-audit.js must exempt .topbar__brand from text contrast check'
+      'a11y-audit.ts must exempt .topbar__brand from text contrast check'
     );
     assert.match(
       content,
       /extractGradientColors/,
-      'a11y-audit.js must inspect gradient background colors'
+      'a11y-audit.ts must inspect gradient background colors'
     );
   });
 

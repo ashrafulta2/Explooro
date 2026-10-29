@@ -18,7 +18,7 @@ wrong, and which invariant now protects it.** Read §5 before adding a new admin
 | **Routing** | Every `navItems` path diffed against every registered route in `main.js` — permission key, module key, `requiresAuth`, and which page module each actually loads |
 | **Access control** | Every permission key used by nav or routes validated against `docs/permission-catalog.json`; every module key validated against `server/src/config/modules.seed.json` |
 | **Functionality** | Live crawl: does the page render, does it throw, is every button/select/checkbox wired to a handler (measured by instrumenting `addEventListener` *and* the `onclick`-property assignment both patterns in this codebase use) |
-| **Design** | The in-app auditor at `client/src/dev/a11y-audit.js` (contrast, duplicate ids, unlabelled controls) run against `#page-outlet` on every route, plus computed-style inspection of every failure |
+| **Design** | The in-app auditor at `client/src/dev/a11y-audit.ts` (contrast, duplicate ids, unlabelled controls) run against `#page-outlet` on every route, plus computed-style inspection of every failure |
 | **i18n** | `en.json` ↔ `bn.json` key parity, plus the engine's DEV `console.warn` for missing keys captured across every route in both languages |
 | **Ease of use** | Sidebar items that open the wrong page, duplicate items opening identical views, post-login landing, browser tab titles |
 
@@ -61,7 +61,7 @@ Flutter app, and non-admin roles beyond the pages the admin sidebar links into.
 | :-- | :--- | :--- | :--- |
 | C1 | The KYC "Reviewer Compliance Checklist" rendered **pre-ticked** with no handler, and "Approve Verification (Blue-Tick)" stayed enabled regardless | A reviewer could grant a merchant a trust badge without opening a document, and the UI still showed three ticks implying they had attested to the NID match, the face match and the trade licence. **A pre-ticked attestation manufactures a record of a check nobody performed** | Boxes start empty, reset when the reviewer switches applicant, and Approve is disabled until all three are ticked (plus a guard inside the handler). Reject is deliberately *not* gated — refusing a submission you have not fully verified is always allowed |
 | C2 | `main.js` filtered stub routes through a hand-maintained chain of ~150 `item.path !== '/…'` comparisons that every new page had to be added to. Three pages (`/admin/verification`, `/admin/catalog/moderation`, `/admin/disputes`) shipped without their line | Each quietly registered a duplicate stub route alongside the real one — harmless only because the real entry happened to sort first | The stub set is now **derived**: `navItems.filter((item) => !implementedPaths.has(item.path))`. The class of drift is gone, and ~150 lines with it |
-| C3 | `client/src/dev/a11y-audit.js` accepted only a background layer with `alpha > 0.8`, **discarding** translucent layers instead of blending through them | An ordinary 75%-opaque scrim was skipped and its white text compared against the near-white page canvas, reporting 1.06:1 for text the browser renders at ~13:1. The auditor manufactured failures on correct markup — which teaches people to distrust its output | Proper "over" compositing down the layer stack |
+| C3 | `client/src/dev/a11y-audit.ts` accepted only a background layer with `alpha > 0.8`, **discarding** translucent layers instead of blending through them | An ordinary 75%-opaque scrim was skipped and its white text compared against the near-white page canvas, reporting 1.06:1 for text the browser renders at ~13:1. The auditor manufactured failures on correct markup — which teaches people to distrust its output | Proper "over" compositing down the layer stack |
 
 ### 2.5 Ease of use
 
@@ -238,7 +238,7 @@ Live checks — start the dev server, sign in as `+8801700000001`, then in the b
 
 ```js
 // Walk every admin route without a full reload and collect what broke.
-const mod = await import('/src/dev/a11y-audit.js');
+const mod = await import('/src/dev/a11y-audit.ts');
 const miss = new Set();
 const ow = console.warn;
 console.warn = (...a) => { const m = a.join(' ').match(/missing key "([^"]+)"/); if (m) miss.add(m[1]); ow(...a); };
@@ -277,7 +277,7 @@ controls, flagged queue).
 
 **Styles** — `admin-pages.css`, `admin-users.css`, `catalog-products.css`, `system-health.css`.
 
-**Tooling** — `client/src/dev/a11y-audit.js` (alpha compositing).
+**Tooling** — `client/src/dev/a11y-audit.ts` (alpha compositing).
 
 **Locales** — `en.json` / `bn.json`: 65 keys added (3932 -> 3997), parity maintained at 3997 keys each.
 

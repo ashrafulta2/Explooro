@@ -17,7 +17,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 import { scheduleLabel } from './jobSchedule.ts';
 import type { PageContext } from '../types.ts';
 

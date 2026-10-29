@@ -1,12 +1,12 @@
 /**
- * sw.js — Progressive Web Application Service Worker (Prompt 11.6 / Master Spec §L1).
+ * sw.ts — Progressive Web Application Service Worker (Prompt 11.6 / Master Spec §L1).
  *
  * Source copy corresponding to client/public/sw.js.
  */
 
 export const SW_VERSION = 'explooro-v1.1.0';
 
-export function registerServiceWorker() {
+export function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
     return Promise.resolve(null);
   }

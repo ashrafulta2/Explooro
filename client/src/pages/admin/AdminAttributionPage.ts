@@ -22,7 +22,7 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber, formatRelativeTime } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
-import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 
 const MIN_REASON_LENGTH = 10;
 
