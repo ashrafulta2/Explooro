@@ -163,7 +163,7 @@ describe('admin: the attribution window (/admin/growth/attribution)', () => {
     assert.match(routes, /preHandler: \[app\.authenticate, requireKit, app\.requirePermission\('growth\.attribution\.view'\)\]/);
     assert.match(routes, /preHandler: \[app\.authenticate, requireKit, app\.requirePermission\('growth\.attribution\.update'\)\]/);
     assert.match(routes, /requireModule\('social_seller_kit'\)/);
-    const nav = fs.readFileSync(path.resolve(__dirname, '../../client/src/config/navigation.js'), 'utf8');
+    const nav = fs.readFileSync(path.resolve(__dirname, '../../client/src/config/navigation.ts'), 'utf8');
     assert.match(nav, /path: '\/admin\/growth\/attribution', group: 'admin\.growth', permission: 'growth\.attribution\.view', module: 'social_seller_kit'/);
     const catalog = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../docs/permission-catalog.json'), 'utf8'));
     const update = catalog.permissions.find((p) => p.key === 'growth.attribution.update');

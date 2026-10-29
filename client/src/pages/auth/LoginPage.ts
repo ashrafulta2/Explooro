@@ -12,7 +12,7 @@ import { loginWithPassword, sendOtp } from '../../services/session.ts';
 import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
-import { homePathForRoles } from '../../config/navigation.js';
+import { homePathForRoles } from '../../config/navigation.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
 import type { PageContext } from '../types.ts';

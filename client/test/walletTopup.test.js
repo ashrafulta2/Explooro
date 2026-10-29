@@ -42,7 +42,7 @@ describe('top-up strings and wiring', () => {
   });
 
   it('the nav items equal the route guard, for every account type', () => {
-    const nav = read('../src/config/navigation.js');
+    const nav = read('../src/config/navigation.ts');
     for (const role of ['customer', 'saler', 'supplier']) {
       assert.match(nav, new RegExp(`path: '/wallet/top-up', group: '[a-z.]+', permission: 'finance\\.wallet\\.topup', module: 'core', roles: \\['${role}'\\]`), role);
     }

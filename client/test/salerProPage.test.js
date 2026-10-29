@@ -34,7 +34,7 @@ describe('guards', () => {
     assert.match(route, new RegExp(`permission: '${PERMISSION.replace(/\./g, '\\.')}'`));
     assert.match(route, /module: 'subscription_fees'/);
 
-    const nav = read('config/navigation.js');
+    const nav = read('config/navigation.ts');
     const entry = nav.split('\n').find((l) => l.includes("key: 'saler.pro'"));
     assert.ok(entry, 'nav entry missing');
     assert.ok(entry.includes(`permission: '${PERMISSION}'`));

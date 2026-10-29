@@ -1,5 +1,5 @@
 /**
- * AdminAdReviewPage.js — the ad review queue (/admin/growth/ad-review).
+ * AdminAdReviewPage.ts — the ad review queue (/admin/growth/ad-review).
  *
  * Every ad whose format asks for review (Boost included) waits here in PENDING_REVIEW until someone
  * with `growth.ad.review` approves or rejects it. Before this page the API existed but nothing in the
@@ -21,7 +21,7 @@ import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 const REASON_MIN = 3;
 const REASON_MAX = 500;
 
-function el(tag, className, text) {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string | null): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text != null) node.textContent = text;
@@ -34,7 +34,7 @@ function safeImageUrl(url) {
   return typeof url === 'string' && /^(https?:\/\/|\/)/i.test(url) ? url : null;
 }
 
-export default function AdminAdReviewPage(root) {
+export default function AdminAdReviewPage(root: HTMLElement) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const tr = (en, bn) => (isBn ? bn : en);

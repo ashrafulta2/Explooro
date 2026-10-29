@@ -26,7 +26,7 @@
    (search), and a deep link (share/bookmark). Nothing is reachable only by clicking through
    another page.
 5. **Depth limit: 3 levels.** `Group → Page → Detail`. A fourth level means the grouping is wrong.
-6. **Nav config is data, not markup.** `client/src/config/navigation.js` is an array of objects.
+6. **Nav config is data, not markup.** `client/src/config/navigation.ts` is an array of objects.
    Adding a feature later means adding one object, never editing a component.
 7. **Preserve sidebar scroll position across chrome re-renders.** `AppShell.ts` rebuilds the sidebar
    DOM on route changes, state changes, and language switches. The container's `scrollTop` must be
@@ -250,7 +250,7 @@ without both is a defect that Prompt 1.5's router guard must reject at registrat
 
 ## 2. Navigation Groups Per Role
 
-Rendered from `client/src/config/navigation.js`. Each entry:
+Rendered from `client/src/config/navigation.ts`. Each entry:
 
 ```js
 { key, labelKey, icon, path, group, permission, module, roles: [], order, simpleMode: bool }
@@ -518,7 +518,7 @@ returning-empty copy is status-framed**; both languages, written natively.
 
 ## 8. Implementation Checklist for Prompt 1.7
 
-- [ ] `navigation.js` is pure data — no markup, no conditionals in the component
+- [ ] `navigation.ts` is pure data — no markup, no conditionals in the component
 - [ ] All 6 role trees render correctly when the mocked role changes
 - [ ] `Ctrl+K` palette: fuzzy search, permission-filtered, keyboard-complete, < 50ms first paint
 - [ ] Locked items **visible with lock + Request Access**; module-disabled items **hidden**

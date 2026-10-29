@@ -26,7 +26,7 @@ test('Admin Governance Pages & Modules Integrity', async (t) => {
       '../src/pages/admin/AdminB2bEscrowPage.ts',
       '../src/pages/admin/AdminAdsPage.ts',
       '../src/pages/admin/AdminAdPricingPage.ts',
-      '../src/pages/admin/AdminAdReviewPage.js',
+      '../src/pages/admin/AdminAdReviewPage.ts',
       '../src/pages/admin/AdminQuestsPage.ts',
       '../src/pages/admin/AdminGroupBuyPage.ts',
       '../src/pages/admin/AdminLiveCommercePage.ts',

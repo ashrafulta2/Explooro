@@ -51,7 +51,7 @@ explooro/
 │       │   ├── store.ts         Pub/sub state, ~80 lines, no library
 │       │   └── api.ts           fetch wrapper; VITE_API_MODE=mock|live switch
 │       ├── config/
-│       │   └── navigation.js    Nav tree as DATA. Add a feature = add one object
+│       │   └── navigation.ts    Nav tree as DATA. Add a feature = add one object
 │       ├── styles/
 │       │   ├── tokens.css       Spacing, radius, motion, z-index, type scale
 │       │   ├── themes.css       GENERATED (scripts/palette.mjs --write). Ramps + semantic
@@ -206,11 +206,11 @@ The 35 most likely change requests, with exact paths.
 
 | I want to… | Change |
 | :--- | :--- |
-| Add a page | `pages/<role>/<Name>Page.js` → register in `core/router.ts` → add to `config/navigation.js` with its `permission` + `module` |
+| Add a page | `pages/<role>/<Name>Page.js` → register in `core/router.ts` → add to `config/navigation.ts` with its `permission` + `module` |
 | Change what an ad format costs | **Configuration, not code** — `/admin/growth/ad-pricing` edits the `ad_products.rate_card` JSONB behind `growth.ad.govern` (HIGH risk, delegable, so it can be handed to one staff member). Never a constant: `services/adPricing.ts` only ever reads a stored rate card |
 | Add a new kind of ad the platform sells | One `ad_products` row (see the seed block in `server/src/db/migrations/041_ad_marketplace.sql`). If it prices like one of the five existing models (CPC, CPM, FLAT_DAILY, FLAT_SLOT, CPS) that is the whole change — the shop partner's Ad Store, the wizard's fields and the quote engine all branch on `pricing_model`. A genuinely new *model* is the only case that touches `services/adPricing.ts` |
 | Fix an ad price that looks wrong | `server/src/services/adPricing.ts` — every ad price the platform quotes, charges or displays is computed there and nowhere else. `server/test/adPricing.test.js` states the invariants |
-| Add a nav item | `client/src/config/navigation.js` — one object. Never edit `Sidebar.ts` |
+| Add a nav item | `client/src/config/navigation.ts` — one object. Never edit `Sidebar.ts` |
 | Hide a page from users, or release it to one of them | **Configuration, not code** — **/admin/platform/pages** (`platform.page.view` / `.toggle`, CRITICAL so super admin only). Four states per route: Live / Coming soon (nav badge + placeholder) / Hidden (no nav item, URL 404s) / Limited (live only for listed roles and user ids). It is a layer BESIDE the module system, not above it: a module answers "does the feature work", a page toggle answers "may this viewer see it", and the 101 `module: 'core'` routes have no module to switch. `/`, `/login` and the page itself are locked on. One resolver — `client/src/services/pageAccess.ts` — serves the router, the sidebar and the command palette; never re-implement the states. On the server the same states are enforced for the **56 endpoints that belong to exactly one page**: that route declares `config: { page: '/its/path' }` and the `onRoute` hook in `server/src/middlewares/requirePage.ts` appends the guard, which answers `403 PAGE_UNAVAILABLE`. An endpoint two pages share cannot be refused (the other page may be Live), so for those the toggle stays visibility-only |
 | Add a UI component | `components/ui/` + register in `pages/dev/gallery-registry.js` **in the same change** |
 | Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.ts` → validation in `profile.service.ts` → a control in `client/src/pages/settings/ProfilePage.ts` → the same key in `mocks/handlers/me.ts`. Never add a writable column without adding it to BOTH whitelists |

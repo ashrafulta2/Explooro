@@ -51,7 +51,7 @@ export interface AppState {
 }
 
 // One MEDIUM/HIGH (delegable — shows "Request access") and one CRITICAL (not delegable — no
-// affordance) withheld permission per role that actually appears in navigation.js, so both
+// affordance) withheld permission per role that actually appears in navigation.ts, so both
 // locked-state branches in ia-sitemap.md §5.1 are visible without an all-or-nothing demo.
 //
 // Only super_admin, moderator, and editor get one: every Supplier/Shop Partner/Customer nav item checked
@@ -69,7 +69,7 @@ const DEMO_WITHHELD: Record<string, string[]> = {
   customer: [],
 };
 
-// Every module key navigation.js references, enabled by default. Two are OFF so the "module
+// Every module key navigation.ts references, enabled by default. Two are OFF so the "module
 // disabled -> hidden entirely" branch of ia-sitemap.md §5.1 (distinct from the locked-but-visible
 // branch above) is also demonstrated live, per Prompt 1.7 ACCEPTANCE.
 const DEMO_MODULES = {
@@ -118,8 +118,8 @@ const DEMO_MODULES = {
   community_posts: true,
   cart_recovery: true,
   // Prompt 4.6: gates the "1-Click Quick Buy" CTA on ProductDetailPage.ts. Not referenced by any
-  // navigation.js item (it's a product-detail affordance, not a nav entry) — added here anyway so
-  // the comment above ("every module key navigation.js references") is now slightly stale for this
+  // navigation.ts item (it's a product-detail affordance, not a nav entry) — added here anyway so
+  // the comment above ("every module key navigation.ts references") is now slightly stale for this
   // one key; every OTHER key in this object still is.
   quick_buy: true,
   // WHY: Prompt 7.5's KYC routes (/admin/verification, /admin/users/verification, /moderator/kyc,

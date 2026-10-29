@@ -12,7 +12,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { ROLE_BANDS, FULL_BAND_ROLES, SLIDE_TONES } from '../src/components/home/homeBands.ts';
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 import { formatStat, percentShares, BOARD_VIEWS } from '../src/components/home/RoleBand.ts';
 import { MOCK_HOME_STATS, MOCK_HOME_INSIGHTS } from '../src/mocks/handlers/homeSummary.ts';
 

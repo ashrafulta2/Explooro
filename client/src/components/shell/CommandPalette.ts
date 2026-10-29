@@ -2,7 +2,7 @@
  * CommandPalette — Ctrl/Cmd+K, ia-sitemap.md §3. "Mandatory": with ~115 nav items across 6 roles,
  * tree navigation alone is not discoverable.
  *
- * Scope note: routes only (fuzzy search over navigation.js, permission/module filtered, recent
+ * Scope note: routes only (fuzzy search over navigation.ts, permission/module filtered, recent
  * items via localStorage). §3's "quick actions" (Create product, Toggle a module, …) and entity
  * search (order ID, SKU) need real handlers/data that don't exist before Phase 2–4 — a palette
  * entry that does nothing when pressed is worse than not having it, so both are left for the
@@ -13,7 +13,7 @@
  * layout (search input pinned to the top, a scrolling result list, no footer) doesn't fit Modal's
  * title/body/footer shape.
  */
-import { navItems, navGroups } from '../../config/navigation.js';
+import { navItems, navGroups } from '../../config/navigation.ts';
 import { MASTER_PRESETS } from '../../config/master-themes.ts';
 import { switchThemePreset, PRESET_SWITCH_PERMISSION } from '../../services/themePalette.ts';
 import { can } from '../../services/permissions.ts';

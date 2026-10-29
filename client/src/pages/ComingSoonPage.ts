@@ -10,7 +10,7 @@
  * This one stands in for a page that is built and deliberately not released yet, so it never
  * offers the dev shell as an escape hatch — it sends the user back where they came from.
  */
-import { navItems } from '../config/navigation.js';
+import { navItems } from '../config/navigation.ts';
 import { t } from '../services/i18n.ts';
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';

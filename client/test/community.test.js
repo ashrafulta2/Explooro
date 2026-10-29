@@ -21,7 +21,7 @@ import { appStore, setMockRole, logOutMock } from '../src/state/appStore.ts';
 import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.ts';
 import { checkNewFile } from '../src/components/community/MediaPicker.ts';
 import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.ts';
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 
 const src = path.resolve(import.meta.dirname, '../src');
 const read = (...p) => fs.readFileSync(path.join(src, ...p), 'utf8');

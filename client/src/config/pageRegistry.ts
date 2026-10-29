@@ -2,17 +2,17 @@
  * pageRegistry.ts — the list of pages /admin/platform/pages can switch on and off.
  *
  * WHY registered at runtime instead of hand-listed here: the route table lives inside main.js's
- * async bootstrap (224 routes as of this writing, derived partly from navigation.js), and a second
+ * async bootstrap (224 routes as of this writing, derived partly from navigation.ts), and a second
  * hand-maintained copy of it is a copy that goes stale the first time someone adds a page and
  * forgets. main.js calls registerPages() with the exact array it hands core/router.ts, so a new
  * route appears on the Page Availability screen with no extra step — the same reason main.js
- * derives its stub routes from navigation.js rather than listing them.
+ * derives its stub routes from navigation.ts rather than listing them.
  *
- * Labels come from navigation.js where the page has a nav item (so the admin screen, the sidebar
+ * Labels come from navigation.ts where the page has a nav item (so the admin screen, the sidebar
  * and the browser tab all say the same translated thing) and from a humanized path otherwise.
  */
 
-import { navItems } from './navigation.js';
+import { navItems } from './navigation.ts';
 import { t } from '../services/i18n.ts';
 import { normalizePath } from '../services/pageAccess.ts';
 
@@ -100,6 +100,6 @@ export function pageLabel(page: RegisteredPage | null | undefined): string {
   if (!page) return '';
   if (!page.label_i18n_key) return page.fallback_label;
   // t() humanizes an unknown key rather than failing (super-admin-audit §5), so the fallback here
-  // is only reached when the key is genuinely absent from navigation.js.
+  // is only reached when the key is genuinely absent from navigation.ts.
   return t(page.label_i18n_key, page.fallback_label);
 }

@@ -15,7 +15,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 import adminHandlers from '../src/mocks/handlers/admin.js';
 import returnHandlers from '../src/mocks/handlers/returns.ts';
 import moderatorHandlers from '../src/mocks/handlers/moderator.ts';

@@ -1,7 +1,7 @@
 # Super Admin Surface — Audit & Repair Log
 
 **Audit date:** 2026-09-04 · **Scope:** every route reachable from the Super Admin sidebar
-(49 nav paths across 9 groups) · **Method:** static analysis of `navigation.js` / `main.js` /
+(49 nav paths across 9 groups) · **Method:** static analysis of `navigation.ts` / `main.js` /
 `docs/permission-catalog.json` / `server/src/config/modules.seed.json`, plus a live crawl of all 49
 routes in the running dev server as `+8801700000001` (Dev Super Admin), checking render output,
 console errors, the in-app a11y auditor, and the i18n engine's missing-key warnings.
@@ -43,7 +43,7 @@ Flutter app, and non-admin roles beyond the pages the admin sidebar links into.
 | :-- | :--- | :--- | :--- |
 | M1 | **`GET /admin/modules` mock returned 8 hand-written modules** with keys that exist nowhere else in the codebase (`bkash_direct_checkout`, `live_streaming_studio`, `b2b_wholesale_escrow`, `ai_bengali_copywriter`, …) | The Module Control panel — the platform's master feature-flag switchboard — showed **8 of 71** modules, and every toggle wrote a key no route or nav item gates on. The header read "8 of 8 active" while the platform had 71 modules | The mock now derives from `server/src/config/modules.seed.json`, the same registry the server seeds from. Panel shows all 71 with real keys |
 | M2 | `PATCH /admin/modules/:key` echoed the request back without recording it | Switching a module off and reopening the panel showed it back on — the panel looked broken to anyone who checked their own work | Mock persists for the session and cascades to dependants, matching the real service |
-| M3 | `/admin/growth/coins` was gated on the `daily_quests` module | Turning quests off also took the coin-liability screen down; turning `loyalty_coins` off left it reachable | Now `loyalty_coins`, per `modules.seed.json` and `navigation.js` |
+| M3 | `/admin/growth/coins` was gated on the `daily_quests` module | Turning quests off also took the coin-liability screen down; turning `loyalty_coins` off left it reachable | Now `loyalty_coins`, per `modules.seed.json` and `navigation.ts` |
 | M4 | `/admin/finance/escrow`, `/admin/finance/subscriptions` and `/admin/platform/theme` were gated `core` while their nav items named the owning module | "Turn the feature off" never took its own admin surface down | Routes now gated on `escrow_engine`, `subscription_fees`, `theme_studio` |
 | M5 | `/admin/verification` nav said `core`, route said `supplier_verification` | Turning the module off hid nothing, and the visible link then bounced off the route's guard | Nav now `supplier_verification` |
 
@@ -67,8 +67,8 @@ Flutter app, and non-admin roles beyond the pages the admin sidebar links into.
 
 | # | Defect | Fix |
 | :-- | :--- | :--- |
-| U1 | Every auth page defaulted to `/` after sign-in, so a super admin was dropped on the customer marketplace and had to find their own console each session | `ROLE_HOME` + `homePathForRoles()` in `navigation.js`, resolved **after** sign-in when roles are known. An explicit `?redirect=` still wins |
-| U2 | Every admin route carried a hardcoded English `title` string, so the browser tab said "Escrow Holdings & Sweeps — Explooro Admin" over a Bangla page — and a language switch left it frozen in English forever (only a *function* can produce a different string on `router.refresh()`'s second read) | Route titles are derived from `navigation.js`'s translated label for the same path. Routes with no nav entry keep their author's title |
+| U1 | Every auth page defaulted to `/` after sign-in, so a super admin was dropped on the customer marketplace and had to find their own console each session | `ROLE_HOME` + `homePathForRoles()` in `navigation.ts`, resolved **after** sign-in when roles are known. An explicit `?redirect=` still wins |
+| U2 | Every admin route carried a hardcoded English `title` string, so the browser tab said "Escrow Holdings & Sweeps — Explooro Admin" over a Bangla page — and a language switch left it frozen in English forever (only a *function* can produce a different string on `router.refresh()`'s second read) | Route titles are derived from `navigation.ts`'s translated label for the same path. Routes with no nav entry keep their author's title |
 
 ### 2.6 Design & accessibility
 
@@ -231,7 +231,7 @@ These are real and were left open on purpose. Do not assume they were missed.
 Static checks (no server needed):
 
 ```bash
-node -e "const fs=require('fs');const nav=fs.readFileSync('client/src/config/navigation.js','utf8');const main=fs.readFileSync('client/src/main.js','utf8');const re=/\{ key: '([^']+)',[^}]*?path: '(\/admin[^']*)',[^}]*?permission: '([^']*)', module: '([^']+)'/g;let m;while((m=re.exec(nav)))console.log(m[2],m[3],m[4]);"
+node -e "const fs=require('fs');const nav=fs.readFileSync('client/src/config/navigation.ts','utf8');const main=fs.readFileSync('client/src/main.js','utf8');const re=/\{ key: '([^']+)',[^}]*?path: '(\/admin[^']*)',[^}]*?permission: '([^']*)', module: '([^']+)'/g;let m;while((m=re.exec(nav)))console.log(m[2],m[3],m[4]);"
 ```
 
 Live checks — start the dev server, sign in as `+8801700000001`, then in the browser console:
@@ -261,7 +261,7 @@ route you are on, and clicking it lists and highlights each violation.
 ## 7. Files changed
 
 **Routing & config** — `client/src/main.js` (guards, derived stub routes, translated titles),
-`client/src/config/navigation.js` (guard alignment, `ROLE_HOME` / `homePathForRoles`).
+`client/src/config/navigation.ts` (guard alignment, `ROLE_HOME` / `homePathForRoles`).
 
 **New page** — `client/src/pages/admin/AdminReferralsPage.ts`, registered in
 `client/src/pages/dev/gallery-registry.js`.

@@ -1,5 +1,5 @@
 /**
- * Sidebar — the role-aware, grouped nav tree (ia-sitemap.md §2). Renders from `navigation.js`
+ * Sidebar — the role-aware, grouped nav tree (ia-sitemap.md §2). Renders from `navigation.ts`
  * (data), never hand-written per role. A pure render function: AppShell rebuilds it whenever
  * appStore/i18n/router state changes — the tree is small enough (≤49 items for the biggest role)
  * that a full rebuild is simpler and just as fast as fine-grained patching.
@@ -16,7 +16,7 @@
  * guards with, per docs/super-admin-audit.md §5 invariant 1 ("the nav guard must equal the route
  * guard"). Never re-implement the four states here.
  */
-import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } from '../../config/navigation.js';
+import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } from '../../config/navigation.ts';
 import { t } from '../../services/i18n.ts';
 import { resolvePageAccess } from '../../services/pageAccess.ts';
 import { LockedNavItem } from './LockedNavItem.ts';
@@ -32,7 +32,7 @@ export interface NavContext {
   badges: Record<string, number>;
 }
 
-/** One entry of `config/navigation.js`. */
+/** One entry of `config/navigation.ts`. */
 export interface NavItem {
   key: string;
   path: string;

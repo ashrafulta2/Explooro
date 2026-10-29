@@ -5,7 +5,7 @@
  * page now, migrate into the real gallery next prompt). Also the router's `loginPath`: any guarded
  * route hit while logged out lands here instead of a single fixed role's login stub.
  */
-import { NAV_ROLES, navItems } from '../../config/navigation.js';
+import { NAV_ROLES, navItems } from '../../config/navigation.ts';
 import { getRoleMeta } from '../../config/permissions.mock.ts';
 import { setMockRole, logOutMock, appStore } from '../../state/appStore.ts';
 import { t, getLanguage } from '../../services/i18n.ts';

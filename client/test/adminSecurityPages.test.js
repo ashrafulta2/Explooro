@@ -8,7 +8,7 @@ import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import { adminApi } from '../src/services/admin.api.ts';
 import adminHandlers from '../src/mocks/handlers/admin.js';
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 
 describe('Super Admin Security & Disaster Recovery — Client Invariants', () => {
   it('1. Locale integrity — 100% parity for admin_2fa, admin_ip_allowlist, admin_backups', () => {

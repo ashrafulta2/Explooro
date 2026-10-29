@@ -1,12 +1,12 @@
 ﻿/**
- * navigation.js — the nav tree as DATA, per docs/ia-sitemap.md §2 and docs/prompt.md Prompt 1.7
+ * navigation.ts — the nav tree as DATA, per docs/ia-sitemap.md §2 and docs/prompt.md Prompt 1.7
  * REQUIREMENT 1. Sidebar/MobileNav/CommandPalette all render from this file; adding a feature
  * later means adding one object here, never editing a component.
  *
  * Every item's `path`/`permission`/`module` is taken verbatim from ia-sitemap.md's per-role route
  * tables (§1.4–§1.9), which the doc itself states carries an explicit perm+module for every one of
  * its ~120 routes (§1 note). `permission: null` is itself explicit — it means "no permission
- * required", not "unspecified" (core/router.js's registration guard rejects the field being
+ * required", not "unspecified" (core/router.ts's registration guard rejects the field being
  * missing entirely, only accepting an explicit `null`).
  *
  * Field shape (docs/prompt.md Prompt 1.7 REQUIREMENT 1 — note ia-sitemap.md's own illustrative
@@ -35,7 +35,34 @@
  *    a module ON in the first place.
  */
 
-export const navGroups = [
+/** One sidebar group. `role` is the single role a group was first written for; `roles` is who sees it. */
+export interface NavGroup {
+  key: string;
+  role?: string;
+  roles?: string[];
+  icon: string;
+  label_i18n_key: string;
+  order: number;
+}
+
+/** One sidebar item. `permission: null` and `module: 'core'` are explicit, never absent (see the note above). */
+export interface NavItemDef {
+  key: string;
+  label_i18n_key: string;
+  icon: string | null;
+  path: string;
+  group: string;
+  permission: string | null;
+  module: string;
+  roles: string[];
+  order: number;
+  /** Optional single-role form some older entries use; the sidebar accepts either. */
+  role?: string;
+  simpleMode?: boolean;
+  [field: string]: unknown;
+}
+
+export const navGroups: NavGroup[] = [
   // ---- Super Admin & Admin (9 groups, ia-sitemap.md §2.1) ----
   { key: 'admin.overview', role: 'super_admin', roles: ['super_admin', 'admin'], icon: '📊', label_i18n_key: 'nav.group.overview', order: 1 },
   { key: 'admin.users', role: 'super_admin', roles: ['super_admin', 'admin'], icon: '👥', label_i18n_key: 'nav.group.admin.users', order: 2 },
@@ -85,7 +112,7 @@ export const navGroups = [
   { key: 'customer.me', role: 'customer', icon: '👤', label_i18n_key: 'nav.group.customer.me', order: 4 },
 ];
 
-export const navItems = [
+export const navItems: NavItemDef[] = [
   // ================= SUPER ADMIN & ADMIN — 49 items =================
   { key: 'admin.dashboard', label_i18n_key: 'nav.shared.dashboard', icon: null, path: '/admin', group: 'admin.overview', permission: 'admin.dashboard.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.health', label_i18n_key: 'nav.admin.health', icon: null, path: '/admin/health', group: 'admin.overview', permission: 'system.health.view', module: 'core', roles: ['super_admin', 'admin'], order: 2 },
@@ -276,7 +303,7 @@ export const navItems = [
 ];
 
 /** All 7 roles this file has a tree for, in the same order the role switcher (Prompt 1.7 PREVIEW) lists them. */
-export const NAV_ROLES = ['super_admin', 'admin', 'moderator', 'editor', 'supplier', 'saler', 'customer'];
+export const NAV_ROLES: string[] = ['super_admin', 'admin', 'moderator', 'editor', 'supplier', 'saler', 'customer'];
 
 /**
  * Where each role lands when it signs in without an explicit `?redirect=`.
@@ -286,7 +313,7 @@ export const NAV_ROLES = ['super_admin', 'admin', 'moderator', 'editor', 'suppli
  * the work is behind their own console. Customers keep the marketplace as their landing page.
  * Keyed by the role names in NAV_ROLES; anything unknown falls through to '/'.
  */
-export const ROLE_HOME = {
+export const ROLE_HOME: Record<string, string> = {
   super_admin: '/admin',
   admin: '/admin',
   moderator: '/moderator',
@@ -297,7 +324,7 @@ export const ROLE_HOME = {
 };
 
 /** First matching role wins, in NAV_ROLES order (most privileged first). */
-export function homePathForRoles(roles = []) {
+export function homePathForRoles(roles: string[] = []): string {
   const held = new Set(roles);
   for (const role of NAV_ROLES) {
     if (held.has(role) && ROLE_HOME[role]) return ROLE_HOME[role];

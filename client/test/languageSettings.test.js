@@ -22,7 +22,7 @@ import path from 'node:path';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 import { resolveInitialLocale } from '../src/services/i18n.ts';
 import { localizationHandlers } from '../src/mocks/handlers/localization.ts';
 
@@ -95,7 +95,7 @@ test('Language & Default Locale — client invariants', async (t) => {
 
   await t.test('2. Nav guard equals route guard, on both permission and module', () => {
     const navItem = navItems.find((i) => i.path === ROUTE);
-    assert.ok(navItem, `navigation.js registers ${ROUTE}`);
+    assert.ok(navItem, `navigation.ts registers ${ROUTE}`);
     assert.equal(navItem.permission, 'platform.localization.view');
     assert.equal(navItem.module, 'core');
     assert.ok(navItem.roles.includes('super_admin'));

@@ -37,7 +37,7 @@ import { initTheme, dropLocalPreset, PRESET_SWITCH_PERMISSION } from './services
 import { can } from './services/permissions.ts';
 
 // Prompt 1.7 — role-aware shell.
-import { navItems } from './config/navigation.js';
+import { navItems } from './config/navigation.ts';
 import { toast } from './services/toast.ts';
 import { createAppShell } from './components/shell/AppShell.ts';
 
@@ -144,8 +144,8 @@ async function bootRouterDemo() {
 
   const appShell = createAppShell({ container: routerOutlet, navigate });
 
-  // Prompt 1.7: every navigation.js item gets a route, so the sidebar/command-palette/mobile-nav
-  // guards stay real even for features that have no page yet. Anything navigation.js lists that
+  // Prompt 1.7: every navigation.ts item gets a route, so the sidebar/command-palette/mobile-nav
+  // guards stay real even for features that have no page yet. Anything navigation.ts lists that
   // `featureRoutes` below does not already implement falls back to the generic RoleStubPage.
   //
   // WHY derived rather than listed: this used to be a hand-maintained chain of ~150
@@ -393,7 +393,7 @@ async function bootRouterDemo() {
         load: () => import('./pages/admin/SettingsPage.ts'),
       },
       // Language & Default Locale governance. `platform.localization.view` is the read key, the
-      // same one navigation.js gates the sidebar entry with — a route guard looser or stricter
+      // same one navigation.ts gates the sidebar entry with — a route guard looser or stricter
       // than its nav guard is the defect docs/super-admin-audit.md §5 invariant 2 exists to stop.
       {
         path: '/admin/platform/language',
@@ -1103,7 +1103,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.ad.review',
         module: 'sponsored_ads',
-        load: () => import('./pages/admin/AdminAdReviewPage.js'),
+        load: () => import('./pages/admin/AdminAdReviewPage.ts'),
       },
       {
         path: '/admin/growth/quests',
@@ -1127,7 +1127,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.coins.govern',
         // WHY: this said `daily_quests`, so switching the quests module off also took the coin
-        // liability screen down, and switching `loyalty_coins` off left it reachable. navigation.js
+        // liability screen down, and switching `loyalty_coins` off left it reachable. navigation.ts
         // and server/src/config/modules.seed.json both say loyalty_coins owns this route.
         module: 'loyalty_coins',
         load: () => import('./pages/admin/AdminQuestsPage.ts'),
@@ -1840,7 +1840,7 @@ async function bootRouterDemo() {
       },
       // Account settings — the customer sidebar item and the TopBar user menu both point at
       // /account/settings; notification preferences is the only settings surface today, so both
-      // aliases resolve to it (navigation.js's header note calls /account/settings/notifications
+      // aliases resolve to it (navigation.ts's header note calls /account/settings/notifications
       // a real route).
       {
         path: '/account/settings',
@@ -2105,7 +2105,7 @@ async function bootRouterDemo() {
   // WHY: every route above was authored with a hardcoded English `title` string, so the browser
   // tab said "Escrow Holdings & Sweeps — Explooro Admin" while the page itself rendered in Bangla,
   // and switching language left the tab frozen in English forever (router.refresh() re-reads the
-  // title, but only a function can produce a different string on the second read). navigation.js
+  // title, but only a function can produce a different string on the second read). navigation.ts
   // already holds a translated label for each of these paths — reuse it, so the tab, the sidebar
   // item and the page heading all say the same thing in the same language. Routes with no nav
   // entry (product pages, checkout, auth) keep the title their author wrote.

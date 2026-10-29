@@ -21,7 +21,7 @@
  * slide's fill (home-top.css `.home-band__slide--<tone>`): every slide in a role has its own, and no two
  * roles open on the same colour, so an account type is recognisable at a glance.
  *
- * Every `path` is a route in config/navigation.js. A test (homeBands.test.js) checks that and that
+ * Every `path` is a route in config/navigation.ts. A test (homeBands.test.js) checks that and that
  * every label exists in both locales, so a renamed route or a missing translation fails the build.
  */
 
@@ -33,7 +33,7 @@ export type SlideTone = (typeof SLIDE_TONES)[number];
 /** A number from GET /home/summary; the label is `marketplace.top.band.stat.<stat>`. */
 export interface StatRow {
   stat: string;
-  /** A route in config/navigation.js. */
+  /** A route in config/navigation.ts. */
   path: string;
   /** Format the figure as currency. */
   money?: boolean;

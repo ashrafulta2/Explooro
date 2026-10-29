@@ -16,7 +16,7 @@ import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import salerRoutes from '../src/routes/saler.routes.ts';
 import * as salerService from '../src/services/salerDashboard.service.ts';
-import { SIMPLE_MODE_ITEMS, navItems } from '../../client/src/config/navigation.js';
+import { SIMPLE_MODE_ITEMS, navItems } from '../../client/src/config/navigation.ts';
 
 function createMockDb({ queryHandler = null } = {}) {
   return {

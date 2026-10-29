@@ -1,9 +1,9 @@
 /**
- * RoleStubPage — generic placeholder every navigation.js item routes to until its real page is
+ * RoleStubPage — generic placeholder every navigation.ts item routes to until its real page is
  * built (Phases 2–11). Self-looks-up its own nav item by the current path rather than needing the
  * router to thread extra metadata through, so main.js can register all ~115 items with one loop.
  */
-import { navItems } from '../../config/navigation.js';
+import { navItems } from '../../config/navigation.ts';
 import { t } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';

@@ -5,7 +5,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { contentHandlers } from '../src/mocks/handlers/content.ts';
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 
 describe('Editor Portal — Navigation & Routes Invariants', () => {
   it('1. All 7 editor navigation items are registered with valid paths and roles', () => {

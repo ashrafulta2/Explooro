@@ -6,7 +6,7 @@
  * The 5th "More" slot opens a bottom sheet with the full grouped tree — reuses Sidebar's advanced
  * render rather than duplicating the group/lock/badge logic a second time.
  */
-import { MOBILE_TABS } from '../../config/navigation.js';
+import { MOBILE_TABS } from '../../config/navigation.ts';
 import { t } from '../../services/i18n.ts';
 import { Badge } from '../ui/Badge.ts';
 import { Drawer } from '../ui/Drawer.ts';

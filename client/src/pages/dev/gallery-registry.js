@@ -3,7 +3,7 @@
  *
  * RULE FOR ALL FUTURE PROMPTS (Prompt 1.8 REQUIREMENT 4): any component created in Phases 2–11
  * must register itself here in the same commit — one more object in `galleryEntries`, same
- * pattern navigation.js already established for the sidebar. The gallery page itself never lists
+ * pattern navigation.ts already established for the sidebar. The gallery page itself never lists
  * components by hand; it only walks this array.
  *
  * Each entry:

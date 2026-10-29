@@ -26,7 +26,7 @@ function lockIcon() {
   return span;
 }
 
-/** The nav entry a locked row draws; the fields come from config/navigation.js. */
+/** The nav entry a locked row draws; the fields come from config/navigation.ts. */
 export interface LockedNavEntry {
   key: string;
   permission: string;

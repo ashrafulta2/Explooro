@@ -22,7 +22,7 @@ import path from 'node:path';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 import { genieHandlers } from '../src/mocks/handlers/genie.ts';
 import { applyGeniePolicy } from '../src/services/genieSettings.ts';
 import { getGenieConfig, configureGenie, GENIE_DEFAULTS, GENIE_LIMITS } from '../src/lib/genie.ts';
@@ -38,7 +38,7 @@ const publicHandler = genieHandlers.find((h) => h.path === '/genie/policy');
 test('Popup genie effect — client invariants', async (t) => {
   await t.test('1. Nav guard equals route guard, on both permission and module', () => {
     const navItem = navItems.find((i) => i.path === ROUTE);
-    assert.ok(navItem, `navigation.js registers ${ROUTE}`);
+    assert.ok(navItem, `navigation.ts registers ${ROUTE}`);
     assert.equal(navItem.permission, 'platform.genie.view');
     assert.equal(navItem.module, 'core');
     assert.ok(navItem.roles.includes('super_admin') && navItem.roles.includes('admin'));

@@ -4,7 +4,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { navGroups, navItems, NAV_ROLES, MOBILE_TABS } from '../src/config/navigation.js';
+import { navGroups, navItems, NAV_ROLES, MOBILE_TABS } from '../src/config/navigation.ts';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };

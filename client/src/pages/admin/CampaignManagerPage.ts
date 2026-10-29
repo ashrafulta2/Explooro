@@ -722,7 +722,7 @@ export class CampaignManagerPage {
   }
 }
 
-// WHY the path check: navigation.js lists "Coupons" and "Campaigns" as two separate sidebar items,
+// WHY the path check: navigation.ts lists "Coupons" and "Campaigns" as two separate sidebar items,
 // but both route here and the page always opened on the Flash Sales tab — so clicking Coupons landed
 // on flash sales and looked like a broken link. The coupon catalogue was one click away the whole
 // time; this just honours which door the admin came through.

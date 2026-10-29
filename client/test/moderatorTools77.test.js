@@ -199,7 +199,7 @@ test('7.7 routes — each route names a real permission and module', () => {
 
 
 test('My Access — role restrictions: permitted for admin, moderator, editor; denied for customer, shop partner, supplier', async () => {
-  const { navItems } = await import('../src/config/navigation.js');
+  const { navItems } = await import('../src/config/navigation.ts');
   const item = navItems.find((i) => i.key === 'moderator.my_access');
   assert.ok(item, 'moderator.my_access item must exist');
   const roles = item.roles;

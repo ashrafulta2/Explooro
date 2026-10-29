@@ -22,7 +22,7 @@ import { pathToFileURL } from 'node:url';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import salerHandlers from '../src/mocks/handlers/saler.ts';
-import { navItems, navGroups, SIMPLE_MODE_ITEMS } from '../src/config/navigation.js';
+import { navItems, navGroups, SIMPLE_MODE_ITEMS } from '../src/config/navigation.ts';
 
 const clientRoot = path.resolve(import.meta.dirname, '..');
 

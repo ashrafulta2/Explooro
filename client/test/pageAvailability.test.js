@@ -201,11 +201,11 @@ describe('page availability — the four states resolve as the screen promises',
 
 describe('page availability — the admin surface is registered and guarded', () => {
   it('the nav item and the route agree on both guards', () => {
-    const navSrc = read('src/config/navigation.js');
+    const navSrc = read('src/config/navigation.ts');
     const mainSrc = read('src/main.js');
 
     const navItem = navSrc.match(/\{ key: 'admin\.platform\.pages'[^}]*\}/);
-    assert.ok(navItem, '/admin/platform/pages has no navigation.js entry');
+    assert.ok(navItem, '/admin/platform/pages has no navigation.ts entry');
     assert.match(navItem[0], /permission: 'platform\.page\.view'/);
     assert.match(navItem[0], /module: 'core'/);
 

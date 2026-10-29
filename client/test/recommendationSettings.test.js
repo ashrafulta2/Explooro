@@ -20,7 +20,7 @@ import path from 'node:path';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 import {
   recommendationHandlers,
   MOCK_FIELDS,
@@ -57,7 +57,7 @@ const describe = (key) => getAll().sections.find((s) => s.key === key);
 test('Personalized feed admin — client invariants', async (t) => {
   await t.test('1. Nav guard equals route guard, on both permission and module', () => {
     const navItem = navItems.find((i) => i.path === ROUTE);
-    assert.ok(navItem, `navigation.js registers ${ROUTE}`);
+    assert.ok(navItem, `navigation.ts registers ${ROUTE}`);
     assert.equal(navItem.permission, 'platform.recommendation.view');
     assert.equal(navItem.module, 'core');
     assert.ok(navItem.roles.includes('super_admin') && navItem.roles.includes('admin'));

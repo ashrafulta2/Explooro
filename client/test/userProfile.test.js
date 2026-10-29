@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
-import { navItems } from '../src/config/navigation.js';
+import { navItems } from '../src/config/navigation.ts';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
@@ -137,7 +137,7 @@ test('2. The page is actually reachable', async (t) => {
 
   await t.test('the customer nav item points at the registered route', () => {
     const item = navItems.find((i) => i.key === 'customer.profile');
-    assert.ok(item, 'navigation.js must carry a customer.profile item');
+    assert.ok(item, 'navigation.ts must carry a customer.profile item');
     assert.equal(item.path, '/account/profile');
     assert.equal(item.permission, null);
     assert.equal(item.module, 'core');

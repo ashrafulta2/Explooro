@@ -7,7 +7,7 @@
  * core/api.ts's `explooro:permission-denied` event. But a sidebar has to know BEFORE any request
  * is made whether to render an item locked, so Prompt 1.7's shell needs *some* source for that.
  *
- * Rather than hand-typing risk tiers for the ~90 permission keys navigation.js references — a
+ * Rather than hand-typing risk tiers for the ~90 permission keys navigation.ts references — a
  * second copy of docs/permission-catalog.json that could silently drift from the first — this
  * reads the same catalog Prompt 0.4 already produced. Deleted whole in Prompt 2.4 once the server
  * resolves this for real.
