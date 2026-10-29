@@ -311,7 +311,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
   });
 
   await t.test('16. BecomeSalerPage profit calculator sliders have associated labels and aria-labels', () => {
-    const becomeSalerPath = path.join(clientRoot, 'src', 'pages', 'customer', 'BecomeSalerPage.js');
+    const becomeSalerPath = path.join(clientRoot, 'src', 'pages', 'customer', 'BecomeSalerPage.ts');
     const content = fs.readFileSync(becomeSalerPath, 'utf8');
 
     // Labels with htmlFor

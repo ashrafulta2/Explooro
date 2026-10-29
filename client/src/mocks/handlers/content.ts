@@ -290,7 +290,7 @@ let mockHelpArticles = [
  *
  * WHY the nesting: content.service.ts's getTranslationsForLocale() folds its
  * `SELECT namespace, key, value` rows into `result[namespace][key] = value`, and
- * pages/editor/TranslationManagerPage.js's renderTable() walks exactly that two-level shape —
+ * pages/editor/TranslationManagerPage.ts's renderTable() walks exactly that two-level shape —
  * it skips any entry whose value is not an object. This fixture used to be a flat
  * `locale -> key -> value` map, so every value was a string, every row was skipped, and the
  * Translation Manager showed "No translation keys found" while its own completeness header

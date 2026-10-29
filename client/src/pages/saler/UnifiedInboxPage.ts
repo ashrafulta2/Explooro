@@ -1,5 +1,5 @@
 /**
- * UnifiedInboxPage.js — Shop Partner Unified Multi-Channel Commerce Inbox (Prompt 8.3 / DFD Subsystem 20.0).
+ * UnifiedInboxPage.ts — Shop Partner Unified Multi-Channel Commerce Inbox (Prompt 8.3 / DFD Subsystem 20.0).
  *
  * Two-pane layout on purpose: conversations on the left, ONE conversation on the right. Everything
  * the old third "customer context" pane carried is folded into the chat header (who, which channel)
@@ -43,7 +43,7 @@ function threadName(thread) {
   return thread.other_participant_name || thread.customerPhone || `#${thread.ref || thread.id}`;
 }
 
-export default function UnifiedInboxPage(root) {
+export default function UnifiedInboxPage(root: HTMLElement) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'unified-inbox-page';
@@ -291,8 +291,8 @@ export default function UnifiedInboxPage(root) {
       </div>
     `;
 
-    const input = chatPane.querySelector('#chat-input');
-    const qrRow = chatPane.querySelector('#quick-replies-row');
+    const input = chatPane.querySelector<HTMLInputElement>('#chat-input');
+    const qrRow = chatPane.querySelector<HTMLInputElement>('#quick-replies-row');
     input.value = draft;
     autosizeInput(input);
     input.addEventListener('input', () => {
@@ -320,7 +320,7 @@ export default function UnifiedInboxPage(root) {
     chatPane.querySelector('#btn-quick-toggle').addEventListener('click', (e) => {
       quickOpen = !quickOpen;
       qrRow.hidden = !quickOpen;
-      e.currentTarget.setAttribute('aria-expanded', String(quickOpen));
+      (e.currentTarget as HTMLElement).setAttribute('aria-expanded', String(quickOpen));
     });
 
     chatPane.querySelector('#btn-back').addEventListener('click', () => {
@@ -406,7 +406,7 @@ export default function UnifiedInboxPage(root) {
   }
 
   async function sendReply(thread) {
-    const input = container.querySelector('#chat-input');
+    const input = container.querySelector<HTMLInputElement>('#chat-input');
     if (isSending || !input) return;
     const text = (input.value || '').trim();
     if (!text) return;
@@ -441,7 +441,7 @@ export default function UnifiedInboxPage(root) {
       messages = messages.filter((m) => m.id !== optimisticMsg.id);
       if (selectedThreadId === thread.id) {
         renderMessages(thread);
-        const again = container.querySelector('#chat-input');
+        const again = container.querySelector<HTMLInputElement>('#chat-input');
         if (again && !again.value) {
           again.value = text;
           draft = text;
@@ -467,14 +467,14 @@ export default function UnifiedInboxPage(root) {
         label: t('saler_inbox.btn_confirm_send_card') || 'Send 1-Tap Checkout Card',
         variant: 'primary',
         onClick: async () => {
-          const selectedRadio = modalContent.querySelector('input[name="selected_prod"]:checked');
+          const selectedRadio = modalContent.querySelector<HTMLInputElement>('input[name="selected_prod"]:checked');
           if (!selectedRadio) {
             toast.error(t('saler_inbox.select_product_error') || 'Please select a product from the list.');
             return;
           }
 
           const prodId = parseInt(selectedRadio.value, 10);
-          const note = modalContent.querySelector('#modal-prod-note')?.value || '';
+          const note = modalContent.querySelector<HTMLInputElement>('#modal-prod-note')?.value || '';
 
           try {
             const res = await api.post(`/saler/inbox/threads/${thread.id}/send-product`, {
@@ -547,9 +547,9 @@ export default function UnifiedInboxPage(root) {
         </div>
       `;
 
-      modalContent.querySelectorAll('.product-picker-item').forEach((item) => {
+      modalContent.querySelectorAll<HTMLElement>('.product-picker-item').forEach((item) => {
         item.addEventListener('click', () => {
-          modalContent.querySelectorAll('.product-picker-item').forEach((i) => i.classList.remove('selected'));
+          modalContent.querySelectorAll<HTMLElement>('.product-picker-item').forEach((i) => i.classList.remove('selected'));
           item.classList.add('selected');
         });
       });
@@ -571,7 +571,7 @@ export default function UnifiedInboxPage(root) {
 
   // 11. Search Filter Listener
   container.querySelector('#inbox-search')?.addEventListener('input', (e) => {
-    searchFilter = e.target.value;
+    searchFilter = (e.target as HTMLInputElement).value;
     renderThreads();
   });
 

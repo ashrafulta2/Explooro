@@ -1,5 +1,5 @@
 /**
- * TranslationManagerPage.js — Dynamic Multi-Locale Manager, Missing-Key Finder & Live Editor (Prompt 10.8).
+ * TranslationManagerPage.ts — Dynamic Multi-Locale Manager, Missing-Key Finder & Live Editor (Prompt 10.8).
  *
  * Implements:
  * - Live in-place translation key editing updating the UI without redeployment.
@@ -18,8 +18,9 @@ import {
 
 import { t, getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import type { PageContext } from '../types.ts';
 
-export default function TranslationManagerPage(root, ctx = {}) {
+export default function TranslationManagerPage(root: HTMLElement, ctx: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'translation-manager-page';
   container.style.cssText = `
@@ -424,8 +425,8 @@ export default function TranslationManagerPage(root, ctx = {}) {
     modalBackdrop.querySelector('#btn-cancel-import').addEventListener('click', () => modalBackdrop.remove());
 
     modalBackdrop.querySelector('#btn-confirm-import').addEventListener('click', async () => {
-      const code = modalBackdrop.querySelector('#import-locale-code')?.value?.trim();
-      const jsonStr = modalBackdrop.querySelector('#import-json-text')?.value?.trim();
+      const code = modalBackdrop.querySelector<HTMLInputElement>('#import-locale-code')?.value?.trim();
+      const jsonStr = modalBackdrop.querySelector<HTMLInputElement>('#import-json-text')?.value?.trim();
 
       if (!code || !jsonStr) {
         toast.error('Locale code and valid JSON string are required.');
@@ -498,8 +499,8 @@ export default function TranslationManagerPage(root, ctx = {}) {
     modalBackdrop.querySelector('#btn-cancel-add-loc').addEventListener('click', () => modalBackdrop.remove());
 
     modalBackdrop.querySelector('#btn-confirm-add-loc').addEventListener('click', async () => {
-      const code = modalBackdrop.querySelector('#add-locale-code')?.value?.trim().toLowerCase();
-      const name = modalBackdrop.querySelector('#add-locale-name')?.value?.trim();
+      const code = modalBackdrop.querySelector<HTMLInputElement>('#add-locale-code')?.value?.trim().toLowerCase();
+      const name = modalBackdrop.querySelector<HTMLInputElement>('#add-locale-name')?.value?.trim();
 
       if (!code || !name) {
         toast.error('Both code and display name are required.');
@@ -534,14 +535,14 @@ export default function TranslationManagerPage(root, ctx = {}) {
       `}
     `;
 
-    container.querySelectorAll('.locale-gauge-card').forEach((card) => {
+    container.querySelectorAll<HTMLElement>('.locale-gauge-card').forEach((card) => {
       card.addEventListener('click', () => {
         activeLocale = card.getAttribute('data-loc');
         loadData();
       });
     });
 
-    container.querySelectorAll('.loc-pill-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.loc-pill-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeLocale = btn.getAttribute('data-loc');
         loadData();
@@ -551,7 +552,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
     const searchInput = container.querySelector('#trans-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value;
+        searchQuery = (e.target as HTMLInputElement).value;
         const tableContainer = container.querySelector('table')?.closest('div');
         if (tableContainer) {
           tableContainer.outerHTML = renderTable();
@@ -563,7 +564,7 @@ export default function TranslationManagerPage(root, ctx = {}) {
     const missingCheckbox = container.querySelector('#missing-only-checkbox');
     if (missingCheckbox) {
       missingCheckbox.addEventListener('change', (e) => {
-        showMissingOnly = e.target.checked;
+        showMissingOnly = (e.target as HTMLInputElement).checked;
         const tableContainer = container.querySelector('table')?.closest('div');
         if (tableContainer) {
           tableContainer.outerHTML = renderTable();
@@ -594,12 +595,12 @@ export default function TranslationManagerPage(root, ctx = {}) {
   }
 
   function attachSaveEvents() {
-    container.querySelectorAll('.save-val-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.save-val-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const ns = btn.getAttribute('data-ns');
         const k = btn.getAttribute('data-key');
         const row = btn.closest('tr');
-        const val = row?.querySelector('.trans-val-input')?.value;
+        const val = row?.querySelector<HTMLInputElement>('.trans-val-input')?.value;
 
         try {
           await upsertTranslationKey({

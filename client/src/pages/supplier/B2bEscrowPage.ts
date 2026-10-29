@@ -1,5 +1,5 @@
 /**
- * B2bEscrowPage.js — Wholesale B2B Escrow & Milestone Settlement Studio (Prompt 10.6).
+ * B2bEscrowPage.ts — Wholesale B2B Escrow & Milestone Settlement Studio (Prompt 10.6).
  *
  * Implements /supplier/b2b-escrow and /saler/b2b-escrow:
  * - Multi-stage milestone tracking and release manager.
@@ -33,8 +33,9 @@ import { toast } from '../../services/toast.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { supplierModal } from './supplierModal.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import type { PageContext } from '../types.ts';
 
-export default function B2bEscrowPage(root, ctx = {}) {
+export default function B2bEscrowPage(root: HTMLElement, ctx: PageContext & { user?: { id?: number; role?: string } } = {}) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -86,11 +87,11 @@ export default function B2bEscrowPage(root, ctx = {}) {
     </div>
   `;
 
-  header.querySelector('#new-deal-header-btn').onclick = () => {
+  header.querySelector<HTMLElement>('#new-deal-header-btn').onclick = () => {
     activeTab = 'new_proposal';
     renderCurrentTab();
   };
-  header.querySelector('#refresh-b2b-btn').onclick = loadDeals;
+  header.querySelector<HTMLElement>('#refresh-b2b-btn').onclick = loadDeals;
   container.append(header);
 
   // 3. KPI Metrics Summary Row
@@ -169,7 +170,7 @@ export default function B2bEscrowPage(root, ctx = {}) {
       </div>
     `;
 
-    tabNav.querySelectorAll('.supplier-chip').forEach((btn) => {
+    tabNav.querySelectorAll<HTMLElement>('.supplier-chip').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeTab = btn.getAttribute('data-tab');
         renderCurrentTab();
@@ -198,11 +199,13 @@ export default function B2bEscrowPage(root, ctx = {}) {
           icon: '🤝',
           title: t('b2b_escrow.no_deals_title', 'No wholesale deals found'),
           description: t('b2b_escrow.no_deals_desc', 'Initiate a new wholesale milestone proposal to secure large-volume transactions.'),
-          actionLabel: t('b2b_escrow.new_proposal_btn', 'Create Proposal'),
-          onAction: () => {
-            activeTab = 'new_proposal';
-            renderCurrentTab();
-          },
+          action: Button({
+            label: t('b2b_escrow.new_proposal_btn', 'Create Proposal'),
+            onClick: () => {
+              activeTab = 'new_proposal';
+              renderCurrentTab();
+            },
+          }),
         })
       );
       return;
@@ -374,14 +377,14 @@ export default function B2bEscrowPage(root, ctx = {}) {
       </form>
     `;
 
-    proposalCard.querySelector('#cancel-proposal-btn').onclick = () => {
+    proposalCard.querySelector<HTMLElement>('#cancel-proposal-btn').onclick = () => {
       activeTab = 'deals';
       renderCurrentTab();
     };
 
-    proposalCard.querySelector('#new-b2b-deal-form').onsubmit = async (e) => {
+    proposalCard.querySelector<HTMLElement>('#new-b2b-deal-form').onsubmit = async (e) => {
       e.preventDefault();
-      const form = e.target;
+      const form = e.target as HTMLFormElement & Record<string, HTMLInputElement>;
       const title_en = form.title_en.value.trim();
       const title_bn = form.title_bn.value.trim() || title_en;
       const buyer_id = parseInt(form.buyer_id.value, 10);
@@ -432,8 +435,8 @@ export default function B2bEscrowPage(root, ctx = {}) {
         `,
     });
     const close = () => modal.close(false);
-    modal.querySelector('#submit-evidence-btn').onclick = async () => {
-      const text = modal.querySelector('#evidence-text-input').value.trim();
+    modal.querySelector<HTMLElement>('#submit-evidence-btn').onclick = async () => {
+      const text = modal.querySelector<HTMLInputElement>('#evidence-text-input').value.trim();
       if (!text) return toast.error('Please enter proof reference.');
       try {
         // WHY: the API takes (milestoneId, payload) — passing deal.id first targeted the wrong
@@ -543,8 +546,8 @@ export default function B2bEscrowPage(root, ctx = {}) {
         `,
     });
     const close = () => modal.close(false);
-    modal.querySelector('#confirm-dispute-btn').onclick = async () => {
-      const reason = modal.querySelector('#dispute-reason-text').value.trim();
+    modal.querySelector<HTMLElement>('#confirm-dispute-btn').onclick = async () => {
+      const reason = modal.querySelector<HTMLInputElement>('#dispute-reason-text').value.trim();
       if (!reason) return toast.error('Please enter a reason for the dispute.');
       try {
         // WHY reason_en: that is the field the controller reads; a bare `reason` reached the

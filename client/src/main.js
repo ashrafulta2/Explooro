@@ -319,7 +319,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
-        load: () => import('./pages/supplier/B2bEscrowPage.js'),
+        load: () => import('./pages/supplier/B2bEscrowPage.ts'),
       },
       {
         path: '/saler/b2b-escrow',
@@ -327,7 +327,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
-        load: () => import('./pages/supplier/B2bEscrowPage.js'),
+        load: () => import('./pages/supplier/B2bEscrowPage.ts'),
       },
       {
         path: '/b2b-escrow',
@@ -335,7 +335,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
-        load: () => import('./pages/supplier/B2bEscrowPage.js'),
+        load: () => import('./pages/supplier/B2bEscrowPage.ts'),
       },
       // Prompt 10.7: Open Marketplace API, Webhooks & Developer SDK
       {
@@ -365,7 +365,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.integration.view',
         module: 'core',
-        load: () => import('./pages/admin/IntegrationsPage.js'),
+        load: () => import('./pages/admin/IntegrationsPage.ts'),
       },
       {
         path: '/admin/integrations',
@@ -373,7 +373,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.integration.view',
         module: 'core',
-        load: () => import('./pages/admin/IntegrationsPage.js'),
+        load: () => import('./pages/admin/IntegrationsPage.ts'),
       },
       // Super Admin Platform: Global Settings Governance
       {
@@ -558,7 +558,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.i18n.update',
         module: 'i18n',
-        load: () => import('./pages/editor/TranslationManagerPage.js'),
+        load: () => import('./pages/editor/TranslationManagerPage.ts'),
       },
       {
         path: '/admin/localization',
@@ -566,7 +566,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.i18n.update',
         module: 'i18n',
-        load: () => import('./pages/editor/TranslationManagerPage.js'),
+        load: () => import('./pages/editor/TranslationManagerPage.ts'),
       },
       // Prompt 11.1: Supplier / Manufacturer Dashboard & Operational Pages
       {
@@ -575,7 +575,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.dashboard.view',
         module: 'core',
-        load: () => import('./pages/supplier/SupplierDashboardPage.js'),
+        load: () => import('./pages/supplier/SupplierDashboardPage.ts'),
       },
       {
         path: '/supplier/dashboard',
@@ -583,7 +583,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.dashboard.view',
         module: 'core',
-        load: () => import('./pages/supplier/SupplierDashboardPage.js'),
+        load: () => import('./pages/supplier/SupplierDashboardPage.ts'),
       },
       {
         path: '/supplier/inventory',
@@ -647,7 +647,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'core',
-        load: () => import('./pages/supplier/SalerInsightsPage.js'),
+        load: () => import('./pages/supplier/SalerInsightsPage.ts'),
       },
       {
         path: '/supplier/scorecard',
@@ -886,7 +886,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
-        load: () => import('./pages/customer/BecomeSalerPage.js'),
+        load: () => import('./pages/customer/BecomeSalerPage.ts'),
       },
       {
         path: '/customer/become-saler',
@@ -894,7 +894,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
-        load: () => import('./pages/customer/BecomeSalerPage.js'),
+        load: () => import('./pages/customer/BecomeSalerPage.ts'),
       },
       {
         path: '/become-saler',
@@ -902,7 +902,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
-        load: () => import('./pages/customer/BecomeSalerPage.js'),
+        load: () => import('./pages/customer/BecomeSalerPage.ts'),
       },
       // Customer Saved Delivery Addresses Book
       {
@@ -985,7 +985,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.batch.govern',
         module: 'fefo_batches',
-        load: () => import('./pages/admin/BatchesPage.js'),
+        load: () => import('./pages/admin/BatchesPage.ts'),
       },
       {
         path: '/admin/batches',
@@ -993,7 +993,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.batch.govern',
         module: 'fefo_batches',
-        load: () => import('./pages/admin/BatchesPage.js'),
+        load: () => import('./pages/admin/BatchesPage.ts'),
       },
       {
         path: '/admin/catalog/warehouses',
@@ -1019,7 +1019,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.order.view_all',
         module: 'core',
-        load: () => import('./pages/admin/AdminOrdersPage.js'),
+        load: () => import('./pages/admin/AdminOrdersPage.ts'),
       },
       {
         path: '/admin/courier',
@@ -1200,7 +1200,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.i18n.update',
         module: 'i18n',
-        load: () => import('./pages/editor/TranslationManagerPage.js'),
+        load: () => import('./pages/editor/TranslationManagerPage.ts'),
       },
 
       // Admin Live Stream & Security
@@ -1269,7 +1269,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'system.backup.manage',
         module: 'core',
-        load: () => import('./pages/admin/BackupPage.js'),
+        load: () => import('./pages/admin/BackupPage.ts'),
       },
       {
         path: '/admin/backups',
@@ -1277,7 +1277,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'system.backup.manage',
         module: 'core',
-        load: () => import('./pages/admin/BackupPage.js'),
+        load: () => import('./pages/admin/BackupPage.ts'),
       },
       // Super Admin Finance: Profit Splits Governance
       {
@@ -1728,7 +1728,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'product_moderation',
-        load: () => import('./pages/moderator/ModeratorDashboardPage.js'),
+        load: () => import('./pages/moderator/ModeratorDashboardPage.ts'),
       },
       {
         path: '/moderator/dashboard',
@@ -1736,7 +1736,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'product_moderation',
-        load: () => import('./pages/moderator/ModeratorDashboardPage.js'),
+        load: () => import('./pages/moderator/ModeratorDashboardPage.ts'),
       },
       // Prompt 7.7: Moderator My Access — personal permission & grant dashboard
       {
@@ -1800,7 +1800,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'chat.thread.view_own',
         module: 'whatsapp_bridge',
-        load: () => import('./pages/saler/UnifiedInboxPage.js'),
+        load: () => import('./pages/saler/UnifiedInboxPage.ts'),
       },
       // Prompt 8.2: Notification Preferences
       {
@@ -1996,7 +1996,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'loyalty_coins',
-        load: () => import('./pages/customer/CoinsPage.js'),
+        load: () => import('./pages/customer/CoinsPage.ts'),
       },
       {
         path: '/coins',
@@ -2004,7 +2004,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'loyalty_coins',
-        load: () => import('./pages/customer/CoinsPage.js'),
+        load: () => import('./pages/customer/CoinsPage.ts'),
       },
       {
         path: '/saler/pro',

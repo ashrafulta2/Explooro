@@ -101,7 +101,7 @@ describe('Super Admin Security & Disaster Recovery — Client Invariants', () =>
     const ipAllowlistMod = await import('../src/pages/admin/IpAllowlistPage.js');
     assert.equal(typeof ipAllowlistMod.default, 'function', 'IpAllowlistPage must export default function');
 
-    const backupMod = await import('../src/pages/admin/BackupPage.js');
+    const backupMod = await import('../src/pages/admin/BackupPage.ts');
     assert.equal(typeof backupMod.default, 'function', 'BackupPage must export default function');
   });
 });

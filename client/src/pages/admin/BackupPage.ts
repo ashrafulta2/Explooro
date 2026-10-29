@@ -1,5 +1,5 @@
 /**
- * BackupPage.js — System Backup Snapshots & Disaster Recovery Management.
+ * BackupPage.ts — System Backup Snapshots & Disaster Recovery Management.
  *
  * Implements:
  * 1. Cryptographic Snapshot vitals (Total snapshots, last backup time, SHA-256 integrity %, automated cadence).
@@ -16,8 +16,9 @@ import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatNumber } from '../../services/format.ts';
+import type { PageContext } from '../types.ts';
 
-export default function BackupPage(root, { navigate } = {}) {
+export default function BackupPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page backup-page';
@@ -109,7 +110,7 @@ export default function BackupPage(root, { navigate } = {}) {
 
   async function handleTriggerBackup() {
     isTriggering = true;
-    const btn = container.querySelector('#trigger-snapshot-btn');
+    const btn = container.querySelector<HTMLInputElement>('#trigger-snapshot-btn');
     if (btn) btn.disabled = true;
 
     try {
@@ -141,7 +142,7 @@ export default function BackupPage(root, { navigate } = {}) {
   async function handleRestoreBackup(backup) {
     const confirmed = await confirmDialog({
       title: isBn ? '⚠️ স্ন্যাপশট রিস্টোর নিশ্চিতকরণ (উচ্চ ঝুঁকি)' : '⚠️ Confirm Snapshot Restore (High Risk)',
-      message: isBn
+      description: isBn
         ? `সতর্কতা: আপনি স্ন্যাপশট #${backup.ref} (${backup.snapshot_tag})-এ সিস্টেম রিস্টোর করতে যাচ্ছেন। বর্তমান সমস্ত ডেটাবেস অবস্থা এই স্ন্যাপশট সময়ের অবস্থায় প্রতিস্থাপিত হবে। আপনি কি নিশ্চিত?`
         : `CRITICAL ACTION: You are about to restore system snapshot #${backup.ref} (${backup.snapshot_tag}). Database state will be rolled back to this exact point in time. Are you sure you wish to proceed?`,
       confirmLabel: isBn ? 'হ্যাঁ, রিস্টোর নিশ্চিত করুন' : 'Confirm Disaster Restore',
@@ -428,17 +429,17 @@ export default function BackupPage(root, { navigate } = {}) {
     container.querySelector('#trigger-snapshot-btn')?.addEventListener('click', handleTriggerBackup);
 
     container.querySelector('#type-filter-select')?.addEventListener('change', (e) => {
-      typeFilter = e.target.value;
+      typeFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
-    container.querySelectorAll('.copy-checksum-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.copy-checksum-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         handleCopyChecksum(btn.dataset.checksum);
       });
     });
 
-    container.querySelectorAll('.restore-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.restore-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = parseInt(btn.dataset.id, 10);
         const backup = backups.find((b) => b.id === id);

@@ -1,5 +1,5 @@
 /**
- * ModeratorDashboardPage.js — Moderator Command Center & Workspace Hub (Prompt 7.6).
+ * ModeratorDashboardPage.ts — Moderator Command Center & Workspace Hub (Prompt 7.6).
  *
  * Implements:
  * 1. 4-Card Workload KPIs Summary (My Queue, Unassigned, SLA At-Risk, Resolved Today).
@@ -17,7 +17,7 @@ import WorkloadSummary from '../../components/moderator/WorkloadSummary.ts';
 import SlaMonitor from '../../components/moderator/SlaMonitor.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
 
-export default function ModeratorDashboardPage(root) {
+export default function ModeratorDashboardPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'moderator-dashboard-page';
   container.style.cssText = `
@@ -227,7 +227,7 @@ export default function ModeratorDashboardPage(root) {
   }
 
   function renderPerformanceStats() {
-    const perf = dashboardData.performance || {};
+    const perf: Record<string, any> = dashboardData.performance || {};
     return `
       <div style="
         background: var(--surface-1, #ffffff);
@@ -567,7 +567,7 @@ export default function ModeratorDashboardPage(root) {
   function attachListeners() {
     container.querySelector('#btn-refresh-dashboard')?.addEventListener('click', fetchAllData);
 
-    container.querySelectorAll('.btn-open-ws').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.btn-open-ws').forEach((btn) => {
       btn.addEventListener('click', () => {
         const route = btn.getAttribute('data-route');
         window.history.pushState({}, '', route);
@@ -575,7 +575,7 @@ export default function ModeratorDashboardPage(root) {
       });
     });
 
-    container.querySelectorAll('.btn-request-access').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.btn-request-access').forEach((btn) => {
       btn.addEventListener('click', () => {
         const perm = btn.getAttribute('data-perm');
         openJitGrantDrawer(perm);

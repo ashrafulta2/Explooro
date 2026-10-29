@@ -1,5 +1,5 @@
 /**
- * BatchesPage.js — Admin FEFO (First-Expired-First-Out) Batches & Expiration Governance (Prompt 4.1 / Prompt 11.1).
+ * BatchesPage.ts — Admin FEFO (First-Expired-First-Out) Batches & Expiration Governance (Prompt 4.1 / Prompt 11.1).
  *
  * Implements:
  * 1. Expiration Risk Radar (Total Batches, Fresh Batches, Near Expiry < 45d, Quarantined/Recalled).
@@ -19,8 +19,9 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatDate } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function BatchesPage(root, { navigate } = {}) {
+export default function BatchesPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -149,25 +150,31 @@ export default function BatchesPage(root, { navigate } = {}) {
       </div>
     `;
 
+    // WHY a footer: Modal has no `confirmLabel`, `cancelLabel` or `onConfirm`, so this dialog used to open
+    // with no Save and no Cancel button. Save runs the old `onConfirm` body; `return false` there kept the
+    // dialog open and `return true` closed it.
+    const footer = document.createDocumentFragment();
+    const saveBtn = Button({ label: isBn ? 'ব্যাচ সংরক্ষণ' : 'Save Batch', variant: 'primary' });
+    footer.append(Button({ label: isBn ? 'বাতিল' : 'Cancel', variant: 'secondary', onClick: () => modal.close() }), saveBtn);
     const modal = Modal({
       title: isBn ? 'নতুন ব্যাচ নিবন্ধন' : 'Register New FEFO Batch',
       content,
-      confirmLabel: isBn ? 'ব্যাচ সংরক্ষণ' : 'Save Batch',
-      cancelLabel: isBn ? 'বাতিল' : 'Cancel',
-      onConfirm: async () => {
+      footer,
+    });
+    saveBtn.addEventListener('click', async () => {
         const formData = new FormData(content);
-        const batch_number = formData.get('batch_number').trim();
-        const sku = formData.get('sku').trim();
-        const product_title_en = formData.get('product_title_en').trim();
+        const batch_number = String(formData.get('batch_number')).trim();
+        const sku = String(formData.get('sku')).trim();
+        const product_title_en = String(formData.get('product_title_en')).trim();
         const manufactured_at = formData.get('manufactured_at');
         const expires_at = formData.get('expires_at');
         const initial_qty = Number(formData.get('initial_qty')) || 100;
         const warehouse_name = formData.get('warehouse_name');
-        const supplier_name = formData.get('supplier_name').trim();
+        const supplier_name = String(formData.get('supplier_name')).trim();
 
         if (!batch_number || !sku || !product_title_en) {
           toast.error(isBn ? 'সকল প্রয়োজনীয় ঘর পূরণ করুন।' : 'Please fill all required fields.');
-          return false;
+          return;
         }
 
         const newBtc = {
@@ -180,8 +187,8 @@ export default function BatchesPage(root, { navigate } = {}) {
           warehouse_name,
           initial_qty,
           current_stock: initial_qty,
-          manufactured_at: new Date(manufactured_at).toISOString(),
-          expires_at: new Date(expires_at).toISOString(),
+          manufactured_at: new Date(String(manufactured_at)).toISOString(),
+          expires_at: new Date(String(expires_at)).toISOString(),
           status: 'ACTIVE',
           clearance_discount_pct: 0,
           is_quarantined: false,
@@ -191,8 +198,7 @@ export default function BatchesPage(root, { navigate } = {}) {
         toast.success(isBn ? `ব্যাচ #${batch_number} সফলভাবে নিবন্ধিত হয়েছে!` : `Batch #${batch_number} registered successfully!`);
         computeStats();
         render();
-        return true;
-      },
+        modal.close();
     });
 
     document.body.append(modal);
@@ -404,9 +410,9 @@ export default function BatchesPage(root, { navigate } = {}) {
     const searchInput = container.querySelector('#batch-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value;
+        searchQuery = (e.target as HTMLInputElement).value;
         render();
-        const input = root.querySelector('#batch-search-input');
+        const input = root.querySelector<HTMLInputElement>('#batch-search-input');
         if (input) {
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
@@ -415,12 +421,12 @@ export default function BatchesPage(root, { navigate } = {}) {
     }
 
     container.querySelector('#batch-status-select')?.addEventListener('change', (e) => {
-      statusFilter = e.target.value;
+      statusFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
     // Clearance Button
-    container.querySelectorAll('.clearance-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.clearance-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = Number(btn.getAttribute('data-id'));
         const batch = batches.find((b) => b.id === id);
@@ -434,7 +440,7 @@ export default function BatchesPage(root, { navigate } = {}) {
     });
 
     // Quarantine Button
-    container.querySelectorAll('.quarantine-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.quarantine-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = Number(btn.getAttribute('data-id'));
         const batch = batches.find((b) => b.id === id);
@@ -443,10 +449,10 @@ export default function BatchesPage(root, { navigate } = {}) {
         const action = batch.is_quarantined ? 'Release' : 'Quarantine';
         const confirmed = await confirmDialog({
           title: isBn ? `${action === 'Release' ? 'কোয়ারেন্টাইন প্রত্যাহার' : 'ব্যাচ কোয়ারেন্টাইন'}` : `${action} Batch #${batch.batch_number}`,
-          message: isBn ? `আপনি কি নিশ্চিত যে ব্যাচ #${batch.batch_number} ${action === 'Release' ? 'কোয়ারেন্টাইন থেকে মুক্ত করতে চান?' : 'অবিলম্বে কোয়ারেন্টাইনে স্থানান্তর করে ক্রয় ব্লক করতে চান?'}` : `Are you sure you want to ${action.toLowerCase()} batch #${batch.batch_number}?`,
+          description: isBn ? `আপনি কি নিশ্চিত যে ব্যাচ #${batch.batch_number} ${action === 'Release' ? 'কোয়ারেন্টাইন থেকে মুক্ত করতে চান?' : 'অবিলম্বে কোয়ারেন্টাইনে স্থানান্তর করে ক্রয় ব্লক করতে চান?'}` : `Are you sure you want to ${action.toLowerCase()} batch #${batch.batch_number}?`,
           confirmLabel: isBn ? 'নিশ্চিত' : 'Confirm',
           cancelLabel: isBn ? 'বাতিল' : 'Cancel',
-          isDanger: !batch.is_quarantined,
+          variant: batch.is_quarantined ? 'primary' : 'danger',
         });
 
         if (confirmed) {

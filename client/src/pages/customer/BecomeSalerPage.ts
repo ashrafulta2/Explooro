@@ -1,5 +1,5 @@
 /**
- * BecomeSalerPage.js — 1-Click Zero-Paperwork Shop Partner Upgrade & Onboarding Hub.
+ * BecomeSalerPage.ts — 1-Click Zero-Paperwork Shop Partner Upgrade & Onboarding Hub.
  *
  * Implements:
  * 1. Low-literacy friendly, high-contrast visual shop partner onboarding with 100% bilingual i18n.
@@ -22,8 +22,9 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { appStore, setMockRole } from '../../state/appStore.ts';
 import { defaultPermissionsForRole } from '../../config/permissions.mock.ts';
+import type { PageContext } from '../types.ts';
 
-export default function BecomeSalerPage(root, { navigate } = {}) {
+export default function BecomeSalerPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -86,7 +87,7 @@ export default function BecomeSalerPage(root, { navigate } = {}) {
     );
 
     try {
-      const currentAuth = appStore.get()?.auth || {};
+      const currentAuth: Record<string, any> = appStore.get()?.auth || {};
       let isSaler = currentAuth.role === 'saler';
 
       try {
@@ -115,7 +116,7 @@ function elevateToSalerRole() {
     if (typeof setMockRole === 'function') {
       setMockRole('saler');
     } else {
-      const auth = appStore.get()?.auth || {};
+      const auth: Record<string, any> = appStore.get()?.auth || {};
       const salerPerms = defaultPermissionsForRole('saler');
       appStore.update({
         auth: {
@@ -395,9 +396,9 @@ function renderProfitCalculator(container) {
     </div>
   `;
 
-  const ordersSlider = card.querySelector('#calc-orders-slider');
-  const priceSlider = card.querySelector('#calc-price-slider');
-  const marginSlider = card.querySelector('#calc-margin-slider');
+  const ordersSlider = card.querySelector<HTMLInputElement>('#calc-orders-slider');
+  const priceSlider = card.querySelector<HTMLInputElement>('#calc-price-slider');
+  const marginSlider = card.querySelector<HTMLInputElement>('#calc-margin-slider');
 
   const ordersReadout = card.querySelector('#calc-orders-readout');
   const priceReadout = card.querySelector('#calc-price-readout');
@@ -418,15 +419,15 @@ function renderProfitCalculator(container) {
     const priceText = formatCurrency(avgPrice);
     const marginText = `${marginPct}% (${formatCurrency(profitPerOrder)}${t('customer.become_saler.per_order_unit', '/order')})`;
 
-    ordersSlider.setAttribute('aria-valuenow', orders);
+    ordersSlider.setAttribute('aria-valuenow', String(orders));
     ordersSlider.setAttribute('aria-valuetext', ordersText);
     ordersReadout.textContent = ordersText;
 
-    priceSlider.setAttribute('aria-valuenow', avgPrice);
+    priceSlider.setAttribute('aria-valuenow', String(avgPrice));
     priceSlider.setAttribute('aria-valuetext', priceText);
     priceReadout.textContent = priceText;
 
-    marginSlider.setAttribute('aria-valuenow', marginPct);
+    marginSlider.setAttribute('aria-valuenow', String(marginPct));
     marginSlider.setAttribute('aria-valuetext', marginText);
     marginReadout.textContent = marginText;
 
@@ -641,7 +642,7 @@ function openSalerWalkthroughModal(nav) {
     size: 'sm',
     onClick: () => {
       modal.close();
-      const upgradeBtnEl = document.querySelector('#saler-upgrade-btn-slot button');
+      const upgradeBtnEl = document.querySelector<HTMLElement>('#saler-upgrade-btn-slot button');
       if (upgradeBtnEl) upgradeBtnEl.click();
     },
   });

@@ -1,5 +1,5 @@
 /**
- * SupplierDashboardPage.js — Manufacturer & Physical Inventory Hub Dashboard (Prompt 11.1).
+ * SupplierDashboardPage.ts — Manufacturer & Physical Inventory Hub Dashboard (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AL.1 & Prompt 11.1 REQUIREMENTS 3, 4, 5:
  * - Simple Mode: Surfaces 4 primary KPI action cards + 6 essential daily task tiles.
@@ -18,7 +18,7 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function SupplierDashboardPage(root) {
+export default function SupplierDashboardPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -89,13 +89,13 @@ export default function SupplierDashboardPage(root) {
       </div>
     `;
 
-    header.querySelector('#toggle-mode-btn').onclick = () => {
+    header.querySelector<HTMLElement>('#toggle-mode-btn').onclick = () => {
       isSimpleMode = !isSimpleMode;
       localStorage.setItem('supplier_simple_mode', String(isSimpleMode));
       render();
     };
 
-    header.querySelector('#refresh-dashboard-btn').onclick = loadData;
+    header.querySelector<HTMLElement>('#refresh-dashboard-btn').onclick = loadData;
     container.appendChild(header);
 
     if (loading && !overviewData) {
@@ -136,7 +136,7 @@ export default function SupplierDashboardPage(root) {
           ${t('supplier.show_all_features', 'Show All Tools →')}
         </button>
       `;
-      banner.querySelector('#simple-mode-expand-btn').onclick = () => {
+      banner.querySelector<HTMLElement>('#simple-mode-expand-btn').onclick = () => {
         isSimpleMode = false;
         localStorage.setItem('supplier_simple_mode', 'false');
         render();
@@ -488,7 +488,7 @@ export default function SupplierDashboardPage(root) {
       </div>
     `;
 
-    const toggleShopBtn = storeStatusCard.querySelector('#toggle-shop-btn');
+    const toggleShopBtn = storeStatusCard.querySelector<HTMLInputElement>('#toggle-shop-btn');
     toggleShopBtn.onclick = async () => {
       try {
         const nextState = !shop.is_open;

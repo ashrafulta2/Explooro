@@ -24,7 +24,7 @@ test('Admin Platform Suite Integrity', async (t) => {
   await t.test('1. Platform page components and subnav import cleanly and export functions', async () => {
     const modules = [
       '../src/components/admin/PlatformSubnav.ts',
-      '../src/pages/admin/IntegrationsPage.js',
+      '../src/pages/admin/IntegrationsPage.ts',
       '../src/pages/admin/SettingsPage.js',
       '../src/pages/admin/ApiKeysPage.js',
       '../src/pages/admin/ModuleControlPage.ts',

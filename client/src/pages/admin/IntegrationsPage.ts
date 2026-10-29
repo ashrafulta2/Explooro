@@ -1,5 +1,5 @@
 /**
- * IntegrationsPage.js — Super Admin Gateway & Service Integrations Governance Suite.
+ * IntegrationsPage.ts — Super Admin Gateway & Service Integrations Governance Suite.
  *
  * Implements /admin/platform/integrations & /admin/integrations:
  * 1. KPI health strip (Connected gateways, avg latency, 24h webhook deliveries, live mode).
@@ -20,8 +20,9 @@ import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatNumber } from '../../services/format.ts';
+import type { PageContext } from '../types.ts';
 
-export default function IntegrationsPage(root, { navigate } = {}) {
+export default function IntegrationsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page integrations-page';
@@ -84,7 +85,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
     const nextState = !gateway.is_enabled;
     const confirmed = await confirmDialog({
       title: t('platform_integrations.confirm_toggle_title', 'Update Integration Status'),
-      message: t(
+      description: t(
         'platform_integrations.confirm_toggle_desc',
         'Are you sure you want to change the status of {name}? Active checkouts or shipments might be impacted.'
       ).replace('{name}', gateway.name),
@@ -143,7 +144,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
     const infoCol = document.createElement('div');
     infoCol.innerHTML = `
       <div class="admin-page-eyebrow">
-        ${Badge({ label: t('platform_integrations.badge_critical', 'CRITICAL CREDENTIALS'), variant: 'danger' })}
+        ${Badge({ label: t('platform_integrations.badge_critical', 'CRITICAL CREDENTIALS'), variant: 'danger' }).outerHTML}
         <span class="text-xs text-secondary font-mono">v3.4 Platform Core</span>
       </div>
       <h1 class="admin-page-title">${t('platform_integrations.title', 'Gateway & Service Integrations')}</h1>
@@ -255,7 +256,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
     container.append(toolbar);
 
     searchBox.querySelector('#integration-search').addEventListener('input', (e) => {
-      searchQuery = e.target.value.toLowerCase().trim();
+      searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
       renderGridOnly();
     });
 
@@ -331,7 +332,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
               <span class="integration-card__type">${gateway.category_label || gateway.type}</span>
             </div>
           </div>
-          ${statusBadge}
+          ${statusBadge.outerHTML}
         </div>
 
         <p class="integration-card__desc">
@@ -393,7 +394,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
           <span class="font-bold block text-sm">${g.name}</span>
           <span class="text-secondary">${g.category_label || g.type}</span>
         </div>
-        ${Badge({ label: g.environment === 'SANDBOX' ? (isBn ? 'স্যান্ডবক্স' : 'Sandbox') : (isBn ? 'লাইভ' : 'Live'), variant: g.environment === 'SANDBOX' ? 'warning' : 'success' })}
+        ${Badge({ label: g.environment === 'SANDBOX' ? (isBn ? 'স্যান্ডবক্স' : 'Sandbox') : (isBn ? 'লাইভ' : 'Live'), variant: g.environment === 'SANDBOX' ? 'warning' : 'success' }).outerHTML}
       </div>
 
       <div class="form-group">
@@ -458,7 +459,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
       },
     });
 
-    const secretInput = modalContent.querySelector('#modal-app-secret');
+    const secretInput = modalContent.querySelector<HTMLInputElement>('#modal-app-secret');
     modalContent.querySelector('#toggle-secret-btn')?.addEventListener('click', () => {
       if (secretInput) {
         secretInput.type = secretInput.type === 'password' ? 'text' : 'password';
@@ -466,7 +467,7 @@ export default function IntegrationsPage(root, { navigate } = {}) {
     });
 
     modalContent.querySelector('#copy-webhook-btn')?.addEventListener('click', () => {
-      const url = modalContent.querySelector('#modal-webhook-url')?.value;
+      const url = modalContent.querySelector<HTMLInputElement>('#modal-webhook-url')?.value;
       if (url) {
         navigator.clipboard?.writeText(url);
         toast.success(isBn ? 'ওয়েবহুক লিঙ্ক কপি করা হয়েছে!' : 'Webhook URL copied to clipboard!');
@@ -479,12 +480,12 @@ export default function IntegrationsPage(root, { navigate } = {}) {
     });
 
     modalContent.querySelector('.save-modal-btn')?.addEventListener('click', async () => {
-      const merchantId = modalContent.querySelector('#modal-merchant-id')?.value.trim();
-      const appKey = modalContent.querySelector('#modal-app-key')?.value.trim();
-      const appSecret = modalContent.querySelector('#modal-app-secret')?.value.trim();
-      const webhookSecret = modalContent.querySelector('#modal-webhook-secret')?.value.trim();
-      const isSandbox = modalContent.querySelector('#modal-sandbox-mode')?.checked;
-      const reason = modalContent.querySelector('#modal-audit-reason')?.value.trim();
+      const merchantId = modalContent.querySelector<HTMLInputElement>('#modal-merchant-id')?.value.trim();
+      const appKey = modalContent.querySelector<HTMLInputElement>('#modal-app-key')?.value.trim();
+      const appSecret = modalContent.querySelector<HTMLInputElement>('#modal-app-secret')?.value.trim();
+      const webhookSecret = modalContent.querySelector<HTMLInputElement>('#modal-webhook-secret')?.value.trim();
+      const isSandbox = modalContent.querySelector<HTMLInputElement>('#modal-sandbox-mode')?.checked;
+      const reason = modalContent.querySelector<HTMLInputElement>('#modal-audit-reason')?.value.trim();
 
       isSavingModal = true;
       try {

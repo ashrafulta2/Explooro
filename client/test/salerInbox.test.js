@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import salerHandlers from '../src/mocks/handlers/saler.ts';
-import UnifiedInboxPage from '../src/pages/saler/UnifiedInboxPage.js';
+import UnifiedInboxPage from '../src/pages/saler/UnifiedInboxPage.ts';
 
 test('Unified Commerce Inbox — Client Invariants & Contracts', async (t) => {
   await t.test('1. Locale integrity for saler_inbox namespace', () => {

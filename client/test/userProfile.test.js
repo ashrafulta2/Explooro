@@ -40,7 +40,7 @@ const ACCOUNT_PAGES = [
   { prefix: 'profile-page', rootClass: 'profile-page', css: 'profile', js: 'src/pages/settings/ProfilePage.js' },
   { prefix: 'notif-prefs-page', rootClass: 'notif-prefs-page', css: 'notification-prefs', js: 'src/pages/settings/NotificationPreferencesPage.ts' },
   { prefix: 'addresses-page', rootClass: 'addresses-page', css: 'customer-addresses', js: 'src/pages/customer/AddressesPage.js' },
-  { prefix: 'coins-page', rootClass: 'coins-page', css: 'customer-coins', js: 'src/pages/customer/CoinsPage.js' },
+  { prefix: 'coins-page', rootClass: 'coins-page', css: 'customer-coins', js: 'src/pages/customer/CoinsPage.ts' },
   { prefix: 'coupons-page', rootClass: 'coupons-page', css: 'customer-coupons', js: 'src/pages/customer/CouponsPage.ts' },
   { prefix: 'wishlist-page', rootClass: 'wishlist-page', css: 'wishlist', js: 'src/pages/customer/WishlistPage.ts' },
   { prefix: 'team-page', rootClass: 'team-purchases-page', css: 'team-purchases', js: 'src/pages/TeamPurchasePage.js' },
@@ -51,7 +51,7 @@ const ACCOUNT_PAGES = [
   // its own import of customer-orders.css — that sheet is deliberately absent from main.css.
   { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrderDetailPage.ts' },
   { prefix: 'warranties-page', rootClass: 'warranties-page', css: 'customer-warranties', js: 'src/pages/customer/WarrantyCardsPage.ts' },
-  { prefix: 'become-saler-page', rootClass: 'become-saler-page', css: 'customer-become-saler', js: 'src/pages/customer/BecomeSalerPage.js' },
+  { prefix: 'become-saler-page', rootClass: 'become-saler-page', css: 'customer-become-saler', js: 'src/pages/customer/BecomeSalerPage.ts' },
 ];
 
 test('1. Locale integrity for the profile namespace', async (t) => {
@@ -189,7 +189,7 @@ test('3. Styling is wired up', async (t) => {
         assert.ok(at > shellAt, `${page.css}.css must be imported AFTER account-shell.css to override it`);
         continue;
       }
-      // customer-coins.css takes the other route: CoinsPage.js imports it itself, so Vite
+      // customer-coins.css takes the other route: CoinsPage.ts imports it itself, so Vite
       // code-splits it out of the entry bundle entirely and it loads after main.css anyway.
       // That is the pattern worth copying when the CSS budget gets tight again — see the note in
       // client/vite.config.js.

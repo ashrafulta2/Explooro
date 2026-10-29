@@ -1,5 +1,5 @@
 /**
- * CoinsPage.js — Customer Loyalty Coins, Streak Calendar & Rewards Hub (Prompt 9.4).
+ * CoinsPage.ts — Customer Loyalty Coins, Streak Calendar & Rewards Hub (Prompt 9.4).
  *
  * Implements:
  * 1. Loyalty Coins Balance with real-time BDT conversion (100 coins = ৳10 BDT).
@@ -18,8 +18,20 @@ import { toast } from '../../services/toast.ts';
 import { QuestPanel } from '../../components/gamification/QuestPanel.ts';
 import { goBack, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-coins.css';
+import type { PageContext } from '../types.ts';
 
 export class CoinsPage {
+  navigate: ((path: string) => void) | null;
+  coinBalance: any = null;
+  history: any[] = [];
+  quests: any[] = [];
+  activeTab: 'quests' | 'history' | 'faq' = 'quests';
+  historyFilter: 'ALL' | 'CREDIT' | 'DEBIT' = 'ALL';
+  loading = true;
+  rootEl: HTMLElement | null = null;
+  questPanel: InstanceType<typeof QuestPanel> | null = null;
+  unsubscribeLang: (() => void) | null = null;
+
   constructor(navigate) {
     this.navigate = typeof navigate === 'function' ? navigate : null;
     this.coinBalance = null;
@@ -581,18 +593,18 @@ export class CoinsPage {
 
   _attachEvents(isBn) {
     // Tab switching
-    this.rootEl.querySelectorAll('.coins-tab-btn').forEach(btn => {
+    this.rootEl.querySelectorAll<HTMLInputElement>('.coins-tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.activeTab = btn.dataset.tab;
+        this.activeTab = btn.dataset.tab as typeof this.activeTab;
         this.render();
       });
     });
 
     // Quick switch tab from "Ways to Earn"
-    this.rootEl.querySelectorAll('[data-switch-tab]').forEach(link => {
+    this.rootEl.querySelectorAll<HTMLInputElement>('[data-switch-tab]').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        this.activeTab = link.dataset.switchTab;
+        this.activeTab = link.dataset.switchTab as typeof this.activeTab;
         this.render();
       });
     });
@@ -600,7 +612,7 @@ export class CoinsPage {
     // Scroll to checkin
     this.rootEl.querySelector('#action-scroll-checkin')?.addEventListener('click', (e) => {
       e.preventDefault();
-      const target = this.rootEl.querySelector('#btn-daily-checkin');
+      const target = this.rootEl.querySelector<HTMLInputElement>('#btn-daily-checkin');
       if (target) {
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         target.focus();
@@ -608,9 +620,9 @@ export class CoinsPage {
     });
 
     // History filter buttons
-    this.rootEl.querySelectorAll('[data-history-filter]').forEach(btn => {
+    this.rootEl.querySelectorAll<HTMLInputElement>('[data-history-filter]').forEach(btn => {
       btn.addEventListener('click', () => {
-        this.historyFilter = btn.dataset.historyFilter;
+        this.historyFilter = btn.dataset.historyFilter as typeof this.historyFilter;
         this.render();
       });
     });
@@ -638,7 +650,7 @@ export class CoinsPage {
     });
 
     // Daily Check-In CTA Button
-    const btnCheckIn = this.rootEl.querySelector('#btn-daily-checkin');
+    const btnCheckIn = this.rootEl.querySelector<HTMLInputElement>('#btn-daily-checkin');
     if (btnCheckIn && !btnCheckIn.disabled) {
       btnCheckIn.addEventListener('click', async () => {
         btnCheckIn.disabled = true;
@@ -677,7 +689,7 @@ export class CoinsPage {
 }
 
 // Router adapter contract
-export default function mountCoinsPage(root, ctx = {}) {
+export default function mountCoinsPage(root: HTMLElement, ctx: PageContext = {}) {
   const page = new CoinsPage(ctx.navigate);
   page.mount(root);
   return () => page.unmount();

@@ -1,5 +1,5 @@
 /**
- * SalerInsightsPage.js — Supplier Shop Partner Network Analytics & Curators Leaderboard (Prompt 11.1).
+ * SalerInsightsPage.ts — Supplier Shop Partner Network Analytics & Curators Leaderboard (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AL.1:
  * - Real-time analytics on which Shop Partners curate and sell the supplier's products most effectively.
@@ -17,7 +17,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function SalerInsightsPage(root) {
+export default function SalerInsightsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -91,8 +91,8 @@ export default function SalerInsightsPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-broadcast-btn').onclick = () => modal.close();
-    footer.querySelector('#send-broadcast-btn').onclick = () => {
+    footer.querySelector<HTMLElement>('#cancel-broadcast-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#send-broadcast-btn').onclick = () => {
       toast.success(t('supplier.si_bc_sent'));
       modal.close();
     };
@@ -159,12 +159,12 @@ export default function SalerInsightsPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#done-saler-btn').onclick = () => modal.close();
-    content.querySelector('#grant-margin-btn').onclick = () => {
+    footer.querySelector<HTMLElement>('#done-saler-btn').onclick = () => modal.close();
+    content.querySelector<HTMLElement>('#grant-margin-btn').onclick = () => {
       toast.success(t('supplier.si_d_granted', { name: saler.saler_name }));
       modal.close();
     };
-    content.querySelector('#send-direct-msg-btn').onclick = () => {
+    content.querySelector<HTMLElement>('#send-direct-msg-btn').onclick = () => {
       toast.info(t('supplier.si_d_opening', { name: saler.saler_name }));
       modal.close();
     };
@@ -202,8 +202,8 @@ export default function SalerInsightsPage(root) {
       </div>
     `;
 
-    header.querySelector('#refresh-insights-btn').onclick = loadInsights;
-    header.querySelector('#broadcast-offer-btn').onclick = openBroadcastModal;
+    header.querySelector<HTMLElement>('#refresh-insights-btn').onclick = loadInsights;
+    header.querySelector<HTMLElement>('#broadcast-offer-btn').onclick = openBroadcastModal;
     container.appendChild(header);
 
     if (loading) {
@@ -312,8 +312,8 @@ export default function SalerInsightsPage(root) {
     `;
     tableCard.appendChild(tableHeader);
 
-    tableHeader.querySelector('#saler-search-input').oninput = (e) => {
-      searchQuery = e.target.value.trim();
+    tableHeader.querySelector<HTMLElement>('#saler-search-input').oninput = (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.trim();
       render();
     };
 
@@ -392,7 +392,7 @@ export default function SalerInsightsPage(root) {
           </td>
         `;
 
-        tr.querySelector('.view-saler-btn').onclick = () => openSalerDetailModal(saler);
+        tr.querySelector<HTMLElement>('.view-saler-btn').onclick = () => openSalerDetailModal(saler);
         tbody.appendChild(tr);
       });
 

@@ -1,5 +1,5 @@
 /**
- * AdminOrdersPage.js — Platform-wide Orders Central & Sub-Order Split Moderation (Prompt 5.2 / Prompt 7.1).
+ * AdminOrdersPage.ts — Platform-wide Orders Central & Sub-Order Split Moderation (Prompt 5.2 / Prompt 7.1).
  *
  * Implements:
  * 1. Orders KPI Header (Total Orders, Gross Order Volume, In-Transit Packages, Delivered, Dispute Rate).
@@ -20,8 +20,9 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function AdminOrdersPage(root, { navigate } = {}) {
+export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -287,7 +288,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
     const drawer = Drawer({
       title: `${isBn ? 'অর্ডার বিবরণ' : 'Order Inspector'} — #${order.order_ref}`,
       content,
-      width: '620px',
+      size: 'lg',
       removeOnClose: true,
     });
 
@@ -296,7 +297,7 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
 
     // Stage Update Action
     content.querySelector('.update-stage-btn')?.addEventListener('click', () => {
-      const select = content.querySelector('#stage-override-select');
+      const select = content.querySelector<HTMLSelectElement>('#stage-override-select');
       const newStage = select?.value;
       if (newStage) {
         order.fulfillment_status = newStage;
@@ -312,10 +313,10 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
     content.querySelector('.cancel-order-btn')?.addEventListener('click', async () => {
       const confirmed = await confirmDialog({
         title: isBn ? 'অর্ডার বাতিল' : `Cancel Order #${order.order_ref}`,
-        message: isBn ? 'আপনি কি নিশ্চিত যে এই অর্ডারটি বাতিল করে ইনভেন্টরি স্টক ফিরিয়ে দিতে চান?' : 'Are you sure you want to cancel this order and restore product stock?',
+        description: isBn ? 'আপনি কি নিশ্চিত যে এই অর্ডারটি বাতিল করে ইনভেন্টরি স্টক ফিরিয়ে দিতে চান?' : 'Are you sure you want to cancel this order and restore product stock?',
         confirmLabel: isBn ? 'অর্ডার বাতিল করুন' : 'Cancel Order',
         cancelLabel: isBn ? 'ফিরে যান' : 'Go Back',
-        isDanger: true,
+        variant: 'danger',
       });
 
       if (confirmed) {
@@ -498,9 +499,9 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
     const searchInput = container.querySelector('#order-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value;
+        searchQuery = (e.target as HTMLInputElement).value;
         render();
-        const input = root.querySelector('#order-search-input');
+        const input = root.querySelector<HTMLInputElement>('#order-search-input');
         if (input) {
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
@@ -509,16 +510,16 @@ export default function AdminOrdersPage(root, { navigate } = {}) {
     }
 
     container.querySelector('#order-status-select')?.addEventListener('change', (e) => {
-      statusFilter = e.target.value;
+      statusFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
     container.querySelector('#payment-method-select')?.addEventListener('change', (e) => {
-      paymentFilter = e.target.value;
+      paymentFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
-    container.querySelectorAll('.inspect-order-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.inspect-order-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = Number(btn.getAttribute('data-id'));
         const ord = orders.find((o) => o.id === id);
