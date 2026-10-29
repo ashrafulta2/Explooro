@@ -430,7 +430,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.delivery.view',
         module: 'core',
-        load: () => import('./pages/admin/DeliveryChargePage.js'),
+        load: () => import('./pages/admin/DeliveryChargePage.ts'),
       },
       // Personalized home feed governance (Phase G): weights, rails, diversity, co-visitation, cache and
       // the per-surface funnel. `core` for the same reason as Genie: the weights also govern the
@@ -450,7 +450,7 @@ async function bootRouterDemo() {
         title: 'Stories & UGC Feed — Explooro',
         permission: null,
         module: 'content_commerce',
-        load: () => import('./pages/StoriesFeedPage.js'),
+        load: () => import('./pages/StoriesFeedPage.ts'),
       },
       {
         path: '/reels',
@@ -471,7 +471,7 @@ async function bootRouterDemo() {
         title: 'Community — Explooro',
         permission: null,
         module: 'community_posts',
-        load: () => import('./pages/CommunityPage.js'),
+        load: () => import('./pages/CommunityPage.ts'),
       },
       {
         path: '/admin/community',
@@ -479,7 +479,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'community.post.moderate',
         module: 'community_posts',
-        load: () => import('./pages/CommunityPage.js'),
+        load: () => import('./pages/CommunityPage.ts'),
       },
       {
         path: '/academy',
@@ -797,7 +797,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerOrderDetailPage.js'),
+        load: () => import('./pages/saler/SalerOrderDetailPage.ts'),
       },
       {
         path: '/saler/analytics',
@@ -846,7 +846,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'wishlist',
-        load: () => import('./pages/customer/WishlistPage.js'),
+        load: () => import('./pages/customer/WishlistPage.ts'),
       },
       {
         path: '/account/following',
@@ -1130,7 +1130,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.groupbuy.govern',
         module: 'group_buying',
-        load: () => import('./pages/admin/AdminGroupBuyPage.js'),
+        load: () => import('./pages/admin/AdminGroupBuyPage.ts'),
       },
       // Sale attribution window. `.view` gates the page, `.update` (CRITICAL, super admin only) gates
       // Save — see server/src/routes/attributionAdmin.routes.ts.
@@ -1140,7 +1140,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.attribution.view',
         module: 'social_seller_kit',
-        load: () => import('./pages/admin/AdminAttributionPage.js'),
+        load: () => import('./pages/admin/AdminAttributionPage.ts'),
       },
       // Monthly shop partner reward pool. `.view` gates the page; `.update` and `.run` (CRITICAL, super
       // admin only) gate Save and Close now - see server/src/routes/partnerReward.routes.ts.
@@ -1158,7 +1158,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.groupbuy.govern',
         module: 'group_buying',
-        load: () => import('./pages/admin/AdminGroupBuyPage.js'),
+        load: () => import('./pages/admin/AdminGroupBuyPage.ts'),
       },
 
       // Admin Content Suite
@@ -1210,7 +1210,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'live.stream.govern',
         module: 'live_commerce',
-        load: () => import('./pages/admin/AdminLiveCommercePage.js'),
+        load: () => import('./pages/admin/AdminLiveCommercePage.ts'),
       },
       {
         path: '/admin/security/sessions',
@@ -1314,12 +1314,12 @@ async function bootRouterDemo() {
         load: () => import('./pages/admin/SubscriptionsPage.js'),
       },
       // Prompt 2.8: Real Auth Pages
-      { path: '/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.js') },
-      { path: '/auth/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.js') },
-      { path: '/auth/register', title: 'Register — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
+      { path: '/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.ts') },
+      { path: '/auth/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.ts') },
+      { path: '/auth/register', title: 'Register — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.ts') },
       // Referral Hub share links: /join/<custom-slug> and /join?ref=<code> open sign-up prefilled.
-      { path: '/join', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
-      { path: '/join/:slug', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.js') },
+      { path: '/join', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.ts') },
+      { path: '/join/:slug', title: 'Join — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/RegisterPage.ts') },
       { path: '/auth/otp', title: 'Verify OTP — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/OtpPage.ts') },
       { path: '/auth/2fa', title: 'Staff 2FA — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/TwoFactorPage.ts') },
       // Prompt 3.2: Module Control Panel
@@ -1547,7 +1547,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.return.request',
         module: 'returns_engine',
-        load: () => import('./pages/customer/ReturnRequestPage.js'),
+        load: () => import('./pages/customer/ReturnRequestPage.ts'),
       },
       {
         path: '/admin/returns',
@@ -2012,7 +2012,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.subscription.subscribe_own',
         module: 'subscription_fees',
-        load: () => import('./pages/saler/SalerProPage.js'),
+        load: () => import('./pages/saler/SalerProPage.ts'),
       },
       {
         path: '/saler/quests',

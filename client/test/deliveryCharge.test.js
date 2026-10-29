@@ -32,7 +32,7 @@ describe('Delivery charge', () => {
   });
 
   it('every string the page uses exists in English and Bangla', () => {
-    const page = read('pages/admin/DeliveryChargePage.js');
+    const page = read('pages/admin/DeliveryChargePage.ts');
     const keys = [...new Set([...page.matchAll(/t\('(admin\.delivery\.[a-z_]+)'/g)].map((m) => m[1]))];
     assert.ok(keys.length > 10);
     for (const lang of ['en', 'bn']) {

@@ -33,7 +33,7 @@ const get = (obj, key) => key.split('.').reduce((a, p) => (a == null ? a : a[p])
 const placeholders = (s) => [...String(s).matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).sort();
 
 const COMPONENT_FILES = [
-  ['pages', 'CommunityPage.js'],
+  ['pages', 'CommunityPage.ts'],
   ['components', 'community', 'PostCard.ts'],
   ['components', 'community', 'PostComposer.ts'],
   ['components', 'community', 'ModerationQueue.ts'],
@@ -185,8 +185,8 @@ test('only staff reach the queue, and Keep brings a hidden post back with its re
 
 test('the routes, the nav items and the module flag agree', () => {
   const main = read('main.js');
-  assert.match(main, /path: '\/community',[\s\S]*?module: 'community_posts'[\s\S]*?CommunityPage\.js/);
-  assert.match(main, /path: '\/admin\/community',[\s\S]*?permission: 'community\.post\.moderate'[\s\S]*?CommunityPage\.js/);
+  assert.match(main, /path: '\/community',[\s\S]*?module: 'community_posts'[\s\S]*?CommunityPage.ts/);
+  assert.match(main, /path: '\/admin\/community',[\s\S]*?permission: 'community\.post\.moderate'[\s\S]*?CommunityPage.ts/);
   const items = navItems.filter((i) => i.path === '/community' || i.path === '/admin/community');
   assert.deepEqual(items.map((i) => i.key).sort(), ['admin.content.community', 'customer.community', 'moderator.community', 'saler.community', 'supplier.community']);
   for (const i of items) assert.equal(i.module, 'community_posts', `${i.key} must be gated by the module the route uses`);
@@ -403,7 +403,7 @@ test('mock: saving is private, toggles, and the Saved list is the member\'s own'
 });
 
 test('the page offers the Saved filter to signed-in members and the card carries the button', () => {
-  const page = read('pages', 'CommunityPage.js');
+  const page = read('pages', 'CommunityPage.ts');
   assert.match(page, /community\.filter\.saved/);
   assert.match(page, /saved: state\.saved/);
   assert.match(page, /onSave:/);
@@ -517,7 +517,7 @@ test('the mock notices are the migration templates, and the settings page and dr
     || call('GET', '/notifications/preferences').body.data.some((p) => p.category === 'COMMUNITY'));
 
   // The page reads the link and opens the thread; the share link points at the same URL shape.
-  const page = read('pages', 'CommunityPage.js');
+  const page = read('pages', 'CommunityPage.ts');
   assert.match(page, /params\.get\('post'\)/);
   assert.match(page, /params\.get\('comments'\) === '1'/);
   assert.match(read('components', 'community', 'PostCard.ts'), /\/community\?post=\$\{post\.id\}/);

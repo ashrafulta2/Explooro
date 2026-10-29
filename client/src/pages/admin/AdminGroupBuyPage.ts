@@ -1,5 +1,5 @@
 /**
- * AdminGroupBuyPage.js — Team Purchase settings and pools (/admin/growth/group-buy, Prompt 9.5).
+ * AdminGroupBuyPage.ts — Team Purchase settings and pools (/admin/growth/group-buy, Prompt 9.5).
  *
  * 1. Settings a super admin sets: the shipping charge every team member pays, the discount for a
  *    2- and a 3-member team, and how long a team stays open. Saved through
@@ -28,7 +28,7 @@ const STATUS_BADGE = {
   CANCELLED: 'system-table__badge--danger',
 };
 
-export default function AdminGroupBuyPage(root) {
+export default function AdminGroupBuyPage(root: HTMLElement) {
   loadSystemHealthStyles();
   const container = document.createElement('div');
   container.className = 'admin-page group-buy-page';

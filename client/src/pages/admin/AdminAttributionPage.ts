@@ -1,5 +1,5 @@
 /**
- * AdminAttributionPage.js — how long a storefront visit or link click credits a Shop Partner with the
+ * AdminAttributionPage.ts — how long a storefront visit or link click credits a Shop Partner with the
  * sale (/admin/growth/attribution).
  *
  * The shopper's last touch (a partner's storefront or tracked short link) travels with every
@@ -26,7 +26,7 @@ import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
 
 const MIN_REASON_LENGTH = 10;
 
-export default function AdminAttributionPage(root) {
+export default function AdminAttributionPage(root: HTMLElement) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');

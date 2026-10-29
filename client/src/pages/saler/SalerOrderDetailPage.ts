@@ -1,5 +1,5 @@
 /**
- * SalerOrderDetailPage.js — Detailed Shop Partner Order Breakdown & Delivery Timeline (Prompt 11.2).
+ * SalerOrderDetailPage.ts — Detailed Shop Partner Order Breakdown & Delivery Timeline (Prompt 11.2).
  *
  * Route: /saler/orders/:id
  */
@@ -11,8 +11,9 @@ import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SalerOrderDetailPage(root, { params, navigate } = {}) {
+export default function SalerOrderDetailPage(root: HTMLElement, { params, navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {

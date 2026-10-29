@@ -19,7 +19,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
 const en = JSON.parse(read('locales/en.json'));
 const bn = JSON.parse(read('locales/bn.json'));
-const page = read('pages/saler/SalerProPage.js');
+const page = read('pages/saler/SalerProPage.ts');
 
 const resolve = (dict, key) => key.split('.').reduce((node, part) => (node == null ? node : node[part]), dict);
 const placeholders = (text) => [...String(text).matchAll(/\{\{\s*(\w+)\s*\}\}/g)].map((m) => m[1]).sort();

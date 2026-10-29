@@ -1,5 +1,5 @@
 /**
- * AdminLiveCommercePage.js — Live Stream Commerce Governance & Broadcast Moderation (Prompt 10.1).
+ * AdminLiveCommercePage.ts — Live Stream Commerce Governance & Broadcast Moderation (Prompt 10.1).
  *
  * Implements:
  * 1. Live Commerce Vitals (Active Broadcasts, Concurrent Viewers, In-Stream GMV, Moderation Alerts).
@@ -18,8 +18,9 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function AdminLiveCommercePage(root, { navigate } = {}) {
+export default function AdminLiveCommercePage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -190,10 +191,10 @@ export default function AdminLiveCommercePage(root, { navigate } = {}) {
 
         const confirmed = await confirmDialog({
           title: isBn ? 'লাইভ সম্প্রচার বন্ধ' : `Terminate Broadcast: ${s.room_code}`,
-          message: isBn ? `আপনি কি নিশ্চিত যে এই লাইভ স্ট্রিমটি অবিলম্বে বন্ধ করতে চান?` : `Are you sure you want to force terminate live stream "${s.title}"?`,
+          description: isBn ? `আপনি কি নিশ্চিত যে এই লাইভ স্ট্রিমটি অবিলম্বে বন্ধ করতে চান?` : `Are you sure you want to force terminate live stream "${s.title}"?`,
           confirmLabel: isBn ? 'বন্ধ করুন' : 'Force Terminate',
           cancelLabel: isBn ? 'বাতিল' : 'Cancel',
-          isDanger: true,
+          variant: 'danger',
         });
 
         if (confirmed) {

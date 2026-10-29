@@ -1,5 +1,5 @@
 /**
- * StoriesFeedPage.js — UGC Content Commerce, Storytelling Feed & Embedded Buyable Products (Prompt 10.8).
+ * StoriesFeedPage.ts — UGC Content Commerce, Storytelling Feed & Embedded Buyable Products (Prompt 10.8).
  *
  * Implements /stories:
  * - Editorial storytelling blog posts authored by shop partners and suppliers.
@@ -15,8 +15,9 @@ import { EmptyState } from '../components/ui/EmptyState.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { toast } from '../services/toast.ts';
 import { isFeatureEnabled } from '../services/featureFlags.ts';
+import type { PageContext } from './types.ts';
 
-export default function StoriesFeedPage(root, ctx = {}) {
+export default function StoriesFeedPage(root: HTMLElement, ctx: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'stories-feed-page p-4 md:p-6 max-w-5xl mx-auto space-y-8';
 
@@ -238,16 +239,28 @@ export default function StoriesFeedPage(root, ctx = {}) {
       </div>
     `;
 
+    const cancelBtn = Button({ label: t('common.cancel'), variant: 'secondary', onClick: () => modal.closeModal(false) });
+    const publishBtn = Button({ label: t('common.publish') });
+    const footer = document.createDocumentFragment();
+    footer.append(cancelBtn, publishBtn);
+
+    // WHY a footer and content: Modal has no `body`, `confirmLabel` or `onConfirm` options, so this
+    // dialog used to open with a title only, no fields and no button, and `modal.element` is
+    // undefined (the modal IS the <dialog>), which appended the text "undefined" to the page.
     const modal = Modal({
       title: `✍️ ${t('content.publish_story_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.publish'),
-      onConfirm: async () => {
-        const titleEn = modalContent.querySelector('#story-title-en')?.value?.trim();
-        const titleBn = modalContent.querySelector('#story-title-bn')?.value?.trim();
-        const coverUrl = modalContent.querySelector('#story-cover-url')?.value?.trim();
-        const contentEn = modalContent.querySelector('#story-content-en')?.value?.trim();
-        const contentBn = modalContent.querySelector('#story-content-bn')?.value?.trim();
+      content: modalContent,
+      footer,
+      onClose: () => setTimeout(() => modal.remove(), 400),
+    });
+
+    publishBtn.addEventListener('click', async () => {
+        const field = (id: string) => modalContent.querySelector<HTMLInputElement>(id)?.value?.trim();
+        const titleEn = field('#story-title-en');
+        const titleBn = field('#story-title-bn');
+        const coverUrl = field('#story-cover-url');
+        const contentEn = field('#story-content-en');
+        const contentBn = field('#story-content-bn');
 
         if (!titleEn || !titleBn) {
           toast.error('Both English and Bengali titles are required');
@@ -264,16 +277,15 @@ export default function StoriesFeedPage(root, ctx = {}) {
           });
 
           toast.success(t('content.story_submitted'));
-          modal.close();
+          modal.closeModal(true);
           await loadData();
         } catch (err) {
           toast.error(err?.message || 'Failed to publish story');
         }
-      },
     });
 
-    document.body.append(modal.element);
-    modal.open();
+    document.body.append(modal);
+    modal.openModal();
   }
 
   loadData();

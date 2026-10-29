@@ -38,7 +38,7 @@ const TABS = [
 ];
 const FROM = ['', 'customer', 'supplier', 'saler', 'admin'];
 
-export default function CommunityPage(root) {
+export default function CommunityPage(root: HTMLElement) {
   const page = el('div', 'cm-page');
   root.append(page);
   const cleanup = () => page.remove();

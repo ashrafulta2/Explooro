@@ -1,5 +1,5 @@
 /**
- * DeliveryChargePage.js — the delivery charge a normal checkout adds per supplier parcel
+ * DeliveryChargePage.ts — the delivery charge a normal checkout adds per supplier parcel
  * (/admin/platform/delivery).
  *
  * It used to be ৳60 written into the code. The super admin now sets it here; the cart, Quick Buy and
@@ -25,10 +25,11 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatRelativeTime } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
 const MIN_REASON_LENGTH = 10;
 
-export default function DeliveryChargePage(root, { navigate } = {}) {
+export default function DeliveryChargePage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');

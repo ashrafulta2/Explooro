@@ -1,7 +1,7 @@
 /**
  * community.css — the /community timeline: post cards, post windows, tabs, moderation queue.
  *
- * Imported by pages/CommunityPage.js (route chunk), never by main.css.
+ * Imported by pages/CommunityPage.ts (route chunk), never by main.css.
  *
  * Colour is role-coded with the status triads so it follows the master theme in light and dark:
  *   customer → success · supplier → info · shop partner → brand · admin → text-primary on inverse.

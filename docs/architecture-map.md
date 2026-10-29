@@ -130,7 +130,7 @@ The 35 most likely change requests, with exact paths.
 | Change the return window | Module setting `returns_engine.return_window_days` |
 | Change coin redemption rate | Module setting `loyalty_coins.redemption_rate` |
 | Change group-buy team size / window | Module setting `group_buying.default_team_size`, `.window_hours` |
-| Switch Shop Partner Pro on/off, or change its fee, rebate points, grace days or billing period | Configuration, not code. Module `subscription_fees` (default OFF) at `/admin/platform/modules`; plans and policy at `/admin/finance/subscriptions` (`finance.subscription.manage`). The rebate is a per-plan `commission_rebate_pct` applied in `services/subscriptionRebate.ts` and called from `pricing.service.ts`. Billing/renewal: `services/subscriptionBilling.service.ts` + `jobs/subscriptionRenewal.job.ts`. Shop Partner page: `pages/saler/SalerProPage.js` |
+| Switch Shop Partner Pro on/off, or change its fee, rebate points, grace days or billing period | Configuration, not code. Module `subscription_fees` (default OFF) at `/admin/platform/modules`; plans and policy at `/admin/finance/subscriptions` (`finance.subscription.manage`). The rebate is a per-plan `commission_rebate_pct` applied in `services/subscriptionRebate.ts` and called from `pricing.service.ts`. Billing/renewal: `services/subscriptionBilling.service.ts` + `jobs/subscriptionRenewal.job.ts`. Shop Partner page: `pages/saler/SalerProPage.ts` |
 | Fix a pricing calculation | `services/pricing.service.ts` — **the only file with split arithmetic** |
 | Fix a wallet or ledger bug | `services/ledger.service.ts` + `services/vault.service.ts`. Re-read `erd.md` §12 first |
 
@@ -151,7 +151,7 @@ The 35 most likely change requests, with exact paths.
 | Change FEFO batch selection | `services/inventory.service.ts` → `getFEFOBatch()` |
 | Change warehouse routing | `services/warehouseRouting.service.ts` |
 | Add/modify product image fallback keywords | `client/src/components/product/ProductCard.ts` (`KEYWORD_IMAGE_RULES`, `CATEGORY_DUMMY_IMAGES`, `resolveProductImage`) |
-| Modify customer wishlist | `client/src/pages/customer/WishlistPage.js` (UI), `server/src/services/wishlist.service.ts` (logic), `server/src/repositories/cart.repository.ts` (SQL) |
+| Modify customer wishlist | `client/src/pages/customer/WishlistPage.ts` (UI), `server/src/services/wishlist.service.ts` (logic), `server/src/repositories/cart.repository.ts` (SQL) |
 | Modify customer returns listing | `client/src/pages/customer/ReturnsPage.js` (UI), `server/src/services/return.service.ts` (logic), `server/src/routes/return.routes.ts` (`/returns/my-returns`) |
 | Modify customer coupons & vouchers hub | `client/src/pages/customer/CouponsPage.js` (`/account/coupons`), `client/src/components/customer/CouponCard.ts`, `server/src/services/coupon.service.ts` (logic), `client/src/mocks/handlers/campaigns.ts` (mock data) |
 | Modify team purchases / group buying UI | `client/src/pages/TeamPurchasePage.js` (`/team/:id`, `/account/team-purchases`), `server/src/services/teamPurchase.service.ts` (logic), `client/src/mocks/handlers/teamPurchase.ts` (mock data) |

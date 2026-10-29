@@ -1,5 +1,5 @@
 /**
- * LoginPage.js — Unified authentication page (Prompt 2.8).
+ * LoginPage.ts — Unified authentication page (Prompt 2.8).
  *
  * Supports:
  * 1. Password login flow.
@@ -15,8 +15,9 @@ import { toast } from '../../services/toast.ts';
 import { homePathForRoles } from '../../config/navigation.js';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
+import type { PageContext } from '../types.ts';
 
-export default function LoginPage(container, { query = {}, navigate }) {
+export default function LoginPage(container: HTMLElement, { query = {}, navigate }: PageContext) {
   container.replaceChildren();
 
   // WHY: this defaulted to '/', so signing in without an explicit ?redirect dropped staff on

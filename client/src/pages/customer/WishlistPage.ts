@@ -1,5 +1,5 @@
 /**
- * WishlistPage.js — Customer Saved Items (Wishlist) Listing Page
+ * WishlistPage.ts — Customer Saved Items (Wishlist) Listing Page
  *
  * Route: /account/wishlist
  *
@@ -21,8 +21,9 @@ import { Switch } from '../../components/ui/Switch.ts';
 import { addToCart, toggleWishlist, openCart, setWishlistNotify } from '../../services/cart.ts';
 import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { goBack, renderBackLink } from '../../core/navBack.ts';
+import type { PageContext } from '../types.ts';
 
-export default function WishlistPage(root, { navigate } = {}) {
+export default function WishlistPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -102,7 +103,7 @@ export default function WishlistPage(root, { navigate } = {}) {
         description: t('wishlist.empty_description'),
         action: browseBtn,
       });
-      listSlot.append(empty.element || empty);
+      listSlot.append(empty);
       return;
     }
 

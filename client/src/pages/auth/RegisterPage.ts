@@ -1,5 +1,5 @@
 /**
- * RegisterPage.js — User registration page (Prompt 2.8).
+ * RegisterPage.ts — User registration page (Prompt 2.8).
  *
  * Supports account creation for Customer, Shop Partner, and Supplier roles.
  * Advances to OTP verification on submission.
@@ -10,8 +10,9 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
+import type { PageContext } from '../types.ts';
 
-export default function RegisterPage(container, { query = {}, params = {}, navigate }) {
+export default function RegisterPage(container: HTMLElement, { query = {}, params = {}, navigate }: PageContext) {
   container.replaceChildren();
 
   const redirectPath = query.redirect ? decodeURIComponent(query.redirect) : '/';

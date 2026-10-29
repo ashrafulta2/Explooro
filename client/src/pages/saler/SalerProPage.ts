@@ -1,5 +1,5 @@
 /**
- * SalerProPage.js — Shop Partner Pro subscription: choose a plan, see the renewal date, cancel or resume.
+ * SalerProPage.ts — Shop Partner Pro subscription: choose a plan, see the renewal date, cancel or resume.
  *
  * Route: /saler/pro  (guard: finance.subscription.subscribe_own AND module `subscription_fees`).
  * With the module OFF the route and its nav entry disappear, and the API refuses — nothing here
@@ -19,7 +19,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 
 const LIVE_STATUSES = ['ACTIVE', 'PAST_DUE', 'WAIVED'];
 
-export default function SalerProPage(root) {
+export default function SalerProPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'saler-page-container saler-pro';
 

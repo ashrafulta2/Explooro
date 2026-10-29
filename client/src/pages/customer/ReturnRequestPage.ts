@@ -1,5 +1,5 @@
 /**
- * ReturnRequestPage.js — Customer Return Request Form & Workflow (Prompt 7.2).
+ * ReturnRequestPage.ts — Customer Return Request Form & Workflow (Prompt 7.2).
  *
  * Implements:
  * 1. Sub-order item selector with quantity adjustment
@@ -15,8 +15,9 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { goBack, CHEVRON_LEFT_SVG } from '../../core/navBack.ts';
 import '../../styles/components/returns.css';
+import type { PageContext } from '../types.ts';
 
-export default function ReturnRequestPage(root, { params = {}, navigate } = {}) {
+export default function ReturnRequestPage(root: HTMLElement, { params = {}, navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'page-container return-request-page';
 
