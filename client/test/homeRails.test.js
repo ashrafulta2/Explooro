@@ -145,5 +145,5 @@ test('the rails fetch honours the opt-out switch the feed uses', () => {
 });
 
 test('the rail component is registered in the dev gallery', () => {
-  assert.match(read('pages/dev/gallery-registry.js'), /id: 'product-rail'/);
+  assert.match(read('pages/dev/gallery-registry.ts'), /id: 'product-rail'/);
 });

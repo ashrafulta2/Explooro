@@ -264,7 +264,7 @@ route you are on, and clicking it lists and highlights each violation.
 `client/src/config/navigation.ts` (guard alignment, `ROLE_HOME` / `homePathForRoles`).
 
 **New page** — `client/src/pages/admin/AdminReferralsPage.ts`, registered in
-`client/src/pages/dev/gallery-registry.js`.
+`client/src/pages/dev/gallery-registry.ts`.
 
 **Mocks** — `client/src/mocks/handlers/admin.js` (module registry + persisted toggles + coin policy,
 streak curve and leaderboard), `client/src/mocks/handlers/referral.js` (programme rules, fraud

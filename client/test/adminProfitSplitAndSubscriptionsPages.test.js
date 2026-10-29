@@ -380,8 +380,8 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
       assert.ok(moduleRowJs.includes("'/admin/finance/subscriptions'"), 'ModuleRow has subscription_fees route');
     });
 
-    it('gallery-registry.js registers specimens for Profit Splits and Subscriptions', () => {
-      const galleryJs = readFileSync(join(root, 'src/pages/dev/gallery-registry.js'), 'utf8');
+    it('gallery-registry.ts registers specimens for Profit Splits and Subscriptions', () => {
+      const galleryJs = readFileSync(join(root, 'src/pages/dev/gallery-registry.ts'), 'utf8');
       assert.ok(galleryJs.includes("id: 'profit-splits-page'"), 'splits gallery specimen registered');
       assert.ok(galleryJs.includes("id: 'subscriptions-page'"), 'subscriptions gallery specimen registered');
     });

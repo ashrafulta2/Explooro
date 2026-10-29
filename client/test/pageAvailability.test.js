@@ -269,7 +269,7 @@ describe('page availability — the admin surface is registered and guarded', ()
   });
 
   it('the component is registered in the dev gallery', () => {
-    const registry = read('src/pages/dev/gallery-registry.js');
+    const registry = read('src/pages/dev/gallery-registry.ts');
     assert.match(registry, /id: 'page-availability-row'/);
     assert.match(registry, /function renderPageAvailabilityRowSpecimen\(\)/);
   });

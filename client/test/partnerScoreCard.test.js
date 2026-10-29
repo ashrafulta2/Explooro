@@ -82,7 +82,7 @@ describe('PartnerScoreCard output', () => {
 
 describe('PartnerScoreCard wiring', () => {
   it('has a gallery specimen, both locales, and no new stylesheet', () => {
-    assert.match(read('../src/pages/dev/gallery-registry.js'), /id: 'partner-score-card'/);
+    assert.match(read('../src/pages/dev/gallery-registry.ts'), /id: 'partner-score-card'/);
     const en = JSON.parse(read('../src/locales/en.json')).saler.partner_score;
     const bn = JSON.parse(read('../src/locales/bn.json')).saler.partner_score;
     assert.deepEqual(Object.keys(en).sort(), Object.keys(bn).sort());

@@ -285,7 +285,7 @@ test('Language & Default Locale — client invariants', async (t) => {
 
   await t.test('14. LocaleChoiceCard is registered in the dev gallery', () => {
     const registry = fs.readFileSync(
-      path.join(clientRoot, 'src', 'pages', 'dev', 'gallery-registry.js'),
+      path.join(clientRoot, 'src', 'pages', 'dev', 'gallery-registry.ts'),
       'utf8'
     );
     assert.match(registry, /id: 'locale-choice-card'/);

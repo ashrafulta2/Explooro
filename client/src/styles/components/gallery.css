@@ -1,14 +1,14 @@
 /**
  * gallery.css — /dev/gallery only (Prompt 1.8).
  *
- * Deliberately NOT in main.css's aggregator: it is imported directly by GalleryPage.js, the one
+ * Deliberately NOT in main.css's aggregator: it is imported directly by GalleryPage.ts, the one
  * module reachable only through the `import.meta.env.DEV`-gated route in main.js. Importing it
  * from main.css would ship it in every production build regardless of that guard, which is exactly
  * what ACCEPTANCE ("`npm run build` output contains no gallery code") rules out.
  */
 
 .gallery-page {
-  /* Set from JS (GalleryPage.js `syncStickyOffset`) to the live-measured height of the real
+  /* Set from JS (GalleryPage.ts `syncStickyOffset`) to the live-measured height of the real
      AppShell TopBar when a role is selected — it is ALSO `position: sticky; top: 0`, and a
      hardcoded guess here would either overlap it or leave a gap once a role toggles the topbar
      on/off. 0 when logged out (no topbar chrome at all). */

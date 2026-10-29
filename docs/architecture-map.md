@@ -212,7 +212,7 @@ The 35 most likely change requests, with exact paths.
 | Fix an ad price that looks wrong | `server/src/services/adPricing.ts` — every ad price the platform quotes, charges or displays is computed there and nowhere else. `server/test/adPricing.test.js` states the invariants |
 | Add a nav item | `client/src/config/navigation.ts` — one object. Never edit `Sidebar.ts` |
 | Hide a page from users, or release it to one of them | **Configuration, not code** — **/admin/platform/pages** (`platform.page.view` / `.toggle`, CRITICAL so super admin only). Four states per route: Live / Coming soon (nav badge + placeholder) / Hidden (no nav item, URL 404s) / Limited (live only for listed roles and user ids). It is a layer BESIDE the module system, not above it: a module answers "does the feature work", a page toggle answers "may this viewer see it", and the 101 `module: 'core'` routes have no module to switch. `/`, `/login` and the page itself are locked on. One resolver — `client/src/services/pageAccess.ts` — serves the router, the sidebar and the command palette; never re-implement the states. On the server the same states are enforced for the **56 endpoints that belong to exactly one page**: that route declares `config: { page: '/its/path' }` and the `onRoute` hook in `server/src/middlewares/requirePage.ts` appends the guard, which answers `403 PAGE_UNAVAILABLE`. An endpoint two pages share cannot be refused (the other page may be Live), so for those the toggle stays visibility-only |
-| Add a UI component | `components/ui/` + register in `pages/dev/gallery-registry.js` **in the same change** |
+| Add a UI component | `components/ui/` + register in `pages/dev/gallery-registry.ts` **in the same change** |
 | Add a field a user edits about themselves | `user_profiles` (Prompt 2.2 migration) → the whitelist in `server/src/repositories/user.repository.ts` → validation in `profile.service.ts` → a control in `client/src/pages/settings/ProfilePage.ts` → the same key in `mocks/handlers/me.ts`. Never add a writable column without adding it to BOTH whitelists |
 | Add an item to the avatar (account) menu | `AvatarMenu()` in `client/src/components/shell/TopBar.ts`. It is the only account entry point every role shares — the sidebar is per-role |
 | Add a dashboard card | The role's page under `pages/<role>/`, gated by `PermissionGate` |
@@ -347,7 +347,7 @@ style preferences; each one exists because violating it loses money, leaks data,
 1. **Money is a decimal string over the wire** (`"3200.00"`), `NUMERIC(14,2)` in the database, and
    integer paisa inside `pricing.service.ts`. Never a JSON number.
 2. **Both locale files, always.** A string in `en.json` but not `bn.json` is an incomplete change.
-3. **Register new components in `pages/dev/gallery-registry.js`** in the same commit.
+3. **Register new components in `pages/dev/gallery-registry.ts`** in the same commit.
 4. **Every integration ships a `mock` driver** and defaults to it in development.
 5. **Permission keys come from `permission-catalog.json`.** Inventing one in code means it will
    never resolve.

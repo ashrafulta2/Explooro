@@ -181,7 +181,7 @@ A change is not done until all of these are true:
 
 - [ ] `npm run dev` still starts and the site renders at localhost:3000
 - [ ] Every new user-facing string is in **both** `locales/en.json` and `locales/bn.json`
-- [ ] Every new component is registered in `client/src/pages/dev/gallery-registry.js`
+- [ ] Every new component is registered in `client/src/pages/dev/gallery-registry.ts`
 - [ ] Every new feature route has `requireModule` + `requirePermission` + `requireRestriction`
 - [ ] Every state-changing staff action writes an `audit_logs` row with before/after
 - [ ] Business numbers live in settings, not in code

@@ -1,5 +1,5 @@
 /**
- * gallery-registry.js — the explicit list /dev/gallery renders from.
+ * gallery-registry.ts — the explicit list /dev/gallery renders from.
  *
  * RULE FOR ALL FUTURE PROMPTS (Prompt 1.8 REQUIREMENT 4): any component created in Phases 2–11
  * must register itself here in the same commit — one more object in `galleryEntries`, same
@@ -369,7 +369,7 @@ function renderTable() {
     { id: 3, name: 'Kids Winter Jacket', supplier: 'Chattogram Kids', price: '৳ 1,850.00', open: false },
   ];
 
-  let sortState = { key: 'name', dir: 'asc' };
+  let sortState: { key: string; dir: 'asc' | 'desc' } = { key: 'name', dir: 'asc' };
   const dataTable = Table({
     columns,
     rows,
@@ -449,7 +449,7 @@ function renderPagination() {
         totalPages: 20,
         totalItems: 397,
         pageSize: 20,
-        onChange: ({ page }) => toast.info(`Go to page ${page}`),
+        onChange: (change) => toast.info(`Go to page ${(change as { page: number }).page}`),
       })
     ),
     specimen(
@@ -458,7 +458,7 @@ function renderPagination() {
         mode: 'cursor',
         hasPrev: true,
         hasNext: true,
-        onChange: ({ direction }) => toast.info(`Cursor: ${direction}`),
+        onChange: (change) => toast.info(`Cursor: ${(change as { direction: string }).direction}`),
       })
     )
   );
@@ -664,7 +664,7 @@ function renderImageUploader() {
     label: 'Open Media Library Modal',
     variant: 'secondary',
     size: 'sm',
-    onClick: (e) => openMediaLibrary({ purpose: 'PRODUCT', trigger: e.target }),
+    onClick: (e) => openMediaLibrary({ purpose: 'PRODUCT', trigger: e.target as HTMLElement }),
   });
 
   const camBtn = Button({
@@ -672,7 +672,7 @@ function renderImageUploader() {
     variant: 'secondary',
     size: 'sm',
     onClick: async (e) => {
-      const photo = await openCameraCapture({ trigger: e.currentTarget });
+      const photo = await openCameraCapture({ trigger: e.currentTarget as HTMLElement });
       if (photo) toast.success(`Captured ${photo.name} (${Math.round(photo.size / 1024)}KB)`);
     },
   });
@@ -871,7 +871,7 @@ function renderHomeTop() {
   };
   for (const [label, role, isAuthenticated] of [['guest', 'customer', false], ['customer', 'customer', true], ['saler', 'saler', true]]) {
     wrap.append(subgroup(`HomeTop — ${label}`));
-    wrap.append(specimen(label, HomeTop({ ...common, role, isAuthenticated }).el));
+    wrap.append(specimen(label, HomeTop({ ...common, role, isAuthenticated } as any).el));
   }
   return wrap;
 }
@@ -992,9 +992,9 @@ function renderSupplierScorecardBadge() {
 
 function renderIncentivePayoutTable() {
   const wrap = document.createDocumentFragment();
-  const row = (id, status, month, volume, pct, gross) => {
+  const row = (id, status, month, volume: number, pct, gross: number) => {
     const fee = (gross * 0.1).toFixed(2);
-    return { id, supplier_name: 'Rahman Traders', period_start: `${month}-01`, volume: volume.toFixed(2), rebate_pct: String(pct), gross_amount: gross.toFixed(2), platform_fee: fee, net_amount: (gross - fee).toFixed(2), status };
+    return { id, supplier_name: 'Rahman Traders', period_start: `${month}-01`, volume: volume.toFixed(2), rebate_pct: String(pct), gross_amount: gross.toFixed(2), platform_fee: fee, net_amount: (gross - Number(fee)).toFixed(2), status };
   };
   const rows = [
     row(1, 'PAID', '2026-09', 62000, 2, 1240),
@@ -1118,7 +1118,7 @@ function renderAddToStoreDrawer(detachedNodes) {
     label: 'Open AddToStoreDrawer Demo',
     variant: 'primary',
     onClick: (e) => {
-      drawer.openForProduct(DEMO_PRODUCTS[0], e.currentTarget);
+      drawer.openForProduct(DEMO_PRODUCTS[0], e.currentTarget as HTMLElement);
     },
   });
   wrap.append(specimen('drawer trigger', btn));
@@ -1167,7 +1167,7 @@ function renderShelfEditor() {
     initialShelves: [
       {
         name: 'Featured Handloom',
-        items: DEMO_PRODUCTS.slice(0, 3).map((p, idx) => ({
+        items: DEMO_PRODUCTS.slice(0, 3).map((p: Record<string, any>, idx) => ({
           product_id: p.id,
           title_en: p.title_en,
           title_bn: p.title_bn,
@@ -1221,7 +1221,7 @@ function renderPayoutModal() {
     onClick: () => {
       openPayoutRequestModal({
         availableBalance: 8450.00,
-        onSuccess: (payout) => {
+        onSuccess: (payout: any) => {
           toast.success(`Withdrawal request ${payout.ref} created!`);
         },
       });
@@ -1694,7 +1694,7 @@ function renderReviewCardSpecimen() {
   wrap.className = 'gallery-section';
   wrap.append(subgroup('Product & Content Review Card (Prompt 7.4)'));
 
-  const sampleItem = {
+  const sampleItem: any = {
     id: 1,
     ref: 'MOD-9A2K7L',
     item_type: 'PRODUCT_NEW',
@@ -2410,7 +2410,7 @@ function renderQuestPanelSpecimen() {
 
   const panel = new QuestPanel({
     quests: sampleQuests,
-    onRewardClaimed: (claim) => toast.success(`Specimen reward claimed: +${claim.rewardCoins || 15} coins!`),
+    onRewardClaimed: (claim: any) => { toast.success(`Specimen reward claimed: +${claim.rewardCoins || 15} coins!`); },
   });
 
   wrap.append(specimen('Quest & Mission Widget with Filters & Progress Bars', panel.getElement()));
@@ -2912,7 +2912,7 @@ function renderShoppableReelsSpecimen() {
   wrap.append(subgroup('Shoppable Video Reels Feed (Prompt 10.8)'));
 
   const reels = ShoppableReels({
-    onBuyProduct: (prod) => toast.info(`Clicked buy for ${prod.title_en}`),
+    onBuyProduct: (prod: any) => toast.info(`Clicked buy for ${prod.title_en}`),
   });
 
   wrap.append(specimen('Vertical Feed with Pinned Product Cards, 1-Tap Checkout & Data-Saver Mode', reels.element));
@@ -3704,7 +3704,7 @@ function renderPageAvailabilityRowSpecimen() {
       'COMING_SOON (nav item stays, with a badge)',
       PageAvailabilityRow({
         page: page(),
-        toggle: { state: 'COMING_SOON', reason: 'Warehouse routing not released yet', updated_at: new Date().toISOString() },
+        toggle: { state: 'COMING_SOON', reason: 'Warehouse routing not released yet', updated_at: new Date().toISOString() } as any,
         canToggle: true,
         onPick: noop,
       })
@@ -3713,7 +3713,7 @@ function renderPageAvailabilityRowSpecimen() {
       'HIDDEN (absent from nav, URL 404s)',
       PageAvailabilityRow({
         page: page(),
-        toggle: { state: 'HIDDEN', reason: 'Held back for the next release', updated_at: new Date().toISOString() },
+        toggle: { state: 'HIDDEN', reason: 'Held back for the next release', updated_at: new Date().toISOString() } as any,
         canToggle: true,
         onPick: noop,
       })
@@ -3739,7 +3739,7 @@ function renderPageAvailabilityRowSpecimen() {
     ),
     specimen(
       'read-only (holds platform.page.view but not .toggle)',
-      PageAvailabilityRow({ page: page(), toggle: { state: 'HIDDEN' }, canToggle: false, onPick: noop })
+      PageAvailabilityRow({ page: page(), toggle: { state: 'HIDDEN' } as any, canToggle: false, onPick: noop })
     )
   );
 

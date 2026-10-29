@@ -33,7 +33,7 @@ test('InfoTip fallback label exists in English and Bangla', () => {
 });
 
 test('InfoTip is registered in the component gallery', () => {
-  assert.match(read('../src/pages/dev/gallery-registry.js'), /id: 'info-tip'/);
+  assert.match(read('../src/pages/dev/gallery-registry.ts'), /id: 'info-tip'/);
 });
 
 test('every data-page-info marker sits on a <p> element', () => {

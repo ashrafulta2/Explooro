@@ -2089,7 +2089,7 @@ async function bootRouterDemo() {
               title: 'Component Gallery — Explooro (dev)',
               permission: null,
               module: 'core',
-              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./styles/components/payout-protection.css'), import('./pages/dev/GalleryPage.js')]).then(([, , , , , page]) => page),
+              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./styles/components/payout-protection.css'), import('./pages/dev/GalleryPage.ts')]).then(([, , , , , page]) => page),
             },
             {
               path: '/dev/craft',

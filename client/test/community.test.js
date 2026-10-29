@@ -195,7 +195,7 @@ test('the routes, the nav items and the module flag agree', () => {
 });
 
 test('both components are in the dev gallery', () => {
-  const gallery = read('pages', 'dev', 'gallery-registry.js');
+  const gallery = read('pages', 'dev', 'gallery-registry.ts');
   assert.match(gallery, /id: 'community-post-card'/);
   assert.match(gallery, /id: 'community-post-composer'/);
 });

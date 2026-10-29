@@ -4,7 +4,7 @@
  * DEV-only: main.js only registers this route's dynamic `import()` inside an
  * `import.meta.env.DEV` branch, which Vite replaces with the literal `false` in a production
  * build — Rollup then dead-code-eliminates the whole branch, including the `import()` call, so
- * this module (and gallery-registry.js, and gallery.css below) never ends up in a production
+ * this module (and gallery-registry.ts, and gallery.css below) never ends up in a production
  * chunk. ACCEPTANCE: "`npm run build` output contains no gallery code."
  *
  * Three moving parts:
@@ -15,7 +15,7 @@
  *     uses, so the live Sidebar/TopBar/MobileNav wrapping this very page updates in place. This is
  *     what fulfils 1.7's PREVIEW note ("a role switcher in /dev/gallery lets the developer preview
  *     all six role shells live") without building a second, throwaway shell renderer.
- *  2. A left nav + main content area walking `gallery-registry.js`'s explicit list — every
+ *  2. A left nav + main content area walking `gallery-registry.ts`'s explicit list — every
  *     component from 1.3/1.4 renders every state, always, no per-item toggle needed. Entries are
  *     laid out by `GALLERY_GROUPS` order (not declaration order): each group gets a heading in the
  *     main pane and a collapsible, filterable block in the nav, and the section currently in view
@@ -31,7 +31,7 @@
  * page's own subtree), so they have to be removed explicitly or they'd pile up across remounts.
  */
 import '../../styles/components/gallery.css';
-import { buildGalleryEntries, GALLERY_GROUPS } from './gallery-registry.js';
+import { buildGalleryEntries, GALLERY_GROUPS } from './gallery-registry.ts';
 import { appStore, setMockRole, logOutMock } from '../../state/appStore.ts';
 import { NAV_ROLES } from '../../config/navigation.ts';
 import { getRoleMeta } from '../../config/permissions.mock.ts';
@@ -320,7 +320,7 @@ function renderContrastChecker() {
  * Page assembly
  * ---------------------------------------------------------------------- */
 
-export default function GalleryPage(root) {
+export default function GalleryPage(root: HTMLElement) {
   const detachedNodes = [];
   const unsubscribers = [];
 
@@ -494,7 +494,7 @@ export default function GalleryPage(root) {
       details.open = open;
     });
   }
-  for (const [text, open] of [['Expand all', true], ['Collapse all', false]]) {
+  for (const [text, open] of [['Expand all', true], ['Collapse all', false]] as [string, boolean][]) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.textContent = text;
@@ -599,7 +599,7 @@ export default function GalleryPage(root) {
     (records) => {
       for (const record of records) {
         if (!record.isIntersecting) continue;
-        const link = linkById.get(record.target.id);
+        const link = linkById.get(record.target.id) as HTMLElement | undefined;
         if (!link || link === activeLink) continue;
         activeLink?.classList.remove('is-active');
         link.classList.add('is-active');
@@ -629,7 +629,7 @@ export default function GalleryPage(root) {
     for (const [id, title, render] of [
       ['design-tokens', 'Design Tokens', renderTokenInspector],
       ['contrast-checker', 'Contrast Checker', renderContrastChecker],
-    ]) {
+    ] as [string, string, () => Node][]) {
       const old = document.getElementById(id);
       if (!old) continue;
       spy.unobserve(old);

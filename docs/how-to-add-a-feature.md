@@ -410,7 +410,7 @@ Bangladeshi shopkeeper — not a word-for-word translation of the English.
 ## Step 11 — Gallery registration
 
 ```js
-// client/src/pages/dev/gallery-registry.js
+// client/src/pages/dev/gallery-registry.ts
 import { TagEditor } from '../../components/product/TagEditor.js';
 
 // One render function per specimen: it returns a node showing every state of the component.
