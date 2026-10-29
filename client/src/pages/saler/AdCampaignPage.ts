@@ -1,5 +1,5 @@
 /**
- * AdCampaignPage.js — Shop Partner Ad Store & Campaign Manager.
+ * AdCampaignPage.ts — Shop Partner Ad Store & Campaign Manager.
  *
  * Two tabs, one job: let a shop partner buy advertising without understanding advertising.
  *
@@ -25,6 +25,7 @@ import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
 import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.ts';
+import type { PageContext } from '../types.ts';
 
 /** Budget presets, so most shop partners never type a number at all. */
 const BUDGET_PRESETS = [500, 1000, 2500, 5000];
@@ -70,6 +71,21 @@ const count = (n) => Number(n || 0).toLocaleString('en-US');
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export class AdCampaignPage {
+  tab: string;
+  products: any[] = [];
+  categories: any[] = [];
+  promotable: any[] | null = null;
+  campaigns: any[] = [];
+  tier = 'STARTER';
+  loading = true;
+  statusFilter = 'ALL';
+  rootEl: HTMLElement | null = null;
+  unsubscribeLang: (() => void) | null = null;
+  wizard: any = null;
+  wizardEl: HTMLElement | null = null;
+  wizardModal: ReturnType<typeof Modal> | null = null;
+  quoteTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor() {
     this.tab = 'store';
     this.products = [];
@@ -405,7 +421,7 @@ export class AdCampaignPage {
   _attachEvents() {
     const root = this.rootEl;
 
-    root.querySelectorAll('[data-tab]').forEach((btn) => {
+    root.querySelectorAll<HTMLElement>('[data-tab]').forEach((btn) => {
       btn.addEventListener('click', () => {
         this.tab = btn.dataset.tab;
         this.render();
@@ -417,24 +433,24 @@ export class AdCampaignPage {
       this.render();
     });
 
-    root.querySelectorAll('[data-filter]').forEach((btn) => {
+    root.querySelectorAll<HTMLElement>('[data-filter]').forEach((btn) => {
       btn.addEventListener('click', () => {
         this.statusFilter = btn.dataset.filter;
         this.render();
       });
     });
 
-    root.querySelectorAll('[data-choose]').forEach((btn) => {
+    root.querySelectorAll<HTMLElement>('[data-choose]').forEach((btn) => {
       btn.addEventListener('click', () => this.openWizard(btn.dataset.choose));
     });
 
-    root.querySelectorAll('[data-pause]').forEach((btn) => {
+    root.querySelectorAll<HTMLElement>('[data-pause]').forEach((btn) => {
       btn.addEventListener('click', () => this._campaignAction(btn.dataset.pause, 'pause'));
     });
-    root.querySelectorAll('[data-resume]').forEach((btn) => {
+    root.querySelectorAll<HTMLElement>('[data-resume]').forEach((btn) => {
       btn.addEventListener('click', () => this._campaignAction(btn.dataset.resume, 'resume'));
     });
-    root.querySelectorAll('[data-cancel]').forEach((btn) => {
+    root.querySelectorAll<HTMLElement>('[data-cancel]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const ok = window.confirm(this.isBn
           ? 'এই ক্যাম্পেইন বাতিল করবেন? সংরক্ষিত জায়গা ছেড়ে দেওয়া হবে এবং এটি আর দেখানো হবে না।'
@@ -538,7 +554,7 @@ export class AdCampaignPage {
     if (!slot || !this.wizard) return;
     slot.outerHTML = this._productPickerHtml();
     this.wizardEl.querySelector('#ad-f-product')?.addEventListener('change', (e) => {
-      if (this.wizard) this.wizard.form.product_id = e.target.value;
+      if (this.wizard) this.wizard.form.product_id = (e.target as HTMLInputElement).value;
     });
   }
 
@@ -597,7 +613,7 @@ export class AdCampaignPage {
   _paintQuote() {
     const panel = this.wizardEl?.querySelector('#ad-quote-panel');
     if (panel) panel.innerHTML = this._quotePanelHtml();
-    const cta = this.wizardEl?.querySelector('#ad-wizard-submit');
+    const cta = this.wizardEl?.querySelector<HTMLButtonElement>('#ad-wizard-submit');
     if (cta) {
       cta.innerHTML = this._submitLabel();
       cta.disabled = !this.wizard?.quote || this.wizard.quoting || this.wizard.submitting;
@@ -612,7 +628,7 @@ export class AdCampaignPage {
 
     // WHY: the whole panel is rebuilt per step/preset, which would drop focus onto the <dialog> itself
     // (drawing its focus ring). Re-find the control the user was on by its data-* attribute.
-    const prev = document.activeElement;
+    const prev = document.activeElement as HTMLElement | null;
     const [dataKey, dataVal] = prev && this.wizardEl.contains(prev) ? Object.entries(prev.dataset)[0] || [] : [];
     const refocus = dataKey ? `[data-${dataKey.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}="${CSS.escape(dataVal)}"]` : null;
 
@@ -671,7 +687,7 @@ export class AdCampaignPage {
     `;
 
     this._attachWizardEvents();
-    if (refocus) this.wizardEl.querySelector(refocus)?.focus();
+    if (refocus) this.wizardEl.querySelector<HTMLElement>(refocus)?.focus();
   }
 
   _submitLabel() {
@@ -1126,7 +1142,7 @@ export class AdCampaignPage {
 
     el.querySelector('#ad-wizard-submit')?.addEventListener('click', () => this._submitCampaign());
 
-    el.querySelectorAll('[data-field]').forEach((input) => {
+    el.querySelectorAll<HTMLInputElement>('[data-field]').forEach((input) => {
       const evt = input.type === 'range' ? 'input' : 'change';
       input.addEventListener(evt, () => {
         w.form[input.dataset.field] = input.value;
@@ -1147,27 +1163,27 @@ export class AdCampaignPage {
     });
 
     // Multi-selects (Push Blast audience): the form keeps the chosen values as an array.
-    el.querySelectorAll('[data-multi]').forEach((sel) => {
+    el.querySelectorAll<HTMLSelectElement>('[data-multi]').forEach((sel) => {
       sel.addEventListener('change', () => {
         w.form[sel.dataset.multi] = [...sel.selectedOptions].map((o) => o.value);
       });
     });
 
-    el.querySelectorAll('[data-preset-budget]').forEach((btn) => {
+    el.querySelectorAll<HTMLElement>('[data-preset-budget]').forEach((btn) => {
       btn.addEventListener('click', () => {
         w.form.total_budget = Number(btn.dataset.presetBudget);
         this.renderWizard();
         this.requestQuote();
       });
     });
-    el.querySelectorAll('[data-preset-days]').forEach((btn) => {
+    el.querySelectorAll<HTMLElement>('[data-preset-days]').forEach((btn) => {
       btn.addEventListener('click', () => {
         w.form.duration_days = Number(btn.dataset.presetDays);
         this.renderWizard();
         this.requestQuote();
       });
     });
-    el.querySelectorAll('[data-preset-qty]').forEach((btn) => {
+    el.querySelectorAll<HTMLElement>('[data-preset-qty]').forEach((btn) => {
       btn.addEventListener('click', () => {
         w.form.quantity = Number(btn.dataset.presetQty);
         this.renderWizard();
@@ -1252,7 +1268,7 @@ export class AdCampaignPage {
 // WHY: this page is written as a class, but the router page contract (core/router.ts) is a
 // plain function `(container, ctx) => cleanup?`. Calling a class without `new` throws, so the
 // default export adapts the two — mount() is fire-and-forget async, unmount() is the cleanup.
-export default function mountAdCampaignPage(root, ctx = {}) {
+export default function mountAdCampaignPage(root: HTMLElement, ctx: PageContext = {}) {
   const page = new AdCampaignPage();
   page.mount(root);
   return () => page.unmount();

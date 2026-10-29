@@ -31,7 +31,7 @@ function call(handlers, method, path, ctx = {}) {
 describe('Super Admin Profit Splits & Subscriptions Governance', () => {
   describe('1. Component Module & Export Integrity', () => {
     it('ProfitSplitsPage imports cleanly and exports a default mount function', async () => {
-      const mod = await import('../src/pages/admin/ProfitSplitsPage.js');
+      const mod = await import('../src/pages/admin/ProfitSplitsPage.ts');
       assert.ok(mod.default, 'ProfitSplitsPage has default export');
       assert.equal(typeof mod.default, 'function', 'ProfitSplitsPage export is a function');
     });

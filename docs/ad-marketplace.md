@@ -164,7 +164,7 @@ to it is the next piece of work, and it is one call per surface.
 | SQL | `server/src/repositories/adProduct.repository.ts` |
 | Purchase, billing, serving | `server/src/services/ads.service.ts` |
 | Routes | `server/src/routes/ads.routes.ts` |
-| Shop Partner Ad Store + wizard | `client/src/pages/saler/AdCampaignPage.js` |
+| Shop Partner Ad Store + wizard | `client/src/pages/saler/AdCampaignPage.ts` |
 | Admin rate cards | `client/src/pages/admin/AdminAdPricingPage.ts` |
 | Styles (route chunk, never `main.css`) | `client/src/styles/components/ad-store.css` |
 | Mocks | `client/src/mocks/handlers/ads.ts` |

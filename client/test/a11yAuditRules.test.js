@@ -218,7 +218,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'live-indicator-chip must use tokenized var(--danger-800) on var(--danger-bg)'
     );
 
-    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.js');
+    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.ts');
     const livePage = fs.readFileSync(livePagePath, 'utf8');
 
     assert.match(
@@ -234,7 +234,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     assert.ok(enDict.live.send_message, 'en.json must contain live.send_message');
     assert.ok(bnDict.live.send_message, 'bn.json must contain live.send_message');
 
-    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.js');
+    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.ts');
     const content = fs.readFileSync(livePagePath, 'utf8');
 
     assert.match(
@@ -258,7 +258,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     assert.ok(enDict.live.become_seller_to_host, 'en.json must contain live.become_seller_to_host');
     assert.ok(bnDict.live.become_seller_to_host, 'bn.json must contain live.become_seller_to_host');
 
-    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.js');
+    const livePagePath = path.join(clientRoot, 'src', 'pages', 'LiveStreamPage.ts');
     const content = fs.readFileSync(livePagePath, 'utf8');
 
     assert.match(

@@ -1,5 +1,5 @@
 /**
- * LiveStreamPage.js — Live Stream Commerce Viewer Experience (Prompt 10.1 / DFD Subsystem 15.0).
+ * LiveStreamPage.ts — Live Stream Commerce Viewer Experience (Prompt 10.1 / DFD Subsystem 15.0).
  *
  * Implements:
  * 1. Stream discovery & listing tab (/live) with high-contrast hero banner, filter tabs, debounced search, category chips, and live counts.
@@ -27,6 +27,7 @@ import { toast } from '../services/toast.ts';
 import { formatBdt } from '../services/format.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { getCurrentUser } from '../services/session.ts';
+import type { PageContext } from './types.ts';
 
 // Fallback sample streams for rich, resilient preview in development
 const FALLBACK_DEMO_STREAMS = [
@@ -178,7 +179,7 @@ const FALLBACK_DEMO_STREAMS = [
   },
 ];
 
-export default function LiveStreamPage(root, { params, navigate }) {
+export default function LiveStreamPage(root: HTMLElement, { params, navigate }: PageContext) {
   const container = document.createElement('div');
   container.className = 'live-stream-page';
   root.append(container);
@@ -507,7 +508,7 @@ async function renderStreamDiscoveryList(container, navigate) {
   searchInput.addEventListener('input', (e) => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(() => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       filterAndRender();
     }, 200);
   });
@@ -849,7 +850,7 @@ async function renderStreamViewer(container, streamId, navigate) {
 
   // Listen to live WebSocket frames and retain unsubscribe handle
   unsubscribeWs = wsManager.onMessage((frame) => {
-    const { type, payload } = frame;
+    const { type, payload } = frame as unknown as { type: string; payload: any };
     if (payload?.streamId && Number(payload.streamId) !== streamId) return;
 
     switch (type) {
@@ -1141,8 +1142,8 @@ function openInStreamCheckoutDrawer(product, streamId) {
   drawer.openDrawer();
 
   const form = drawerContent.querySelector('#in-stream-form');
-  const divSelect = drawerContent.querySelector('#chk-division');
-  const phoneInput = drawerContent.querySelector('#chk-phone');
+  const divSelect = drawerContent.querySelector<HTMLInputElement>('#chk-division');
+  const phoneInput = drawerContent.querySelector<HTMLInputElement>('#chk-phone');
   const totalEl = drawerContent.querySelector('#chk-total');
   // WHY one key per open drawer: a double-tap or a retry after the OTP step replays the same order
   // instead of placing another.
@@ -1155,11 +1156,11 @@ function openInStreamCheckoutDrawer(product, streamId) {
   let shipEstimate = knownDeliveryCharge() ?? 0;
   let quoteSeq = 0;
   let couponCode = '';
-  const couponInput = drawerContent.querySelector('#chk-coupon');
-  const couponMsg = drawerContent.querySelector('#chk-coupon-msg');
+  const couponInput = drawerContent.querySelector<HTMLInputElement>('#chk-coupon');
+  const couponMsg = drawerContent.querySelector<HTMLInputElement>('#chk-coupon-msg');
   const qtyEl = drawerContent.querySelector('#chk-qty');
-  const decBtn = drawerContent.querySelector('#chk-qty-dec');
-  const incBtn = drawerContent.querySelector('#chk-qty-inc');
+  const decBtn = drawerContent.querySelector<HTMLInputElement>('#chk-qty-dec');
+  const incBtn = drawerContent.querySelector<HTMLInputElement>('#chk-qty-inc');
   const stockHint = drawerContent.querySelector('#chk-stock-hint');
 
   const syncStepper = () => {
@@ -1258,13 +1259,13 @@ function openInStreamCheckoutDrawer(product, streamId) {
       const res = await inStreamBuy(streamId, {
         product_id: product.product_id || product.id,
         quantity: qty,
-        recipient_name: drawerContent.querySelector('#chk-name').value.trim(),
+        recipient_name: drawerContent.querySelector<HTMLInputElement>('#chk-name').value.trim(),
         recipient_phone: phoneVal,
         division: divSelect.value,
         district: divSelect.value,
-        address_line: drawerContent.querySelector('#chk-address').value.trim(),
-        payment_method: drawerContent.querySelector('#chk-payment').value,
-        otp_code: drawerContent.querySelector('#chk-otp').value.trim() || undefined,
+        address_line: drawerContent.querySelector<HTMLInputElement>('#chk-address').value.trim(),
+        payment_method: drawerContent.querySelector<HTMLInputElement>('#chk-payment').value,
+        otp_code: drawerContent.querySelector<HTMLInputElement>('#chk-otp').value.trim() || undefined,
         coupon_code: couponCode || undefined,
       }, { idempotencyKey });
 
@@ -1273,10 +1274,10 @@ function openInStreamCheckoutDrawer(product, streamId) {
     } catch (err) {
       if (err.code === 'COD_OTP_REQUIRED') {
         // The server has sent the code; reveal the field and let the shopper confirm again.
-        drawerContent.querySelector('#chk-otp-group').hidden = false;
+        drawerContent.querySelector<HTMLElement>('#chk-otp-group').hidden = false;
         drawerContent.querySelector('#chk-otp-hint').textContent =
           (t('live.chk_otp_sent') || 'We sent a code to {{phone}}. Enter it and confirm again.').replace('{{phone}}', err.details?.phone || phoneVal);
-        drawerContent.querySelector('#chk-otp').focus();
+        drawerContent.querySelector<HTMLInputElement>('#chk-otp').focus();
       } else {
         toast.error((isBn && err.message_bn) || err.message || 'Checkout failed.');
       }

@@ -1,5 +1,5 @@
 /**
- * CodReconciliationPage.js — Courier COD Settlement Ingestion, 3-Way Reconciliation & Aging Dashboard (Prompt 6.4).
+ * CodReconciliationPage.ts — Courier COD Settlement Ingestion, 3-Way Reconciliation & Aging Dashboard (Prompt 6.4).
  *
  * Implements:
  * 1. Executive Page Header & 4-Card KPI Summary Grid
@@ -18,6 +18,7 @@ import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import '../../styles/components/cod-recon.css';
+import type { PageContext } from '../types.ts';
 
 const SAMPLE_CSV = `consignment_id,sub_order_ref,courier_reported,deposit_received
 CN-8801,SUB-89201-1,3250.00,3250.00
@@ -50,7 +51,7 @@ const SVG_CHEVRON = `<span class="cod-recon-control__chevron" aria-hidden="true"
 const SVG_SEARCH = `<span class="cod-recon-toolbar__search-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg></span>`;
 const SVG_CLOUD_UPLOAD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>`;
 
-export default function CodReconciliationPage(root, { navigate } = {}) {
+export default function CodReconciliationPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'page cod-recon-page';
 
@@ -248,9 +249,9 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       chip.addEventListener('click', () => {
         chips.forEach((c) => c.classList.remove('cod-recon-template-chip--active'));
         chip.classList.add('cod-recon-template-chip--active');
-        const textarea = content.querySelector('#cod-modal-reason-input');
+        const textarea = content.querySelector<HTMLInputElement>('#cod-modal-reason-input');
         if (textarea) {
-          textarea.value = chip.dataset.template;
+          textarea.value = (chip as HTMLElement).dataset.template;
           textarea.focus();
         }
       });
@@ -260,9 +261,9 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       modal.closeModal();
     });
 
-    const submitBtn = footer.querySelector('.cod-modal-submit-btn');
+    const submitBtn = footer.querySelector<HTMLInputElement>('.cod-modal-submit-btn');
     submitBtn?.addEventListener('click', async () => {
-      const textarea = content.querySelector('#cod-modal-reason-input');
+      const textarea = content.querySelector<HTMLInputElement>('#cod-modal-reason-input');
       const reason = textarea ? textarea.value.trim() : '';
 
       if (!reason) {
@@ -327,7 +328,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       loadedFileName = '';
       loadedRowCount = 0;
       updateDropzoneFileInfo();
-      const csvTextarea = container.querySelector('#cod-paste-csv');
+      const csvTextarea = container.querySelector<HTMLInputElement>('#cod-paste-csv');
       if (csvTextarea) csvTextarea.value = '';
 
       await loadAllData();
@@ -367,7 +368,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
   }
 
   function updateDropzoneFileInfo() {
-    const fileInfo = container.querySelector('#cod-dropzone-file-info');
+    const fileInfo = container.querySelector<HTMLInputElement>('#cod-dropzone-file-info');
     const fileText = container.querySelector('#cod-dropzone-file-text');
     if (fileInfo && fileText) {
       if (loadedFileName) {
@@ -380,7 +381,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
   }
 
   function updateUploadSubmitState() {
-    const btn = container.querySelector('.cod-recon-page__submit-csv-btn');
+    const btn = container.querySelector<HTMLInputElement>('.cod-recon-page__submit-csv-btn');
     if (btn) {
       btn.disabled = isUploading;
       btn.textContent = isUploading ? t('common.processing') : `⚡ ${t('cod.btn_reconcile_csv')}`;
@@ -445,7 +446,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
   }
 
   function updateRefreshButton() {
-    const refreshBtn = container.querySelector('.cod-recon-page__refresh-btn');
+    const refreshBtn = container.querySelector<HTMLInputElement>('.cod-recon-page__refresh-btn');
     if (refreshBtn) {
       refreshBtn.disabled = isInitialLoading;
       refreshBtn.innerHTML = `${isInitialLoading ? '⏳' : '🔄'} ${t('common.refresh')}`;
@@ -468,7 +469,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
     if (elSla) elSla.textContent = slaBreachedCount;
 
     const elMatched = container.querySelector('#cod-kpi-matched-val');
-    if (elMatched) elMatched.textContent = matchedCount;
+    if (elMatched) elMatched.textContent = String(matchedCount);
   }
 
   function renderAgingTableHtml() {
@@ -646,10 +647,10 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
 
     const countBadge = container.querySelector('#cod-queue-count');
     if (countBadge) {
-      countBadge.textContent = reconciliations.length;
+      countBadge.textContent = String(reconciliations.length);
     }
 
-    const exportBtn = container.querySelector('.cod-recon-page__export-btn');
+    const exportBtn = container.querySelector<HTMLInputElement>('.cod-recon-page__export-btn');
     if (exportBtn) {
       exportBtn.disabled = reconciliations.length === 0;
     }
@@ -674,19 +675,19 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
     courierFilter = '';
     onlyVariance = false;
 
-    const searchInput = container.querySelector('#cod-search-input');
+    const searchInput = container.querySelector<HTMLInputElement>('#cod-search-input');
     if (searchInput) searchInput.value = '';
 
-    const filterStatus = container.querySelector('#cod-filter-status');
+    const filterStatus = container.querySelector<HTMLInputElement>('#cod-filter-status');
     if (filterStatus) filterStatus.value = '';
 
-    const filterCourier = container.querySelector('#cod-filter-courier');
+    const filterCourier = container.querySelector<HTMLInputElement>('#cod-filter-courier');
     if (filterCourier) filterCourier.value = '';
 
-    const filterVariance = container.querySelector('#cod-filter-variance');
+    const filterVariance = container.querySelector<HTMLInputElement>('#cod-filter-variance');
     if (filterVariance) filterVariance.checked = false;
 
-    container.querySelectorAll('.cod-recon-aging-table tr').forEach((tr) => {
+    container.querySelectorAll<HTMLElement>('.cod-recon-aging-table tr').forEach((tr) => {
       tr.classList.remove('table-row--highlight');
     });
 
@@ -993,23 +994,23 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
   }
 
   function wireTabContentListeners() {
-    const csvTextarea = container.querySelector('#cod-paste-csv');
+    const csvTextarea = container.querySelector<HTMLInputElement>('#cod-paste-csv');
     if (csvTextarea) {
       csvTextarea.value = csvText;
       csvTextarea.addEventListener('input', (e) => {
-        csvText = e.target.value;
+        csvText = (e.target as HTMLInputElement).value;
       });
     }
 
     const dropzone = container.querySelector('#cod-dropzone');
-    const fileInput = container.querySelector('#cod-file-input');
+    const fileInput = container.querySelector<HTMLInputElement>('#cod-file-input');
 
     if (dropzone && fileInput) {
       dropzone.addEventListener('click', () => {
         fileInput.click();
       });
 
-      dropzone.addEventListener('keydown', (e) => {
+      dropzone.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           fileInput.click();
@@ -1017,7 +1018,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       });
 
       fileInput.addEventListener('change', (e) => {
-        const file = e.target.files?.[0];
+        const file = (e.target as HTMLInputElement).files?.[0];
         if (file) {
           handleFileSelection(file);
           fileInput.value = '';
@@ -1033,7 +1034,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
         dropzone.classList.remove('cod-recon-dropzone--active');
       });
 
-      dropzone.addEventListener('drop', (e) => {
+      dropzone.addEventListener('drop', (e: DragEvent) => {
         e.preventDefault();
         dropzone.classList.remove('cod-recon-dropzone--active');
         const file = e.dataTransfer?.files?.[0];
@@ -1052,15 +1053,15 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       handleExportCsv(reconciliations);
     });
 
-    container.querySelectorAll('.cod-recon-courier-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.cod-recon-courier-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const courier = btn.dataset.courier;
         if (courier) {
           courierFilter = (courierFilter === courier) ? '' : courier;
-          const select = container.querySelector('#cod-filter-courier');
+          const select = container.querySelector<HTMLInputElement>('#cod-filter-courier');
           if (select) select.value = courierFilter;
 
-          container.querySelectorAll('.cod-recon-aging-table tr').forEach((tr) => {
+          container.querySelectorAll<HTMLElement>('.cod-recon-aging-table tr').forEach((tr) => {
             tr.classList.toggle('table-row--highlight', tr.dataset.courier === courierFilter);
           });
 
@@ -1069,12 +1070,12 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.cod-recon-tab').forEach((tab) => {
+    container.querySelectorAll<HTMLElement>('.cod-recon-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         const targetTab = tab.dataset.tab;
         if (targetTab && targetTab !== activeUploadTab) {
           activeUploadTab = targetTab;
-          container.querySelectorAll('.cod-recon-tab').forEach((tEl) => {
+          container.querySelectorAll<HTMLElement>('.cod-recon-tab').forEach((tEl) => {
             const isActive = tEl.dataset.tab === activeUploadTab;
             tEl.classList.toggle('cod-recon-tab--active', isActive);
             tEl.setAttribute('aria-selected', String(isActive));
@@ -1123,17 +1124,17 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
 
     const courierSel = container.querySelector('#cod-upload-courier');
     courierSel?.addEventListener('change', (e) => {
-      uploadCourier = e.target.value;
+      uploadCourier = (e.target as HTMLInputElement).value;
     });
 
     const batchInput = container.querySelector('#cod-upload-batch-ref');
     batchInput?.addEventListener('input', (e) => {
-      batchRef = e.target.value;
+      batchRef = (e.target as HTMLInputElement).value;
     });
 
     const toleranceInput = container.querySelector('#cod-upload-tolerance');
     toleranceInput?.addEventListener('input', (e) => {
-      tolerance = e.target.value;
+      tolerance = (e.target as HTMLInputElement).value;
     });
 
     container.querySelector('.cod-recon__sample-btn')?.addEventListener('click', () => {
@@ -1144,12 +1145,12 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       loadedRowCount = 4;
       activeUploadTab = 'paste';
 
-      const batchIn = container.querySelector('#cod-upload-batch-ref');
+      const batchIn = container.querySelector<HTMLInputElement>('#cod-upload-batch-ref');
       if (batchIn) batchIn.value = batchRef;
-      const tolIn = container.querySelector('#cod-upload-tolerance');
+      const tolIn = container.querySelector<HTMLInputElement>('#cod-upload-tolerance');
       if (tolIn) tolIn.value = tolerance;
 
-      container.querySelectorAll('.cod-recon-tab').forEach((tEl) => {
+      container.querySelectorAll<HTMLElement>('.cod-recon-tab').forEach((tEl) => {
         const isActive = tEl.dataset.tab === 'paste';
         tEl.classList.toggle('cod-recon-tab--active', isActive);
         tEl.setAttribute('aria-selected', String(isActive));
@@ -1185,44 +1186,44 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
       batchRef = '';
       tolerance = '0.00';
 
-      const batchIn = container.querySelector('#cod-upload-batch-ref');
+      const batchIn = container.querySelector<HTMLInputElement>('#cod-upload-batch-ref');
       if (batchIn) batchIn.value = '';
-      const tolIn = container.querySelector('#cod-upload-tolerance');
+      const tolIn = container.querySelector<HTMLInputElement>('#cod-upload-tolerance');
       if (tolIn) tolIn.value = '0.00';
-      const pasteIn = container.querySelector('#cod-paste-csv');
+      const pasteIn = container.querySelector<HTMLInputElement>('#cod-paste-csv');
       if (pasteIn) pasteIn.value = '';
       updateDropzoneFileInfo();
     });
 
     container.querySelector('.cod-recon-page__submit-csv-btn')?.addEventListener('click', handleCsvUpload);
 
-    const searchInput = container.querySelector('#cod-search-input');
+    const searchInput = container.querySelector<HTMLInputElement>('#cod-search-input');
     searchInput?.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
         loadQueueOnly();
       }, 250);
     });
 
-    const filterStatus = container.querySelector('#cod-filter-status');
+    const filterStatus = container.querySelector<HTMLInputElement>('#cod-filter-status');
     filterStatus?.addEventListener('change', (e) => {
-      statusFilter = e.target.value;
+      statusFilter = (e.target as HTMLInputElement).value;
       loadQueueOnly();
     });
 
-    const filterCourier = container.querySelector('#cod-filter-courier');
+    const filterCourier = container.querySelector<HTMLInputElement>('#cod-filter-courier');
     filterCourier?.addEventListener('change', (e) => {
-      courierFilter = e.target.value;
-      container.querySelectorAll('.cod-recon-aging-table tr').forEach((tr) => {
+      courierFilter = (e.target as HTMLInputElement).value;
+      container.querySelectorAll<HTMLElement>('.cod-recon-aging-table tr').forEach((tr) => {
         tr.classList.toggle('table-row--highlight', tr.dataset.courier === courierFilter);
       });
       loadQueueOnly();
     });
 
-    const filterVariance = container.querySelector('#cod-filter-variance');
+    const filterVariance = container.querySelector<HTMLInputElement>('#cod-filter-variance');
     filterVariance?.addEventListener('change', (e) => {
-      onlyVariance = e.target.checked;
+      onlyVariance = (e.target as HTMLInputElement).checked;
       loadQueueOnly();
     });
 
@@ -1230,8 +1231,8 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
     container.querySelector('.cod-recon__empty-reset-btn')?.addEventListener('click', clearAllFilters);
 
     const queueMount = container.querySelector('#cod-queue-table-mount');
-    queueMount?.addEventListener('click', async (e) => {
-      const copyBtn = e.target.closest('.cod-recon__copy-btn');
+    queueMount?.addEventListener('click', async (e: MouseEvent) => {
+      const copyBtn = (e.target as HTMLElement).closest<HTMLElement>('.cod-recon__copy-btn');
       if (copyBtn) {
         e.stopPropagation();
         const copyText = copyBtn.dataset.copy;
@@ -1246,7 +1247,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
         return;
       }
 
-      const resolveBtn = e.target.closest('.cod-recon-page__resolve-btn');
+      const resolveBtn = (e.target as HTMLElement).closest<HTMLElement>('.cod-recon-page__resolve-btn');
       if (resolveBtn) {
         const id = parseInt(resolveBtn.dataset.id, 10);
         const item = reconciliations.find((x) => x.id === id);
@@ -1254,7 +1255,7 @@ export default function CodReconciliationPage(root, { navigate } = {}) {
         return;
       }
 
-      const orderLink = e.target.closest('.cod-recon__order-link');
+      const orderLink = (e.target as HTMLElement).closest<HTMLAnchorElement>('.cod-recon__order-link');
       if (orderLink && typeof navigate === 'function') {
         const href = orderLink.getAttribute('href');
         if (href && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0) {

@@ -27,7 +27,7 @@ describe('live in-stream quote (mock)', () => {
   });
 
   it('the drawer prefills and validates the local 11-digit phone, not the stored +880 form', () => {
-    const src = read('pages/LiveStreamPage.js');
+    const src = read('pages/LiveStreamPage.ts');
     assert.match(src, /function toLocalBdPhone/);
     assert.match(src, /value="\$\{toLocalBdPhone\(user\.phone\)\}"/);
     assert.match(src, /const phoneVal = toLocalBdPhone\(phoneInput\.value\)/);
@@ -35,11 +35,11 @@ describe('live in-stream quote (mock)', () => {
 
   it('the drawer asks the quote endpoint the server serves', () => {
     assert.match(read('services/live.api.ts'), /\/live\/streams\/\$\{streamId\}\/quote/);
-    assert.match(read('pages/LiveStreamPage.js'), /getInStreamQuote\(streamId/);
+    assert.match(read('pages/LiveStreamPage.ts'), /getInStreamQuote\(streamId/);
   });
 
   it('the drawer has a quantity stepper that re-quotes and sends the chosen quantity', () => {
-    const src = read('pages/LiveStreamPage.js');
+    const src = read('pages/LiveStreamPage.ts');
     assert.match(src, /id="chk-qty-inc"/);
     assert.match(src, /quantity: qty,[\s]*recipient_name/);
     assert.match(src, /getInStreamQuote\(streamId, \{ productId: [^}]*quantity: qty, couponCode \}\)/);
@@ -69,7 +69,7 @@ describe('live in-stream quote (mock)', () => {
   });
 
   it('the drawer sends the applied coupon with the order and the strings exist in both languages', () => {
-    const src = read('pages/LiveStreamPage.js');
+    const src = read('pages/LiveStreamPage.ts');
     assert.match(src, /coupon_code: couponCode \|\| undefined/);
     assert.match(src, /id="chk-coupon-apply"/);
     assert.match(read('services/live.api.ts'), /query\.coupon_code = couponCode/);

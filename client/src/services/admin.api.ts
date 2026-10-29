@@ -12,6 +12,10 @@ export interface SplitChange {
   saler_split_pct: number | string;
   platform_split_pct: number | string;
   min_margin_pct?: number | string;
+  /** Global-only: the server reads these three and falls back to 10 / 20 / 20 when they are absent. */
+  platform_default_profit_pct?: number | string;
+  saler_default_profit_pct?: number | string;
+  extra_markup_platform_pct?: number | string;
   reason: string;
 }
 
@@ -158,11 +162,24 @@ export const adminApi = {
   /**
    * Updates global platform profit split percentages (CRITICAL audited action).
    */
-  async updateGlobalSplit({ saler_split_pct, platform_split_pct, min_margin_pct, reason }: SplitChange) {
+  // WHY the three profit fields are forwarded: finance.controller reads them from the body and answers
+  // a missing one with its default (10 / 20 / 20), so a save that dropped them reset those values.
+  async updateGlobalSplit({
+    saler_split_pct,
+    platform_split_pct,
+    min_margin_pct,
+    platform_default_profit_pct,
+    saler_default_profit_pct,
+    extra_markup_platform_pct,
+    reason,
+  }: SplitChange) {
     return api.put('/admin/finance/splits/default', {
       saler_split_pct,
       platform_split_pct,
       min_margin_pct,
+      platform_default_profit_pct,
+      saler_default_profit_pct,
+      extra_markup_platform_pct,
       reason,
     });
   },

@@ -1,5 +1,5 @@
 /**
- * ProfitSplitsPage.js — Super Admin Profit Split Governance & Margin Simulation Engine.
+ * ProfitSplitsPage.ts — Super Admin Profit Split Governance & Margin Simulation Engine.
  *
  * Implements:
  * 1. Global Platform Margin Sharing Governor (CRITICAL tier audited policy).
@@ -19,8 +19,9 @@ import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
+import type { PageContext } from '../types.ts';
 
-export default function ProfitSplitsPage(root, { navigate } = {}) {
+export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page profit-splits-page';
@@ -45,7 +46,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
 
   // Shop Partner commission tier form (bonuses + the volume ladder, saved together)
   let tierEnabled = false;
-  let tierWindow = 30;
+  let tierWindow: number | string = 30;
   let tierMin = { SILVER: 0, GOLD: 0, PLATINUM: 0 };
   let tierBonus = { BRONZE: 0, SILVER: 0, GOLD: 0, PLATINUM: 0 };
   let tierReason = '';
@@ -520,19 +521,19 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     const tierSelect = simulatorCard.querySelector('.sim-select-tier');
 
     retailInput?.addEventListener('input', (e) => {
-      simRetailPrice = parseFloat(e.target.value) || 0;
+      simRetailPrice = parseFloat((e.target as HTMLInputElement).value) || 0;
       render();
     });
     supplierInput?.addEventListener('input', (e) => {
-      simSupplierCost = parseFloat(e.target.value) || 0;
+      simSupplierCost = parseFloat((e.target as HTMLInputElement).value) || 0;
       render();
     });
     catSelect?.addEventListener('change', (e) => {
-      simCategoryId = e.target.value;
+      simCategoryId = (e.target as HTMLInputElement).value;
       render();
     });
     tierSelect?.addEventListener('change', (e) => {
-      simTier = e.target.value;
+      simTier = (e.target as HTMLInputElement).value;
       render();
     });
 
@@ -632,7 +633,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
 
     const rangeInput = globalPanel.querySelector('.global-saler-range');
     const salerDisplay = globalPanel.querySelector('.global-saler-display');
-    const platformDisplay = globalPanel.querySelector('.global-platform-display');
+    const platformDisplay = globalPanel.querySelector<HTMLInputElement>('.global-platform-display');
     const minMarginInput = globalPanel.querySelector('.global-min-margin');
     const platProfitInput = globalPanel.querySelector('.global-plat-profit-input');
     const salerProfitInput = globalPanel.querySelector('.global-saler-profit-input');
@@ -640,29 +641,29 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     const reasonInput = globalPanel.querySelector('.global-reason-input');
 
     rangeInput?.addEventListener('input', (e) => {
-      formSalerSplit = parseInt(e.target.value, 10);
+      formSalerSplit = parseInt((e.target as HTMLInputElement).value, 10);
       if (salerDisplay) salerDisplay.textContent = `${formSalerSplit}%`;
       if (platformDisplay) platformDisplay.value = `${100 - formSalerSplit}%`;
     });
 
     minMarginInput?.addEventListener('input', (e) => {
-      formMinMargin = parseFloat(e.target.value) || 5;
+      formMinMargin = parseFloat((e.target as HTMLInputElement).value) || 5;
     });
 
     platProfitInput?.addEventListener('input', (e) => {
-      formPlatformDefaultProfit = parseFloat(e.target.value) || 10;
+      formPlatformDefaultProfit = parseFloat((e.target as HTMLInputElement).value) || 10;
     });
 
     salerProfitInput?.addEventListener('input', (e) => {
-      formSalerDefaultProfit = parseFloat(e.target.value) || 20;
+      formSalerDefaultProfit = parseFloat((e.target as HTMLInputElement).value) || 20;
     });
 
     extraPlatformInput?.addEventListener('input', (e) => {
-      formExtraMarkupPlatform = parseFloat(e.target.value) || 20;
+      formExtraMarkupPlatform = parseFloat((e.target as HTMLInputElement).value) || 20;
     });
 
     reasonInput?.addEventListener('input', (e) => {
-      formReason = e.target.value;
+      formReason = (e.target as HTMLInputElement).value;
     });
 
     globalPanel.querySelector('.global-split-form')?.addEventListener('submit', handleSaveGlobal);
@@ -799,12 +800,12 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     `;
 
     catPanel.querySelector('.cat-search-input')?.addEventListener('input', (e) => {
-      categorySearch = e.target.value;
+      categorySearch = (e.target as HTMLInputElement).value;
       render();
     });
 
     catPanel.querySelector('.cat-filter-select')?.addEventListener('change', (e) => {
-      categoryFilter = e.target.value;
+      categoryFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
@@ -816,7 +817,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
       renderCategoryEditModal();
     });
 
-    catPanel.querySelectorAll('.btn-cat-edit').forEach((btn) => {
+    catPanel.querySelectorAll<HTMLElement>('.btn-cat-edit').forEach((btn) => {
       btn.addEventListener('click', () => {
         const catId = btn.getAttribute('data-cat-id');
         const cat = categories.find((c) => String(c.id) === String(catId));
@@ -830,7 +831,7 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
       });
     });
 
-    catPanel.querySelectorAll('.btn-cat-reset').forEach((btn) => {
+    catPanel.querySelectorAll<HTMLElement>('.btn-cat-reset').forEach((btn) => {
       btn.addEventListener('click', () => {
         const catId = btn.getAttribute('data-cat-id');
         const cat = categories.find((c) => String(c.id) === String(catId));
@@ -935,16 +936,16 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     container.append(tierPanel);
 
     // Inputs write to form state without re-rendering, so typing never loses focus.
-    const tierReasonInput = tierPanel.querySelector('.tier-reason-input');
+    const tierReasonInput = tierPanel.querySelector<HTMLInputElement>('.tier-reason-input');
     if (tierReasonInput) tierReasonInput.value = tierReason; // set as a property, never spliced into markup
-    tierReasonInput?.addEventListener('input', (e) => { tierReason = e.target.value; });
-    tierPanel.querySelector('.tier-enabled-input')?.addEventListener('change', (e) => { tierEnabled = e.target.value === 'on'; });
-    tierPanel.querySelector('.tier-window-input')?.addEventListener('input', (e) => { tierWindow = e.target.value; });
-    tierPanel.querySelectorAll('.tier-min-input').forEach((el) => {
-      el.addEventListener('input', (e) => { tierMin[el.dataset.tier] = e.target.value; });
+    tierReasonInput?.addEventListener('input', (e) => { tierReason = (e.target as HTMLInputElement).value; });
+    tierPanel.querySelector('.tier-enabled-input')?.addEventListener('change', (e) => { tierEnabled = (e.target as HTMLInputElement).value === 'on'; });
+    tierPanel.querySelector('.tier-window-input')?.addEventListener('input', (e) => { tierWindow = (e.target as HTMLInputElement).value; });
+    tierPanel.querySelectorAll<HTMLElement>('.tier-min-input').forEach((el) => {
+      el.addEventListener('input', (e) => { tierMin[el.dataset.tier] = (e.target as HTMLInputElement).value; });
     });
-    tierPanel.querySelectorAll('.tier-bonus-input').forEach((el) => {
-      el.addEventListener('input', (e) => { tierBonus[el.dataset.tier] = e.target.value; });
+    tierPanel.querySelectorAll<HTMLElement>('.tier-bonus-input').forEach((el) => {
+      el.addEventListener('input', (e) => { tierBonus[el.dataset.tier] = (e.target as HTMLInputElement).value; });
     });
     tierPanel.querySelector('.tier-rules-form')?.addEventListener('submit', handleSaveTiers);
 
@@ -995,6 +996,9 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
 
   function renderCategoryEditModal() {
     if (!activeModalCategory && !isCreatingOverride) return;
+    // WHY declared here: this function used `categories` (the override picker and its change handler) but
+    // only the render function has one in scope, so opening *Add override* threw a ReferenceError.
+    const categories = splitsData?.categories || [];
 
     const modalWrap = document.createElement('div');
     modalWrap.className = 'admin-modal-form';
@@ -1037,31 +1041,31 @@ export default function ProfitSplitsPage(root, { navigate } = {}) {
     `;
 
     const catSelect = modalWrap.querySelector('.modal-category-select');
-    const range = modalWrap.querySelector('.modal-saler-range');
+    const range = modalWrap.querySelector<HTMLInputElement>('.modal-saler-range');
     const salerDisp = modalWrap.querySelector('.modal-saler-display');
-    const platDisp = modalWrap.querySelector('.modal-platform-display');
+    const platDisp = modalWrap.querySelector<HTMLInputElement>('.modal-platform-display');
     const reasonInput = modalWrap.querySelector('.modal-reason-input');
 
     catSelect?.addEventListener('change', (e) => {
-      const selectedId = e.target.value;
+      const selectedId = (e.target as HTMLInputElement).value;
       const c = categories.find((cat) => String(cat.id) === String(selectedId));
       if (c) {
         activeModalCategory = c;
         modalSalerSplit = c.saler_split_pct;
-        if (range) range.value = modalSalerSplit;
+        if (range) range.value = String(modalSalerSplit);
         if (salerDisp) salerDisp.textContent = `${modalSalerSplit}%`;
         if (platDisp) platDisp.value = `${100 - modalSalerSplit}%`;
       }
     });
 
     range?.addEventListener('input', (e) => {
-      modalSalerSplit = parseInt(e.target.value, 10);
+      modalSalerSplit = parseInt((e.target as HTMLInputElement).value, 10);
       if (salerDisp) salerDisp.textContent = `${modalSalerSplit}%`;
       if (platDisp) platDisp.value = `${100 - modalSalerSplit}%`;
     });
 
     reasonInput?.addEventListener('input', (e) => {
-      modalReason = e.target.value;
+      modalReason = (e.target as HTMLInputElement).value;
     });
 
     const footer = document.createElement('div');

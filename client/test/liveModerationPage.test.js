@@ -28,12 +28,12 @@ const handler = (method, p) => liveHandlers.find((h) => h.method === method && h
 test('Live Moderation Console — routing', async (t) => {
   await t.test('1. /moderator/live loads the console, not the customer live page', () => {
     // The nav item sits under REVIEW QUEUES and its title says "Live Moderation", but the route
-    // used to load pages/LiveStreamPage.js — the shopping browse page, complete with a
+    // used to load pages/LiveStreamPage.ts — the shopping browse page, complete with a
     // "Host a Live Stream" call to action and no moderation control anywhere on it.
     const line = mainSrc.split('\n').find((l) => l.includes("path: '/moderator/live'"));
     assert.ok(line, 'the /moderator/live route must exist');
     assert.match(line, /moderator\/LiveModerationPage\.ts/, 'it must load the moderation console');
-    assert.ok(!/pages\/LiveStreamPage\.js/.test(line), 'it must not load the customer live page');
+    assert.ok(!/pages\/LiveStreamPage\.ts/.test(line), 'it must not load the customer live page');
   });
 
   await t.test('2. The route keeps its permission and module gates', () => {

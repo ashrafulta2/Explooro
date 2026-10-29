@@ -177,8 +177,8 @@ async function bootRouterDemo() {
       { path: '/customer/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.ts') },
       { path: '/orders/:id', title: 'Order Details — Explooro', requiresAuth: true, permission: null, module: 'core', load: () => import('./pages/customer/OrderDetailPage.ts') },
       // Prompt 10.1: Live Stream Commerce
-      { path: '/live', title: 'Live Broadcasts — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
-      { path: '/live/:id', title: 'Live Shopping — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
+      { path: '/live', title: 'Live Broadcasts — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.ts') },
+      { path: '/live/:id', title: 'Live Shopping — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.ts') },
       { path: '/saler/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.ts') },
       { path: '/supplier/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.ts') },
       // WHY not LiveStreamPage: /moderator/live used to load the customer-facing shopping browse
@@ -1286,7 +1286,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.split.update',
         module: 'core',
-        load: () => import('./pages/admin/ProfitSplitsPage.js'),
+        load: () => import('./pages/admin/ProfitSplitsPage.ts'),
       },
       {
         path: '/admin/splits',
@@ -1294,7 +1294,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.split.update',
         module: 'core',
-        load: () => import('./pages/admin/ProfitSplitsPage.js'),
+        load: () => import('./pages/admin/ProfitSplitsPage.ts'),
       },
       // Super Admin Finance: Merchant Subscriptions & Fees
       {
@@ -1473,7 +1473,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.cod.reconcile',
         module: 'cod_reconciliation',
-        load: () => import('./pages/admin/CodReconciliationPage.js'),
+        load: () => import('./pages/admin/CodReconciliationPage.ts'),
       },
       {
         path: '/admin/orders/cod-reconciliation',
@@ -1481,7 +1481,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.cod.reconcile',
         module: 'cod_reconciliation',
-        load: () => import('./pages/admin/CodReconciliationPage.js'),
+        load: () => import('./pages/admin/CodReconciliationPage.ts'),
       },
       {
         path: '/admin/finance/cod-reconciliation',
@@ -1489,7 +1489,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.cod.reconcile',
         module: 'cod_reconciliation',
-        load: () => import('./pages/admin/CodReconciliationPage.js'),
+        load: () => import('./pages/admin/CodReconciliationPage.ts'),
       },
       // Prompt 6.5: Vault & Finance Dashboard
       {
@@ -1884,7 +1884,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.ad.manage_own',
         module: 'sponsored_ads',
-        load: () => import('./pages/saler/AdCampaignPage.js'),
+        load: () => import('./pages/saler/AdCampaignPage.ts'),
       },
       // Prompt 9.2: Coupons, Vouchers & Flash Sale Campaigns
       {
