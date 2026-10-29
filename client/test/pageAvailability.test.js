@@ -288,7 +288,7 @@ describe('mock mode serves the public endpoints the client boots from', () => {
     const state = read('src/mocks/moduleState.ts');
     assert.match(state, /localStorage\.setItem/);
     assert.match(state, /export function persistModuleState/);
-    const admin = read('src/mocks/handlers/admin.js');
+    const admin = read('src/mocks/handlers/admin.ts');
     assert.match(admin, /persistModuleState\(\)/);
   });
 

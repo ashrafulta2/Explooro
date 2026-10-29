@@ -15,7 +15,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import adminHandlers from '../src/mocks/handlers/admin.js';
+import adminHandlers from '../src/mocks/handlers/admin.ts';
 import { adminApi } from '../src/services/admin.api.ts';
 import { FinanceSubnav } from '../src/components/admin/FinanceSubnav.ts';
 

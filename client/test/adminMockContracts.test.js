@@ -18,7 +18,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import adminHandlers from '../src/mocks/handlers/admin.js';
+import adminHandlers from '../src/mocks/handlers/admin.ts';
 import { returnHandlers } from '../src/mocks/handlers/returns.ts';
 import { contentHandlers } from '../src/mocks/handlers/content.ts';
 
@@ -157,7 +157,7 @@ describe('Mock routes are not shadowed by a second declaration', () => {
   it('no method+path is declared in two handler files', () => {
     // mocks/index.ts spreads the handler arrays in order and handleMockRequest() returns the
     // FIRST match, so a duplicate silently wins over — or loses to — the other and the two drift.
-    // admin.js used to redeclare all four /admin/returns/* routes returns.ts owns.
+    // admin.ts used to redeclare all four /admin/returns/* routes returns.ts owns.
     const dir = join(root, 'src/mocks/handlers');
     const pattern = /method: '(\w+)',\s*\n\s*path: '([^']+)'/g;
     const seen = new Map();

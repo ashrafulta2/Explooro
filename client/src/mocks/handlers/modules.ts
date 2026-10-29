@@ -7,7 +7,7 @@
  * and no super admin toggle ever survived a reload. See mocks/moduleState.ts for the full
  * post-mortem.
  *
- * Deliberately separate from handlers/admin.js: this path is not an admin path, and a public
+ * Deliberately separate from handlers/admin.ts: this path is not an admin path, and a public
  * endpoint buried in a 185KB admin file is exactly how it went missing the first time.
  */
 

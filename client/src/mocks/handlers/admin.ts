@@ -1,5 +1,5 @@
 /**
- * mocks/handlers/admin.js — Mock API endpoints for Super Admin Executive Analytics, Diagnostics & Backups.
+ * mocks/handlers/admin.ts — Mock API endpoints for Super Admin Executive Analytics, Diagnostics & Backups.
  */
 
 // WHY: the Module Control panel used to be fed a hand-written array of eight modules whose keys
@@ -8,6 +8,7 @@
 // platform's 71 modules, and every toggle wrote a key no route or nav item gates on. The registry
 // is now read from mocks/moduleState.ts, which reads the same seed file the server seeds from, so
 // the dev panel, the live panel and the PUBLIC `GET /modules` endpoint all answer from one map.
+import type { MockRoute } from '../types.ts';
 import { mockTeamSettings } from './teamPurchase.ts';
 import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.ts';
 import permissionCatalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
@@ -16,7 +17,7 @@ function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
 }
 
-const mockBackups = [
+const mockBackups: Record<string, any>[] = [
   {
     id: 1,
     ref: 'BAK-20260825-101',
@@ -229,7 +230,7 @@ function buildCodAgingReport(alertThresholdDays = 7) {
     }
 
     const ageDays = Math.floor((Date.now() - new Date(item.created_at).getTime()) / (24 * 3600 * 1000));
-    const unreconciled = Math.max(0, parseFloat(item.expected_amount || 0) - parseFloat(item.deposit_received || 0));
+    const unreconciled = Math.max(0, parseFloat(item.expected_amount || '0') - parseFloat(item.deposit_received || '0'));
 
     stats.totalCount += 1;
     stats.totalUnreconciled += unreconciled;
@@ -258,7 +259,7 @@ function buildCodAgingReport(alertThresholdDays = 7) {
     ...c,
     totalUnreconciledFormatted: c.totalUnreconciled.toFixed(2),
     buckets: Object.fromEntries(
-      Object.entries(c.buckets).map(([key, b]) => [key, { ...b, amountFormatted: b.amount.toFixed(2) }])
+      Object.entries(c.buckets as Record<string, any>).map(([key, b]) => [key, { ...b, amountFormatted: b.amount.toFixed(2) }])
     ),
   }));
 
@@ -739,7 +740,7 @@ function buildSeedKycRecords() {
 }
 
 // Mutable so the pause/resume handlers below change what the next GET returns.
-const adminAdCampaigns = [
+const adminAdCampaigns: Record<string, any>[] = [
               { id: 1, title: 'Eid Mega Flash Sale Jamdani Boost', merchant_name: 'Jamdani Heritage Weavers', merchant_role: 'SUPPLIER', daily_budget: 1500.00, total_spent: 4200.00, impressions: 45000, clicks: 3800, cpc_bdt: 1.10, quality_score: 9.4, status: 'ACTIVE' },
               { id: 2, title: 'Sundarban Pure Honey Sponsored Placement', merchant_name: 'Sundarban Honey House', merchant_role: 'SUPPLIER', daily_budget: 800.00, total_spent: 2400.00, impressions: 28000, clicks: 2100, cpc_bdt: 1.14, quality_score: 8.8, status: 'ACTIVE' },
               { id: 3, title: 'Wireless Earbuds Top Category Banner', merchant_name: 'Gadget Express BD', merchant_role: 'SALER', daily_budget: 2000.00, total_spent: 12500.00, impressions: 85000, clicks: 6400, cpc_bdt: 1.95, quality_score: 9.1, status: 'ACTIVE' },
@@ -752,7 +753,7 @@ const adminAdReviewQueue = [
   { id: 102, ref: 'ADC-MOCK0002', user_id: 9, title: 'Boost: Organic Honey', placement: 'FEED', total_budget: 1200.00, created_at: new Date(Date.now() - 7200000).toISOString(), seller_name_en: 'Sundarban Honey House', seller_phone: '01711000002', seller_tier: 'VERIFIED_TRADER', creative: { headline: 'Sundarban Pure Honey', description: 'Collected this season.', banner_image_url: null, destination_url: '/store/honey' } },
 ];
 
-export const adminHandlers = [
+export const adminHandlers: MockRoute[] = [
   // 1. Executive Analytics Overview
   {
     method: 'GET',
@@ -1178,7 +1179,7 @@ export const adminHandlers = [
   // worse — none of the guard rails the real endpoint must enforce (duplicate contact, last
   // super admin, nothing-to-reset) could be exercised. The roster below is mutated in place, like
   // the real table, and rules are enforced here so the page's error paths run for real.
-  ...(() => {
+  ...((): MockRoute[] => {
     const STAFF_ROLES = [
       { key: 'super_admin', label_en: 'Super Admin', label_bn: 'সুপার অ্যাডমিন', permissions_count: 86, privileged: true, description_en: 'Unrestricted control of every module, permission and setting.', description_bn: 'সব মডিউল, পারমিশন ও সেটিংসের ওপর পূর্ণ নিয়ন্ত্রণ।' },
       { key: 'admin', label_en: 'Admin', label_bn: 'অ্যাডমিন', permissions_count: 52, privileged: true, description_en: 'Runs day-to-day operations; cannot change roles or platform policy.', description_bn: 'দৈনন্দিন পরিচালনা করেন; রোল বা প্ল্যাটফর্ম নীতি বদলাতে পারেন না।' },
@@ -1205,7 +1206,7 @@ export const adminHandlers = [
     };
     const STAFF_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-    function fail(status, code, message_en, message_bn, details) {
+    function fail(status, code, message_en, message_bn, details?) {
       return { status, body: { error: { code, message_en, message_bn, ...(details ? { details } : {}), trace_id: traceId() } } };
     }
     const notFound = () => fail(404, 'NOT_FOUND', 'Staff member not found.', 'স্টাফ সদস্য পাওয়া যায়নি।');
@@ -2427,7 +2428,7 @@ export const adminHandlers = [
       const filtered = mockCodReconciliations.filter((r) => {
         if (status && r.status !== status) return false;
         if (courier && r.courier !== courier) return false;
-        if (hasVariance && Math.abs(parseFloat(r.variance || 0)) < 0.005) return false;
+        if (hasVariance && Math.abs(parseFloat(r.variance || '0')) < 0.005) return false;
         if (search) {
           const matchConsignment = (r.consignment_id || '').toLowerCase().includes(search);
           const matchSubOrder = (r.sub_order_ref || '').toLowerCase().includes(search);
@@ -2712,22 +2713,77 @@ export const adminHandlers = [
   },
 
   // Escrow Holdings
+  // WHY this answers like escrowAdmin.service.ts: the page reads `summary`, `pagination` and a row
+  // per sub-order (sub_order_id, the three split amounts, status, remaining_seconds, is_due). The
+  // old mock sent four rows under `holdings` and nothing else, so EscrowHoldingsPage threw on
+  // `data.summary` in dev and the page never rendered.
   {
     method: 'GET',
     path: '/admin/finance/escrow',
-    handler() {
+    handler({ query }) {
       const now = Date.now();
       const dayMs = 86400000;
+      const row = (id, ref, method, customer, supplier, saler, split, status, deliveredDaysAgo, extra = {}) => {
+        const holdUntil = now + (7 - deliveredDaysAgo) * dayMs;
+        const locked = status === 'LOCKED';
+        const remaining = Math.max(0, Math.round((holdUntil - now) / 1000));
+        return {
+          sub_order_id: id,
+          sub_order_ref: ref,
+          order_ref: ref.replace(/-\d+$/, ''),
+          payment_method: method,
+          customer_name: customer,
+          supplier_name: supplier,
+          saler_name: saler,
+          amount: split[0] + split[1] + split[2],
+          supplier_amount: split[0],
+          saler_amount: split[1],
+          platform_amount: split[2],
+          status,
+          locked_at: new Date(now - (deliveredDaysAgo + 1) * dayMs).toISOString(),
+          delivered_at: new Date(now - deliveredDaysAgo * dayMs).toISOString(),
+          hold_until: new Date(holdUntil).toISOString(),
+          released_at: status === 'RELEASED' ? new Date(now - dayMs).toISOString() : null,
+          remaining_seconds: locked ? remaining : 0,
+          is_due: locked && remaining === 0,
+          release_blocked_reason: null,
+          failure_count: 0,
+          last_error: null,
+          ...extra,
+        };
+      };
+      const all = [
+        row(1, 'SO-99820-1', 'BKASH', 'Anisur Rahman', 'Jamdani Heritage Weavers', 'Fashion Hub Sylhet', [2240, 640, 320], 'LOCKED', 8),
+        row(2, 'SO-99821-1', 'COD', 'Farhana Sultana', 'Aroma Spice Hub', 'Organic Mart BD', [1295, 370, 185], 'LOCKED', 3, { release_blocked_reason: 'COD_NOT_RECONCILED' }),
+        row(3, 'SO-99820-2', 'NAGAD', 'Anisur Rahman', 'Sundarban Honey House', 'Fashion Hub Sylhet', [700, 200, 100], 'LOCKED', 7),
+        row(4, 'SO-99818-1', 'BKASH', 'Tariq Ahmed', 'Bengal Leather Crafts', 'Executive Store BD', [3360, 960, 480], 'FROZEN', 2),
+        row(5, 'SO-99790-1', 'BKASH', 'Mahmuda Akter', 'Aroma Spice Hub', 'Organic Mart BD', [900, 260, 140], 'RELEASED', 12),
+      ];
+      const status = String(query?.status || 'LOCKED');
+      const q = String(query?.q || '').trim().toLowerCase();
+      const matches = all.filter((h) => h.status === status
+        && (!q || [h.sub_order_ref, h.customer_name, h.supplier_name, h.saler_name].some((v) => String(v).toLowerCase().includes(q))));
+      const locked = all.filter((h) => h.status === 'LOCKED');
+      const mature = locked.filter((h) => h.is_due);
+      const frozen = all.filter((h) => h.status === 'FROZEN');
+      const sum = (rows) => rows.reduce((total, h) => total + h.amount, 0);
       return {
         status: 200,
         body: {
           data: {
-            holdings: [
-              { id: 1, sub_order_ref: 'SO-99820-1', customer_name: 'Anisur Rahman', supplier_name: 'Jamdani Heritage Weavers', saler_name: 'Fashion Hub Sylhet', amount: 3200.00, delivered_at: new Date(now - dayMs * 8).toISOString(), release_due_at: new Date(now - dayMs * 1).toISOString(), status: 'MATURE_READY', return_window_days: 7 },
-              { id: 2, sub_order_ref: 'SO-99821-1', customer_name: 'Farhana Sultana', supplier_name: 'Aroma Spice Hub', saler_name: 'Organic Mart BD', amount: 1850.00, delivered_at: new Date(now - dayMs * 3).toISOString(), release_due_at: new Date(now + dayMs * 4).toISOString(), status: 'ACTIVE_HOLD', return_window_days: 7 },
-              { id: 3, sub_order_ref: 'SO-99820-2', customer_name: 'Anisur Rahman', supplier_name: 'Sundarban Honey House', saler_name: 'Fashion Hub Sylhet', amount: 1000.00, delivered_at: new Date(now - dayMs * 7).toISOString(), release_due_at: new Date(now - dayMs * 0.1).toISOString(), status: 'MATURE_READY', return_window_days: 7 },
-              { id: 4, sub_order_ref: 'SO-99818-1', customer_name: 'Tariq Ahmed', supplier_name: 'Bengal Leather Crafts', saler_name: 'Executive Store BD', amount: 4800.00, delivered_at: new Date(now - dayMs * 2).toISOString(), release_due_at: new Date(now + dayMs * 5).toISOString(), status: 'ACTIVE_HOLD', return_window_days: 7 },
-            ],
+            holdings: matches,
+            summary: {
+              total_held: sum(locked),
+              mature_amount: sum(mature),
+              held_count: locked.length,
+              mature_count: mature.length,
+              active_count: locked.length - mature.length,
+              frozen_amount: sum(frozen),
+              frozen_count: frozen.length,
+              return_window_days: 7,
+            },
+            pagination: { page: 1, limit: 20, total: matches.length, pages: 1 },
+            filter: { status, q },
           },
         },
       };
@@ -3968,7 +4024,7 @@ let mockSubscribers = [
 ];
 
 // --- Platform Integrations & Settings Mock State ---
-let mockIntegrations = [
+let mockIntegrations: Record<string, any>[] = [
   {
     id: 'bkash_checkout',
     name: 'bKash Tokenized Checkout',

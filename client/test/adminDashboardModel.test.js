@@ -35,7 +35,7 @@ import {
   summariseSeries,
   validateCustomRange,
 } from '../src/services/adminDashboard.model.ts';
-import adminHandlers from '../src/mocks/handlers/admin.js';
+import adminHandlers from '../src/mocks/handlers/admin.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');

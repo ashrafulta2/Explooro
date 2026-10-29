@@ -24,7 +24,7 @@ import supplierHandlers from './handlers/supplier.ts';
 import sampleKitHandlers from './handlers/sampleKit.ts';
 import payoutProtectionHandlers from './handlers/payoutProtection.ts';
 import salerHandlers from './handlers/saler.ts';
-import adminHandlers from './handlers/admin.js';
+import adminHandlers from './handlers/admin.ts';
 import moduleHandlers from './handlers/modules.ts';
 import pageAccessHandlers from './handlers/pageAccess.ts';
 import vaultHandlers from './handlers/vault.ts';

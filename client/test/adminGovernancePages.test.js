@@ -11,7 +11,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import adminHandlers from '../src/mocks/handlers/admin.js';
+import adminHandlers from '../src/mocks/handlers/admin.ts';
 
 test('Admin Governance Pages & Modules Integrity', async (t) => {
   await t.test('1. All Admin Page components import successfully and export default functions', async () => {

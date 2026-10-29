@@ -134,7 +134,7 @@ These are real and were left open on purpose. Do not assume they were missed.
      "Verified Suppliers". Both the endpoint and the mock now count distinct suppliers.
 3. **The Module Control fix is mock-side.** `server/src/routes/module.routes.ts` already serves
    `/admin/modules` from the real registry; the fabricated 8-module list was only in
-   `client/src/mocks/handlers/admin.js`, which shadows it when `VITE_API_MODE=mock`. Dev and live now
+   `client/src/mocks/handlers/admin.ts`, which shadows it when `VITE_API_MODE=mock`. Dev and live now
    list the same modules under the same keys. **Not verified against a live Postgres-backed server**
    in this pass.
 4. **The CSS perf budget gate is set to 65 KB, not the 40 KB stated in `CLAUDE.md`.** Pre-existing
@@ -266,7 +266,7 @@ route you are on, and clicking it lists and highlights each violation.
 **New page** — `client/src/pages/admin/AdminReferralsPage.ts`, registered in
 `client/src/pages/dev/gallery-registry.ts`.
 
-**Mocks** — `client/src/mocks/handlers/admin.js` (module registry + persisted toggles + coin policy,
+**Mocks** — `client/src/mocks/handlers/admin.ts` (module registry + persisted toggles + coin policy,
 streak curve and leaderboard), `client/src/mocks/handlers/referral.js` (programme rules, fraud
 controls, flagged queue).
 

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import { adminApi } from '../src/services/admin.api.ts';
-import adminHandlers from '../src/mocks/handlers/admin.js';
+import adminHandlers from '../src/mocks/handlers/admin.ts';
 import { navItems } from '../src/config/navigation.ts';
 
 describe('Super Admin Security & Disaster Recovery — Client Invariants', () => {

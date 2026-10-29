@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { navItems } from '../src/config/navigation.ts';
-import adminHandlers from '../src/mocks/handlers/admin.js';
+import adminHandlers from '../src/mocks/handlers/admin.ts';
 import returnHandlers from '../src/mocks/handlers/returns.ts';
 import moderatorHandlers from '../src/mocks/handlers/moderator.ts';
 import disputeHandlers from '../src/mocks/handlers/disputes.ts';
@@ -144,11 +144,11 @@ test('Moderator — the Products tab covers product edits', async (t) => {
 
 test('Moderator — mock routes are registered exactly once', async (t) => {
   await t.test('1. No two handler modules claim the same route', () => {
-    // admin.js carried a stale copy of the whole /admin/returns/* block whose rows used
+    // admin.ts carried a stale copy of the whole /admin/returns/* block whose rows used
     // return_ref / order_id / reason. It was spread first, so it shadowed returns.ts and the
     // Returns queue rendered "undefined" for the ref, the order number and the reason code.
     const modules = {
-      'admin.js': adminHandlers,
+      'admin.ts': adminHandlers,
       'returns.ts': returnHandlers,
       'moderator.ts': moderatorHandlers,
       'disputes.ts': disputeHandlers,

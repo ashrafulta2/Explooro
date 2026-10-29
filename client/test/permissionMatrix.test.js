@@ -12,7 +12,7 @@ import assert from 'node:assert/strict';
 import catalog from '../../docs/permission-catalog.json' with { type: 'json' };
 import en from '../src/locales/en.json' with { type: 'json' };
 import bn from '../src/locales/bn.json' with { type: 'json' };
-import adminHandlers from '../src/mocks/handlers/admin.js';
+import adminHandlers from '../src/mocks/handlers/admin.ts';
 import {
   buildHeldIndex,
   cellState,
