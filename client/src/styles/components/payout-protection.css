@@ -1,7 +1,7 @@
 /**
  * payout-protection.css — Fast Payout and Return Protection pages (supplier attraction, step 5).
  * Loaded together with incentive.css, which supplies the card / table / status / form-field shell.
- * WHY its own file: loaded by the routes that use it (main.js) so it ships in their chunks and not in
+ * WHY its own file: loaded by the routes that use it (main.ts) so it ships in their chunks and not in
  * the entry bundle, which is at its 70KB gzip CSS budget. Tokens only; no raw colours.
  */
 

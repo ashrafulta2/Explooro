@@ -111,7 +111,7 @@ explooro/
 │   │   ├── pages/               # Page controllers (Home, SalerStore, Vault, Admin)
 │   │   ├── services/            # API client (Fetch / Axios wrappers)
 │   │   ├── locales/             # en.json, bn.json (i18n translations)
-│   │   └── main.js              # Vite app entrypoint
+│   │   └── main.ts              # Vite app entrypoint
 │   ├── index.html               # Main HTML entry with SEO tags
 │   └── package.json
 │

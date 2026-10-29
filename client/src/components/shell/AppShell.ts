@@ -3,7 +3,7 @@
  *
  * Owns the one long-lived DOM structure (sidebar/topbar/mobilenav "slots" around a stable
  * `pageOutlet`) and re-renders the CHROME — never `pageOutlet` itself, which core/router.ts owns
- * — whenever appStore or the active language changes. `render()` is also exported so main.js's
+ * — whenever appStore or the active language changes. `render()` is also exported so main.ts's
  * router can call it from `beforeEach`: a route change doesn't touch appStore or i18n, so without
  * this the active-link highlight in Sidebar/MobileNav would go stale after every navigation.
  *

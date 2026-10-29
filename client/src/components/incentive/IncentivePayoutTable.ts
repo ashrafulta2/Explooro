@@ -10,7 +10,7 @@
  *  - The amounts are the ones the server stored. Nothing is recomputed here, so what the table says
  *    can never disagree with the ledger.
  *
- * Styles: styles/components/incentive.css, loaded by the routes that render this (main.js).
+ * Styles: styles/components/incentive.css, loaded by the routes that render this (main.ts).
  */
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';

@@ -1,11 +1,11 @@
 /**
  * pageRegistry.ts — the list of pages /admin/platform/pages can switch on and off.
  *
- * WHY registered at runtime instead of hand-listed here: the route table lives inside main.js's
+ * WHY registered at runtime instead of hand-listed here: the route table lives inside main.ts's
  * async bootstrap (224 routes as of this writing, derived partly from navigation.ts), and a second
  * hand-maintained copy of it is a copy that goes stale the first time someone adds a page and
- * forgets. main.js calls registerPages() with the exact array it hands core/router.ts, so a new
- * route appears on the Page Availability screen with no extra step — the same reason main.js
+ * forgets. main.ts calls registerPages() with the exact array it hands core/router.ts, so a new
+ * route appears on the Page Availability screen with no extra step — the same reason main.ts
  * derives its stub routes from navigation.ts rather than listing them.
  *
  * Labels come from navigation.ts where the page has a nav item (so the admin screen, the sidebar
@@ -61,7 +61,7 @@ function humanizePath(path: string) {
 let pages: RegisteredPage[] = [];
 
 /**
- * Called once from main.js with the router's own route array. Routes carrying a `:param` are
+ * Called once from main.ts with the router's own route array. Routes carrying a `:param` are
  * registered too — a page is a page whether or not its URL has an id in it, and hiding
  * /product/:id has to be expressible.
  */

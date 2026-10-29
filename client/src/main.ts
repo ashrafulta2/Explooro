@@ -14,6 +14,7 @@ import './styles/main.css';
 
 // Prompt 1.5 — router, store, api-client.
 import { createRouter } from './core/router.ts';
+import type { Route } from './core/router.ts';
 import { captureTouchFromQuery } from './services/attribution.ts';
 import { installPageInfo } from './services/pageInfo.ts';
 import { appStore } from './state/appStore.ts';
@@ -2140,7 +2141,7 @@ async function bootRouterDemo() {
     root: appShell.pageOutlet,
     loginPath: '/login',
     routes: allRoutes,
-    notFound: { load: () => import('./pages/dev/NotFoundStub.ts') },
+    notFound: { load: () => import('./pages/dev/NotFoundStub.ts') } as Route,
     getAuthContext: () => ({ ...appStore.get().auth, modules: appStore.get().modules }),
     // The SAME resolver Sidebar.js and CommandPalette.js filter with — super-admin-audit §5
     // invariant 1 ("the nav guard must equal the route guard"), now covering page availability too.

@@ -91,7 +91,7 @@ describe('advertise strings and wiring', () => {
     for (const role of ['customer', 'saler', 'supplier']) {
       assert.match(nav, new RegExp(`path: '/advertise', group: '[a-z.]+', permission: 'growth\\.ad\\.manage_own', module: 'sponsored_ads', roles: \\['${role}'\\]`), role);
     }
-    const main = read('../src/main.js');
+    const main = read('../src/main.ts');
     const block = main.slice(main.indexOf("path: '/advertise'"), main.indexOf('AdvertisePage.ts'));
     assert.ok(block.includes("permission: 'growth.ad.manage_own'") && block.includes("module: 'sponsored_ads'"));
   });

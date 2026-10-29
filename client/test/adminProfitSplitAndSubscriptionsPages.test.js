@@ -340,9 +340,9 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
   });
 
   describe('5. Router and Interconnection Invariants', () => {
-    const mainJs = readFileSync(join(root, 'src/main.js'), 'utf8');
+    const mainJs = readFileSync(join(root, 'src/main.ts'), 'utf8');
 
-    it('main.js registers all Profit Splits and Subscriptions routes', () => {
+    it('main.ts registers all Profit Splits and Subscriptions routes', () => {
       assert.ok(mainJs.includes("path: '/admin/finance/splits'"), 'splits route registered');
       assert.ok(mainJs.includes("path: '/admin/splits'"), 'splits alias registered');
       assert.ok(mainJs.includes("path: '/admin/finance/subscriptions'"), 'subscriptions route registered');
@@ -350,7 +350,7 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
     });
 
     // WHY rewritten: this used to assert on the literal `item.path !== '/admin/finance/splits'`
-    // comparisons in main.js's hand-maintained stub-exclusion chain. That chain is gone — the stub
+    // comparisons in main.ts's hand-maintained stub-exclusion chain. That chain is gone — the stub
     // set is now DERIVED from the routes that actually exist, which is what made the drift it was
     // guarding against impossible in the first place. The invariant worth protecting is the
     // outcome: a nav path that a real page implements must never also get a RoleStubPage.

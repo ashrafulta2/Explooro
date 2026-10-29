@@ -10,7 +10,7 @@
  *  - Amounts are the ones the server snapshotted on the request. Nothing is recomputed here.
  *
  * Styles: styles/components/incentive.css (table/status) + sample-kit.css, loaded by the routes that
- * render this (main.js).
+ * render this (main.ts).
  */
 import { t } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';

@@ -10,7 +10,7 @@
  *    pretending it copied.
  *
  * Styles: styles/components/sample-kit.css (+ incentive.css for the card shell), loaded by the routes
- * that render this (main.js).
+ * that render this (main.ts).
  */
 import { t, getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';

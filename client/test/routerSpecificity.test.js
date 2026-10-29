@@ -1,7 +1,7 @@
 /**
  * routerSpecificity.test.js — a static route must win over a `:param` sibling registered before it.
  *
- * The bug: `/admin/users/:id` came first in main.js, so `/admin/users/verification` (KYC) and
+ * The bug: `/admin/users/:id` came first in main.ts, so `/admin/users/verification` (KYC) and
  * `/admin/users/restrictions` rendered the user-detail page's "User not found".
  */
 
@@ -46,10 +46,10 @@ describe('pickRoute', () => {
   });
 });
 
-describe('main.js route table', () => {
+describe('main.ts route table', () => {
   it('has no static route left unreachable behind a :param route', () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-    const paths = [...readFileSync(join(root, 'src/main.js'), 'utf8').matchAll(/path:\s*'([^']+)'/g)].map((m) => m[1]);
+    const paths = [...readFileSync(join(root, 'src/main.ts'), 'utf8').matchAll(/path:\s*'([^']+)'/g)].map((m) => m[1]);
     const table = paths.map((path) => ({ path }));
     for (const p of paths.filter((x) => !x.includes(':'))) {
       assert.equal(pickRoute(table, p).route.path, p, `${p} resolves to a different route`);

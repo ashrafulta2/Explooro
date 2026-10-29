@@ -43,7 +43,7 @@ test('Popup genie effect — client invariants', async (t) => {
     assert.equal(navItem.module, 'core');
     assert.ok(navItem.roles.includes('super_admin') && navItem.roles.includes('admin'));
 
-    const mainSrc = read('src', 'main.js');
+    const mainSrc = read('src', 'main.ts');
     const routeBlock = mainSrc.slice(mainSrc.indexOf(`path: '${ROUTE}'`));
     const block = routeBlock.slice(0, routeBlock.indexOf('},') + 2);
     assert.match(block, /permission: 'platform\.genie\.view'/, 'route guard = nav guard');
@@ -168,7 +168,7 @@ test('Popup genie effect — client invariants', async (t) => {
   });
 
   await t.test('6. Boot applies the cached policy synchronously and never awaits the network', () => {
-    const boot = read('src', 'main.js');
+    const boot = read('src', 'main.ts');
     assert.match(boot, /^\s*initGenieSettings\(\);/m, 'called, not awaited');
     assert.doesNotMatch(boot, /await initGenieSettings/);
 

@@ -211,7 +211,7 @@ export async function renderOnDemandHtml(db, cache, pathname = '/', userLocale =
       </footer>
     </main>
   </div>
-  <script type="module" src="/src/main.js"></script>
+  <script type="module" src="/src/main.ts"></script>
 </body>
 </html>`;
 

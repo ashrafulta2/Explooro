@@ -9,7 +9,7 @@
  *  - Amounts go through formatCurrency; the fee is shown as a percentage and as money.
  *
  * Styles: styles/components/incentive.css (table shell) + payout-protection.css, loaded by the routes
- * that render this (main.js).
+ * that render this (main.ts).
  */
 import { t } from '../../services/i18n.ts';
 import { formatCurrency, formatDate, formatNumber } from '../../services/format.ts';

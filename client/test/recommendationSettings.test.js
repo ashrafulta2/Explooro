@@ -62,7 +62,7 @@ test('Personalized feed admin — client invariants', async (t) => {
     assert.equal(navItem.module, 'core');
     assert.ok(navItem.roles.includes('super_admin') && navItem.roles.includes('admin'));
 
-    const mainSrc = read('src', 'main.js');
+    const mainSrc = read('src', 'main.ts');
     const routeBlock = mainSrc.slice(mainSrc.indexOf(`path: '${ROUTE}'`));
     const block = routeBlock.slice(0, routeBlock.indexOf('},') + 2);
     assert.match(block, /permission: 'platform\.recommendation\.view'/, 'route guard = nav guard');

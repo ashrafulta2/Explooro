@@ -232,7 +232,7 @@ function themesCss() {
  * (client/src/services/colorRamp.ts) fed the shipped default seed. That is the same engine the
  * Theme Studio previews with and the same one the server re-derives and validates against, so this
  * baseline and a freshly booted runtime theme are the same palette rather than two palettes that
- * happen to look alike. WHY that matters: this file paints during the frames BEFORE main.js runs
+ * happen to look alike. WHY that matters: this file paints during the frames BEFORE main.ts runs
  * \`initTheme()\`. While it was authored by hand against a different seed, every cold load flashed
  * the old colour and then swapped.
  *

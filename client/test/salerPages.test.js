@@ -190,8 +190,8 @@ test('3. Shop Partner Mock Endpoints & Business Logic', async (t) => {
   });
 });
 
-test('4. Shop Partner Route Registration Invariants in main.js', async (t) => {
-  const mainSrc = fs.readFileSync(path.join(clientRoot, 'src/main.js'), 'utf8');
+test('4. Shop Partner Route Registration Invariants in main.ts', async (t) => {
+  const mainSrc = fs.readFileSync(path.join(clientRoot, 'src/main.ts'), 'utf8');
 
   const salerPaths = [
     '/saler',
@@ -218,22 +218,22 @@ test('4. Shop Partner Route Registration Invariants in main.js', async (t) => {
     '/saler/inbox',
   ];
 
-  await t.test('All 22 Shop Partner routes are explicitly registered in main.js', () => {
+  await t.test('All 22 Shop Partner routes are explicitly registered in main.ts', () => {
     for (const p of salerPaths) {
       assert.ok(
         mainSrc.includes(`path: '${p}'`),
-        `Expected main.js to explicitly register route path: '${p}'`
+        `Expected main.ts to explicitly register route path: '${p}'`
       );
     }
   });
 
-  await t.test('No duplicate route declarations for shop partner routes in main.js', () => {
+  await t.test('No duplicate route declarations for shop partner routes in main.ts', () => {
     for (const p of salerPaths) {
       const count = (mainSrc.match(new RegExp(`path:\\s*['"]${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g')) || []).length;
       assert.equal(
         count,
         1,
-        `Route ${p} should be declared exactly once in main.js, but found ${count}`
+        `Route ${p} should be declared exactly once in main.ts, but found ${count}`
       );
     }
   });

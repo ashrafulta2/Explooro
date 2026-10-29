@@ -19,7 +19,7 @@ const readText = (rel) => fs.readFileSync(path.resolve(root, rel), 'utf8');
 const readJson = (rel) => JSON.parse(readText(rel));
 
 const pageSrc = readText('client/src/pages/moderator/LiveModerationPage.ts');
-const mainSrc = readText('client/src/main.js');
+const mainSrc = readText('client/src/main.ts');
 const en = readJson('client/src/locales/en.json');
 const bn = readJson('client/src/locales/bn.json');
 

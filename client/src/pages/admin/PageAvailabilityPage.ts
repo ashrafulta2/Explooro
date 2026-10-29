@@ -7,7 +7,7 @@
  * entries are `module: 'core'` and cannot be hidden by a module at all.
  *
  * The page list is NOT hand-maintained here — config/pageRegistry.ts receives the router's own
- * route array from main.js, so a route added later appears here with no extra step.
+ * route array from main.ts, so a route added later appears here with no extra step.
  */
 
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.ts';

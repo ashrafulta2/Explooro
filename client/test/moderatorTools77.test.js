@@ -31,7 +31,7 @@ const en = readJson('client/src/locales/en.json');
 const bn = readJson('client/src/locales/bn.json');
 const catalogKeys = new Set(readJson('docs/permission-catalog.json').permissions.map((p) => p.key));
 const modulesSrc = readText('server/src/config/modules.seed.json');
-const mainSrc = readText('client/src/main.js');
+const mainSrc = readText('client/src/main.ts');
 
 const call = (method, pathname, ctx = {}) => {
   const h = handlers.find((x) => x.method === method && x.path === pathname);
@@ -182,7 +182,7 @@ test('7.7 pages — titles resolve through i18n, not hardcoded literals', () => 
 
 test('7.7 routes — each route names a real permission and module', () => {
   const routeBlocks = [...mainSrc.matchAll(/load:\s*\(\)\s*=>\s*import\('\.\/pages\/(?:moderator|supplier)\/(?:MyAccessPage|PenaltiesPage|ReportsPage|ReviewsModerationPage|UgcModerationPage|ForecastingPage)\.(?:js|ts)'\)/g)];
-  assert.equal(routeBlocks.length, 6, 'expected all six 7.7 routes registered in main.js');
+  assert.equal(routeBlocks.length, 6, 'expected all six 7.7 routes registered in main.ts');
 
   const specs = [
     { file: 'PenaltiesPage', permission: 'users.account.penalise', module: 'core' },
@@ -213,9 +213,9 @@ test('My Access — role restrictions: permitted for admin, moderator, editor; d
   assert.ok(!roles.includes('saler'), 'saler must NOT have access to My Access');
   assert.ok(!roles.includes('supplier'), 'supplier must NOT have access to My Access');
 
-  // Verify route definition in main.js
+  // Verify route definition in main.ts
   const myAccessRouteMatch = mainSrc.match(/path:\s*'\/moderator\/my-access'[\s\S]*?roles:\s*(\[[^\]]+\])/);
-  assert.ok(myAccessRouteMatch, '/moderator/my-access route in main.js must have explicit roles guard');
+  assert.ok(myAccessRouteMatch, '/moderator/my-access route in main.ts must have explicit roles guard');
   const routeRoles = JSON.parse(myAccessRouteMatch[1].replace(/'/g, '"'));
   assert.ok(routeRoles.includes('admin') && routeRoles.includes('moderator') && routeRoles.includes('editor'));
   assert.ok(!routeRoles.includes('customer') && !routeRoles.includes('saler') && !routeRoles.includes('supplier'));

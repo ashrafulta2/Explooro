@@ -223,13 +223,13 @@ describe('declared pages', () => {
   });
 
   test('every declared page is a real route in the client', () => {
-    const mainSrc = read('client/src/main.js');
+    const mainSrc = read('client/src/main.ts');
     const clientPaths = new Set([...mainSrc.matchAll(/path:\s*'([^']+)'/g)].map((m) => m[1]));
 
     for (const { file, page } of declaredPages()) {
       assert.ok(
         clientPaths.has(page),
-        `${file} guards "${page}", which is not a route in client/src/main.js. A page path that no ` +
+        `${file} guards "${page}", which is not a route in client/src/main.ts. A page path that no ` +
           'longer exists is a guard that can never fire and a page that can never be parked.'
       );
     }

@@ -101,7 +101,7 @@ test('Language & Default Locale — client invariants', async (t) => {
     assert.ok(navItem.roles.includes('super_admin'));
     assert.ok(navItem.roles.includes('admin'));
 
-    const mainSrc = fs.readFileSync(path.join(clientRoot, 'src', 'main.js'), 'utf8');
+    const mainSrc = fs.readFileSync(path.join(clientRoot, 'src', 'main.ts'), 'utf8');
     const routeBlock = mainSrc.slice(mainSrc.indexOf(`path: '${ROUTE}'`));
     const block = routeBlock.slice(0, routeBlock.indexOf('},') + 2);
     assert.match(

@@ -26,7 +26,7 @@ describe('Delivery charge', () => {
   });
 
   it('the admin page is routed, in the nav and in the platform tabs with the same key', () => {
-    assert.match(read('main.js'), /path: '\/admin\/platform\/delivery',[\s\S]{0,200}permission: 'platform\.delivery\.view'/);
+    assert.match(read('main.ts'), /path: '\/admin\/platform\/delivery',[\s\S]{0,200}permission: 'platform\.delivery\.view'/);
     assert.match(read('config/navigation.ts'), /path: '\/admin\/platform\/delivery'.*permission: 'platform\.delivery\.view', module: 'core'/);
     assert.match(read('components/admin/PlatformSubnav.ts'), /href: '\/admin\/platform\/delivery'/);
   });

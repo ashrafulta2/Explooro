@@ -4,7 +4,7 @@
  * WHY each one exists:
  *
  *  1. Nav guard == route guard (docs/super-admin-audit.md §5 invariant 1). Sidebar.ts,
- *     CommandPalette.ts and core/router.ts (through main.js) must all decide visibility with
+ *     CommandPalette.ts and core/router.ts (through main.ts) must all decide visibility with
  *     resolvePageAccess(), not with a copy of the rules. A second copy is how a page ends up
  *     hidden from the sidebar but still reachable by typing its name into the palette — the layer
  *     then looks like it works and does not.
@@ -56,8 +56,8 @@ describe('page availability — the shared resolver is the only implementation',
     assert.match(src, /isPageVisibleInNav\(item\.path, ctx\)/);
   });
 
-  it('main.js hands the router that same resolver and a COMING_SOON page', () => {
-    const src = read('src/main.js');
+  it('main.ts hands the router that same resolver and a COMING_SOON page', () => {
+    const src = read('src/main.ts');
     assert.match(src, /resolvePageState: \(route, ctx\) => resolvePageAccess\(route\.path, ctx\)/);
     assert.match(src, /comingSoonRoute: \{ load: \(\) => import\('\.\/pages\/ComingSoonPage\.ts'\) \}/);
     assert.match(src, /await initPageAccess\(\)/);
@@ -202,7 +202,7 @@ describe('page availability — the four states resolve as the screen promises',
 describe('page availability — the admin surface is registered and guarded', () => {
   it('the nav item and the route agree on both guards', () => {
     const navSrc = read('src/config/navigation.ts');
-    const mainSrc = read('src/main.js');
+    const mainSrc = read('src/main.ts');
 
     const navItem = navSrc.match(/\{ key: 'admin\.platform\.pages'[^}]*\}/);
     assert.ok(navItem, '/admin/platform/pages has no navigation.ts entry');
@@ -210,7 +210,7 @@ describe('page availability — the admin surface is registered and guarded', ()
     assert.match(navItem[0], /module: 'core'/);
 
     const routeBlock = mainSrc.match(/path: '\/admin\/platform\/pages',[\s\S]{0,400}?\},/);
-    assert.ok(routeBlock, '/admin/platform/pages has no main.js route');
+    assert.ok(routeBlock, '/admin/platform/pages has no main.ts route');
     assert.match(routeBlock[0], /permission: 'platform\.page\.view'/);
     assert.match(routeBlock[0], /module: 'core'/);
   });

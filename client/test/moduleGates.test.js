@@ -9,7 +9,7 @@
  * /admin/verification. featureFlags.ts's isFeatureEnabled() defaults an unknown key to *true*, so
  * the sidebar happily renders a link the router then refuses — which is what makes it invisible.
  *
- * Parsed from source rather than imported because main.js's route table is built inside an async
+ * Parsed from source rather than imported because main.ts's route table is built inside an async
  * bootstrap that touches `window`.
  */
 
@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const appStoreSrc = readFileSync(join(root, 'src/state/appStore.ts'), 'utf8');
-const mainSrc = readFileSync(join(root, 'src/main.js'), 'utf8');
+const mainSrc = readFileSync(join(root, 'src/main.ts'), 'utf8');
 
 function demoModuleKeys() {
   const block = appStoreSrc.match(/const DEMO_MODULES = \{([\s\S]*?)\n\};/);
@@ -29,7 +29,7 @@ function demoModuleKeys() {
   return new Set([...block[1].matchAll(/^\s*([a-z0-9_]+):\s*(?:true|false)\s*,/gm)].map((m) => m[1]));
 }
 
-/** Every `{ path, …, module }` route literal in main.js, as `{ path, module }`. */
+/** Every `{ path, …, module }` route literal in main.ts, as `{ path, module }`. */
 function routeModuleGates() {
   return [...mainSrc.matchAll(/path: '([^']+)',[\s\S]{0,400}?module: '([^']+)'/g)].map((m) => ({
     path: m[1],

@@ -14,7 +14,7 @@
  *
  * The direction of that relationship has since reversed: styles/themes.css is now GENERATED from
  * `DEFAULT_MASTER` below (`node scripts/palette.mjs --write`) rather than transcribed into it. WHY:
- * themes.css is what paints before main.js can run `initTheme()`, so while it was hand-authored
+ * themes.css is what paints before main.ts can run `initTheme()`, so while it was hand-authored
  * against one seed and the product booted with another, every cold load flashed the wrong colour
  * and then swapped. client/test/colorRamp.test.js parses the CSS and fails if the two diverge.
  *

@@ -46,7 +46,7 @@ describe('top-up strings and wiring', () => {
     for (const role of ['customer', 'saler', 'supplier']) {
       assert.match(nav, new RegExp(`path: '/wallet/top-up', group: '[a-z.]+', permission: 'finance\\.wallet\\.topup', module: 'core', roles: \\['${role}'\\]`), role);
     }
-    const main = read('../src/main.js');
+    const main = read('../src/main.ts');
     const block = main.slice(main.indexOf("path: '/wallet/top-up'"), main.indexOf('WalletTopUpPage.ts'));
     assert.ok(block.includes("permission: 'finance.wallet.topup'") && block.includes("module: 'core'"));
   });

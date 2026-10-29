@@ -12,7 +12,7 @@
  * called once per GalleryPage mount — components that attach live listeners (the "loading (live)"
  * button, the pending switch) are safe because the whole subtree is discarded on navigation away.
  *
- * Entries below migrate the Prompt 1.3/1.4 specimens out of main.js's temporary index-page preview
+ * Entries below migrate the Prompt 1.3/1.4 specimens out of main.ts's temporary index-page preview
  * (PREVIEW: "Components appear in /dev/gallery (built in 1.8) — until then, render them on the
  * index page"). Content and behaviour are unchanged from that preview; only the wiring is new.
  */

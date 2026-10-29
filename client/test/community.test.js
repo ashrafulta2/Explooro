@@ -184,7 +184,7 @@ test('only staff reach the queue, and Keep brings a hidden post back with its re
 // ── 3. Wiring ───────────────────────────────────────────────────────────────────────────────
 
 test('the routes, the nav items and the module flag agree', () => {
-  const main = read('main.js');
+  const main = read('main.ts');
   assert.match(main, /path: '\/community',[\s\S]*?module: 'community_posts'[\s\S]*?CommunityPage.ts/);
   assert.match(main, /path: '\/admin\/community',[\s\S]*?permission: 'community\.post\.moderate'[\s\S]*?CommunityPage.ts/);
   const items = navItems.filter((i) => i.path === '/community' || i.path === '/admin/community');

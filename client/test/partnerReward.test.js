@@ -90,7 +90,7 @@ describe('partner reward strings and wiring', () => {
 
   it('the nav guard equals the route guard (permission and module)', () => {
     const nav = read('../src/config/navigation.ts');
-    const main = read('../src/main.js');
+    const main = read('../src/main.ts');
     assert.match(nav, /path: '\/admin\/growth\/partner-rewards', group: 'admin\.growth', permission: 'growth\.partner_reward\.view', module: 'virtual_storefront'/);
     const block = main.slice(main.indexOf("path: '/admin/growth/partner-rewards'"), main.indexOf('AdminPartnerRewardsPage.ts'));
     assert.ok(block.includes("permission: 'growth.partner_reward.view'"));

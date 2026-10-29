@@ -12,7 +12,7 @@
  *  - Every figure is formatted here; a null metric renders "—", not "0%".
  */
 import { t } from '../../services/i18n.ts';
-// Styles: styles/components/supplier-scorecard.css, loaded by the routes that render this (main.js).
+// Styles: styles/components/supplier-scorecard.css, loaded by the routes that render this (main.ts).
 
 const GRADE_TONE: Record<string, string> = { A: 'success', B: 'info', C: 'warning', D: 'danger' };
 

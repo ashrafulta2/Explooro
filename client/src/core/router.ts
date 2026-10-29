@@ -48,7 +48,7 @@ export interface Route {
   load: () => Promise<{ default: (container: HTMLElement, ctx: PageContext) => unknown }>;
 }
 
-/** What the router reads from the viewer: the shape `main.js` builds from the store. */
+/** What the router reads from the viewer: the shape `main.ts` builds from the store. */
 export interface AuthContext {
   isAuthenticated?: boolean;
   role?: string | null;

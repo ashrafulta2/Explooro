@@ -45,7 +45,7 @@ explooro/
 │   ├── vite.config.js           Dev server :3000, proxies /api and /ws to :5000
 │   ├── index.html
 │   └── src/
-│       ├── main.js              Entry: mounts router + shell
+│       ├── main.ts              Entry: mounts router + shell
 │       ├── core/
 │       │   ├── router.js        History API router, guards, lazy routes
 │       │   ├── store.ts         Pub/sub state, ~80 lines, no library

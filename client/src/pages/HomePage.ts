@@ -848,7 +848,7 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   cleanups.push(unsubStore);
 
   // ── Language change ──────────────────────────────────────────────────────
-  // main.js's subscribeLang fires router.refresh() on lang change, which remounts this page.
+  // main.ts's subscribeLang fires router.refresh() on lang change, which remounts this page.
   // We don't need a separate subscription here — the router already handles it.
 
   root.append(page);

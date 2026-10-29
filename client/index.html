@@ -28,7 +28,7 @@
     <style>
       /*
        * Minimal pre-load layout.
-       * Full tokens/themes/reset arrive via main.css (imported in main.js).
+       * Full tokens/themes/reset arrive via main.css (imported in main.ts).
        * This block is ONLY: prevent FOUC, set body to fill the viewport, and show a
        * loading indicator before the JS bundle arrives.
        */
@@ -49,7 +49,7 @@
         body { background: #0c1217; color: #fbfdfe; }
       }
 
-      /* Language-toggle (fixed, appended by main.js) */
+      /* Language-toggle (fixed, appended by main.ts) */
       .lang-toggle {
         position: fixed;
         bottom: var(--space-5, 20px);
@@ -91,6 +91,6 @@
       <button type="button" id="dev-status-bar-close" style="margin-left:auto;background:none;border:none;color:#fbfdfe;cursor:pointer;font-size:12px;padding:0 4px;" aria-label="Close error bar">✕</button>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -24,7 +24,7 @@ import { navItems } from '../src/config/navigation.ts';
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
-const mainSrc = read('src/main.js');
+const mainSrc = read('src/main.ts');
 const topBarSrc = read('src/components/shell/TopBar.ts');
 const mainCss = read('src/styles/main.css');
 const profileCss = read('src/styles/components/profile.css');
@@ -113,7 +113,7 @@ test('2. The page is actually reachable', async (t) => {
       const block = mainSrc.match(
         new RegExp(`path: '${routePath}',[\\s\\S]{0,320}?load: \\(\\) => import\\('([^']+)'\\)`)
       );
-      assert.ok(block, `${routePath} is not registered in main.js`);
+      assert.ok(block, `${routePath} is not registered in main.ts`);
       assert.equal(block[1], './pages/settings/ProfilePage.ts', `${routePath} loads the profile page`);
       assert.match(block[0], /requiresAuth: true/, `${routePath} must require a session`);
       assert.match(block[0], /permission: null/, `${routePath} needs no permission — every role has a profile`);

@@ -27,7 +27,7 @@ const placeholders = (text) => [...String(text).matchAll(/\{\{\s*(\w+)\s*\}\}/g)
 describe('guards', () => {
   const PERMISSION = 'finance.subscription.subscribe_own';
   it('route and nav entry both require the permission AND the module', () => {
-    const main = read('main.js');
+    const main = read('main.ts');
     const at = main.indexOf("path: '/saler/pro'");
     assert.ok(at > -1, 'route missing');
     const route = main.slice(at, at + 400);

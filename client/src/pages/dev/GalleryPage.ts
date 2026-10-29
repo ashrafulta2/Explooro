@@ -1,7 +1,7 @@
 /**
  * GalleryPage — `/dev/gallery`, the permanent visual workbench (Prompt 1.8).
  *
- * DEV-only: main.js only registers this route's dynamic `import()` inside an
+ * DEV-only: main.ts only registers this route's dynamic `import()` inside an
  * `import.meta.env.DEV` branch, which Vite replaces with the literal `false` in a production
  * build — Rollup then dead-code-eliminates the whole branch, including the `import()` call, so
  * this module (and gallery-registry.ts, and gallery.css below) never ends up in a production
@@ -24,7 +24,7 @@
  *     resolved values via `getComputedStyle` rather than a hardcoded snapshot, and re-render
  *     whenever theme/density changes (color/spacing values are otherwise just cached strings).
  *
- * Language changes are NOT handled locally: main.js's `subscribeLang(() => router.refresh())`
+ * Language changes are NOT handled locally: main.ts's `subscribeLang(() => router.refresh())`
  * already tears down and rebuilds whatever page is mounted — including this one — on every
  * `setLanguage()` call, the same as any other route. The cleanup this module returns exists for
  * exactly that teardown: Modal/Drawer specimens attach nodes to `document.body` (outside this
@@ -385,7 +385,7 @@ export default function GalleryPage(root: HTMLElement) {
     refreshLivePanels();
   });
 
-  // Language — reuses the real setLanguage(); main.js's subscribeLang(() => router.refresh())
+  // Language — reuses the real setLanguage(); main.ts's subscribeLang(() => router.refresh())
   // then remounts this whole page, so no local re-render is needed here.
   const langSegmented = segmented(
     ['en', 'bn'],

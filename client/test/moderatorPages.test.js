@@ -228,7 +228,7 @@ test('Moderator — locale integrity', async (t) => {
   });
 
   await t.test('5. A denied route explains itself instead of bouncing silently', () => {
-    const mainSrc = readText('client/src/main.js');
+    const mainSrc = readText('client/src/main.ts');
     assert.ok(/onGuardFail/.test(mainSrc), 'the router needs a guard-failure handler');
     for (const [lang, dict] of locales) {
       assert.equal(typeof dict.access.route_denied, 'string', `${lang} needs access.route_denied`);

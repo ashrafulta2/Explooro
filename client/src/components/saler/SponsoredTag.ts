@@ -5,7 +5,7 @@
  * deciding what to stock must be able to tell a ranked result from a bought one.
  */
 import { t } from '../../services/i18n.ts';
-// Styles: styles/components/sourcing-sponsored.css, loaded by the routes that render this (main.js).
+// Styles: styles/components/sourcing-sponsored.css, loaded by the routes that render this (main.ts).
 
 export function SponsoredTag(): HTMLSpanElement {
   const tag = document.createElement('span');
