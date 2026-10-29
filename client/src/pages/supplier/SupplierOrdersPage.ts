@@ -1,5 +1,5 @@
 /**
- * SupplierOrdersPage.js — Supplier Orders to Pack & Dispatch Hub (Prompt 11.1).
+ * SupplierOrdersPage.ts — Supplier Orders to Pack & Dispatch Hub (Prompt 11.1).
  *
  * Implements:
  * 1. Orders awaiting packing queue with status tabs (Awaiting Packing, Packed & Ready, In Transit, Delivered).
@@ -18,7 +18,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function SupplierOrdersPage(root) {
+export default function SupplierOrdersPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -95,7 +95,7 @@ export default function SupplierOrdersPage(root) {
       </div>
     `;
 
-    header.querySelector('#refresh-orders-btn').onclick = loadOrders;
+    header.querySelector<HTMLElement>('#refresh-orders-btn').onclick = loadOrders;
     container.appendChild(header);
 
     // 2. Telemetry Summary Strip
@@ -159,17 +159,17 @@ export default function SupplierOrdersPage(root) {
       </div>
     `;
 
-    const searchInput = toolbar.querySelector('#orders-search-input');
+    const searchInput = toolbar.querySelector<HTMLInputElement>('#orders-search-input');
     let debounceTimer;
     searchInput.oninput = (e) => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        searchQuery = e.target.value.trim();
+        searchQuery = (e.target as HTMLInputElement).value.trim();
         renderOrderList();
       }, 250);
     };
 
-    toolbar.querySelectorAll('.supplier-chip').forEach((chip) => {
+    toolbar.querySelectorAll<HTMLElement>('.supplier-chip').forEach((chip) => {
       chip.onclick = () => {
         activeTab = chip.dataset.tab;
         render();
@@ -306,7 +306,7 @@ export default function SupplierOrdersPage(root) {
       `;
 
       // 1-Click Consignment Booking
-      const consignBtn = card.querySelector('.consign-btn');
+      const consignBtn = card.querySelector<HTMLElement>('.consign-btn');
       if (consignBtn) {
         consignBtn.onclick = async () => {
           const carrier = order.district === 'Dhaka' ? 'PATHAO' : 'STEADFAST';
@@ -321,12 +321,12 @@ export default function SupplierOrdersPage(root) {
       }
 
       // Print Packing Slip Modal
-      card.querySelector('.print-slip-btn').onclick = () => {
+      card.querySelector<HTMLElement>('.print-slip-btn').onclick = () => {
         openPrintSlipModal(order);
       };
 
       // Print Thermal Label Modal
-      const printLabelBtn = card.querySelector('.print-label-btn');
+      const printLabelBtn = card.querySelector<HTMLElement>('.print-label-btn');
       if (printLabelBtn) {
         printLabelBtn.onclick = () => {
           openPrintLabelModal(order);
@@ -385,7 +385,7 @@ export default function SupplierOrdersPage(root) {
         `,
     });
 
-    modalBackdrop.querySelector('#print-slip-action-btn').onclick = () => window.print();
+    modalBackdrop.querySelector<HTMLElement>('#print-slip-action-btn').onclick = () => window.print();
 
     modalBackdrop.open(document.activeElement);
   }
@@ -433,7 +433,7 @@ export default function SupplierOrdersPage(root) {
         `,
     });
 
-    modalBackdrop.querySelector('#print-label-action-btn').onclick = () => window.print();
+    modalBackdrop.querySelector<HTMLElement>('#print-label-action-btn').onclick = () => window.print();
 
     modalBackdrop.open(document.activeElement);
   }

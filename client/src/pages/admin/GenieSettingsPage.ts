@@ -1,5 +1,5 @@
 /**
- * GenieSettingsPage.js — Super Admin governance of the popup "genie" open/close effect.
+ * GenieSettingsPage.ts — Super Admin governance of the popup "genie" open/close effect.
  *
  * Implements /admin/platform/genie:
  * 1. Whether the genie plays on popups at all (off = the plain CSS fade).
@@ -44,6 +44,7 @@ import { formatDate, formatRelativeTime } from '../../services/format.ts';
 import { applyGeniePolicy } from '../../services/genieSettings.ts';
 import { GENIE_DEFAULTS, GENIE_QUALITIES } from '../../lib/genie.ts';
 import { prefersReducedMotion } from '../../lib/motion.ts';
+import type { PageContext } from '../types.ts';
 
 const MIN_REASON_LENGTH = 10;
 
@@ -57,7 +58,7 @@ function summarise(p) {
   return p.enabled === false ? t('admin_genie.summary_off', 'Off (plain fade)') : t('admin_genie.on', 'On');
 }
 
-function toPolicy(raw = {}) {
+function toPolicy(raw: Record<string, any> = {}) {
   return {
     enabled: raw.enabled !== false,
     duration_ms: Number.isFinite(raw.duration_ms) ? raw.duration_ms : GENIE_DEFAULTS.duration_ms,
@@ -67,7 +68,7 @@ function toPolicy(raw = {}) {
   };
 }
 
-export default function GenieSettingsPage(root, { navigate } = {}) {
+export default function GenieSettingsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page genie-settings-page';

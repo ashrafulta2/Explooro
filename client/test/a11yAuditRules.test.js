@@ -126,7 +126,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     assert.ok(enDict.customer_coupons.claim_input_label, 'en.json must contain customer_coupons.claim_input_label');
     assert.ok(bnDict.customer_coupons.claim_input_label, 'bn.json must contain customer_coupons.claim_input_label');
 
-    const couponsPagePath = path.join(clientRoot, 'src', 'pages', 'customer', 'CouponsPage.js');
+    const couponsPagePath = path.join(clientRoot, 'src', 'pages', 'customer', 'CouponsPage.ts');
     const content = fs.readFileSync(couponsPagePath, 'utf8');
 
     assert.match(

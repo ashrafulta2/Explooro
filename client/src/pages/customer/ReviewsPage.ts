@@ -1,5 +1,5 @@
 /**
- * ReviewsPage.js — Customer Reviews & UGC Video Hub (Prompt 11.3 / idea §AL.3).
+ * ReviewsPage.ts — Customer Reviews & UGC Video Hub (Prompt 11.3 / idea §AL.3).
  *
  * Routes: /account/reviews, /customer/reviews, /reviews
  *
@@ -23,8 +23,9 @@ import { CustomerReviewCard } from '../../components/customer/CustomerReviewCard
 import { openWriteReviewModal } from '../../components/customer/WriteReviewModal.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-reviews.css';
+import type { PageContext } from '../types.ts';
 
-export default function ReviewsPage(root, { navigate } = {}) {
+export default function ReviewsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -154,10 +155,10 @@ export default function ReviewsPage(root, { navigate } = {}) {
   `;
   container.appendChild(tabsBar);
 
-  tabsBar.querySelectorAll('.reviews-tab-btn').forEach((btn) => {
+  tabsBar.querySelectorAll<HTMLElement>('.reviews-tab-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       activeTab = btn.dataset.tab;
-      tabsBar.querySelectorAll('.reviews-tab-btn').forEach((b) => b.classList.remove('reviews-tab-btn--active'));
+      tabsBar.querySelectorAll<HTMLElement>('.reviews-tab-btn').forEach((b) => b.classList.remove('reviews-tab-btn--active'));
       btn.classList.add('reviews-tab-btn--active');
       renderContent();
     });
@@ -198,19 +199,19 @@ export default function ReviewsPage(root, { navigate } = {}) {
 
   const searchInput = toolbar.querySelector('.reviews-search-input');
   searchInput.addEventListener('input', (e) => {
-    searchQuery = e.target.value;
+    searchQuery = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
   const ratingSelect = toolbar.querySelector('#filter-rating');
   ratingSelect.addEventListener('change', (e) => {
-    ratingFilter = e.target.value;
+    ratingFilter = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
   const sortSelect = toolbar.querySelector('#filter-sort');
   sortSelect.addEventListener('change', (e) => {
-    sortBy = e.target.value;
+    sortBy = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
@@ -313,8 +314,8 @@ export default function ReviewsPage(root, { navigate } = {}) {
       if (sortBy === 'highest') filtered.sort((a, b) => b.rating - a.rating);
       else if (sortBy === 'lowest') filtered.sort((a, b) => a.rating - b.rating);
       else if (sortBy === 'helpful') filtered.sort((a, b) => (b.helpful_count || 0) - (a.helpful_count || 0));
-      else if (sortBy === 'oldest') filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-      else filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      else if (sortBy === 'oldest') filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      else filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
       if (filtered.length === 0) {
         contentArea.appendChild(
@@ -335,22 +336,23 @@ export default function ReviewsPage(root, { navigate } = {}) {
               onSaved: () => loadAllData(),
             });
           },
-          onDelete: (rev) => {
-            confirmDialog({
+          onDelete: async (rev) => {
+            // WHY awaited: confirmDialog resolves to a boolean and has no `onConfirm` or `danger` option
+            // (`variant: 'danger'`), so the delete below used to be passed in and never run.
+            const confirmed = await confirmDialog({
               title: t('customer_reviews.delete_confirm_title'),
               description: t('customer_reviews.delete_confirm_desc'),
               confirmLabel: t('common.delete'),
-              danger: true,
-              onConfirm: async () => {
-                try {
-                  await customerApi.deleteReview(rev.id);
-                  toast.success(t('customer_reviews.toast_deleted'));
-                  loadAllData();
-                } catch {
-                  toast.error(t('customer_reviews.toast_error'));
-                }
-              },
+              variant: 'danger',
             });
+            if (!confirmed) return;
+            try {
+              await customerApi.deleteReview(rev.id);
+              toast.success(t('customer_reviews.toast_deleted'));
+              loadAllData();
+            } catch {
+              toast.error(t('customer_reviews.toast_error'));
+            }
           },
         });
         contentArea.appendChild(card);
@@ -450,10 +452,10 @@ export default function ReviewsPage(root, { navigate } = {}) {
 
       // Update Tab Badges
       const badgePending = container.querySelector('#badge-pending');
-      if (badgePending) badgePending.textContent = kpis.pending_count;
+      if (badgePending) badgePending.textContent = String(kpis.pending_count);
 
       const badgePublished = container.querySelector('#badge-published');
-      if (badgePublished) badgePublished.textContent = kpis.total_reviews;
+      if (badgePublished) badgePublished.textContent = String(kpis.total_reviews);
 
       const badgeMedia = container.querySelector('#badge-media');
       const mediaCount = reviewsData.reduce((sum, r) => sum + (r.media ? r.media.length : 0), 0);
@@ -462,7 +464,7 @@ export default function ReviewsPage(root, { navigate } = {}) {
       // Auto default tab to published if no pending reviews
       if (pendingData.length === 0 && reviewsData.length > 0 && activeTab === 'pending') {
         activeTab = 'published';
-        tabsBar.querySelectorAll('.reviews-tab-btn').forEach((b) => {
+        tabsBar.querySelectorAll<HTMLElement>('.reviews-tab-btn').forEach((b) => {
           b.classList.toggle('reviews-tab-btn--active', b.dataset.tab === 'published');
         });
       }
@@ -478,7 +480,7 @@ export default function ReviewsPage(root, { navigate } = {}) {
         else if (['published', 'my_reviews'].includes(requestedTab)) activeTab = 'published';
         else if (['media', 'ugc'].includes(requestedTab)) activeTab = 'media';
         
-        tabsBar.querySelectorAll('.reviews-tab-btn').forEach((b) => {
+        tabsBar.querySelectorAll<HTMLElement>('.reviews-tab-btn').forEach((b) => {
           b.classList.toggle('reviews-tab-btn--active', b.dataset.tab === activeTab);
         });
       }

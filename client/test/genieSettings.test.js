@@ -48,7 +48,7 @@ test('Popup genie effect — client invariants', async (t) => {
     const block = routeBlock.slice(0, routeBlock.indexOf('},') + 2);
     assert.match(block, /permission: 'platform\.genie\.view'/, 'route guard = nav guard');
     assert.match(block, /module: 'core'/, 'route module = nav module');
-    assert.match(block, /GenieSettingsPage\.js/);
+    assert.match(block, /GenieSettingsPage\.ts/);
   });
 
   await t.test('1b. Both permission keys exist and the update key is delegable but not CRITICAL', () => {
@@ -78,7 +78,7 @@ test('Popup genie effect — client invariants', async (t) => {
   });
 
   await t.test('2b. Every key the page references resolves in both dictionaries', () => {
-    const pageSrc = read('src', 'pages', 'admin', 'GenieSettingsPage.js');
+    const pageSrc = read('src', 'pages', 'admin', 'GenieSettingsPage.ts');
     const literal = [...pageSrc.matchAll(/t\(\s*'([a-z0-9_]+(?:\.[a-z0-9_]+)+)'/g)].map((m) => m[1]);
     // The smoothness options build their key from the preset name.
     const dynamic = ['light', 'balanced', 'smooth'].map((q) => `admin_genie.quality_${q}_desc`);
@@ -146,13 +146,13 @@ test('Popup genie effect — client invariants', async (t) => {
   });
 
   await t.test('5. The stylesheet is imported by the page only, not by main.css', () => {
-    const page = read('src', 'pages', 'admin', 'GenieSettingsPage.js');
+    const page = read('src', 'pages', 'admin', 'GenieSettingsPage.ts');
     assert.match(page, /import '\.\.\/\.\.\/styles\/components\/genie-settings\.css'/);
     assert.doesNotMatch(read('src', 'styles', 'main.css'), /genie-settings\.css/);
   });
 
   await t.test('5b. Save is gated by a reason and previews never persist', () => {
-    const page = read('src', 'pages', 'admin', 'GenieSettingsPage.js');
+    const page = read('src', 'pages', 'admin', 'GenieSettingsPage.ts');
     assert.match(page, /MIN_REASON_LENGTH = 10/);
     assert.match(page, /disabled: true,[\s\S]{0,200}btn_confirm_save|btn_confirm_save[\s\S]{0,200}disabled: true/, 'confirm starts disabled');
     assert.match(page, /trim\(\)\.length < MIN_REASON_LENGTH/, 'the gate is the same minimum the API enforces');
@@ -161,7 +161,7 @@ test('Popup genie effect — client invariants', async (t) => {
   });
 
   await t.test('5c. Untrusted text (reasons, grantee names) is escaped before it reaches innerHTML', () => {
-    const page = read('src', 'pages', 'admin', 'GenieSettingsPage.js');
+    const page = read('src', 'pages', 'admin', 'GenieSettingsPage.ts');
     assert.match(page, /esc\(reason\)/);
     assert.match(page, /esc\(name\)/);
     assert.doesNotMatch(page, /\$\{reason\}/, 'no raw reason interpolation');

@@ -1,5 +1,5 @@
 /**
- * WarehousePage.js — Multi-Location Warehouse Hub & Regional Allocation (Prompt 11.1).
+ * WarehousePage.ts — Multi-Location Warehouse Hub & Regional Allocation (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AK:
  * - Multi-Node Warehouse Mapping: Regional factory nodes, storage facilities, partner fulfillment depots.
@@ -18,6 +18,7 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { supplierModal } from './supplierModal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import { Button } from '../../components/ui/Button.ts';
 
 /** Row count above which the search + status filter toolbar earns its space. */
 const TOOLBAR_MIN_ROWS = 4;
@@ -34,7 +35,7 @@ function escapeHtml(value) {
   })[ch]);
 }
 
-export default function WarehousePage(root) {
+export default function WarehousePage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -219,8 +220,8 @@ export default function WarehousePage(root) {
       </div>
     `;
 
-    header.querySelector('#add-warehouse-btn').onclick = openAddWarehouseModal;
-    header.querySelector('#refresh-wh-btn').onclick = loadWarehouses;
+    header.querySelector<HTMLElement>('#add-warehouse-btn').onclick = openAddWarehouseModal;
+    header.querySelector<HTMLElement>('#refresh-wh-btn').onclick = loadWarehouses;
     container.appendChild(header);
 
     // 2. Info Banner regarding GIS Proximity & 3PL Transit Time
@@ -238,7 +239,7 @@ export default function WarehousePage(root) {
           </p>
         </div>
       </div>
-      <span class="badge badge--success text-xs font-bold">${t('supplier.wh_active_nodes', '{count} Active Nodes').replace('{count}', activeCount)}</span>
+      <span class="badge badge--success text-xs font-bold">${t('supplier.wh_active_nodes', '{count} Active Nodes').replace('{count}', String(activeCount))}</span>
     `;
     container.appendChild(banner);
 
@@ -259,8 +260,7 @@ export default function WarehousePage(root) {
           icon: '🏭',
           title: t('supplier.no_warehouses_found', 'No warehouse nodes registered'),
           description: t('supplier.no_warehouses_desc', 'Add your central factory or regional distribution hubs to start smart proximity routing.'),
-          actionLabel: t('supplier.add_warehouse_btn', 'Add Depot Node'),
-          onAction: openAddWarehouseModal,
+          action: Button({ label: t('supplier.add_warehouse_btn', 'Add Depot Node'), onClick: openAddWarehouseModal }),
         })
       );
       return;
@@ -379,11 +379,11 @@ export default function WarehousePage(root) {
       .join('');
     panel.appendChild(grid);
 
-    panel.querySelectorAll('.supplier-th-sort').forEach((btn) => {
+    panel.querySelectorAll<HTMLElement>('.supplier-th-sort').forEach((btn) => {
       btn.onclick = () => toggleSort(btn.dataset.sort);
     });
 
-    panel.querySelectorAll('.edit-wh-btn').forEach((btn) => {
+    panel.querySelectorAll<HTMLElement>('.edit-wh-btn').forEach((btn) => {
       btn.onclick = () => {
         const wh = warehouses.find((w) => String(w.id) === btn.dataset.id);
         if (wh) toast.info(`Editing configuration for ${wh.name}.`);
@@ -398,9 +398,9 @@ export default function WarehousePage(root) {
     const search = panel.querySelector('#wh-search');
     if (search) {
       search.oninput = (e) => {
-        query = e.target.value;
+        query = (e.target as HTMLInputElement).value;
         render();
-        const next = container.querySelector('#wh-search');
+        const next = container.querySelector<HTMLInputElement>('#wh-search');
         if (next) {
           next.focus();
           next.setSelectionRange(next.value.length, next.value.length);
@@ -410,7 +410,7 @@ export default function WarehousePage(root) {
     const filter = panel.querySelector('#wh-status-filter');
     if (filter) {
       filter.onchange = (e) => {
-        statusFilter = e.target.value;
+        statusFilter = (e.target as HTMLInputElement).value;
         render();
       };
     }
@@ -465,11 +465,11 @@ export default function WarehousePage(root) {
 
     const close = () => modalBackdrop.close(false);
 
-    modalBackdrop.querySelector('#save-wh-btn').onclick = async () => {
-      const name = modalBackdrop.querySelector('#wh-name-input').value.trim();
-      const district = modalBackdrop.querySelector('#wh-district-select').value;
-      const priority = parseInt(modalBackdrop.querySelector('#wh-priority-input').value, 10) || 10;
-      const address = modalBackdrop.querySelector('#wh-address-input').value.trim();
+    modalBackdrop.querySelector<HTMLElement>('#save-wh-btn').onclick = async () => {
+      const name = modalBackdrop.querySelector<HTMLInputElement>('#wh-name-input').value.trim();
+      const district = modalBackdrop.querySelector<HTMLInputElement>('#wh-district-select').value;
+      const priority = parseInt(modalBackdrop.querySelector<HTMLInputElement>('#wh-priority-input').value, 10) || 10;
+      const address = modalBackdrop.querySelector<HTMLInputElement>('#wh-address-input').value.trim();
 
       if (!name || !address) {
         toast.error('Please fill in depot name and address.');

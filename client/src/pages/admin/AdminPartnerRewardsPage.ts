@@ -1,5 +1,5 @@
 /**
- * AdminPartnerRewardsPage.js — the monthly shop partner reward pool (/admin/growth/partner-rewards).
+ * AdminPartnerRewardsPage.ts — the monthly shop partner reward pool (/admin/growth/partner-rewards).
  *
  * A shop partner earns nothing per sale. Every month the pool (the supplier-set partner share of
  * every partner-brought sale, plus a share of ad revenue) is split by score: store sales > social
@@ -27,7 +27,7 @@ import { FACTOR_ORDER, monthLabel } from '../../components/saler/PartnerRewardCa
 const MIN_REASON_LENGTH = 10;
 const COMMUNITY_KEYS = ['post', 'like', 'comment', 'save'];
 
-export default function AdminPartnerRewardsPage(root) {
+export default function AdminPartnerRewardsPage(root: HTMLElement) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');

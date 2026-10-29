@@ -1,5 +1,5 @@
 /**
- * StoriesManagerPage.js — Shoppable Video Reels & Editorial Articles Curator.
+ * StoriesManagerPage.ts — Shoppable Video Reels & Editorial Articles Curator.
  *
  * Implements /editor/stories:
  * - Tab switcher: "Editorial Stories & Spotlights" and "Shoppable Video Reels".
@@ -14,7 +14,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 
-export default function StoriesManagerPage(root) {
+export default function StoriesManagerPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'editor-page-container';
 
@@ -102,14 +102,14 @@ export default function StoriesManagerPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-story-btn').onclick = () => modal.close();
-    footer.querySelector('#save-story-btn').onclick = async () => {
-      const author_name = content.querySelector('#story-author').value.trim();
-      const title_en = content.querySelector('#story-title-en').value.trim();
-      const title_bn = content.querySelector('#story-title-bn').value.trim();
-      const cover_image_url = content.querySelector('#story-cover').value.trim();
-      const content_en = content.querySelector('#story-content-en').value.trim();
-      const content_bn = content.querySelector('#story-content-bn').value.trim();
+    footer.querySelector<HTMLElement>('#cancel-story-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-story-btn').onclick = async () => {
+      const author_name = content.querySelector<HTMLInputElement>('#story-author').value.trim();
+      const title_en = content.querySelector<HTMLInputElement>('#story-title-en').value.trim();
+      const title_bn = content.querySelector<HTMLInputElement>('#story-title-bn').value.trim();
+      const cover_image_url = content.querySelector<HTMLInputElement>('#story-cover').value.trim();
+      const content_en = content.querySelector<HTMLInputElement>('#story-content-en').value.trim();
+      const content_bn = content.querySelector<HTMLInputElement>('#story-content-bn').value.trim();
 
       if (!title_en || !title_bn || !cover_image_url) {
         toast.error('Please fill in title and cover image URL.');
@@ -187,13 +187,13 @@ export default function StoriesManagerPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-reel-btn').onclick = () => modal.close();
-    footer.querySelector('#save-reel-btn').onclick = async () => {
-      const author_name = content.querySelector('#reel-author').value.trim();
-      const video_url = content.querySelector('#reel-video').value.trim();
-      const thumbnail_url = content.querySelector('#reel-thumb').value.trim();
-      const caption_en = content.querySelector('#reel-caption-en').value.trim();
-      const prodTitle = content.querySelector('#reel-product-name').value.trim();
+    footer.querySelector<HTMLElement>('#cancel-reel-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-reel-btn').onclick = async () => {
+      const author_name = content.querySelector<HTMLInputElement>('#reel-author').value.trim();
+      const video_url = content.querySelector<HTMLInputElement>('#reel-video').value.trim();
+      const thumbnail_url = content.querySelector<HTMLInputElement>('#reel-thumb').value.trim();
+      const caption_en = content.querySelector<HTMLInputElement>('#reel-caption-en').value.trim();
+      const prodTitle = content.querySelector<HTMLInputElement>('#reel-product-name').value.trim();
 
       if (!video_url || !thumbnail_url || !caption_en) {
         toast.error('Please enter video URL, thumbnail and caption.');
@@ -279,9 +279,9 @@ export default function StoriesManagerPage(root) {
     `;
 
     if (activeTab === 'stories') {
-      header.querySelector('#new-story-btn').onclick = () => openStoryModal();
+      header.querySelector<HTMLElement>('#new-story-btn').onclick = () => openStoryModal();
     } else {
-      header.querySelector('#new-reel-btn').onclick = () => openReelModal();
+      header.querySelector<HTMLElement>('#new-reel-btn').onclick = () => openReelModal();
     }
 
     container.appendChild(header);
@@ -306,15 +306,15 @@ export default function StoriesManagerPage(root) {
       </div>
     `;
 
-    filterCard.querySelectorAll('.editor-chip').forEach((chip) => {
+    filterCard.querySelectorAll<HTMLElement>('.editor-chip').forEach((chip) => {
       chip.onclick = () => {
         activeTab = chip.dataset.tab;
         render();
       };
     });
 
-    filterCard.querySelector('#content-search').oninput = (e) => {
-      searchQuery = e.target.value.toLowerCase().trim();
+    filterCard.querySelector<HTMLElement>('#content-search').oninput = (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
       render();
     };
 
@@ -397,8 +397,8 @@ export default function StoriesManagerPage(root) {
           </div>
         `;
 
-        card.querySelector('.js-edit-story-btn').onclick = () => openStoryModal(story);
-        card.querySelector('.js-delete-story-btn').onclick = () => handleDeleteStory(story.id);
+        card.querySelector<HTMLElement>('.js-edit-story-btn').onclick = () => openStoryModal(story);
+        card.querySelector<HTMLElement>('.js-delete-story-btn').onclick = () => handleDeleteStory(story.id);
 
         grid.appendChild(card);
       });
@@ -466,7 +466,7 @@ export default function StoriesManagerPage(root) {
           </div>
         `;
 
-        card.querySelector('#delete-reel-btn').onclick = () => handleDeleteReel(reel.id);
+        card.querySelector<HTMLElement>('#delete-reel-btn').onclick = () => handleDeleteReel(reel.id);
 
         grid.appendChild(card);
       });

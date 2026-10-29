@@ -1,5 +1,5 @@
 /**
- * UserDetailPage.js — 7-Tab User Deep-Dive with Permission Introspection & Timeline (Prompt 3.3).
+ * UserDetailPage.ts — 7-Tab User Deep-Dive with Permission Introspection & Timeline (Prompt 3.3).
  *
  * Implements:
  * 1. User Identity Header (Name, Ref ID, Contact, Role/Tier/Status Badges).
@@ -28,9 +28,10 @@ import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
 import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.ts';
 import { UserTimeline } from '../../components/admin/UserTimeline.ts';
 import '../../styles/components/admin-users.css';
+import type { PageContext } from '../types.ts';
 
 /** Builds `<tag class="…">text</tag>`. Text always goes through textContent — never innerHTML. */
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined && text !== null) node.textContent = text;
@@ -54,12 +55,12 @@ function normaliseTimelineEvent(ev) {
   return { ...ev, action, category, description: ev.description || ev.details_en || ev.details || action };
 }
 
-export default function UserDetailPage(root, { params = {}, navigate } = {}) {
+export default function UserDetailPage(root: HTMLElement, { params = {}, navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const lang = isBn ? 'bn' : 'en';
   const userId = params.id;
 
-  const nav = (url, opts) => {
+  const nav = (url, opts?) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
       history.pushState({}, '', url);
@@ -140,7 +141,7 @@ export default function UserDetailPage(root, { params = {}, navigate } = {}) {
     const res = await api.get(`/admin/users/${encodeURIComponent(userId)}`);
     userData = res.user;
     if (!userData) {
-      const err = new Error('User payload missing');
+      const err: Error & { status?: number } = new Error('User payload missing');
       err.status = 404;
       throw err;
     }

@@ -81,7 +81,7 @@ describe('partner reward strings and wiring', () => {
       .filter((k) => !k.endsWith('_'));
     const card = read('../src/components/saler/PartnerRewardCard.ts');
     for (const k of used(card, 'saler.partner_reward')) assert.ok(k in en.saler.partner_reward, k);
-    const page = read('../src/pages/admin/AdminPartnerRewardsPage.js');
+    const page = read('../src/pages/admin/AdminPartnerRewardsPage.ts');
     for (const k of used(page, 'admin.partner_rewards')) assert.ok(k in en.admin.partner_rewards, k);
     for (const f of ['sales', 'social', 'community', 'activity']) {
       assert.ok(en.saler.partner_reward[`factor_${f}`] && en.admin.partner_rewards[`factor_${f}`], f);
@@ -92,7 +92,7 @@ describe('partner reward strings and wiring', () => {
     const nav = read('../src/config/navigation.js');
     const main = read('../src/main.js');
     assert.match(nav, /path: '\/admin\/growth\/partner-rewards', group: 'admin\.growth', permission: 'growth\.partner_reward\.view', module: 'virtual_storefront'/);
-    const block = main.slice(main.indexOf("path: '/admin/growth/partner-rewards'"), main.indexOf('AdminPartnerRewardsPage.js'));
+    const block = main.slice(main.indexOf("path: '/admin/growth/partner-rewards'"), main.indexOf('AdminPartnerRewardsPage.ts'));
     assert.ok(block.includes("permission: 'growth.partner_reward.view'"));
     assert.ok(block.includes("module: 'virtual_storefront'"));
   });

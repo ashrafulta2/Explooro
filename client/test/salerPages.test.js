@@ -241,7 +241,7 @@ test('4. Shop Partner Route Registration Invariants in main.js', async (t) => {
   await t.test('All 18 Shop Partner page modules export a default mount/render function', async () => {
     const pageFiles = [
       'AdCampaignPage.js',
-      'AnalyticsPage.js',
+      'AnalyticsPage.ts',
       'BundleStudioPage.js',
       'CartInsightsPage.js',
       'CreativeStudioPage.ts',
@@ -253,7 +253,7 @@ test('4. Shop Partner Route Registration Invariants in main.js', async (t) => {
       'SalerOrdersPage.ts',
       'SalerQuestsPage.ts',
       'SalerStoreStatusPage.ts',
-      'SocialKitPage.js',
+      'SocialKitPage.ts',
       'SourcingCatalogPage.ts',
       'StoreBuilderPage.js',
       'UnifiedInboxPage.js',

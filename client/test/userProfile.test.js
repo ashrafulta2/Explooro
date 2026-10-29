@@ -41,16 +41,16 @@ const ACCOUNT_PAGES = [
   { prefix: 'notif-prefs-page', rootClass: 'notif-prefs-page', css: 'notification-prefs', js: 'src/pages/settings/NotificationPreferencesPage.ts' },
   { prefix: 'addresses-page', rootClass: 'addresses-page', css: 'customer-addresses', js: 'src/pages/customer/AddressesPage.js' },
   { prefix: 'coins-page', rootClass: 'coins-page', css: 'customer-coins', js: 'src/pages/customer/CoinsPage.js' },
-  { prefix: 'coupons-page', rootClass: 'coupons-page', css: 'customer-coupons', js: 'src/pages/customer/CouponsPage.js' },
+  { prefix: 'coupons-page', rootClass: 'coupons-page', css: 'customer-coupons', js: 'src/pages/customer/CouponsPage.ts' },
   { prefix: 'wishlist-page', rootClass: 'wishlist-page', css: 'wishlist', js: 'src/pages/customer/WishlistPage.ts' },
   { prefix: 'team-page', rootClass: 'team-purchases-page', css: 'team-purchases', js: 'src/pages/TeamPurchasePage.js' },
   { prefix: 'following-page', rootClass: 'following-page', css: 'customer-following', js: 'src/pages/customer/FollowingFeedPage.js' },
-  { prefix: 'reviews-page', rootClass: 'reviews-page', css: 'customer-reviews', js: 'src/pages/customer/ReviewsPage.js' },
+  { prefix: 'reviews-page', rootClass: 'reviews-page', css: 'customer-reviews', js: 'src/pages/customer/ReviewsPage.ts' },
   { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrdersPage.ts' },
   // The tracking detail page renders the same shell and the same order cards, so it carries
   // its own import of customer-orders.css — that sheet is deliberately absent from main.css.
   { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrderDetailPage.ts' },
-  { prefix: 'warranties-page', rootClass: 'warranties-page', css: 'customer-warranties', js: 'src/pages/customer/WarrantyCardsPage.js' },
+  { prefix: 'warranties-page', rootClass: 'warranties-page', css: 'customer-warranties', js: 'src/pages/customer/WarrantyCardsPage.ts' },
   { prefix: 'become-saler-page', rootClass: 'become-saler-page', css: 'customer-become-saler', js: 'src/pages/customer/BecomeSalerPage.js' },
 ];
 

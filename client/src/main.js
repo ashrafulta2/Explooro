@@ -253,7 +253,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'digital_warranty',
-        load: () => import('./pages/customer/WarrantyCardsPage.js'),
+        load: () => import('./pages/customer/WarrantyCardsPage.ts'),
       },
       {
         path: '/account/warranties',
@@ -261,7 +261,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'digital_warranty',
-        load: () => import('./pages/customer/WarrantyCardsPage.js'),
+        load: () => import('./pages/customer/WarrantyCardsPage.ts'),
       },
       {
         path: '/customer/warranties',
@@ -269,7 +269,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'digital_warranty',
-        load: () => import('./pages/customer/WarrantyCardsPage.js'),
+        load: () => import('./pages/customer/WarrantyCardsPage.ts'),
       },
       {
         path: '/supplier/claims',
@@ -420,7 +420,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.genie.view',
         module: 'core',
-        load: () => import('./pages/admin/GenieSettingsPage.js'),
+        load: () => import('./pages/admin/GenieSettingsPage.ts'),
       },
       // Delivery charge per parcel for normal checkout. `.view` gates the page, `.update` (CRITICAL,
       // super admin only) gates Save — see server/src/routes/deliveryCharge.routes.ts.
@@ -518,7 +518,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.story.curate',
         module: 'content_commerce',
-        load: () => import('./pages/editor/StoriesManagerPage.js'),
+        load: () => import('./pages/editor/StoriesManagerPage.ts'),
       },
       {
         path: '/editor/academy',
@@ -607,7 +607,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.warehouse.manage',
         module: 'multi_warehouse',
-        load: () => import('./pages/supplier/WarehousePage.js'),
+        load: () => import('./pages/supplier/WarehousePage.ts'),
       },
       {
         path: '/supplier/warehouse',
@@ -615,7 +615,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.warehouse.manage',
         module: 'multi_warehouse',
-        load: () => import('./pages/supplier/WarehousePage.js'),
+        load: () => import('./pages/supplier/WarehousePage.ts'),
       },
       {
         path: '/supplier/fulfilment',
@@ -703,7 +703,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.order.view',
         module: 'core',
-        load: () => import('./pages/supplier/SupplierOrdersPage.js'),
+        load: () => import('./pages/supplier/SupplierOrdersPage.ts'),
       },
       {
         path: '/supplier/help',
@@ -760,7 +760,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/saler/SocialKitPage.js'),
+        load: () => import('./pages/saler/SocialKitPage.ts'),
       },
       // Prompt 11.2: Shop Partner Dashboard & Analytics
       // WHY this is the only `/saler` entry: a Prompt-1.5 guard-demo stub was also registered at
@@ -805,7 +805,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/saler/AnalyticsPage.js'),
+        load: () => import('./pages/saler/AnalyticsPage.ts'),
       },
       {
         path: '/saler/academy',
@@ -862,7 +862,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'ugc_video_wall',
-        load: () => import('./pages/customer/ReviewsPage.js'),
+        load: () => import('./pages/customer/ReviewsPage.ts'),
       },
       {
         path: '/customer/reviews',
@@ -870,7 +870,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'ugc_video_wall',
-        load: () => import('./pages/customer/ReviewsPage.js'),
+        load: () => import('./pages/customer/ReviewsPage.ts'),
       },
       {
         path: '/reviews',
@@ -878,7 +878,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'ugc_video_wall',
-        load: () => import('./pages/customer/ReviewsPage.js'),
+        load: () => import('./pages/customer/ReviewsPage.ts'),
       },
       {
         path: '/account/become-saler',
@@ -1150,7 +1150,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.partner_reward.view',
         module: 'virtual_storefront',
-        load: () => import('./pages/admin/AdminPartnerRewardsPage.js'),
+        load: () => import('./pages/admin/AdminPartnerRewardsPage.ts'),
       },
       {
         path: '/admin/group-buy',
@@ -1176,7 +1176,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.story.curate',
         module: 'content_commerce',
-        load: () => import('./pages/editor/StoriesManagerPage.js'),
+        load: () => import('./pages/editor/StoriesManagerPage.ts'),
       },
       {
         path: '/admin/content/academy',
@@ -1365,7 +1365,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.account.view',
         module: 'core',
-        load: () => import('./pages/admin/UserDetailPage.js'),
+        load: () => import('./pages/admin/UserDetailPage.ts'),
       },
       {
         path: '/admin/staff',
@@ -1687,7 +1687,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'supplier_verification',
-        load: () => import('./pages/seller/KycSubmissionPage.js'),
+        load: () => import('./pages/seller/KycSubmissionPage.ts'),
       },
       {
         path: '/account/kyc',
@@ -1695,7 +1695,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'supplier_verification',
-        load: () => import('./pages/seller/KycSubmissionPage.js'),
+        load: () => import('./pages/seller/KycSubmissionPage.ts'),
       },
       {
         path: '/admin/verification',
@@ -1910,7 +1910,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'coupons',
-        load: () => import('./pages/customer/CouponsPage.js'),
+        load: () => import('./pages/customer/CouponsPage.ts'),
       },
       {
         path: '/customer/coupons',
@@ -1918,7 +1918,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'coupons',
-        load: () => import('./pages/customer/CouponsPage.js'),
+        load: () => import('./pages/customer/CouponsPage.ts'),
       },
       {
         path: '/coupons',
@@ -1926,7 +1926,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'coupons',
-        load: () => import('./pages/customer/CouponsPage.js'),
+        load: () => import('./pages/customer/CouponsPage.ts'),
       },
       {
         path: '/editor/campaigns',

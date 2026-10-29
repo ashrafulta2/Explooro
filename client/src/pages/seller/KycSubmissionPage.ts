@@ -1,5 +1,5 @@
 /**
- * KycSubmissionPage.js — Shop Partner & Supplier KYC Verification Wizard (Prompt 7.5).
+ * KycSubmissionPage.ts — Shop Partner & Supplier KYC Verification Wizard (Prompt 7.5).
  *
  * Implements:
  * 1. 4-step wizard for Suppliers (NID/Selfie -> Trade License -> Facility Photos -> Bank/MFS).
@@ -13,7 +13,7 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { formatDate } from '../../services/format.ts';
 
-export default function KycSubmissionPage(root) {
+export default function KycSubmissionPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'page-container kyc-submission-page max-w-3xl mx-auto';
 
@@ -119,7 +119,7 @@ export default function KycSubmissionPage(root) {
     modalBackdrop.querySelector('#btn-cancel-appeal').addEventListener('click', () => modalBackdrop.remove());
 
     modalBackdrop.querySelector('#btn-confirm-appeal').addEventListener('click', async () => {
-      const appealNote = modalBackdrop.querySelector('#txt-appeal-note').value.trim();
+      const appealNote = modalBackdrop.querySelector<HTMLInputElement>('#txt-appeal-note').value.trim();
       modalBackdrop.remove();
 
       try {
@@ -416,7 +416,7 @@ export default function KycSubmissionPage(root) {
     container.querySelector('#drop-selfie')?.addEventListener('click', () => simulateDocumentUpload('SELFIE', 'Live Face Selfie'));
 
     container.querySelector('#btn-next-step-1')?.addEventListener('click', () => {
-      const val = container.querySelector('#inp-nid-number')?.value.trim();
+      const val = container.querySelector<HTMLInputElement>('#inp-nid-number')?.value.trim();
       if (val) formData.nid_number = val;
       handleStepSubmit(1, userRole !== 'supplier');
     });
@@ -425,9 +425,9 @@ export default function KycSubmissionPage(root) {
     container.querySelector('#drop-trade-license')?.addEventListener('click', () => simulateDocumentUpload('TRADE_LICENSE', 'Trade License Copy'));
     container.querySelector('#btn-prev-step-2')?.addEventListener('click', () => { currentStep = 1; render(); });
     container.querySelector('#btn-next-step-2')?.addEventListener('click', () => {
-      formData.business_name = container.querySelector('#inp-business-name')?.value.trim();
-      formData.trade_license_no = container.querySelector('#inp-trade-license')?.value.trim();
-      formData.vat_tin = container.querySelector('#inp-vat-tin')?.value.trim();
+      formData.business_name = container.querySelector<HTMLInputElement>('#inp-business-name')?.value.trim();
+      formData.trade_license_no = container.querySelector<HTMLInputElement>('#inp-trade-license')?.value.trim();
+      formData.vat_tin = container.querySelector<HTMLInputElement>('#inp-vat-tin')?.value.trim();
       handleStepSubmit(2);
     });
 
@@ -435,7 +435,7 @@ export default function KycSubmissionPage(root) {
     container.querySelector('#drop-facility')?.addEventListener('click', () => simulateDocumentUpload('FACILITY_PHOTO', 'Facility Inventory Photo'));
     container.querySelector('#btn-prev-step-3')?.addEventListener('click', () => { currentStep = 2; render(); });
     container.querySelector('#btn-next-step-3')?.addEventListener('click', () => {
-      formData.business_address = container.querySelector('#inp-business-address')?.value.trim();
+      formData.business_address = container.querySelector<HTMLInputElement>('#inp-business-address')?.value.trim();
       handleStepSubmit(3);
     });
 

@@ -1,5 +1,5 @@
 /**
- * SocialKitPage.js — Viral Social Shop Partner Marketing Toolkit & Flyer Studio (Prompt 9.7 / §AL.2).
+ * SocialKitPage.ts — Viral Social Shop Partner Marketing Toolkit & Flyer Studio (Prompt 9.7 / §AL.2).
  *
  * Route: /saler/social-kit
  * Implements:
@@ -16,8 +16,9 @@ import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.
 import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SocialKitPage(root, { query, navigate } = {}) {
+export default function SocialKitPage(root: HTMLElement, { query, navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -127,8 +128,8 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         `).join('')}
       </select>
     `;
-    productSelectWrap.querySelector('#select-product').onchange = async (e) => {
-      selectedProductId = e.target.value === 'ALL' ? 'ALL' : Number(e.target.value);
+    productSelectWrap.querySelector<HTMLElement>('#select-product').onchange = async (e) => {
+      selectedProductId = (e.target as HTMLInputElement).value === 'ALL' ? 'ALL' : Number((e.target as HTMLInputElement).value);
       await generateLink();
       updatePreview();
     };
@@ -154,7 +155,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         </button>
       </div>
     `;
-    formatWrap.querySelectorAll('.btn-format').forEach((btn) => {
+    formatWrap.querySelectorAll<HTMLElement>('.btn-format').forEach((btn) => {
       btn.onclick = () => {
         format = btn.getAttribute('data-fmt');
         render();
@@ -182,7 +183,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         </button>
       </div>
     `;
-    themeWrap.querySelectorAll('.btn-theme').forEach((btn) => {
+    themeWrap.querySelectorAll<HTMLElement>('.btn-theme').forEach((btn) => {
       btn.onclick = () => {
         theme = btn.getAttribute('data-thm');
         render();
@@ -209,7 +210,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         `).join('')}
       </div>
     `;
-    promoWrap.querySelectorAll('.btn-promo').forEach((btn) => {
+    promoWrap.querySelectorAll<HTMLElement>('.btn-promo').forEach((btn) => {
       btn.onclick = () => {
         promoTag = btn.getAttribute('data-promo');
         render();
@@ -239,7 +240,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         </button>
       </div>
     `;
-    linkWrap.querySelector('#btn-copy-link').onclick = () => {
+    linkWrap.querySelector<HTMLElement>('#btn-copy-link').onclick = () => {
       navigator.clipboard.writeText(shortLink?.full_url || '');
       toast.success(t('social_kit.toast_link_copied'));
     };
@@ -282,7 +283,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
         ${t('social_kit.btn_print')}
       </button>
     `;
-    actionWrap.querySelector('#btn-download-svg').onclick = () => {
+    actionWrap.querySelector<HTMLElement>('#btn-download-svg').onclick = () => {
       const svgCode = generateSvg();
       const blob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -293,7 +294,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
       URL.revokeObjectURL(url);
       toast.success(t('social_kit.toast_download_started'));
     };
-    actionWrap.querySelector('#btn-print-flyer').onclick = () => {
+    actionWrap.querySelector<HTMLElement>('#btn-print-flyer').onclick = () => {
       window.print();
     };
     controls.append(actionWrap);
@@ -322,7 +323,7 @@ export default function SocialKitPage(root, { query, navigate } = {}) {
   }
 
   function updatePreview() {
-    const box = container.querySelector('#flyer-canvas-box');
+    const box = container.querySelector<HTMLElement>('#flyer-canvas-box');
     if (!box) return;
 
     if (format === 'STORY') {

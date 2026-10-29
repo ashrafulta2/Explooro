@@ -1,5 +1,5 @@
 /**
- * AnalyticsPage.js — Shop Partner Sales, Profit, Traffic & Conversion Analytics (Prompt 11.2 / idea §AL.2).
+ * AnalyticsPage.ts — Shop Partner Sales, Profit, Traffic & Conversion Analytics (Prompt 11.2 / idea §AL.2).
  *
  * Implements:
  * 1. Time-range selector (7d, 30d, 90d).
@@ -20,11 +20,11 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function AnalyticsPage(root) {
+export default function AnalyticsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'saler-page-container';
 
-  let currentRange = '30d';
+  let currentRange: '7d' | '30d' | '90d' = '30d';
 
   // 1. Header & Time Range Controls
   const header = document.createElement('div');
@@ -52,7 +52,7 @@ export default function AnalyticsPage(root) {
   const controlsBox = document.createElement('div');
   controlsBox.className = 'saler-mode-toggle';
 
-  ['7d', '30d', '90d'].forEach((range) => {
+  (['7d', '30d', '90d'] as const).forEach((range) => {
     const btn = document.createElement('button');
     btn.className = `saler-mode-btn ${currentRange === range ? 'active' : ''}`;
     btn.textContent = range === '7d' ? 'Last 7 Days' : range === '30d' ? 'Last 30 Days' : 'Last 90 Days';
@@ -96,7 +96,7 @@ export default function AnalyticsPage(root) {
 
     try {
       const res = await salerApi.getAnalytics({ range: currentRange });
-      const data = res.data || {};
+      const data: Record<string, any> = res.data || {};
 
       kpiSlot.innerHTML = '';
       chartsSlot.innerHTML = '';
@@ -128,7 +128,7 @@ export default function AnalyticsPage(root) {
 /**
  * 1. 4-Card Executive KPI Summary
  */
-function renderKpiCards(container, summary = {}) {
+function renderKpiCards(container, summary: Record<string, any> = {}) {
   const gmv = Number(summary.total_gross_sales || 0);
   const profit = Number(summary.total_net_profit || 0);
   const orders = Number(summary.total_orders || 0);
@@ -185,7 +185,7 @@ function renderKpiCards(container, summary = {}) {
 /**
  * 2. Pure Inline SVG Multi-Line / Area Chart (Gross Sales vs. Net Profit)
  */
-function renderRevenueTrendChart(container, trends = [], summary = {}) {
+function renderRevenueTrendChart(container, trends = [], summary: Record<string, any> = {}) {
   const card = document.createElement('div');
   card.className = 'saler-chart-card';
 
@@ -302,7 +302,7 @@ function renderRevenueTrendChart(container, trends = [], summary = {}) {
 /**
  * 3. Pure Inline SVG Donut Chart (Traffic Sources)
  */
-function renderTrafficDonutChart(container, sources = [], summary = {}) {
+function renderTrafficDonutChart(container, sources = [], summary: Record<string, any> = {}) {
   const card = document.createElement('div');
   card.className = 'saler-chart-card';
 

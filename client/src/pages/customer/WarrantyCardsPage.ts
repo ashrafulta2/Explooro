@@ -1,5 +1,5 @@
 /**
- * WarrantyCardsPage.js — Customer Digital Warranty & Protection Hub (Prompt 10.4).
+ * WarrantyCardsPage.ts — Customer Digital Warranty & Protection Hub (Prompt 10.4).
  *
  * Route: /warranties, /account/warranties, /customer/warranties
  * Gated by: `digital_warranty` module flag.
@@ -17,8 +17,9 @@ import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 import { openCertificateModal } from '../../components/warranty/CertificateModal.ts';
 import { openRegisterWarrantyModal } from '../../components/warranty/RegisterWarrantyModal.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
+import type { PageContext } from '../types.ts';
 
-export default function WarrantyCardsPage(root, { navigate } = {}) {
+export default function WarrantyCardsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'account-page warranties-page container';
   container.setAttribute('data-module', 'digital_warranty');
@@ -456,7 +457,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
   }
 
   function updateTabsUI() {
-    navTabs.querySelectorAll('.warranties-tab-btn').forEach((btn) => {
+    navTabs.querySelectorAll<HTMLElement>('.warranties-tab-btn').forEach((btn) => {
       const isCurrent = btn.dataset.tab === activeTab;
       btn.className = `warranties-tab-btn ${isCurrent ? 'warranties-tab-btn--active' : ''}`;
     });
@@ -464,7 +465,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
 
   // Event Listeners
   navTabs.addEventListener('click', (e) => {
-    const btn = e.target.closest('.warranties-tab-btn');
+    const btn = (e.target as Element).closest<HTMLElement>('.warranties-tab-btn');
     if (!btn) return;
     activeTab = btn.dataset.tab;
     updateTabsUI();
@@ -474,7 +475,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
   const searchInput = toolbar.querySelector('.warranties-search-input');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       renderContent();
     });
   }
@@ -482,7 +483,7 @@ export default function WarrantyCardsPage(root, { navigate } = {}) {
   const sortSelect = toolbar.querySelector('.warranties-sort-select');
   if (sortSelect) {
     sortSelect.addEventListener('change', (e) => {
-      sortBy = e.target.value;
+      sortBy = (e.target as HTMLInputElement).value;
       renderContent();
     });
   }

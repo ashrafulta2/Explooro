@@ -1,5 +1,5 @@
 /**
- * CouponsPage.js — Customer Coupons & Vouchers Hub (Prompt 9.2).
+ * CouponsPage.ts — Customer Coupons & Vouchers Hub (Prompt 9.2).
  *
  * Route: /account/coupons, /customer/coupons, /coupons
  * Gated by: `coupons` platform module.
@@ -25,6 +25,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { CouponCard } from '../../components/customer/CouponCard.ts';
 import { goBack, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-coupons.css';
+import type { PageContext } from '../types.ts';
 
 const DEFAULT_FALLBACK_COUPONS = [
   {
@@ -113,7 +114,7 @@ const DEFAULT_FALLBACK_COUPONS = [
   },
 ];
 
-export default function CouponsPage(root, { navigate } = {}) {
+export default function CouponsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -203,14 +204,14 @@ export default function CouponsPage(root, { navigate } = {}) {
 
   // Form Submit Handler
   const claimForm = claimCard.querySelector('#coupon-claim-form');
-  const claimInput = claimCard.querySelector('#coupon-claim-input');
-  const claimSubmit = claimCard.querySelector('#coupon-claim-submit');
+  const claimInput = claimCard.querySelector<HTMLInputElement>('#coupon-claim-input');
+  const claimSubmit = claimCard.querySelector<HTMLButtonElement>('#coupon-claim-submit');
 
   claimForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const code = (claimInput?.value || '').trim().toUpperCase();
     if (!code) {
-      toast.warn(t('customer_coupons.claim_error_empty'));
+      toast.warning(t('customer_coupons.claim_error_empty'));
       claimInput?.focus();
       return;
     }
@@ -330,7 +331,7 @@ export default function CouponsPage(root, { navigate } = {}) {
     const expiringCount = activeList.filter((c) => {
       const expiry = c.expires_at ? new Date(c.expires_at) : null;
       if (!expiry) return false;
-      const diffDays = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       return diffDays >= 0 && diffDays <= 3;
     }).length;
 
@@ -520,11 +521,11 @@ export default function CouponsPage(root, { navigate } = {}) {
       footer: closeBtn,
       size: 'sm',
       onClose: () => {
-        modal.element.remove();
+        modal.remove();
       },
     });
 
-    overlayRoot.append(modal.element);
+    overlayRoot.append(modal);
     modal.open();
   }
 
