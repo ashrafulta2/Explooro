@@ -1,5 +1,5 @@
 /**
- * AcademyPage.js — Shop Partner Academy Micro-Learning, Video/Audio Lessons & Certificate Portal (Prompt 10.8).
+ * AcademyPage.ts — Shop Partner Academy Micro-Learning, Video/Audio Lessons & Certificate Portal (Prompt 10.8).
  *
  * Implements idea proposition.md §T & Prompt 10.8 Requirement 4:
  * - Structured micro-courses for shop partners & suppliers (Sourcing, Marketing, Finance).
@@ -14,8 +14,9 @@ import { EmptyState } from '../components/ui/EmptyState.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { toast } from '../services/toast.ts';
 import { isFeatureEnabled } from '../services/featureFlags.ts';
+import type { PageContext } from './types.ts';
 
-export default function AcademyPage(root, ctx = {}) {
+export default function AcademyPage(root: HTMLElement, ctx: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'academy-page p-4 md:p-6 max-w-7xl mx-auto space-y-8';
 
@@ -61,10 +62,10 @@ export default function AcademyPage(root, ctx = {}) {
   `;
   container.append(header);
 
-  header.querySelectorAll('.cat-pill').forEach((pill) => {
+  header.querySelectorAll<HTMLElement>('.cat-pill').forEach((pill) => {
     pill.addEventListener('click', () => {
       selectedCategory = pill.getAttribute('data-cat');
-      header.querySelectorAll('.cat-pill').forEach((p) => {
+      header.querySelectorAll<HTMLElement>('.cat-pill').forEach((p) => {
         const isSel = p.getAttribute('data-cat') === selectedCategory;
         p.className = `cat-pill badge cursor-pointer text-xs font-mono py-1 px-3 ${isSel ? 'badge-primary' : 'badge-neutral'}`;
       });
@@ -297,7 +298,7 @@ export default function AcademyPage(root, ctx = {}) {
       </div>
     `;
 
-    playlistCol.querySelectorAll('.lesson-item').forEach((item) => {
+    playlistCol.querySelectorAll<HTMLElement>('.lesson-item').forEach((item) => {
       item.addEventListener('click', () => {
         const id = parseInt(item.getAttribute('data-id'), 10);
         activeLesson = selectedCourse.lessons.find((x) => x.id === id);
@@ -335,14 +336,17 @@ export default function AcademyPage(root, ctx = {}) {
       </div>
     `;
 
+    // WHY content + footer: Modal has no `body`, `confirmLabel` or `onConfirm`, and `modal.element` is
+    // undefined (the modal IS the <dialog>), so the certificate used to open as a bare title.
+    const footer = document.createDocumentFragment();
+    footer.append(Button({ label: t('common.done'), variant: 'primary', onClick: () => modal.close() }));
     const modal = Modal({
       title: `🎓 ${t('academy.certificate_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.done'),
-      onConfirm: () => modal.close(),
+      content: modalContent,
+      footer,
     });
 
-    document.body.append(modal.element);
+    document.body.append(modal);
     modal.open();
   }
 

@@ -185,7 +185,7 @@ test('Prompts 3.3 & 3.4: Users, Access & Audit Explorer — Client Invariants', 
     assert.ok(css.includes('.admin-users .perm-matrix__table-wrap { max-height: none; overflow-y: visible; overflow-x: auto; }'), 'Must remove max-height to eliminate inner scrollbar and row truncation');
     assert.ok(css.includes('.admin-users .perm-matrix__table td { vertical-align: top;'), 'Must set vertical-align: top for multi-line cell baseline alignment');
 
-    const restrictionsPath = resolve(import.meta.dirname, '../src/pages/admin/RestrictionsPage.js');
+    const restrictionsPath = resolve(import.meta.dirname, '../src/pages/admin/RestrictionsPage.ts');
     const restSrc = readFileSync(restrictionsPath, 'utf8');
     assert.ok(!restSrc.includes('<br><span'), 'Must not insert phantom br tags inside flex containers');
     assert.ok(!restSrc.includes('color: var(--text-muted);'), 'Restrictions table must not use low-contrast text-muted');

@@ -199,7 +199,7 @@ describe('2. admin Escrow page reads real escrow', () => {
   });
 
   test('the page has no made-up rows left', () => {
-    const page = read('../client/src/pages/admin/EscrowHoldingsPage.js');
+    const page = read('../client/src/pages/admin/EscrowHoldingsPage.ts');
     assert.ok(!/getDefaultHoldings|Anisur Rahman|Jamdani Heritage/.test(page));
     assert.match(page, /api\.post\(`\/admin\/finance\/escrow\/\$\{h\.sub_order_id\}\/release`/);
     assert.match(page, /api\.post\('\/admin\/finance\/escrow\/sweep'\)/);

@@ -1,5 +1,5 @@
 /**
- * AcademyManagerPage.js — Explooro Shop Partner & Buyer Academy Course Manager.
+ * AcademyManagerPage.ts — Explooro Shop Partner & Buyer Academy Course Manager.
  *
  * Implements /editor/academy:
  * - Educational tutorials, sourcing masterclasses, social commerce playbooks.
@@ -13,7 +13,7 @@ import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function AcademyManagerPage(root) {
+export default function AcademyManagerPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'editor-page-container';
 
@@ -120,16 +120,16 @@ export default function AcademyManagerPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-course-btn').onclick = () => modal.close();
-    footer.querySelector('#save-course-btn').onclick = async () => {
-      const target_role = content.querySelector('#course-role').value;
-      const difficulty_level = content.querySelector('#course-diff').value;
-      const title_en = content.querySelector('#course-title-en').value.trim();
-      const title_bn = content.querySelector('#course-title-bn').value.trim();
-      const cover_image_url = content.querySelector('#course-cover').value.trim();
-      const description_en = content.querySelector('#course-desc-en').value.trim();
-      const category = content.querySelector('#course-cat').value;
-      const estimated_minutes = parseInt(content.querySelector('#course-minutes').value, 10) || 20;
+    footer.querySelector<HTMLElement>('#cancel-course-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-course-btn').onclick = async () => {
+      const target_role = content.querySelector<HTMLInputElement>('#course-role').value;
+      const difficulty_level = content.querySelector<HTMLInputElement>('#course-diff').value;
+      const title_en = content.querySelector<HTMLInputElement>('#course-title-en').value.trim();
+      const title_bn = content.querySelector<HTMLInputElement>('#course-title-bn').value.trim();
+      const cover_image_url = content.querySelector<HTMLInputElement>('#course-cover').value.trim();
+      const description_en = content.querySelector<HTMLInputElement>('#course-desc-en').value.trim();
+      const category = content.querySelector<HTMLInputElement>('#course-cat').value;
+      const estimated_minutes = parseInt(content.querySelector<HTMLInputElement>('#course-minutes').value, 10) || 20;
 
       if (!title_en || !title_bn || !cover_image_url) {
         toast.error('Please enter course title and cover image URL.');
@@ -197,7 +197,7 @@ export default function AcademyManagerPage(root) {
       </div>
     `;
 
-    header.querySelector('#create-course-btn').onclick = () => openCourseModal();
+    header.querySelector<HTMLElement>('#create-course-btn').onclick = () => openCourseModal();
     container.appendChild(header);
 
     // -------------------------------------------------------------------------
@@ -226,15 +226,15 @@ export default function AcademyManagerPage(root) {
       </div>
     `;
 
-    filterCard.querySelectorAll('.editor-chip').forEach((chip) => {
+    filterCard.querySelectorAll<HTMLElement>('.editor-chip').forEach((chip) => {
       chip.onclick = () => {
         activeCategory = chip.dataset.cat;
         render();
       };
     });
 
-    filterCard.querySelector('#course-search').oninput = (e) => {
-      searchQuery = e.target.value.toLowerCase().trim();
+    filterCard.querySelector<HTMLElement>('#course-search').oninput = (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
       render();
     };
 
@@ -310,8 +310,8 @@ export default function AcademyManagerPage(root) {
         </div>
       `;
 
-      card.querySelector('.js-edit-course-btn').onclick = () => openCourseModal(course);
-      card.querySelector('.js-delete-course-btn').onclick = () => handleDeleteCourse(course.id);
+      card.querySelector<HTMLElement>('.js-edit-course-btn').onclick = () => openCourseModal(course);
+      card.querySelector<HTMLElement>('.js-delete-course-btn').onclick = () => handleDeleteCourse(course.id);
 
       grid.appendChild(card);
     });

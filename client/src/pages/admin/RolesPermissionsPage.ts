@@ -1,5 +1,5 @@
 /**
- * RolesPermissionsPage.js — Roles × Permissions Baseline Matrix Page (Prompt 3.3).
+ * RolesPermissionsPage.ts — Roles × Permissions Baseline Matrix Page (Prompt 3.3).
  *
  * Implements:
  * 1. Domain-grouped Roles × Permissions baseline matrix inspector (read-only — see PermissionMatrix).
@@ -56,7 +56,7 @@ const domainIcons = Object.fromEntries(
   Object.entries(DOMAIN_ICON).map(([domain, name]) => [domain, ICONS[name] ?? ''])
 );
 
-export default function RolesPermissionsPage(root) {
+export default function RolesPermissionsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'page admin-users-page admin-access';
 

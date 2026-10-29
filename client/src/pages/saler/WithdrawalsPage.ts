@@ -1,5 +1,5 @@
 /**
- * WithdrawalsPage.js — Shop Partner Vault Balance, Escrow & Instant Payouts Portal (Prompt 6.5 / §AL.2).
+ * WithdrawalsPage.ts — Shop Partner Vault Balance, Escrow & Instant Payouts Portal (Prompt 6.5 / §AL.2).
  *
  * Route: /saler/vault/payouts
  * Implements:
@@ -18,8 +18,9 @@ import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import type { PageContext } from '../types.ts';
 
-export default function WithdrawalsPage(root, { navigate } = {}) {
+export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -32,7 +33,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
   container.className = 'saler-page-container';
 
   let payouts = [];
-  let summary = {};
+  let summary: Record<string, any> = {};
   let currentTab = 'ALL';
   let loading = true;
   let unsubscribeLang = null;
@@ -83,7 +84,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
       </div>
     `;
 
-    header.querySelector('#btn-open-payout-modal').onclick = openPayoutModal;
+    header.querySelector<HTMLElement>('#btn-open-payout-modal').onclick = openPayoutModal;
     container.append(header);
 
     // 2. KPI Summary Strip
@@ -147,7 +148,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
       </div>
     `;
 
-    toolbar.querySelectorAll('.tab-btn').forEach((btn) => {
+    toolbar.querySelectorAll<HTMLElement>('.tab-btn').forEach((btn) => {
       btn.onclick = () => {
         currentTab = btn.getAttribute('data-tab');
         render();
@@ -232,7 +233,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
             </td>
           `;
 
-          const cancelBtn = tr.querySelector('.btn-cancel-payout');
+          const cancelBtn = tr.querySelector<HTMLElement>('.btn-cancel-payout');
           if (cancelBtn) {
             cancelBtn.onclick = async () => {
               if (!confirm(t('saler_withdrawals.cancel_confirm_desc'))) return;
@@ -319,9 +320,9 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
 
     let selectedMethod = 'BKASH';
 
-    body.querySelectorAll('.btn-method').forEach((btn) => {
+    body.querySelectorAll<HTMLElement>('.btn-method').forEach((btn) => {
       btn.onclick = () => {
-        body.querySelectorAll('.btn-method').forEach((b) => {
+        body.querySelectorAll<HTMLElement>('.btn-method').forEach((b) => {
           b.className = 'btn btn--sm btn--neutral font-bold btn-method';
         });
         btn.className = 'btn btn--sm btn--primary font-bold btn-method';
@@ -332,12 +333,12 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
       };
     });
 
-    body.querySelector('#form-request-payout').onsubmit = async (e) => {
+    body.querySelector<HTMLElement>('#form-request-payout').onsubmit = async (e) => {
       e.preventDefault();
-      const amount = Number(body.querySelector('#payout-amount').value);
-      const accNum = body.querySelector('#payout-acc-num').value.trim();
-      const accName = body.querySelector('#payout-acc-name').value.trim();
-      const bankName = body.querySelector('#payout-bank-name')?.value.trim();
+      const amount = Number(body.querySelector<HTMLInputElement>('#payout-amount').value);
+      const accNum = body.querySelector<HTMLInputElement>('#payout-acc-num').value.trim();
+      const accName = body.querySelector<HTMLInputElement>('#payout-acc-name').value.trim();
+      const bankName = body.querySelector<HTMLInputElement>('#payout-bank-name')?.value.trim();
 
       if (amount < 100) {
         toast.error(t('saler_withdrawals.toast_error_min'));
@@ -364,7 +365,7 @@ export default function WithdrawalsPage(root, { navigate } = {}) {
       }
     };
 
-    body.querySelector('#btn-cancel-modal').onclick = () => modal.close();
+    body.querySelector<HTMLElement>('#btn-cancel-modal').onclick = () => modal.close();
 
     modal = Modal({
       title: `⚡ ${t('saler_withdrawals.modal_title')}`,

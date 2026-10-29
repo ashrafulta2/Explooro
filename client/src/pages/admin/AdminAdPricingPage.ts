@@ -1,5 +1,5 @@
 /**
- * AdminAdPricingPage.js — Ad pricing governance (/admin/growth/ad-pricing).
+ * AdminAdPricingPage.ts — Ad pricing governance (/admin/growth/ad-pricing).
  *
  * This is where the price of every ad format on the platform is set. Guarded by
  * `growth.ad.govern`, which is HIGH risk and delegable — so a Super Admin can hand ad pricing to a
@@ -72,7 +72,7 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-export default function AdminAdPricingPage(root) {
+export default function AdminAdPricingPage(root: HTMLElement) {
   loadAdStoreStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -239,7 +239,7 @@ export default function AdminAdPricingPage(root) {
 
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
 
-    container.querySelectorAll('[data-save]').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('[data-save]').forEach((btn) => {
       btn.addEventListener('click', () => savePricing(Number(btn.dataset.save), btn));
     });
 
@@ -250,19 +250,19 @@ export default function AdminAdPricingPage(root) {
     const card = container.querySelector(`[data-card="${productId}"]`);
     if (!card) return;
 
-    const rateCard = {};
-    card.querySelectorAll('[data-rate]').forEach((input) => {
+    const rateCard: Record<string, any> = {};
+    card.querySelectorAll<HTMLInputElement>('[data-rate]').forEach((input) => {
       if (input.value !== '') rateCard[input.dataset.rate] = Number(input.value);
     });
 
-    const tierDiscounts = {};
-    card.querySelectorAll('[data-tier]').forEach((input) => {
+    const tierDiscounts: Record<string, number> = {};
+    card.querySelectorAll<HTMLInputElement>('[data-tier]').forEach((input) => {
       tierDiscounts[input.dataset.tier] = Number(input.value || 0);
     });
     rateCard.tier_discounts = tierDiscounts;
 
-    const flags = {};
-    card.querySelectorAll('[data-flag]').forEach((input) => {
+    const flags: Record<string, boolean> = {};
+    card.querySelectorAll<HTMLInputElement>('[data-flag]').forEach((input) => {
       flags[input.dataset.flag] = input.checked;
     });
 

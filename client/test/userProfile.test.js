@@ -46,7 +46,7 @@ const ACCOUNT_PAGES = [
   { prefix: 'team-page', rootClass: 'team-purchases-page', css: 'team-purchases', js: 'src/pages/TeamPurchasePage.js' },
   { prefix: 'following-page', rootClass: 'following-page', css: 'customer-following', js: 'src/pages/customer/FollowingFeedPage.js' },
   { prefix: 'reviews-page', rootClass: 'reviews-page', css: 'customer-reviews', js: 'src/pages/customer/ReviewsPage.js' },
-  { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrdersPage.js' },
+  { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrdersPage.ts' },
   // The tracking detail page renders the same shell and the same order cards, so it carries
   // its own import of customer-orders.css — that sheet is deliberately absent from main.css.
   { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrderDetailPage.js' },

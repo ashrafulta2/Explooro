@@ -1,5 +1,5 @@
 /**
- * EscrowHoldingsPage.js — the money held in escrow, one row per sub-order (/admin/finance/escrow).
+ * EscrowHoldingsPage.ts — the money held in escrow, one row per sub-order (/admin/finance/escrow).
  *
  * WHY rewritten (2026-10-09): the page read `holdings` from a response that only carried
  * `escrow_entries`, found nothing and showed four made-up orders. Its sweep and "Release now"
@@ -24,12 +24,13 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatDate, formatNumber } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
 const STATUS_TABS = ['LOCKED', 'FROZEN', 'RELEASED', 'ALL'];
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_REASON_LENGTH = 10;
 
-export default function EscrowHoldingsPage(root, { navigate } = {}) {
+export default function EscrowHoldingsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -179,7 +180,7 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
       searchTimer = setTimeout(() => {
         page = 1;
         loadData().then(() => {
-          const again = root.querySelector('#escrow-search-input');
+          const again = root.querySelector<HTMLInputElement>('#escrow-search-input');
           if (again) {
             again.focus();
             again.setSelectionRange(again.value.length, again.value.length);
@@ -267,7 +268,7 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
         </table>
       </div>`;
 
-    panel.querySelectorAll('.release-single-btn').forEach((btn) => {
+    panel.querySelectorAll<HTMLElement>('.release-single-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const h = rows.find((x) => String(x.sub_order_id) === btn.dataset.id);
         if (h) releaseOne(h);
@@ -286,7 +287,7 @@ export default function EscrowHoldingsPage(root, { navigate } = {}) {
           next: t('admin.escrow_page.next'),
         },
         onChange: (next) => {
-          page = next;
+          page = (next as { page: number }).page;
           loadData();
         },
       }));

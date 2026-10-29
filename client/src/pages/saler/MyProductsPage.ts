@@ -1,5 +1,5 @@
 /**
- * MyProductsPage.js — Shop Partner Curated Store Products (Prompt 4.8 / idea §AL.2).
+ * MyProductsPage.ts — Shop Partner Curated Store Products (Prompt 4.8 / idea §AL.2).
  *
  * Route: /saler/products
  * Implements:
@@ -21,8 +21,9 @@ import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import type { PageContext } from '../types.ts';
 
-export default function MyProductsPage(root, { navigate } = {}) {
+export default function MyProductsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -35,7 +36,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
   container.className = 'saler-page-container';
 
   let products = [];
-  let summary = {};
+  let summary: Record<string, any> = {};
   let loading = true;
   let searchQuery = '';
   let selectedCategory = 'all';
@@ -71,7 +72,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
         </button>
       </div>
     `;
-    header.querySelector('#btn-source-more').onclick = () => nav('/saler/sourcing');
+    header.querySelector<HTMLElement>('#btn-source-more').onclick = () => nav('/saler/sourcing');
     container.append(header);
 
     // 2. KPI Summary Strip
@@ -140,30 +141,30 @@ export default function MyProductsPage(root, { navigate } = {}) {
       </div>
     `;
 
-    const searchInput = toolbar.querySelector('#product-search');
+    const searchInput = toolbar.querySelector<HTMLInputElement>('#product-search');
     searchInput.oninput = (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       renderTableBody();
     };
 
-    const catSelect = toolbar.querySelector('#category-filter');
+    const catSelect = toolbar.querySelector<HTMLSelectElement>('#category-filter');
     catSelect.value = selectedCategory;
     catSelect.onchange = (e) => {
-      selectedCategory = e.target.value;
+      selectedCategory = (e.target as HTMLSelectElement).value;
       renderTableBody();
     };
 
-    const stockSelect = toolbar.querySelector('#stock-filter');
+    const stockSelect = toolbar.querySelector<HTMLSelectElement>('#stock-filter');
     stockSelect.value = stockFilter;
     stockSelect.onchange = (e) => {
-      stockFilter = e.target.value;
+      stockFilter = (e.target as HTMLSelectElement).value;
       renderTableBody();
     };
 
-    const sortSelect = toolbar.querySelector('#sort-filter');
+    const sortSelect = toolbar.querySelector<HTMLSelectElement>('#sort-filter');
     sortSelect.value = sortBy;
     sortSelect.onchange = (e) => {
-      sortBy = e.target.value;
+      sortBy = (e.target as HTMLSelectElement).value;
       renderTableBody();
     };
 
@@ -310,7 +311,7 @@ export default function MyProductsPage(root, { navigate } = {}) {
       `;
 
       // Toggle active handler
-      const toggleBtn = tr.querySelector('.btn-toggle-active');
+      const toggleBtn = tr.querySelector<HTMLElement>('.btn-toggle-active');
       toggleBtn.onclick = async () => {
         try {
           const nextState = !p.is_active;
@@ -324,13 +325,13 @@ export default function MyProductsPage(root, { navigate } = {}) {
       };
 
       // Flyer handler
-      const flyerBtn = tr.querySelector('.btn-flyer');
+      const flyerBtn = tr.querySelector<HTMLElement>('.btn-flyer');
       flyerBtn.onclick = () => {
         nav(`/saler/social-kit?product_id=${p.product_id || p.id}`);
       };
 
       // Remove handler
-      const removeBtn = tr.querySelector('.btn-remove-product');
+      const removeBtn = tr.querySelector<HTMLElement>('.btn-remove-product');
       removeBtn.onclick = async () => {
         if (!confirm('Remove this product from your curated store shelves?')) return;
         try {

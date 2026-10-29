@@ -14,6 +14,14 @@ import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
 const read = (rel) => readFileSync(join(root, rel), 'utf8');
+// WHY both extensions: these pages move from .js to .ts one batch at a time (docs/typescript-migration.md).
+const readPage = (page) => {
+  try {
+    return read(`pages/admin/${page}.ts`);
+  } catch {
+    return read(`pages/admin/${page}.js`);
+  }
+};
 const en = JSON.parse(read('locales/en.json'));
 const bn = JSON.parse(read('locales/bn.json'));
 
@@ -32,7 +40,7 @@ function flatten(node, prefix = '') {
 describe('access-governance pages — translation keys', () => {
   for (const page of PAGES) {
     it(`${page}: every literal t() key exists in English and Bangla`, () => {
-      const source = read(`pages/admin/${page}.js`);
+      const source = readPage(page);
       const keys = [...source.matchAll(/\bt\(\s*'([a-z_]+(?:\.[A-Za-z_]+)+)'/g)].map((m) => m[1]);
       assert.ok(keys.length > 5, `${page} should be translating through t()`);
       for (const key of new Set(keys)) {
@@ -85,7 +93,7 @@ describe('access-governance pages — translation keys', () => {
 
 describe('access-governance pages — no hard-coded language', () => {
   for (const page of PAGES) {
-    const source = read(`pages/admin/${page}.js`);
+    const source = readPage(page);
 
     it(`${page}: does not pick wording with an inline Bangla ternary`, () => {
       // Choosing a date locale (isBn ? 'bn' : 'en') is fine; choosing wording is not.

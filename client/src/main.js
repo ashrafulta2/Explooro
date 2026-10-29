@@ -486,7 +486,7 @@ async function bootRouterDemo() {
         title: 'Shop Partner Academy — Explooro',
         permission: null,
         module: 'seller_academy',
-        load: () => import('./pages/AcademyPage.js'),
+        load: () => import('./pages/AcademyPage.ts'),
       },
       {
         path: '/editor',
@@ -510,7 +510,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.banner.publish',
         module: 'core',
-        load: () => import('./pages/editor/BannersManagerPage.js'),
+        load: () => import('./pages/editor/BannersManagerPage.ts'),
       },
       {
         path: '/editor/stories',
@@ -526,7 +526,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
-        load: () => import('./pages/editor/AcademyManagerPage.js'),
+        load: () => import('./pages/editor/AcademyManagerPage.ts'),
       },
       {
         path: '/editor/whats-new',
@@ -813,7 +813,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/AcademyPage.js'),
+        load: () => import('./pages/AcademyPage.ts'),
       },
       // Prompt 11.3: Customer Portal, Orders & Following Feed
       {
@@ -838,7 +838,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/OrdersPage.js'),
+        load: () => import('./pages/customer/OrdersPage.ts'),
       },
       {
         path: '/account/wishlist',
@@ -1027,7 +1027,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.carrier.manage',
         module: 'courier_hub',
-        load: () => import('./pages/admin/CourierHubPage.js'),
+        load: () => import('./pages/admin/CourierHubPage.ts'),
       },
 
       // Admin Finance (Ledger, Escrow, B2B Escrow)
@@ -1053,7 +1053,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.escrow.view',
         module: 'escrow_engine',
-        load: () => import('./pages/admin/EscrowHoldingsPage.js'),
+        load: () => import('./pages/admin/EscrowHoldingsPage.ts'),
       },
       {
         path: '/admin/escrow',
@@ -1061,7 +1061,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.escrow.view',
         module: 'core',
-        load: () => import('./pages/admin/EscrowHoldingsPage.js'),
+        load: () => import('./pages/admin/EscrowHoldingsPage.ts'),
       },
       {
         path: '/admin/finance/b2b-escrow',
@@ -1168,7 +1168,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.banner.publish',
         module: 'core',
-        load: () => import('./pages/editor/BannersManagerPage.js'),
+        load: () => import('./pages/editor/BannersManagerPage.ts'),
       },
       {
         path: '/admin/content/stories',
@@ -1184,7 +1184,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
-        load: () => import('./pages/editor/AcademyManagerPage.js'),
+        load: () => import('./pages/editor/AcademyManagerPage.ts'),
       },
       {
         path: '/admin/content/whats-new',
@@ -1381,7 +1381,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'staff.role.assign',
         module: 'core',
-        load: () => import('./pages/admin/RolesPermissionsPage.js'),
+        load: () => import('./pages/admin/RolesPermissionsPage.ts'),
       },
       {
         path: '/admin/grants',
@@ -1405,7 +1405,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.restriction.manage',
         module: 'core',
-        load: () => import('./pages/admin/RestrictionsPage.js'),
+        load: () => import('./pages/admin/RestrictionsPage.ts'),
       },
       {
         path: '/admin/users/restrictions',
@@ -1413,7 +1413,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.restriction.manage',
         module: 'core',
-        load: () => import('./pages/admin/RestrictionsPage.js'),
+        load: () => import('./pages/admin/RestrictionsPage.ts'),
       },
       // Prompt 3.4: Audit Explorer
       {
@@ -1514,7 +1514,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.payout.request',
         module: 'core',
-        load: () => import('./pages/saler/WithdrawalsPage.js'),
+        load: () => import('./pages/saler/WithdrawalsPage.ts'),
       },
       {
         path: '/supplier/vault',
@@ -1678,7 +1678,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'virtual_storefront',
-        load: () => import('./pages/saler/MyProductsPage.js'),
+        load: () => import('./pages/saler/MyProductsPage.ts'),
       },
       // Prompt 7.5: KYC Verification, Blue-Tick & Trust Tiers
       {
@@ -2020,7 +2020,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'daily_quests',
-        load: () => import('./pages/saler/SalerQuestsPage.js'),
+        load: () => import('./pages/saler/SalerQuestsPage.ts'),
       },
       {
         path: '/saler/leaderboard',
@@ -2028,7 +2028,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'gamification',
-        load: () => import('./pages/saler/SalerQuestsPage.js'),
+        load: () => import('./pages/saler/SalerQuestsPage.ts'),
       },
       // Prompt 9.5: Social Group Buying (Team Purchase)
       {

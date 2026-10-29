@@ -1,5 +1,5 @@
 /**
- * RestrictionsPage.js — Platform User Restrictions & Sanctions Governance (Prompt 3.3).
+ * RestrictionsPage.ts — Platform User Restrictions & Sanctions Governance (Prompt 3.3).
  *
  * Implements:
  * 1. Global registry of user capability restrictions (selling, payouts, ordering, chatting).
@@ -34,7 +34,7 @@ function getFriendlyCapabilityLabel(key) {
   return t(`restrictions.cap.${key}`, fallback);
 }
 
-export default function RestrictionsPage(root) {
+export default function RestrictionsPage(root: HTMLElement) {
   const isBn = () => getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-users';
@@ -107,7 +107,7 @@ export default function RestrictionsPage(root) {
     btn.setAttribute('aria-pressed', String(statusFilter === opt.key));
     btn.addEventListener('click', () => {
       statusFilter = opt.key;
-      filterBar.querySelectorAll('button').forEach((b) => {
+      filterBar.querySelectorAll<HTMLElement>('button').forEach((b) => {
         b.className = 'btn btn--secondary btn--sm';
         b.setAttribute('aria-pressed', 'false');
       });

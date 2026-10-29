@@ -1,5 +1,5 @@
 /**
- * SalerQuestsPage.js — Shop Partner Daily Quests, Milestone Rewards & National Leaderboard (Prompt 9.4 / §AL.2).
+ * SalerQuestsPage.ts — Shop Partner Daily Quests, Milestone Rewards & National Leaderboard (Prompt 9.4 / §AL.2).
  *
  * Routes: /saler/quests, /saler/leaderboard
  * Implements:
@@ -16,8 +16,9 @@ import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.
 import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SalerQuestsPage(root, { navigate } = {}) {
+export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -110,7 +111,7 @@ export default function SalerQuestsPage(root, { navigate } = {}) {
       </button>
     `;
 
-    tabsBar.querySelectorAll('.tab-btn').forEach((btn) => {
+    tabsBar.querySelectorAll<HTMLElement>('.tab-btn').forEach((btn) => {
       btn.onclick = () => {
         activeTab = btn.getAttribute('data-tab');
         if (activeTab === 'leaderboard') {
@@ -192,7 +193,7 @@ export default function SalerQuestsPage(root, { navigate } = {}) {
         </div>
       `;
 
-      const claimBtn = card.querySelector('.btn-claim');
+      const claimBtn = card.querySelector<HTMLElement>('.btn-claim');
       if (claimBtn) {
         claimBtn.onclick = async () => {
           try {

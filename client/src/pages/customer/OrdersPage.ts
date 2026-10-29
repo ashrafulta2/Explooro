@@ -1,5 +1,5 @@
 /**
- * OrdersPage.js — Customer Orders & Visual Tracking Hub (Prompt 11.3 / idea §AL.3).
+ * OrdersPage.ts — Customer Orders & Visual Tracking Hub (Prompt 11.3 / idea §AL.3).
  *
  * Route: /account/orders
  *
@@ -25,8 +25,9 @@ import { resolveProductImage } from '../../components/product/ProductCard.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
 import { EarnJourney } from '../../components/customer/EarnJourney.ts';
 import { appStore } from '../../state/appStore.ts';
+import type { PageContext } from '../types.ts';
 
-export default function OrdersPage(root, { navigate } = {}) {
+export default function OrdersPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -74,7 +75,7 @@ export default function OrdersPage(root, { navigate } = {}) {
       { id: 'DELIVERED',  label: `✓ ${t('order_tracking.tab_delivered')}` },
       { id: 'CANCELLED',  label: t('order_tracking.tab_cancelled') },
     ],
-    activeTab: currentTab,
+    active: currentTab,
     onChange: (tabId) => {
       if (tabId === currentTab) return;
       currentTab = tabId;

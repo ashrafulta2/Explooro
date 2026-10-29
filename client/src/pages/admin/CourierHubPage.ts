@@ -1,5 +1,5 @@
 /**
- * CourierHubPage.js — 3PL Courier Logistics Hub & Webhook Ingestion (Prompt 7.1).
+ * CourierHubPage.ts — 3PL Courier Logistics Hub & Webhook Ingestion (Prompt 7.1).
  *
  * Implements:
  * 1. 3PL Courier Fleet Status (Steadfast, Pathao, RedX, eCourier, Paperfly).
@@ -18,8 +18,9 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatNumber } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function CourierHubPage(root, { navigate } = {}) {
+export default function CourierHubPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -107,17 +108,26 @@ export default function CourierHubPage(root, { navigate } = {}) {
       </div>
     `;
 
+    // WHY a footer: Modal has no `confirmLabel`, `cancelLabel` or `onConfirm`, so this dialog used to open
+    // with no Save and no Cancel button.
+    const footer = document.createDocumentFragment();
+    footer.append(
+      Button({ label: isBn ? 'বাতিল' : 'Cancel', variant: 'secondary', onClick: () => modal.close() }),
+      Button({
+        label: isBn ? 'সংরক্ষণ' : 'Save Config',
+        variant: 'primary',
+        onClick: () => {
+          carrier.is_active = content.querySelector<HTMLInputElement>('#c-active-check').checked;
+          toast.success(isBn ? `${carrier.name} কনফিগারেশন আপডেট হয়েছে!` : `${carrier.name} configuration updated!`);
+          render();
+          modal.close();
+        },
+      }),
+    );
     const modal = Modal({
       title: `${isBn ? 'কনফিগারেশন' : 'Configure'} ${carrier.name}`,
       content,
-      confirmLabel: isBn ? 'সংরক্ষণ' : 'Save Config',
-      cancelLabel: isBn ? 'বাতিল' : 'Cancel',
-      onConfirm: async () => {
-        carrier.is_active = content.querySelector('#c-active-check').checked;
-        toast.success(isBn ? `${carrier.name} কনফিগারেশন আপডেট হয়েছে!` : `${carrier.name} configuration updated!`);
-        render();
-        return true;
-      },
+      footer,
     });
 
     document.body.append(modal);
@@ -277,7 +287,7 @@ export default function CourierHubPage(root, { navigate } = {}) {
     // Bind Event Listeners
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
 
-    container.querySelectorAll('.config-carrier-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.config-carrier-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = Number(btn.getAttribute('data-id'));
         const c = carriers.find((x) => x.id === id);

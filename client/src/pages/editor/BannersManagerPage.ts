@@ -1,5 +1,5 @@
 /**
- * BannersManagerPage.js — Homepage Banners, Sliders & Promotional Strips Manager.
+ * BannersManagerPage.ts — Homepage Banners, Sliders & Promotional Strips Manager.
  *
  * Implements /editor/banners:
  * - Slot filters: All, HOMEPAGE_HERO, HOMEPAGE_SECONDARY, FLASH_SALE_STRIP.
@@ -13,7 +13,7 @@ import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function BannersManagerPage(root) {
+export default function BannersManagerPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'editor-page-container';
 
@@ -106,15 +106,15 @@ export default function BannersManagerPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-banner-btn').onclick = () => modal.close();
-    footer.querySelector('#save-banner-btn').onclick = async () => {
-      const slot = content.querySelector('#banner-slot').value;
-      const title_en = content.querySelector('#banner-title-en').value.trim();
-      const title_bn = content.querySelector('#banner-title-bn').value.trim();
-      const image_url_desktop = content.querySelector('#banner-img-desktop').value.trim();
-      const image_url_mobile = content.querySelector('#banner-img-mobile').value.trim() || null;
-      const target_link = content.querySelector('#banner-link').value.trim() || '/';
-      const display_order = parseInt(content.querySelector('#banner-order').value, 10) || 1;
+    footer.querySelector<HTMLElement>('#cancel-banner-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-banner-btn').onclick = async () => {
+      const slot = content.querySelector<HTMLInputElement>('#banner-slot').value;
+      const title_en = content.querySelector<HTMLInputElement>('#banner-title-en').value.trim();
+      const title_bn = content.querySelector<HTMLInputElement>('#banner-title-bn').value.trim();
+      const image_url_desktop = content.querySelector<HTMLInputElement>('#banner-img-desktop').value.trim();
+      const image_url_mobile = content.querySelector<HTMLInputElement>('#banner-img-mobile').value.trim() || null;
+      const target_link = content.querySelector<HTMLInputElement>('#banner-link').value.trim() || '/';
+      const display_order = parseInt(content.querySelector<HTMLInputElement>('#banner-order').value, 10) || 1;
 
       if (!title_en || !title_bn || !image_url_desktop) {
         toast.error('Please enter English title, Bangla title and desktop image URL.');
@@ -195,7 +195,7 @@ export default function BannersManagerPage(root) {
       </div>
     `;
 
-    header.querySelector('#create-banner-btn').onclick = () => openBannerModal();
+    header.querySelector<HTMLElement>('#create-banner-btn').onclick = () => openBannerModal();
     container.appendChild(header);
 
     // -------------------------------------------------------------------------
@@ -224,15 +224,15 @@ export default function BannersManagerPage(root) {
       </div>
     `;
 
-    filterCard.querySelectorAll('.editor-chip').forEach((chip) => {
+    filterCard.querySelectorAll<HTMLElement>('.editor-chip').forEach((chip) => {
       chip.onclick = () => {
         activeSlot = chip.dataset.slot;
         render();
       };
     });
 
-    filterCard.querySelector('#banner-search').oninput = (e) => {
-      searchQuery = e.target.value.toLowerCase().trim();
+    filterCard.querySelector<HTMLElement>('#banner-search').oninput = (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
       render();
     };
 
@@ -312,9 +312,9 @@ export default function BannersManagerPage(root) {
         </div>
       `;
 
-      card.querySelector('.js-toggle-active-btn').onclick = () => handleToggleActive(banner);
-      card.querySelector('.js-edit-banner-btn').onclick = () => openBannerModal(banner);
-      card.querySelector('.js-delete-banner-btn').onclick = () => handleDeleteBanner(banner.id);
+      card.querySelector<HTMLElement>('.js-toggle-active-btn').onclick = () => handleToggleActive(banner);
+      card.querySelector<HTMLElement>('.js-edit-banner-btn').onclick = () => openBannerModal(banner);
+      card.querySelector<HTMLElement>('.js-delete-banner-btn').onclick = () => handleDeleteBanner(banner.id);
 
       bannerGrid.appendChild(card);
     });
