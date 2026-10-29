@@ -121,6 +121,7 @@ export const navItems = [
 
   { key: 'admin.growth.ads', label_i18n_key: 'nav.admin.ads', icon: null, path: '/admin/growth/ads', group: 'admin.growth', permission: 'growth.ad.govern', module: 'sponsored_ads', roles: ['super_admin', 'admin'], order: 1 },
   { key: 'admin.growth.ad_pricing', label_i18n_key: 'nav.admin.ad_pricing', icon: null, path: '/admin/growth/ad-pricing', group: 'admin.growth', permission: 'growth.ad.govern', module: 'sponsored_ads', roles: ['super_admin', 'admin'], order: 2 },
+  { key: 'admin.growth.ad_review', label_i18n_key: 'nav.admin.ad_review', icon: null, path: '/admin/growth/ad-review', group: 'admin.growth', permission: 'growth.ad.review', module: 'sponsored_ads', roles: ['super_admin', 'admin', 'moderator'], order: 2.5 },
   { key: 'admin.growth.coupons', label_i18n_key: 'nav.shared.coupons', icon: null, path: '/admin/growth/coupons', group: 'admin.growth', permission: 'growth.coupon.manage', module: 'coupons', roles: ['super_admin', 'admin'], order: 3 },
   { key: 'admin.growth.campaigns', label_i18n_key: 'nav.admin.campaigns', icon: null, path: '/admin/growth/campaigns', group: 'admin.growth', permission: 'growth.campaign.manage', module: 'flash_sale', roles: ['super_admin', 'admin'], order: 4 },
   { key: 'admin.growth.referrals', label_i18n_key: 'nav.shared.referrals', icon: null, path: '/admin/growth/referrals', group: 'admin.growth', permission: 'growth.referral.govern', module: 'referral_engine', roles: ['super_admin', 'admin'], order: 5 },

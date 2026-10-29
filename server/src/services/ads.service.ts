@@ -1215,6 +1215,14 @@ export async function listPendingCampaigns(db, { limit = 20, offset = 0 }: Recor
  * Admin review decision (APPROVE / REJECT).
  */
 export async function reviewCampaign(db, adminId, campaignId, { decision, reason = null }, reqMeta: Record<string, any> = {}) {
+  // WHY strict: anything that was not exactly APPROVE used to fall through to a rejection (and a refund),
+  // and a rejection with no reason leaves the advertiser with nothing to act on.
+  if (decision !== 'APPROVE' && decision !== 'REJECT') {
+    throw new AppError('VALIDATION_FAILED', 'decision must be APPROVE or REJECT.');
+  }
+  if (decision === 'REJECT' && (typeof reason !== 'string' || reason.trim().length < 3 || reason.length > 500)) {
+    throw new AppError('VALIDATION_FAILED', 'A reason of 3–500 characters is required to reject an ad.');
+  }
   const newStatus = decision === 'APPROVE' ? 'ACTIVE' : 'REJECTED';
 
   return await withTransaction(db, async (client) => {

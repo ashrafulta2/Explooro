@@ -6,7 +6,7 @@
 // (`bkash_direct_checkout`, `live_streaming_studio`, `ai_bengali_copywriter`, …) existed nowhere
 // else in the codebase. The super admin's master feature-flag switchboard therefore showed 8 of the
 // platform's 71 modules, and every toggle wrote a key no route or nav item gates on. The registry
-// is now read from mocks/moduleState.js, which reads the same seed file the server seeds from, so
+// is now read from mocks/moduleState.ts, which reads the same seed file the server seeds from, so
 // the dev panel, the live panel and the PUBLIC `GET /modules` endpoint all answer from one map.
 import { mockTeamSettings } from './teamPurchase.ts';
 import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.ts';
@@ -633,7 +633,7 @@ function buildOverviewResponse(query) {
 // while buildMockKycRecords() rebuilt every applicant as PENDING on each request. Approving Anisur
 // Rahman showed the Blue-Tick toast, then a browser refresh put him straight back in the Pending
 // queue — a mock that forgets on reload makes a working approval flow look broken (same reasoning
-// as handlers/genie.js).
+// as handlers/genie.ts).
 const KYC_DECISIONS_KEY = 'explooro:mock:kyc:decisions';
 const KYC_OPEN_STATUSES = ['PENDING', 'UNDER_REVIEW', 'APPEALED'];
 
@@ -745,6 +745,11 @@ const adminAdCampaigns = [
               { id: 3, title: 'Wireless Earbuds Top Category Banner', merchant_name: 'Gadget Express BD', merchant_role: 'SALER', daily_budget: 2000.00, total_spent: 12500.00, impressions: 85000, clicks: 6400, cpc_bdt: 1.95, quality_score: 9.1, status: 'ACTIVE' },
               { id: 4, title: 'Organic Mustard Oil Search Boost', merchant_name: 'Bengal Organics Ltd.', merchant_role: 'SUPPLIER', daily_budget: 500.00, total_spent: 1500.00, impressions: 14000, clicks: 950, cpc_bdt: 1.58, quality_score: 8.2, status: 'PAUSED' },
               { id: 5, title: 'Pohela Boishakh Panjabi Banner', merchant_name: 'Jamdani Heritage Weavers', merchant_role: 'SUPPLIER', daily_budget: 900.00, total_spent: 0.00, impressions: 0, clicks: 0, cpc_bdt: 1.20, quality_score: 8.9, status: 'SCHEDULED' },
+];
+
+const adminAdReviewQueue = [
+  { id: 101, ref: 'ADC-MOCK0001', user_id: 7, title: 'Boost: Handmade Nakshi Kantha', placement: 'FEED', total_budget: 500.00, created_at: new Date(Date.now() - 3600000).toISOString(), seller_name_en: 'Rina Begum', seller_phone: '01711000001', seller_tier: 'STARTER', creative: { headline: 'Handmade Nakshi Kantha', description: 'Pure cotton, stitched by hand in Jamalpur.', banner_image_url: null, destination_url: '/store/rina' } },
+  { id: 102, ref: 'ADC-MOCK0002', user_id: 9, title: 'Boost: Organic Honey', placement: 'FEED', total_budget: 1200.00, created_at: new Date(Date.now() - 7200000).toISOString(), seller_name_en: 'Sundarban Honey House', seller_phone: '01711000002', seller_tier: 'VERIFIED_TRADER', creative: { headline: 'Sundarban Pure Honey', description: 'Collected this season.', banner_image_url: null, destination_url: '/store/honey' } },
 ];
 
 export const adminHandlers = [
@@ -2803,6 +2808,26 @@ export const adminHandlers = [
       camp.status = 'ACTIVE';
       camp.admin_paused = false;
       return { status: 200, body: { data: { campaign: { id: camp.id, status: camp.status, admin_paused: false } } } };
+    },
+  },
+  // Ad review queue (growth.ad.review)
+  {
+    method: 'GET',
+    path: '/admin/ads/campaigns/review',
+    handler() {
+      return { status: 200, body: { data: { campaigns: adminAdReviewQueue } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/admin/ads/campaigns/:id/review',
+    handler({ params, body }) {
+      const idx = adminAdReviewQueue.findIndex((c) => c.id === Number(params.id));
+      if (idx === -1) return { status: 409, body: { error: { code: 'CAMPAIGN_NOT_PENDING', message: 'This campaign is no longer waiting for review.' } } };
+      if (body?.decision !== 'APPROVE' && body?.decision !== 'REJECT') return { status: 422, body: { error: { code: 'VALIDATION_ERROR', message: 'decision must be APPROVE or REJECT.' } } };
+      if (body.decision === 'REJECT' && String(body.reason || '').trim().length < 3) return { status: 422, body: { error: { code: 'VALIDATION_ERROR', message: 'A reason of 3–500 characters is required to reject an ad.' } } };
+      const [camp] = adminAdReviewQueue.splice(idx, 1);
+      return { status: 200, body: { data: { campaign: { id: camp.id, status: body.decision === 'APPROVE' ? 'ACTIVE' : 'REJECTED' } } } };
     },
   },
   // Sponsored Ads

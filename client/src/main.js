@@ -1095,7 +1095,15 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.ad.govern',
         module: 'sponsored_ads',
-        load: () => import('./pages/admin/AdminAdPricingPage.js'),
+        load: () => import('./pages/admin/AdminAdPricingPage.ts'),
+      },
+      {
+        path: '/admin/growth/ad-review',
+        title: 'Ad Review Queue — Explooro Admin',
+        requiresAuth: true,
+        permission: 'growth.ad.review',
+        module: 'sponsored_ads',
+        load: () => import('./pages/admin/AdminAdReviewPage.js'),
       },
       {
         path: '/admin/growth/quests',
