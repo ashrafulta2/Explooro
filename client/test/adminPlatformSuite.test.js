@@ -25,8 +25,8 @@ test('Admin Platform Suite Integrity', async (t) => {
     const modules = [
       '../src/components/admin/PlatformSubnav.ts',
       '../src/pages/admin/IntegrationsPage.ts',
-      '../src/pages/admin/SettingsPage.js',
-      '../src/pages/admin/ApiKeysPage.js',
+      '../src/pages/admin/SettingsPage.ts',
+      '../src/pages/admin/ApiKeysPage.ts',
       '../src/pages/admin/ModuleControlPage.ts',
       '../src/pages/admin/ThemeStudioPage.js',
     ];

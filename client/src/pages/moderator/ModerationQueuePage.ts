@@ -1,5 +1,5 @@
 /**
- * ModerationQueuePage.js — Unified Product Approval & Content Moderation Workspace (Prompt 7.4).
+ * ModerationQueuePage.ts — Unified Product Approval & Content Moderation Workspace (Prompt 7.4).
  *
  * Implements:
  * 1. Unified queue covering: Products, Reviews, UGC Videos, Storefronts, Live Streams, Chat Reports.
@@ -15,6 +15,7 @@ import { formatCurrency, formatDate } from '../../services/format.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { ReviewCard } from '../../components/moderation/ReviewCard.ts';
+import type { PageContext } from '../types.ts';
 
 // Tab key -> the item_type values it covers. A key may list several types (a "Products"
 // submission is either a brand-new listing or an edit to a live one), so the API takes a
@@ -22,7 +23,7 @@ import { ReviewCard } from '../../components/moderation/ReviewCard.ts';
 const TYPE_TAB_KEYS = ['ALL', 'PRODUCT_NEW,PRODUCT_EDIT', 'REVIEW', 'UGC_VIDEO', 'CHAT_REPORT'];
 const STATUS_KEYS = ['PENDING', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'ALL'];
 
-export default function ModerationQueuePage(root, ctx = {}) {
+export default function ModerationQueuePage(root: HTMLElement, ctx: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'moderation-queue-page';
   container.style.cssText = `
@@ -217,9 +218,9 @@ export default function ModerationQueuePage(root, ctx = {}) {
 
     document.body.appendChild(modalBackdrop);
 
-    const txtEn = modalBackdrop.querySelector('#txt-reason-en');
-    const txtBn = modalBackdrop.querySelector('#txt-reason-bn');
-    const selPreset = modalBackdrop.querySelector('#sel-preset-reason');
+    const txtEn = modalBackdrop.querySelector<HTMLInputElement>('#txt-reason-en');
+    const txtBn = modalBackdrop.querySelector<HTMLInputElement>('#txt-reason-bn');
+    const selPreset = modalBackdrop.querySelector<HTMLInputElement>('#sel-preset-reason');
 
     function syncPreset(val) {
       if (val === 'POLICY_VIOLATION') {
@@ -238,14 +239,14 @@ export default function ModerationQueuePage(root, ctx = {}) {
     }
 
     syncPreset(selPreset.value);
-    selPreset.addEventListener('change', (e) => syncPreset(e.target.value));
+    selPreset.addEventListener('change', (e) => syncPreset((e.target as HTMLInputElement).value));
 
     modalBackdrop.querySelector('#btn-cancel-modal').addEventListener('click', () => modalBackdrop.remove());
 
     modalBackdrop.querySelector('#btn-confirm-reject').addEventListener('click', async () => {
       const reasonEn = txtEn.value.trim();
       const reasonBn = txtBn.value.trim();
-      const shadowRestrict = modalBackdrop.querySelector('#chk-shadow-restrict').checked;
+      const shadowRestrict = modalBackdrop.querySelector<HTMLInputElement>('#chk-shadow-restrict').checked;
 
       modalBackdrop.remove();
 
@@ -327,8 +328,8 @@ export default function ModerationQueuePage(root, ctx = {}) {
     modalBackdrop.querySelector('#btn-cancel-modal').addEventListener('click', () => modalBackdrop.remove());
 
     modalBackdrop.querySelector('#btn-confirm-changes').addEventListener('click', async () => {
-      const changesEn = modalBackdrop.querySelector('#txt-changes-en').value.trim();
-      const changesBn = modalBackdrop.querySelector('#txt-changes-bn').value.trim();
+      const changesEn = modalBackdrop.querySelector<HTMLInputElement>('#txt-changes-en').value.trim();
+      const changesBn = modalBackdrop.querySelector<HTMLInputElement>('#txt-changes-bn').value.trim();
 
       modalBackdrop.remove();
 
@@ -397,7 +398,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
   }
 
   function highlightCurrentCard() {
-    const cards = container.querySelectorAll('.review-card');
+    const cards = container.querySelectorAll<HTMLElement>('.review-card');
     cards.forEach((c, idx) => {
       if (idx === selectedIndex) {
         c.style.outline = '2px solid var(--brand, #4f46e5)';
@@ -649,7 +650,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
       await fetchQueue();
     });
 
-    container.querySelectorAll('.btn-tab-pill').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.btn-tab-pill').forEach((btn) => {
       btn.addEventListener('click', () => {
         currentTypeTab = btn.getAttribute('data-type-tab');
         fetchQueue();
@@ -657,7 +658,7 @@ export default function ModerationQueuePage(root, ctx = {}) {
     });
 
     container.querySelector('#sel-status-filter')?.addEventListener('change', (e) => {
-      currentStatus = e.target.value;
+      currentStatus = (e.target as HTMLInputElement).value;
       fetchQueue();
     });
   }

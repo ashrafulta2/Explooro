@@ -28,7 +28,7 @@ const readJson = (rel) => JSON.parse(readText(rel));
 const catalog = readJson('docs/permission-catalog.json');
 const catalogKeys = new Set(catalog.permissions.map((p) => p.key));
 const dashboardSrc = readText('client/src/pages/moderator/ModeratorDashboardPage.ts');
-const queueSrc = readText('client/src/pages/moderator/ModerationQueuePage.js');
+const queueSrc = readText('client/src/pages/moderator/ModerationQueuePage.ts');
 const locales = ['en', 'bn'].map((lang) => [lang, readJson(`client/src/locales/${lang}.json`)]);
 
 test('Moderator — permission keys are real catalog keys', async (t) => {

@@ -1,5 +1,5 @@
 /**
- * SalerDashboardPage.js — Central Shop Partner Operating Hub & Business Control Center (Prompt 11.2 / idea §AL.2).
+ * SalerDashboardPage.ts — Central Shop Partner Operating Hub & Business Control Center (Prompt 11.2 / idea §AL.2).
  *
  * Implements:
  * 1. Dual-mode UI: Simple Mode (≤ 6 primary actions) vs. Pro Dashboard.
@@ -25,10 +25,11 @@ import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
+import type { PageContext } from '../types.ts';
 
 const SALER_MODE_KEY = 'explooro:saler_mode_preference';
 
-export default function SalerDashboardPage(root, { navigate } = {}) {
+export default function SalerDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -453,7 +454,7 @@ function renderOnboardingWidget(container, onboarding, nav) {
     item.append(actionBtn);
 
     // Video Walkthrough Trigger
-    item.querySelector('.video-btn').onclick = (e) => {
+    item.querySelector<HTMLElement>('.video-btn').onclick = (e) => {
       e.stopPropagation();
       openVideoWalkthroughModal(step, nav);
     };

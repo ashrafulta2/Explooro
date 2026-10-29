@@ -95,7 +95,7 @@ describe('Super Admin Security & Disaster Recovery — Client Invariants', () =>
   });
 
   it('7. Page modules export default mount function', async () => {
-    const staff2faMod = await import('../src/pages/admin/Staff2faPage.js');
+    const staff2faMod = await import('../src/pages/admin/Staff2faPage.ts');
     assert.equal(typeof staff2faMod.default, 'function', 'Staff2faPage must export default function');
 
     const ipAllowlistMod = await import('../src/pages/admin/IpAllowlistPage.js');

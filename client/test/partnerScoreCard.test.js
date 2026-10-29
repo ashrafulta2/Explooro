@@ -94,7 +94,7 @@ describe('PartnerScoreCard wiring', () => {
   });
 
   it('the dashboard loads the card on its own so a slow lookup never holds the page', () => {
-    const page = read('../src/pages/saler/SalerDashboardPage.js');
+    const page = read('../src/pages/saler/SalerDashboardPage.ts');
     assert.match(page, /salerApi\s*\.getPartnerScore\(\)/);
     assert.match(page, /\.catch\(\(\) => \{\}\)/);
   });

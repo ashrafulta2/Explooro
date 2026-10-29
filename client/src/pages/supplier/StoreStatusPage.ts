@@ -1,5 +1,5 @@
 /**
- * StoreStatusPage.js — Supplier Physical Factory Showroom & Walk-In Status (Prompt 11.1).
+ * StoreStatusPage.ts — Supplier Physical Factory Showroom & Walk-In Status (Prompt 11.1).
  *
  * Route: /supplier/store-status
  * Implements:
@@ -32,7 +32,7 @@ const DISTRICT_OPTIONS = [
   'Barisal', 'Rangpur', 'Mymensingh', 'Bogura', 'Gazipur', 'Narayanganj'
 ];
 
-export default function StoreStatusPage(root) {
+export default function StoreStatusPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -92,8 +92,8 @@ export default function StoreStatusPage(root) {
     }
     const closedCount = 7 - openDaysCount;
     return t('supplier.days_open_count', `${openDaysCount} Days Open / ${closedCount} Days Off`)
-      .replace('{{open}}', openDaysCount)
-      .replace('{{closed}}', closedCount);
+      .replace('{{open}}', String(openDaysCount))
+      .replace('{{closed}}', String(closedCount));
   }
 
   async function saveAllSettings(saveBtn = null) {
@@ -403,19 +403,19 @@ export default function StoreStatusPage(root) {
       </div>
     `;
 
-    hoursCard.querySelector('#preset-std-chip').onclick = () => applyPreset('standard');
-    hoursCard.querySelector('#preset-weekend-chip').onclick = () => applyPreset('weekend');
-    hoursCard.querySelector('#preset-all-chip').onclick = () => applyPreset('all');
+    hoursCard.querySelector<HTMLElement>('#preset-std-chip').onclick = () => applyPreset('standard');
+    hoursCard.querySelector<HTMLElement>('#preset-weekend-chip').onclick = () => applyPreset('weekend');
+    hoursCard.querySelector<HTMLElement>('#preset-all-chip').onclick = () => applyPreset('all');
 
-    hoursCard.querySelector('#general-open-time').onchange = (e) => {
-      store.open_time = e.target.value;
+    hoursCard.querySelector<HTMLElement>('#general-open-time').onchange = (e) => {
+      store.open_time = (e.target as HTMLInputElement).value;
     };
 
-    hoursCard.querySelector('#general-close-time').onchange = (e) => {
-      store.close_time = e.target.value;
+    hoursCard.querySelector<HTMLElement>('#general-close-time').onchange = (e) => {
+      store.close_time = (e.target as HTMLInputElement).value;
     };
 
-    hoursCard.querySelector('#apply-hours-all-btn').onclick = applyGeneralHoursToAllOpenDays;
+    hoursCard.querySelector<HTMLElement>('#apply-hours-all-btn').onclick = applyGeneralHoursToAllOpenDays;
 
     container.appendChild(hoursCard);
 
@@ -496,7 +496,7 @@ export default function StoreStatusPage(root) {
           <option value="${time}" ${time === dayData.open_time ? 'selected' : ''}>${time}</option>
         `).join('');
         openSelect.onchange = (e) => {
-          dayData.open_time = e.target.value;
+          dayData.open_time = (e.target as HTMLInputElement).value;
           store.weekly_schedule[dayName] = dayData;
         };
 
@@ -507,7 +507,7 @@ export default function StoreStatusPage(root) {
           <option value="${time}" ${time === dayData.close_time ? 'selected' : ''}>${time}</option>
         `).join('');
         closeSelect.onchange = (e) => {
-          dayData.close_time = e.target.value;
+          dayData.close_time = (e.target as HTMLInputElement).value;
           store.weekly_schedule[dayName] = dayData;
         };
 
@@ -582,30 +582,30 @@ export default function StoreStatusPage(root) {
       </div>
     `;
 
-    addressCard.querySelector('#store-outlet-name').oninput = (e) => {
-      store.name = e.target.value.trim();
+    addressCard.querySelector<HTMLElement>('#store-outlet-name').oninput = (e) => {
+      store.name = (e.target as HTMLInputElement).value.trim();
     };
 
-    addressCard.querySelector('#store-phone').oninput = (e) => {
-      store.phone = e.target.value.trim();
+    addressCard.querySelector<HTMLElement>('#store-phone').oninput = (e) => {
+      store.phone = (e.target as HTMLInputElement).value.trim();
     };
 
-    addressCard.querySelector('#store-address').oninput = (e) => {
-      store.address = e.target.value.trim();
+    addressCard.querySelector<HTMLElement>('#store-address').oninput = (e) => {
+      store.address = (e.target as HTMLInputElement).value.trim();
     };
 
-    addressCard.querySelector('#store-district').onchange = (e) => {
-      store.district = e.target.value;
+    addressCard.querySelector<HTMLElement>('#store-district').onchange = (e) => {
+      store.district = (e.target as HTMLInputElement).value;
       render();
     };
 
-    addressCard.querySelector('#store-pickup-toggle').onchange = (e) => {
-      store.pickup_enabled = e.target.checked;
+    addressCard.querySelector<HTMLElement>('#store-pickup-toggle').onchange = (e) => {
+      store.pickup_enabled = (e.target as HTMLInputElement).checked;
       render();
     };
 
-    addressCard.querySelector('#store-pickup-notes').oninput = (e) => {
-      store.pickup_notes = e.target.value;
+    addressCard.querySelector<HTMLElement>('#store-pickup-notes').oninput = (e) => {
+      store.pickup_notes = (e.target as HTMLInputElement).value;
     };
 
     container.appendChild(addressCard);

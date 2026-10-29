@@ -1,5 +1,5 @@
 /**
- * UsersPage.js — Searchable, filterable users table with bulk selection, KPI summary & quick actions (Prompt 3.3).
+ * UsersPage.ts — Searchable, filterable users table with bulk selection, KPI summary & quick actions (Prompt 3.3).
  *
  * Implements:
  * 1. Executive Page Header & 4-Card KPI Summary Grid (Total, Active, Staff, Restricted).
@@ -20,6 +20,7 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
 import { openRestrictionEditor } from '../../components/admin/RestrictionEditor.ts';
 import '../../styles/components/admin-users.css';
+import type { PageContext } from '../types.ts';
 
 const PLAIN_NUMBER = /^-?\d+(\.\d+)?$/;
 function csvCell(value) {
@@ -52,7 +53,7 @@ const BANGLADESH_DISTRICTS = [
   'Shariatpur', 'Sherpur', 'Sirajganj', 'Sunamganj', 'Sylhet', 'Tangail', 'Thakurgaon'
 ];
 
-export default function UsersPage(root, { navigate } = {}) {
+export default function UsersPage(root: HTMLElement, { navigate }: PageContext = {}) {
   if (typeof window !== 'undefined') {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }
@@ -148,16 +149,16 @@ export default function UsersPage(root, { navigate } = {}) {
     selectedDistrict = 'ALL';
     selectedRestriction = 'ALL';
 
-    const searchInput = container.querySelector('#admin-users-search-input');
+    const searchInput = container.querySelector<HTMLInputElement>('#admin-users-search-input');
     if (searchInput) searchInput.value = '';
 
-    const roleSel = container.querySelector('#admin-users-role-filter');
+    const roleSel = container.querySelector<HTMLInputElement>('#admin-users-role-filter');
     if (roleSel) roleSel.value = 'ALL';
 
-    const distSel = container.querySelector('#admin-users-district-filter');
+    const distSel = container.querySelector<HTMLInputElement>('#admin-users-district-filter');
     if (distSel) distSel.value = 'ALL';
 
-    const restSel = container.querySelector('#admin-users-restriction-filter');
+    const restSel = container.querySelector<HTMLInputElement>('#admin-users-restriction-filter');
     if (restSel) restSel.value = 'ALL';
 
     loadUsers();
@@ -170,22 +171,22 @@ export default function UsersPage(root, { navigate } = {}) {
     const restrictedCount = (allUsers.length ? allUsers : users).filter((u) => (u.active_restrictions_count || 0) > 0).length;
 
     const elTotal = container.querySelector('#kpi-users-total-val');
-    if (elTotal) elTotal.textContent = totalCount;
+    if (elTotal) elTotal.textContent = String(totalCount);
 
     const elActive = container.querySelector('#kpi-users-active-val');
-    if (elActive) elActive.textContent = activeCount;
+    if (elActive) elActive.textContent = String(activeCount);
 
     const elStaff = container.querySelector('#kpi-users-staff-val');
-    if (elStaff) elStaff.textContent = staffCount;
+    if (elStaff) elStaff.textContent = String(staffCount);
 
     const elRestricted = container.querySelector('#kpi-users-restricted-val');
-    if (elRestricted) elRestricted.textContent = restrictedCount;
+    if (elRestricted) elRestricted.textContent = String(restrictedCount);
   }
 
   function updateBulkBar() {
-    const bulkBar = container.querySelector('#admin-users-bulk-bar');
+    const bulkBar = container.querySelector<HTMLInputElement>('#admin-users-bulk-bar');
     const bulkText = container.querySelector('#admin-users-bulk-text');
-    const exportBtn = container.querySelector('.admin-users-page__export-btn');
+    const exportBtn = container.querySelector<HTMLInputElement>('.admin-users-page__export-btn');
 
     if (exportBtn) {
       exportBtn.disabled = users.length === 0;
@@ -200,7 +201,7 @@ export default function UsersPage(root, { navigate } = {}) {
       }
     }
 
-    const selectAllBox = container.querySelector('#select-all-users');
+    const selectAllBox = container.querySelector<HTMLInputElement>('#select-all-users');
     if (selectAllBox) {
       const allSelected = users.length > 0 && users.every((u) => selectedUserIds.has(u.id));
       selectAllBox.checked = allSelected;
@@ -259,7 +260,7 @@ export default function UsersPage(root, { navigate } = {}) {
 
     const countBadge = container.querySelector('#admin-users-table-count');
     if (countBadge) {
-      countBadge.textContent = users.length;
+      countBadge.textContent = String(users.length);
     }
   }
 
@@ -425,16 +426,16 @@ export default function UsersPage(root, { navigate } = {}) {
     `;
 
     // Event listeners
-    const exportBtn = container.querySelector('.admin-users-page__export-btn');
+    const exportBtn = container.querySelector<HTMLInputElement>('.admin-users-page__export-btn');
     exportBtn?.addEventListener('click', handleExportCsv);
 
     const refreshBtn = container.querySelector('.admin-users-page__refresh-btn');
     refreshBtn?.addEventListener('click', loadUsers);
 
-    const searchInput = container.querySelector('#admin-users-search-input');
+    const searchInput = container.querySelector<HTMLInputElement>('#admin-users-search-input');
     let debounceTimer = null;
     searchInput?.addEventListener('input', (e) => {
-      query = e.target.value.trim();
+      query = (e.target as HTMLInputElement).value.trim();
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         loadUsers();
@@ -443,25 +444,25 @@ export default function UsersPage(root, { navigate } = {}) {
 
     const roleSelect = container.querySelector('#admin-users-role-filter');
     roleSelect?.addEventListener('change', (e) => {
-      selectedRole = e.target.value;
+      selectedRole = (e.target as HTMLInputElement).value;
       loadUsers();
     });
 
     const districtSelect = container.querySelector('#admin-users-district-filter');
     districtSelect?.addEventListener('change', (e) => {
-      selectedDistrict = e.target.value;
+      selectedDistrict = (e.target as HTMLInputElement).value;
       loadUsers();
     });
 
     const restrictionSelect = container.querySelector('#admin-users-restriction-filter');
     restrictionSelect?.addEventListener('change', (e) => {
-      selectedRestriction = e.target.value;
+      selectedRestriction = (e.target as HTMLInputElement).value;
       loadUsers();
     });
 
-    const selectAllBox = container.querySelector('#select-all-users');
+    const selectAllBox = container.querySelector<HTMLInputElement>('#select-all-users');
     selectAllBox?.addEventListener('change', (e) => {
-      const checked = e.target.checked;
+      const checked = (e.target as HTMLInputElement).checked;
       if (checked) {
         for (const u of users) selectedUserIds.add(u.id);
       } else {
@@ -565,7 +566,7 @@ export default function UsersPage(root, { navigate } = {}) {
       chk.checked = selectedUserIds.has(u.id);
       chk.setAttribute('aria-label', `Select user ${u.full_name || u.phone}`);
       chk.addEventListener('change', (e) => {
-        if (e.target.checked) selectedUserIds.add(u.id);
+        if ((e.target as HTMLInputElement).checked) selectedUserIds.add(u.id);
         else selectedUserIds.delete(u.id);
         updateBulkBar();
       });
@@ -593,7 +594,7 @@ export default function UsersPage(root, { navigate } = {}) {
         </div>
       `;
 
-      const goToDetail = (e) => {
+      const goToDetail = (e?) => {
         e?.preventDefault();
         if (typeof navigate === 'function') navigate(`/admin/users/${u.id}`);
         else {
@@ -602,7 +603,7 @@ export default function UsersPage(root, { navigate } = {}) {
         }
       };
 
-      const link = tdUser.querySelector('.user-link');
+      const link = tdUser.querySelector<HTMLElement>('.user-link');
       link?.addEventListener('click', goToDetail);
       link?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -657,7 +658,6 @@ export default function UsersPage(root, { navigate } = {}) {
         label: `🔑 ${t('admin_users.issue_grant', 'Grant')}`,
         variant: 'secondary',
         size: 'sm',
-        title: t('admin_users.grant_title', 'Issue Standing Grant'),
         onClick: () => {
           openGrantDrawer({
             user: u,
@@ -666,12 +666,13 @@ export default function UsersPage(root, { navigate } = {}) {
           });
         },
       });
+      // WHY after the call: Button has no `title` option, so this tooltip was never set.
+      grantBtn.title = t('admin_users.grant_title', 'Issue Standing Grant');
 
       const restrictBtn = Button({
         label: `🛡️ ${t('admin_users.apply_restriction', 'Restrict')}`,
         variant: 'secondary',
         size: 'sm',
-        title: t('admin_users.restrict_title', 'Apply Capability Restriction'),
         onClick: () => {
           openRestrictionEditor({
             user: u,
@@ -679,6 +680,8 @@ export default function UsersPage(root, { navigate } = {}) {
           });
         },
       });
+      // WHY after the call: Button has no `title` option, so this tooltip was never set.
+      restrictBtn.title = t('admin_users.restrict_title', 'Apply Capability Restriction');
 
       actionWrap.append(viewBtn, grantBtn, restrictBtn);
       tdActions.append(actionWrap);

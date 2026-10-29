@@ -1,5 +1,5 @@
 /**
- * AddressesPage.js — Customer Saved Delivery Addresses Book (Prompt 11.3 & IA 1.4).
+ * AddressesPage.ts — Customer Saved Delivery Addresses Book (Prompt 11.3 & IA 1.4).
  *
  * Implements:
  * 1. Complete address book management: list, create, edit, delete, set default.
@@ -22,8 +22,9 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
+import type { PageContext } from '../types.ts';
 
-export default function AddressesPage(root, { navigate } = {}) {
+export default function AddressesPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = () => document.documentElement.lang === 'bn';
 
   const nav = (url, opts = {}) => {
@@ -479,11 +480,11 @@ export function openAddressModal({ address = null, onSaved = null } = {}) {
   // Label Selector logic
   const typePicker = content.querySelector('#type-picker');
   const customWrap = content.querySelector('#custom-label-wrap');
-  const customInput = content.querySelector('#custom-label-input');
+  const customInput = content.querySelector<HTMLInputElement>('#custom-label-input');
 
-  typePicker.querySelectorAll('.address-type-pill').forEach((btn) => {
+  typePicker.querySelectorAll<HTMLElement>('.address-type-pill').forEach((btn) => {
     btn.addEventListener('click', () => {
-      typePicker.querySelectorAll('.address-type-pill').forEach((b) => b.classList.remove('address-type-pill--active'));
+      typePicker.querySelectorAll<HTMLElement>('.address-type-pill').forEach((b) => b.classList.remove('address-type-pill--active'));
       btn.classList.add('address-type-pill--active');
       selectedLabel = btn.dataset.val;
       if (selectedLabel === 'OTHER') {
@@ -497,8 +498,8 @@ export function openAddressModal({ address = null, onSaved = null } = {}) {
 
   // Cascading Selects
   const divSelect = content.querySelector('#modal-division');
-  const distSelect = content.querySelector('#modal-district');
-  const upaSelect = content.querySelector('#modal-upazila');
+  const distSelect = content.querySelector<HTMLInputElement>('#modal-district');
+  const upaSelect = content.querySelector<HTMLInputElement>('#modal-upazila');
 
   BANGLADESH_DIVISIONS.forEach((div) => {
     const opt = document.createElement('option');
@@ -539,17 +540,17 @@ export function openAddressModal({ address = null, onSaved = null } = {}) {
   }
 
   divSelect.addEventListener('change', (e) => {
-    division = e.target.value;
+    division = (e.target as HTMLInputElement).value;
     populateDistricts(division);
   });
 
   distSelect.addEventListener('change', (e) => {
-    district = e.target.value;
+    district = (e.target as HTMLInputElement).value;
     populateUpazilas(division, district);
   });
 
   upaSelect.addEventListener('change', (e) => {
-    upazila = e.target.value;
+    upazila = (e.target as HTMLInputElement).value;
   });
 
   populateDistricts(division);
@@ -584,15 +585,15 @@ export function openAddressModal({ address = null, onSaved = null } = {}) {
       const payload = {
         label: selectedLabel,
         custom_label: selectedLabel === 'OTHER' ? customInput.value.trim() : '',
-        recipient_name: content.querySelector('#modal-rec-name').value.trim(),
-        recipient_phone: normalizeBdPhone(content.querySelector('#modal-rec-phone').value),
+        recipient_name: content.querySelector<HTMLInputElement>('#modal-rec-name').value.trim(),
+        recipient_phone: normalizeBdPhone(content.querySelector<HTMLInputElement>('#modal-rec-phone').value),
         division,
         district,
         upazila: upaSelect.value,
-        address_line: content.querySelector('#modal-address-line').value.trim(),
-        delivery_notes: content.querySelector('#modal-delivery-notes').value.trim(),
-        postal_code: content.querySelector('#modal-postal-code').value.trim(),
-        is_default: content.querySelector('#modal-is-default').checked,
+        address_line: content.querySelector<HTMLInputElement>('#modal-address-line').value.trim(),
+        delivery_notes: content.querySelector<HTMLInputElement>('#modal-delivery-notes').value.trim(),
+        postal_code: content.querySelector<HTMLInputElement>('#modal-postal-code').value.trim(),
+        is_default: content.querySelector<HTMLInputElement>('#modal-is-default').checked,
       };
 
       saveBtn.disabled = true;
@@ -640,9 +641,9 @@ export function openAddressModal({ address = null, onSaved = null } = {}) {
     clearErr('err-modal-district');
     clearErr('err-modal-address');
 
-    const nameVal = content.querySelector('#modal-rec-name').value.trim();
-    const phoneVal = content.querySelector('#modal-rec-phone').value.trim();
-    const addrVal = content.querySelector('#modal-address-line').value.trim();
+    const nameVal = content.querySelector<HTMLInputElement>('#modal-rec-name').value.trim();
+    const phoneVal = content.querySelector<HTMLInputElement>('#modal-rec-phone').value.trim();
+    const addrVal = content.querySelector<HTMLInputElement>('#modal-address-line').value.trim();
 
     if (!nameVal) {
       setErr('err-modal-name', t('customer_addresses.validation_name', 'Please enter recipient name.'), content.querySelector('#modal-rec-name'));
@@ -667,7 +668,6 @@ export function openAddressModal({ address = null, onSaved = null } = {}) {
     title: modalTitle,
     content,
     size: 'lg',
-    closeOnEscape: true,
     closeOnScrim: true,
   });
 

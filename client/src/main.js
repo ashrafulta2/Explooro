@@ -310,7 +310,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.bundle.manage',
         module: 'product_bundling',
-        load: () => import('./pages/saler/BundleStudioPage.js'),
+        load: () => import('./pages/saler/BundleStudioPage.ts'),
       },
       // Prompt 10.6: B2B Wholesale Escrow & Milestone Settlement
       {
@@ -348,7 +348,7 @@ async function bootRouterDemo() {
         // own create/revoke actions still check `platform.apikey.manage`.
         permission: 'platform.apikey.view',
         module: 'open_api',
-        load: () => import('./pages/admin/ApiKeysPage.js'),
+        load: () => import('./pages/admin/ApiKeysPage.ts'),
       },
       {
         path: '/admin/api-keys',
@@ -356,7 +356,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.apikey.view',
         module: 'open_api',
-        load: () => import('./pages/admin/ApiKeysPage.js'),
+        load: () => import('./pages/admin/ApiKeysPage.ts'),
       },
       // Super Admin Platform: Integrations Governance
       {
@@ -382,7 +382,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.settings.view',
         module: 'core',
-        load: () => import('./pages/admin/SettingsPage.js'),
+        load: () => import('./pages/admin/SettingsPage.ts'),
       },
       {
         path: '/admin/settings',
@@ -390,7 +390,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.settings.view',
         module: 'core',
-        load: () => import('./pages/admin/SettingsPage.js'),
+        load: () => import('./pages/admin/SettingsPage.ts'),
       },
       // Language & Default Locale governance. `platform.localization.view` is the read key, the
       // same one navigation.js gates the sidebar entry with — a route guard looser or stricter
@@ -735,7 +735,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.store.manage',
         module: 'physical_shop_status',
-        load: () => import('./pages/supplier/StoreStatusPage.js'),
+        load: () => import('./pages/supplier/StoreStatusPage.ts'),
       },
       // Prompt 4.8: Shop Partner Virtual Storefront Builder
       {
@@ -773,7 +773,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerDashboardPage.js'),
+        load: () => import('./pages/saler/SalerDashboardPage.ts'),
       },
       {
         path: '/saler/dashboard',
@@ -781,7 +781,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerDashboardPage.js'),
+        load: () => import('./pages/saler/SalerDashboardPage.ts'),
       },
       {
         path: '/saler/orders',
@@ -911,7 +911,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/AddressesPage.js'),
+        load: () => import('./pages/customer/AddressesPage.ts'),
       },
       {
         path: '/customer/addresses',
@@ -919,7 +919,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/AddressesPage.js'),
+        load: () => import('./pages/customer/AddressesPage.ts'),
       },
       {
         path: '/addresses',
@@ -927,7 +927,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/AddressesPage.js'),
+        load: () => import('./pages/customer/AddressesPage.ts'),
       },
       // Prompt 11.4: Super Admin Executive Dashboard & System Health
       {
@@ -969,7 +969,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.category.manage',
         module: 'core',
-        load: () => import('./pages/admin/CategoriesPage.js'),
+        load: () => import('./pages/admin/CategoriesPage.ts'),
       },
       {
         path: '/admin/categories',
@@ -977,7 +977,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.category.manage',
         module: 'core',
-        load: () => import('./pages/admin/CategoriesPage.js'),
+        load: () => import('./pages/admin/CategoriesPage.ts'),
       },
       {
         path: '/admin/catalog/batches',
@@ -1235,7 +1235,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.2fa.manage',
         module: 'core',
-        load: () => import('./pages/admin/Staff2faPage.js'),
+        load: () => import('./pages/admin/Staff2faPage.ts'),
       },
       {
         path: '/admin/2fa',
@@ -1243,7 +1243,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.2fa.manage',
         module: 'core',
-        load: () => import('./pages/admin/Staff2faPage.js'),
+        load: () => import('./pages/admin/Staff2faPage.ts'),
       },
       // Super Admin Security: IP Allowlist & Firewall
       {
@@ -1357,7 +1357,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.account.view',
         module: 'core',
-        load: () => import('./pages/admin/UsersPage.js'),
+        load: () => import('./pages/admin/UsersPage.ts'),
       },
       {
         path: '/admin/users/:id',
@@ -1588,7 +1588,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.dispute.arbitrate',
         module: 'dispute_panel',
-        load: () => import('./pages/moderator/DisputePanelPage.js'),
+        load: () => import('./pages/moderator/DisputePanelPage.ts'),
       },
       {
         path: '/disputes/:id',
@@ -1596,7 +1596,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.dispute.arbitrate',
         module: 'dispute_panel',
-        load: () => import('./pages/moderator/DisputePanelPage.js'),
+        load: () => import('./pages/moderator/DisputePanelPage.ts'),
       },
       {
         path: '/moderator/disputes',
@@ -1604,7 +1604,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.dispute.arbitrate',
         module: 'dispute_panel',
-        load: () => import('./pages/moderator/DisputePanelPage.js'),
+        load: () => import('./pages/moderator/DisputePanelPage.ts'),
       },
       {
         path: '/moderator/disputes/:id',
@@ -1612,7 +1612,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.dispute.arbitrate',
         module: 'dispute_panel',
-        load: () => import('./pages/moderator/DisputePanelPage.js'),
+        load: () => import('./pages/moderator/DisputePanelPage.ts'),
       },
       {
         path: '/admin/disputes',
@@ -1620,7 +1620,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.dispute.view_all',
         module: 'dispute_panel',
-        load: () => import('./pages/moderator/DisputePanelPage.js'),
+        load: () => import('./pages/moderator/DisputePanelPage.ts'),
       },
       // Prompt 7.4: Product Approval & Content Moderation Pipeline
       {
@@ -1629,7 +1629,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'moderation.product.approve',
         module: 'product_moderation',
-        load: () => import('./pages/moderator/ModerationQueuePage.js'),
+        load: () => import('./pages/moderator/ModerationQueuePage.ts'),
       },
       {
         path: '/moderator/moderation-queue',
@@ -1637,7 +1637,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'moderation.product.approve',
         module: 'product_moderation',
-        load: () => import('./pages/moderator/ModerationQueuePage.js'),
+        load: () => import('./pages/moderator/ModerationQueuePage.ts'),
       },
       {
         path: '/admin/catalog/moderation',
@@ -1645,7 +1645,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'moderation.product.approve',
         module: 'product_moderation',
-        load: () => import('./pages/moderator/ModerationQueuePage.js'),
+        load: () => import('./pages/moderator/ModerationQueuePage.ts'),
       },
       // Catalog & Products Governance
       {
@@ -1703,7 +1703,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.kyc.approve',
         module: 'supplier_verification',
-        load: () => import('./pages/admin/VerificationCenterPage.js'),
+        load: () => import('./pages/admin/VerificationCenterPage.ts'),
       },
       {
         path: '/admin/users/verification',
@@ -1711,7 +1711,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.kyc.approve',
         module: 'supplier_verification',
-        load: () => import('./pages/admin/VerificationCenterPage.js'),
+        load: () => import('./pages/admin/VerificationCenterPage.ts'),
       },
       {
         path: '/moderator/kyc',
@@ -1719,7 +1719,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.kyc.approve',
         module: 'supplier_verification',
-        load: () => import('./pages/admin/VerificationCenterPage.js'),
+        load: () => import('./pages/admin/VerificationCenterPage.ts'),
       },
       // Prompt 7.6: Moderator Dashboard
       {

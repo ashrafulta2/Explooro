@@ -1,5 +1,5 @@
 /**
- * Staff2faPage.js — Staff Two-Factor Authentication (2FA) Management & Policy Enforcement.
+ * Staff2faPage.ts — Staff Two-Factor Authentication (2FA) Management & Policy Enforcement.
  *
  * Implements:
  * 1. Global Staff 2FA Policy configuration (Enforcement scope, grace period, session TTL).
@@ -16,8 +16,9 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
+import type { PageContext } from '../types.ts';
 
-export default function Staff2faPage(root, { navigate } = {}) {
+export default function Staff2faPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page staff-2fa-page';
@@ -83,7 +84,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
 
   async function handleSavePolicy() {
     isSavingPolicy = true;
-    const saveBtn = container.querySelector('#save-2fa-policy-btn');
+    const saveBtn = container.querySelector<HTMLInputElement>('#save-2fa-policy-btn');
     if (saveBtn) saveBtn.disabled = true;
 
     try {
@@ -100,7 +101,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
   async function handleReset2fa(staff) {
     const confirmed = await confirmDialog({
       title: isBn ? '2FA রিসেট নিশ্চিতকরণ' : 'Confirm 2FA Reset',
-      message: isBn
+      description: isBn
         ? `আপনি কি নিশ্চিত যে ${staff.name} (${staff.email})-এর 2FA রিসেট করতে চান? ব্যবহারকারীকে পরবর্তী লগইনে নতুন করে 2FA কনফিগার করতে হবে।`
         : `Are you sure you want to reset 2FA for ${staff.name} (${staff.email})? The user will be required to re-configure TOTP on next login.`,
       confirmLabel: isBn ? 'হ্যাঁ, 2FA রিসেট করুন' : 'Yes, Reset 2FA',
@@ -439,33 +440,33 @@ export default function Staff2faPage(root, { navigate } = {}) {
     container.querySelector('#save-2fa-policy-btn')?.addEventListener('click', handleSavePolicy);
 
     container.querySelector('#policy-tier-select')?.addEventListener('change', (e) => {
-      policy.enforcement_tier = e.target.value;
+      policy.enforcement_tier = (e.target as HTMLInputElement).value;
     });
 
     container.querySelector('#policy-grace-select')?.addEventListener('change', (e) => {
-      policy.grace_period_days = parseInt(e.target.value, 10);
+      policy.grace_period_days = parseInt((e.target as HTMLInputElement).value, 10);
     });
 
     container.querySelector('#policy-session-select')?.addEventListener('change', (e) => {
-      policy.reauth_hours = parseInt(e.target.value, 10);
+      policy.reauth_hours = parseInt((e.target as HTMLInputElement).value, 10);
     });
 
     container.querySelector('#role-filter-select')?.addEventListener('change', (e) => {
-      roleFilter = e.target.value;
+      roleFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
     container.querySelector('#staff-search-input')?.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       render();
-      const input = container.querySelector('#staff-search-input');
+      const input = container.querySelector<HTMLInputElement>('#staff-search-input');
       if (input) {
         input.focus();
         input.setSelectionRange(input.value.length, input.value.length);
       }
     });
 
-    container.querySelectorAll('.reset-2fa-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.reset-2fa-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const staffId = parseInt(btn.dataset.id, 10);
         const staff = staffList.find((s) => s.id === staffId);
@@ -473,7 +474,7 @@ export default function Staff2faPage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.remind-2fa-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.remind-2fa-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const staffId = parseInt(btn.dataset.id, 10);
         const staff = staffList.find((s) => s.id === staffId);

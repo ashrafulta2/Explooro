@@ -1,5 +1,5 @@
 /**
- * VerificationCenterPage.js — Admin KYC Verification & Trust Center (Prompt 7.5).
+ * VerificationCenterPage.ts — Admin KYC Verification & Trust Center (Prompt 7.5).
  *
  * Implements:
  * 1. Side-by-side submission list and document reviewer workspace.
@@ -29,7 +29,7 @@ function emptyComplianceChecks() {
   return Object.fromEntries(COMPLIANCE_CHECKS.map((c) => [c.key, false]));
 }
 
-export default function VerificationCenterPage(root) {
+export default function VerificationCenterPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'page-container verification-center-page';
 
@@ -296,9 +296,9 @@ export default function VerificationCenterPage(root) {
     modalBackdrop.querySelector('#btn-cancel-reject').addEventListener('click', close);
 
     modalBackdrop.querySelector('#btn-confirm-reject').addEventListener('click', async () => {
-      const reasonEn = modalBackdrop.querySelector('#txt-reject-en').value.trim();
-      const reasonBn = modalBackdrop.querySelector('#txt-reject-bn').value.trim();
-      const confirmBtn = modalBackdrop.querySelector('#btn-confirm-reject');
+      const reasonEn = modalBackdrop.querySelector<HTMLInputElement>('#txt-reject-en').value.trim();
+      const reasonBn = modalBackdrop.querySelector<HTMLInputElement>('#txt-reject-bn').value.trim();
+      const confirmBtn = modalBackdrop.querySelector<HTMLInputElement>('#btn-confirm-reject');
       confirmBtn.disabled = true;
 
       try {
@@ -523,18 +523,18 @@ export default function VerificationCenterPage(root) {
 
   function attachListeners() {
     container.querySelector('#sel-filter-status')?.addEventListener('change', (e) => {
-      currentFilter = e.target.value;
+      currentFilter = (e.target as HTMLInputElement).value;
       fetchQueue();
     });
 
-    container.querySelectorAll('[data-kyc-id]').forEach((row) => {
+    container.querySelectorAll<HTMLElement>('[data-kyc-id]').forEach((row) => {
       row.addEventListener('click', () => {
         const id = row.getAttribute('data-kyc-id');
         loadKycDetails(id);
       });
     });
 
-    container.querySelectorAll('.btn-inspect-doc').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.btn-inspect-doc').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const docId = btn.getAttribute('data-doc-id');
@@ -542,11 +542,11 @@ export default function VerificationCenterPage(root) {
       });
     });
 
-    container.querySelectorAll('.kyc-compliance-check').forEach((box) => {
+    container.querySelectorAll<HTMLInputElement>('.kyc-compliance-check').forEach((box) => {
       box.addEventListener('change', () => {
         complianceChecks[box.dataset.check] = box.checked;
         const done = COMPLIANCE_CHECKS.every((c) => complianceChecks[c.key]);
-        const approveBtn = container.querySelector('#btn-approve-kyc');
+        const approveBtn = container.querySelector<HTMLInputElement>('#btn-approve-kyc');
         const hint = container.querySelector('#kyc-compliance-hint');
         // Toggle in place rather than re-rendering: a full render would rebuild the checkbox the
         // reviewer just clicked and steal focus mid-checklist.

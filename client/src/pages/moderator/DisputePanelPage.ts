@@ -1,5 +1,5 @@
 /**
- * DisputePanelPage.js — Buyer ↔ Shop Partner ↔ Supplier Three-Way Arbitration Workspace (Prompt 7.3).
+ * DisputePanelPage.ts — Buyer ↔ Shop Partner ↔ Supplier Three-Way Arbitration Workspace (Prompt 7.3).
  *
  * Implements:
  * 1. Multi-role dispute queue with SLA urgency sorting and breach alerts.
@@ -16,7 +16,7 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { EvidenceTimeline } from '../../components/dispute/EvidenceTimeline.ts';
 
-export default function DisputePanelPage(root) {
+export default function DisputePanelPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'dispute-panel-page';
   container.style.cssText = `
@@ -208,8 +208,8 @@ export default function DisputePanelPage(root) {
     modalBackdrop.querySelector('#btn-cancel-modal').addEventListener('click', () => modalBackdrop.remove());
 
     modalBackdrop.querySelector('#btn-confirm-verdict').addEventListener('click', async () => {
-      const outcome = modalBackdrop.querySelector('#sel-outcome').value;
-      const notes = modalBackdrop.querySelector('#txt-resolution-notes').value.trim();
+      const outcome = modalBackdrop.querySelector<HTMLInputElement>('#sel-outcome').value;
+      const notes = modalBackdrop.querySelector<HTMLInputElement>('#txt-resolution-notes').value.trim();
       modalBackdrop.remove();
 
       await handleArbitrate({
@@ -596,21 +596,21 @@ export default function DisputePanelPage(root) {
   function attachListeners() {
     container.querySelector('#btn-refresh-disputes')?.addEventListener('click', fetchDisputes);
 
-    container.querySelectorAll('.btn-dispute-tab').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.btn-dispute-tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         currentTab = btn.getAttribute('data-tab');
         fetchDisputes();
       });
     });
 
-    container.querySelectorAll('.dispute-item-row').forEach((row) => {
+    container.querySelectorAll<HTMLElement>('.dispute-item-row').forEach((row) => {
       row.addEventListener('click', () => {
         const id = row.getAttribute('data-id');
         selectDispute(id);
       });
     });
 
-    container.querySelectorAll('.btn-subview-tab').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.btn-subview-tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeView = btn.getAttribute('data-view');
         render();
@@ -618,11 +618,11 @@ export default function DisputePanelPage(root) {
     });
 
     container.querySelector('#chk-internal-note')?.addEventListener('change', (e) => {
-      isInternalNote = e.target.checked;
+      isInternalNote = (e.target as HTMLInputElement).checked;
     });
 
     container.querySelector('#btn-send-message')?.addEventListener('click', async () => {
-      const txt = container.querySelector('#txt-dispute-message');
+      const txt = container.querySelector<HTMLTextAreaElement>('#txt-dispute-message');
       const val = txt?.value?.trim();
       if (!val) return;
       await handleSendMessage(val);

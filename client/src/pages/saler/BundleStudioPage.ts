@@ -1,5 +1,5 @@
 /**
- * BundleStudioPage.js — Cross-Seller Product Bundling & Surge Pricing Studio (Prompt 10.5).
+ * BundleStudioPage.ts — Cross-Seller Product Bundling & Surge Pricing Studio (Prompt 10.5).
  *
  * Implements idea proposition.md §AC & §AF.
  *
@@ -30,8 +30,9 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import type { PageContext } from '../types.ts';
 
-export default function BundleStudioPage(root, ctx) {
+export default function BundleStudioPage(root: HTMLElement, ctx: PageContext) {
   const container = document.createElement('div');
   container.className = 'saler-page-container';
   container.setAttribute('data-module', 'product_bundling');
@@ -93,10 +94,10 @@ export default function BundleStudioPage(root, ctx) {
   container.append(header, contentArea);
 
   // Tab switching
-  header.querySelectorAll('.saler-mode-btn').forEach((btn) => {
+  header.querySelectorAll<HTMLElement>('.saler-mode-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       activeTab = btn.getAttribute('data-tab');
-      header.querySelectorAll('.saler-mode-btn').forEach((b) => {
+      header.querySelectorAll<HTMLElement>('.saler-mode-btn').forEach((b) => {
         const isCurrent = b.getAttribute('data-tab') === activeTab;
         if (isCurrent) b.classList.add('active');
         else b.classList.remove('active');
@@ -206,14 +207,14 @@ export default function BundleStudioPage(root, ctx) {
     contentArea.append(grid);
 
     // Wire interactions
-    const priceInput = detailsCard.querySelector('#bundle-price-input');
+    const priceInput = detailsCard.querySelector<HTMLInputElement>('#bundle-price-input');
     priceInput.addEventListener('input', () => {
       recalculateBreakdown(breakdownWidget);
     });
 
     const searchInput = catalogCard.querySelector('#catalog-search-input');
     searchInput.addEventListener('input', (e) => {
-      renderCatalogGrid(e.target.value);
+      renderCatalogGrid((e.target as HTMLInputElement).value);
     });
 
     // Populate catalog
@@ -259,7 +260,7 @@ export default function BundleStudioPage(root, ctx) {
         </div>
       `).join('');
 
-      pickerGrid.querySelectorAll('.saler-bundle-picker-item').forEach((card) => {
+      pickerGrid.querySelectorAll<HTMLElement>('.saler-bundle-picker-item').forEach((card) => {
         card.addEventListener('click', () => {
           const pId = parseInt(card.getAttribute('data-product-id'), 10);
           const prod = availableProducts.find((p) => p.product_id === pId);
@@ -307,7 +308,7 @@ export default function BundleStudioPage(root, ctx) {
         </div>
       `).join('');
 
-      shelfList.querySelectorAll('.btn-qty-plus').forEach((b) => {
+      shelfList.querySelectorAll<HTMLElement>('.btn-qty-plus').forEach((b) => {
         b.addEventListener('click', () => {
           const idx = parseInt(b.getAttribute('data-index'), 10);
           selectedItems[idx].qty += 1;
@@ -316,7 +317,7 @@ export default function BundleStudioPage(root, ctx) {
         });
       });
 
-      shelfList.querySelectorAll('.btn-qty-minus').forEach((b) => {
+      shelfList.querySelectorAll<HTMLElement>('.btn-qty-minus').forEach((b) => {
         b.addEventListener('click', () => {
           const idx = parseInt(b.getAttribute('data-index'), 10);
           if (selectedItems[idx].qty > 1) {
@@ -329,7 +330,7 @@ export default function BundleStudioPage(root, ctx) {
         });
       });
 
-      shelfList.querySelectorAll('.btn-remove-item').forEach((b) => {
+      shelfList.querySelectorAll<HTMLElement>('.btn-remove-item').forEach((b) => {
         b.addEventListener('click', () => {
           const idx = parseInt(b.getAttribute('data-index'), 10);
           selectedItems.splice(idx, 1);
@@ -372,9 +373,9 @@ export default function BundleStudioPage(root, ctx) {
     }
 
     async function handlePublishBundle() {
-      const titleEn = detailsCard.querySelector('#bundle-title-en')?.value?.trim();
-      const titleBn = detailsCard.querySelector('#bundle-title-bn')?.value?.trim();
-      const bundlePrice = parseFloat(detailsCard.querySelector('#bundle-price-input')?.value || 0);
+      const titleEn = detailsCard.querySelector<HTMLInputElement>('#bundle-title-en')?.value?.trim();
+      const titleBn = detailsCard.querySelector<HTMLInputElement>('#bundle-title-bn')?.value?.trim();
+      const bundlePrice = parseFloat(detailsCard.querySelector<HTMLInputElement>('#bundle-price-input')?.value || '0');
 
       if (!titleEn || !titleBn) {
         toast.error(t('bundle.error_titles_required'));
@@ -480,7 +481,7 @@ export default function BundleStudioPage(root, ctx) {
       </div>
     `;
 
-    tabContainer.querySelectorAll('.toggle-bundle-btn').forEach((btn) => {
+    tabContainer.querySelectorAll<HTMLElement>('.toggle-bundle-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         const isActive = btn.getAttribute('data-active') === 'true';
@@ -495,7 +496,7 @@ export default function BundleStudioPage(root, ctx) {
       });
     });
 
-    tabContainer.querySelectorAll('.copy-bundle-link-btn').forEach((btn) => {
+    tabContainer.querySelectorAll<HTMLElement>('.copy-bundle-link-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const ref = btn.getAttribute('data-ref');
         const url = `${window.location.origin}/bundle/${ref}`;
@@ -504,7 +505,7 @@ export default function BundleStudioPage(root, ctx) {
       });
     });
 
-    tabContainer.querySelectorAll('.delete-bundle-btn').forEach((btn) => {
+    tabContainer.querySelectorAll<HTMLElement>('.delete-bundle-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         if (!confirm(t('bundle.confirm_delete'))) return;
         const id = btn.getAttribute('data-id');
@@ -584,7 +585,7 @@ export default function BundleStudioPage(root, ctx) {
       `}
     `;
 
-    tabContainer.querySelectorAll('.accept-surge-btn').forEach((btn) => {
+    tabContainer.querySelectorAll<HTMLElement>('.accept-surge-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         try {
@@ -598,7 +599,7 @@ export default function BundleStudioPage(root, ctx) {
       });
     });
 
-    tabContainer.querySelectorAll('.dismiss-surge-btn').forEach((btn) => {
+    tabContainer.querySelectorAll<HTMLElement>('.dismiss-surge-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.getAttribute('data-id');
         try {

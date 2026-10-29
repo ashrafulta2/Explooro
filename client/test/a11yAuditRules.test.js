@@ -486,7 +486,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
   });
 
   await t.test('20. saler onboarding step labels satisfy WCAG AA contrast', () => {
-    const pagePath = path.join(clientRoot, 'src', 'pages', 'saler', 'SalerDashboardPage.js');
+    const pagePath = path.join(clientRoot, 'src', 'pages', 'saler', 'SalerDashboardPage.ts');
     const cssPath = path.join(clientRoot, 'src', 'styles', 'components', 'saler.css');
     const pageContent = fs.readFileSync(pagePath, 'utf8');
     const cssContent = fs.readFileSync(cssPath, 'utf8');

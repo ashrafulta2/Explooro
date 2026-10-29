@@ -1,5 +1,5 @@
 /**
- * CategoriesPage.js — Platform Catalog Categories & Commission Governance (Admin).
+ * CategoriesPage.ts — Platform Catalog Categories & Commission Governance (Admin).
  *
  * Implements:
  * 1. Category KPI Strip (Total Categories, Main Categories, Subcategories, Avg Commission, GMV share).
@@ -19,8 +19,9 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { loadCategoriesStyles } from '../../styles/loadCategoriesStyles.ts';
+import type { PageContext } from '../types.ts';
 
-export default function CategoriesPage(root, { navigate } = {}) {
+export default function CategoriesPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadCategoriesStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -260,8 +261,8 @@ export default function CategoriesPage(root, { navigate } = {}) {
     `;
 
     // Real-time interactivity inside modal
-    const nameEnInput = content.querySelector('#cat-name-en');
-    const slugInput = content.querySelector('#cat-slug');
+    const nameEnInput = content.querySelector<HTMLInputElement>('#cat-name-en');
+    const slugInput = content.querySelector<HTMLInputElement>('#cat-slug');
     let slugManual = Boolean(categoryToEdit?.slug);
 
     slugInput?.addEventListener('input', () => {
@@ -270,21 +271,21 @@ export default function CategoriesPage(root, { navigate } = {}) {
 
     nameEnInput?.addEventListener('input', (e) => {
       if (!slugManual) {
-        slugInput.value = e.target.value
+        slugInput.value = (e.target as HTMLInputElement).value
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
           .replace(/(^-|-$)/g, '');
       }
     });
 
-    const iconInput = content.querySelector('#cat-icon');
+    const iconInput = content.querySelector<HTMLInputElement>('#cat-icon');
     const iconPreview = content.querySelector('#cat-icon-preview');
 
     iconInput?.addEventListener('input', (e) => {
-      iconPreview.textContent = e.target.value || '📦';
+      iconPreview.textContent = (e.target as HTMLInputElement).value || '📦';
     });
 
-    content.querySelectorAll('.cat-emoji-chip').forEach((chip) => {
+    content.querySelectorAll<HTMLElement>('.cat-emoji-chip').forEach((chip) => {
       chip.addEventListener('click', () => {
         const emoji = chip.dataset.emoji;
         if (emoji && iconInput) {
@@ -296,7 +297,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
 
     const bannerInput = content.querySelector('#cat-banner');
     const bannerPreview = content.querySelector('#cat-banner-preview');
-    const bannerImg = content.querySelector('#cat-banner-img');
+    const bannerImg = content.querySelector<HTMLInputElement>('#cat-banner-img');
 
     // A dead/unreachable banner URL must hide the preview box, not leave the browser's
     // broken-image icon sitting in the form.
@@ -304,7 +305,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
     bannerImg?.addEventListener('load', () => bannerPreview?.classList.add('is-visible'));
 
     bannerInput?.addEventListener('input', (e) => {
-      const url = e.target.value.trim();
+      const url = (e.target as HTMLInputElement).value.trim();
       if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
         bannerImg.src = url;
       } else {
@@ -315,22 +316,22 @@ export default function CategoriesPage(root, { navigate } = {}) {
     // Form Submission
     async function submitForm() {
       const formData = new FormData(content);
-      const name_en = (formData.get('name_en') || '').trim();
-      const name_bn = (formData.get('name_bn') || '').trim();
-      const icon = (formData.get('icon') || '').trim() || '📦';
-      const commission_pct = parseFloat(formData.get('commission_pct')) || 8.0;
+      const name_en = String(formData.get('name_en') || '').trim();
+      const name_bn = String(formData.get('name_bn') || '').trim();
+      const icon = String(formData.get('icon') || '').trim() || '📦';
+      const commission_pct = parseFloat(String(formData.get('commission_pct'))) || 8.0;
       const parent_id = formData.get('parent_id') ? Number(formData.get('parent_id')) : null;
-      let slug = (formData.get('slug') || '').trim();
+      let slug = String(formData.get('slug') || '').trim();
       if (!slug) {
         slug = name_en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `category-${Date.now()}`;
       }
-      const banner_url = (formData.get('banner_url') || '').trim();
+      const banner_url = String(formData.get('banner_url') || '').trim();
       const is_active = formData.get('is_active') === 'on';
 
       if (!name_en || !name_bn) {
         toast.error(t('admin_categories.please_enter_both_english_and'));
         if (!name_en) nameEnInput?.focus();
-        else content.querySelector('#cat-name-bn')?.focus();
+        else content.querySelector<HTMLInputElement>('#cat-name-bn')?.focus();
         return;
       }
 
@@ -645,9 +646,9 @@ export default function CategoriesPage(root, { navigate } = {}) {
     const searchInput = container.querySelector('#cat-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value;
+        searchQuery = (e.target as HTMLInputElement).value;
         render();
-        const input = root.querySelector('#cat-search-input');
+        const input = root.querySelector<HTMLInputElement>('#cat-search-input');
         if (input) {
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
@@ -656,12 +657,12 @@ export default function CategoriesPage(root, { navigate } = {}) {
     }
 
     container.querySelector('#level-filter-select')?.addEventListener('change', (e) => {
-      levelFilter = e.target.value;
+      levelFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
     container.querySelector('#status-filter-select')?.addEventListener('change', (e) => {
-      statusFilter = e.target.value;
+      statusFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
@@ -673,7 +674,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
     });
 
     // Toggle active status
-    container.querySelectorAll('.toggle-status-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.toggle-status-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = Number(btn.getAttribute('data-id'));
         const cat = categories.find((c) => c.id === id);
@@ -688,12 +689,12 @@ export default function CategoriesPage(root, { navigate } = {}) {
 
     // A dead/unreachable banner URL must not leave the browser's broken-image icon sitting
     // inline next to the category name — just drop the "has a banner" indicator.
-    container.querySelectorAll('.cat-banner-thumb').forEach((img) => {
+    container.querySelectorAll<HTMLElement>('.cat-banner-thumb').forEach((img) => {
       img.addEventListener('error', () => img.remove(), { once: true });
     });
 
     // Edit Category
-    container.querySelectorAll('.edit-cat-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.edit-cat-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const id = Number(btn.getAttribute('data-id'));
         const cat = categories.find((c) => c.id === id);
@@ -702,7 +703,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
     });
 
     // Add Subcategory
-    container.querySelectorAll('.add-sub-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.add-sub-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const parentId = Number(btn.getAttribute('data-id'));
         openCategoryModal(null, parentId);
@@ -710,7 +711,7 @@ export default function CategoriesPage(root, { navigate } = {}) {
     });
 
     // Delete Category
-    container.querySelectorAll('.delete-cat-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.delete-cat-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = Number(btn.getAttribute('data-id'));
         const cat = categories.find((c) => c.id === id);

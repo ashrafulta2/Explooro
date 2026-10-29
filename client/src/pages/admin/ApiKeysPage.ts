@@ -1,5 +1,5 @@
 /**
- * ApiKeysPage.js — Developer Portal, Scoped API Keys, Webhook DLQ & Embeddable Widget Studio (Prompt 10.7).
+ * ApiKeysPage.ts — Developer Portal, Scoped API Keys, Webhook DLQ & Embeddable Widget Studio (Prompt 10.7).
  *
  * Implements /admin/platform/api-keys and /admin/api-keys:
  * - Scoped API key generator with Phase 2 RBAC permissions.
@@ -28,8 +28,9 @@ import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import type { PageContext } from '../types.ts';
 
-export default function ApiKeysPage(root, { navigate } = {}) {
+export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'admin-page api-keys-page';
 
@@ -145,7 +146,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       </div>
     `;
 
-    tabNav.querySelectorAll('.admin-filter-tab').forEach((btn) => {
+    tabNav.querySelectorAll<HTMLElement>('.admin-filter-tab').forEach((btn) => {
       btn.addEventListener('click', () => {
         activeTab = btn.getAttribute('data-tab');
         renderTabNav();
@@ -253,12 +254,12 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       </table>
     `;
 
-    tableWrap.querySelectorAll('.rotate-btn').forEach((btn) => {
+    tableWrap.querySelectorAll<HTMLElement>('.rotate-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = parseInt(btn.getAttribute('data-id'), 10);
         const confirmed = await confirmDialog({
           title: t('developer.btn_rotate', 'Rotate API Key'),
-          message: t('developer.confirm_rotate'),
+          description: t('developer.confirm_rotate'),
           confirmLabel: t('developer.btn_rotate', 'Rotate'),
           variant: 'warning',
         });
@@ -275,12 +276,12 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       });
     });
 
-    tableWrap.querySelectorAll('.revoke-btn').forEach((btn) => {
+    tableWrap.querySelectorAll<HTMLElement>('.revoke-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = parseInt(btn.getAttribute('data-id'), 10);
         const confirmed = await confirmDialog({
           title: t('developer.btn_revoke', 'Revoke API Key'),
-          message: t('developer.confirm_revoke'),
+          description: t('developer.confirm_revoke'),
           confirmLabel: t('developer.btn_revoke', 'Revoke'),
           variant: 'danger',
         });
@@ -343,19 +344,21 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       </div>
     `;
 
-    const modal = Modal({
-      title: `🔑 ${t('developer.create_key_modal_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.create'),
-      onConfirm: async () => {
-        const name = modalContent.querySelector('#modal-key-name')?.value?.trim();
-        const rateLimit = parseInt(modalContent.querySelector('#modal-rate-limit')?.value, 10) || 60;
-        const ips = (modalContent.querySelector('#modal-ip-allowlist')?.value || '')
+    // WHY a footer and `content`: Modal has no `body`, `confirmLabel` or `onConfirm`, and `modal.element` is
+    // undefined (the modal IS the <dialog>), so this dialog used to open as a bare title with no button.
+    const confirmBtn = Button({ label: t('common.create'), variant: 'primary' });
+    const footer = document.createDocumentFragment();
+    footer.append(confirmBtn);
+    const modal = Modal({ title: `🔑 ${t('developer.create_key_modal_title')}`, content: modalContent, footer });
+    confirmBtn.addEventListener('click', async () => {
+        const name = modalContent.querySelector<HTMLInputElement>('#modal-key-name')?.value?.trim();
+        const rateLimit = parseInt(modalContent.querySelector<HTMLInputElement>('#modal-rate-limit')?.value ?? '', 10) || 60;
+        const ips = (modalContent.querySelector<HTMLInputElement>('#modal-ip-allowlist')?.value || '')
           .split(',')
           .map((s) => s.trim())
           .filter(Boolean);
 
-        const scopes = Array.from(modalContent.querySelectorAll('input[name="scope"]:checked')).map((c) => c.value);
+        const scopes = Array.from(modalContent.querySelectorAll<HTMLInputElement>('input[name="scope"]:checked')).map((c) => c.value);
 
         if (!name) {
           toast.error(t('developer.error_name_required'));
@@ -378,10 +381,9 @@ export default function ApiKeysPage(root, { navigate } = {}) {
         } catch (err) {
           toast.error(err?.message || 'Failed to create API key');
         }
-      },
     });
 
-    document.body.append(modal.element);
+    document.body.append(modal);
     modal.open();
   }
 
@@ -410,14 +412,14 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       toast.success(t('developer.token_copied'));
     });
 
-    const modal = Modal({
-      title: `🔒 ${t('developer.token_reveal_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.done'),
-      onConfirm: () => modal.close(),
-    });
+    // WHY a footer and `content`: Modal has no `body`, `confirmLabel` or `onConfirm`, and `modal.element` is
+    // undefined (the modal IS the <dialog>), so this dialog used to show the new token nowhere.
+    const doneBtn = Button({ label: t('common.done'), variant: 'primary', onClick: () => modal.close() });
+    const footer = document.createDocumentFragment();
+    footer.append(doneBtn);
+    const modal = Modal({ title: `🔒 ${t('developer.token_reveal_title')}`, content: modalContent, footer });
 
-    document.body.append(modal.element);
+    document.body.append(modal);
     modal.open();
   }
 
@@ -482,7 +484,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
         card.querySelector('.delete-sub-btn')?.addEventListener('click', async () => {
           const confirmed = await confirmDialog({
             title: t('common.delete', 'Delete Webhook'),
-            message: t('developer.confirm_delete_webhook'),
+            description: t('developer.confirm_delete_webhook'),
             confirmLabel: t('common.delete', 'Delete'),
             variant: 'danger',
           });
@@ -560,7 +562,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       </table>
     `;
 
-    delivTable.querySelectorAll('.replay-btn').forEach((btn) => {
+    delivTable.querySelectorAll<HTMLElement>('.replay-btn').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = parseInt(btn.getAttribute('data-id'), 10);
         try {
@@ -611,13 +613,15 @@ export default function ApiKeysPage(root, { navigate } = {}) {
       </div>
     `;
 
-    const modal = Modal({
-      title: `📡 ${t('developer.add_webhook_modal_title')}`,
-      body: modalContent,
-      confirmLabel: t('common.create'),
-      onConfirm: async () => {
-        const url = modalContent.querySelector('#modal-webhook-url')?.value?.trim();
-        const events = Array.from(modalContent.querySelectorAll('input[name="wh-event"]:checked')).map((c) => c.value);
+    // WHY a footer and `content`: Modal has no `body`, `confirmLabel` or `onConfirm`, and `modal.element` is
+    // undefined (the modal IS the <dialog>), so this dialog used to open as a bare title with no button.
+    const confirmBtn = Button({ label: t('common.create'), variant: 'primary' });
+    const footer = document.createDocumentFragment();
+    footer.append(confirmBtn);
+    const modal = Modal({ title: `📡 ${t('developer.add_webhook_modal_title')}`, content: modalContent, footer });
+    confirmBtn.addEventListener('click', async () => {
+        const url = modalContent.querySelector<HTMLInputElement>('#modal-webhook-url')?.value?.trim();
+        const events = Array.from(modalContent.querySelectorAll<HTMLInputElement>('input[name="wh-event"]:checked')).map((c) => c.value);
 
         if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
           toast.error(t('developer.error_url_required'));
@@ -636,10 +640,9 @@ export default function ApiKeysPage(root, { navigate } = {}) {
         } catch (err) {
           toast.error(err?.message || 'Failed to create webhook');
         }
-      },
     });
 
-    document.body.append(modal.element);
+    document.body.append(modal);
     modal.open();
   }
 
@@ -691,12 +694,12 @@ export default function ApiKeysPage(root, { navigate } = {}) {
     `;
 
     function updateSnippetAndPreview() {
-      const limit = parseInt(controlsCard.querySelector('#widget-limit-input')?.value || '4', 10);
-      const lang = controlsCard.querySelector('#widget-lang-select')?.value || 'en';
+      const limit = parseInt(controlsCard.querySelector<HTMLInputElement>('#widget-limit-input')?.value || '4', 10);
+      const lang = controlsCard.querySelector<HTMLInputElement>('#widget-lang-select')?.value || 'en';
 
       const snippet = `<!-- Explooro Embeddable Showcase -->\n<div id="explooro-widget"></div>\n<script src="${window.location.origin}/widget.js" data-container="#explooro-widget" data-limit="${limit}" data-lang="${lang}" async></script>`;
 
-      const snippetArea = controlsCard.querySelector('#widget-embed-snippet');
+      const snippetArea = controlsCard.querySelector<HTMLInputElement>('#widget-embed-snippet');
       if (snippetArea) snippetArea.value = snippet;
 
       // Render simulated preview
@@ -722,7 +725,7 @@ export default function ApiKeysPage(root, { navigate } = {}) {
     controlsCard.querySelector('#widget-lang-select')?.addEventListener('change', updateSnippetAndPreview);
 
     controlsCard.querySelector('#copy-snippet-btn')?.addEventListener('click', () => {
-      const snippet = controlsCard.querySelector('#widget-embed-snippet')?.value;
+      const snippet = controlsCard.querySelector<HTMLInputElement>('#widget-embed-snippet')?.value;
       if (snippet) {
         navigator.clipboard.writeText(snippet);
         toast.success(t('developer.snippet_copied'));

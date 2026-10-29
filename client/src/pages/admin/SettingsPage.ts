@@ -1,5 +1,5 @@
 /**
- * SettingsPage.js — Super Admin Platform Governance & Global Master Settings Engine.
+ * SettingsPage.ts — Super Admin Platform Governance & Global Master Settings Engine.
  *
  * Implements /admin/platform/settings & /admin/settings:
  * 1. General & regional configuration (Platform name, support contacts, base currency, timezone).
@@ -21,8 +21,9 @@ import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatDate } from '../../services/format.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SettingsPage(root, { navigate } = {}) {
+export default function SettingsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page settings-page';
@@ -32,7 +33,7 @@ export default function SettingsPage(root, { navigate } = {}) {
   let isLoading = true;
   let isSaving = false;
   let hasUnsavedChanges = false;
-  let formState = {};
+  let formState: Record<string, any> = {};
 
   // Drawer state
   let showHistoryDrawer = false;
@@ -63,7 +64,7 @@ export default function SettingsPage(root, { navigate } = {}) {
   }
 
   function updateSaveButtonState() {
-    const saveBtn = container.querySelector('#save-settings-btn');
+    const saveBtn = container.querySelector<HTMLInputElement>('#save-settings-btn');
     if (saveBtn) {
       saveBtn.disabled = !hasUnsavedChanges || isSaving;
       if (hasUnsavedChanges) {
@@ -77,7 +78,7 @@ export default function SettingsPage(root, { navigate } = {}) {
   async function handleResetDefaults() {
     const confirmed = await confirmDialog({
       title: t('platform_settings.btn_reset_defaults', 'Reset to Defaults'),
-      message: isBn
+      description: isBn
         ? 'আপনি কি নিশ্চিতভাবে সমস্ত প্ল্যাটফর্ম সেটিংস সিস্টেমের প্রাথমিক ফ্যাক্টরি মানে রিসেট করতে চান?'
         : 'Are you sure you want to reset all global platform governance parameters to factory baseline?',
       confirmLabel: isBn ? 'রিসেট করুন' : 'Reset Defaults',
@@ -137,7 +138,7 @@ export default function SettingsPage(root, { navigate } = {}) {
     modalContent.querySelector('.cancel-save-btn')?.addEventListener('click', () => modal.close());
 
     modalContent.querySelector('.confirm-save-btn')?.addEventListener('click', async () => {
-      const reason = modalContent.querySelector('#save-audit-reason')?.value.trim();
+      const reason = modalContent.querySelector<HTMLInputElement>('#save-audit-reason')?.value.trim();
       modal.close();
       await executeSave(reason);
     });
@@ -170,7 +171,7 @@ export default function SettingsPage(root, { navigate } = {}) {
     const infoCol = document.createElement('div');
     infoCol.innerHTML = `
       <div class="admin-page-eyebrow">
-        ${Badge({ label: t('platform_settings.badge_governance', 'GLOBAL GOVERNANCE'), variant: 'primary' })}
+        ${Badge({ label: t('platform_settings.badge_governance', 'GLOBAL GOVERNANCE'), variant: 'primary' }).outerHTML}
         <span class="text-xs text-secondary font-mono">Policy Cluster: BD-CORE</span>
       </div>
       <h1 class="admin-page-title">${t('platform_settings.title', 'Platform Governance & Global Settings')}</h1>
@@ -198,12 +199,14 @@ export default function SettingsPage(root, { navigate } = {}) {
     });
 
     const saveBtn = Button({
-      id: 'save-settings-btn',
       label: `💾 ${t('platform_settings.btn_save_changes', 'Save Platform Settings')}`,
       variant: 'primary',
       disabled: !hasUnsavedChanges || isSaving,
       onClick: openSaveConfirmModal,
     });
+    // WHY after the call: Button has no `id` option, so the lookup of '#save-settings-btn' further up
+    // never found it and the button's disabled state could not be refreshed without a full re-render.
+    saveBtn.id = 'save-settings-btn';
 
     actionsCol.append(historyBtn, resetBtn, saveBtn);
     header.append(infoCol, actionsCol);
@@ -255,7 +258,7 @@ export default function SettingsPage(root, { navigate } = {}) {
           <h2 class="settings-section-title">🏢 ${t('platform_settings.sec_general', 'General & Regional Parameters')}</h2>
           <p class="settings-section-desc">Marketplace brand identity, customer support hotlines, currency, and locale defaults.</p>
         </div>
-        ${Badge({ label: 'Core Info', variant: 'neutral' })}
+        ${Badge({ label: 'Core Info', variant: 'neutral' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
@@ -297,7 +300,7 @@ export default function SettingsPage(root, { navigate } = {}) {
           <h2 class="settings-section-title">⏳ ${t('platform_settings.sec_escrow', 'Escrow & Settlement Governance')}</h2>
           <p class="settings-section-desc">Safety escrow holding rules protecting buyer deliveries and B2B wholesale milestones.</p>
         </div>
-        ${Badge({ label: 'CRITICAL AUDITED', variant: 'danger' })}
+        ${Badge({ label: 'CRITICAL AUDITED', variant: 'danger' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
@@ -340,7 +343,7 @@ export default function SettingsPage(root, { navigate } = {}) {
           <h2 class="settings-section-title">💸 ${t('platform_settings.sec_payout', 'Vault & Payout Thresholds')}</h2>
           <p class="settings-section-desc">Earner withdrawal minimums, maximum batch caps, and cutoff windows for bKash/Nagad/Bank.</p>
         </div>
-        ${Badge({ label: 'Vault Policy', variant: 'warning' })}
+        ${Badge({ label: 'Vault Policy', variant: 'warning' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
@@ -380,7 +383,7 @@ export default function SettingsPage(root, { navigate } = {}) {
           <h2 class="settings-section-title">🛍️ ${t('platform_settings.sec_commission', 'Commission & Margin Guardrails')}</h2>
           <p class="settings-section-desc">Baseline platform take rates and minimum merchant profit protections.</p>
         </div>
-        ${Badge({ label: 'Margin Engine', variant: 'neutral' })}
+        ${Badge({ label: 'Margin Engine', variant: 'neutral' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
@@ -407,7 +410,7 @@ export default function SettingsPage(root, { navigate } = {}) {
           <h2 class="settings-section-title">🛡️ ${t('platform_settings.sec_security', 'Security & Staff Access Policies')}</h2>
           <p class="settings-section-desc">Administrative credential protection, 2FA mandates, and session security.</p>
         </div>
-        ${Badge({ label: 'Security Core', variant: 'primary' })}
+        ${Badge({ label: 'Security Core', variant: 'primary' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field--full">
@@ -440,7 +443,7 @@ export default function SettingsPage(root, { navigate } = {}) {
           <h2 class="settings-section-title text-danger">🚨 ${t('platform_settings.sec_emergency', 'Emergency Controls & Killswitches')}</h2>
           <p class="settings-section-desc">Emergency platform pause and database read-only mutation freeze.</p>
         </div>
-        ${Badge({ label: 'KILLSWITCH', variant: 'danger' })}
+        ${Badge({ label: 'KILLSWITCH', variant: 'danger' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field--full">
@@ -476,34 +479,34 @@ export default function SettingsPage(root, { navigate } = {}) {
     container.append(formGrid);
 
     // Bind Change Listeners for all inputs
-    sec1.querySelector('#set-platform-name')?.addEventListener('input', (e) => handleFieldChange('platform_name', e.target.value));
-    sec1.querySelector('#set-support-email')?.addEventListener('input', (e) => handleFieldChange('support_email', e.target.value));
-    sec1.querySelector('#set-support-phone')?.addEventListener('input', (e) => handleFieldChange('support_phone', e.target.value));
-    sec1.querySelector('#set-default-lang')?.addEventListener('change', (e) => handleFieldChange('default_language', e.target.value));
+    sec1.querySelector('#set-platform-name')?.addEventListener('input', (e) => handleFieldChange('platform_name', (e.target as HTMLInputElement).value));
+    sec1.querySelector('#set-support-email')?.addEventListener('input', (e) => handleFieldChange('support_email', (e.target as HTMLInputElement).value));
+    sec1.querySelector('#set-support-phone')?.addEventListener('input', (e) => handleFieldChange('support_phone', (e.target as HTMLInputElement).value));
+    sec1.querySelector('#set-default-lang')?.addEventListener('change', (e) => handleFieldChange('default_language', (e.target as HTMLInputElement).value));
 
-    sec2.querySelector('#set-escrow-days')?.addEventListener('input', (e) => handleFieldChange('escrow_period_days', parseInt(e.target.value || 7, 10)));
-    sec2.querySelector('#set-b2b-escrow-days')?.addEventListener('input', (e) => handleFieldChange('b2b_escrow_days', parseInt(e.target.value || 14, 10)));
-    sec2.querySelector('#set-auto-sweep')?.addEventListener('change', (e) => handleFieldChange('auto_sweep_enabled', e.target.checked));
-    sec2.querySelector('#set-dispute-freeze')?.addEventListener('change', (e) => handleFieldChange('dispute_auto_freeze', e.target.checked));
+    sec2.querySelector('#set-escrow-days')?.addEventListener('input', (e) => handleFieldChange('escrow_period_days', parseInt((e.target as HTMLInputElement).value || '7', 10)));
+    sec2.querySelector('#set-b2b-escrow-days')?.addEventListener('input', (e) => handleFieldChange('b2b_escrow_days', parseInt((e.target as HTMLInputElement).value || '14', 10)));
+    sec2.querySelector('#set-auto-sweep')?.addEventListener('change', (e) => handleFieldChange('auto_sweep_enabled', (e.target as HTMLInputElement).checked));
+    sec2.querySelector('#set-dispute-freeze')?.addEventListener('change', (e) => handleFieldChange('dispute_auto_freeze', (e.target as HTMLInputElement).checked));
 
-    sec3.querySelector('#set-min-saler-payout')?.addEventListener('input', (e) => handleFieldChange('min_saler_payout_bdt', parseFloat(e.target.value || 500)));
-    sec3.querySelector('#set-min-sup-payout')?.addEventListener('input', (e) => handleFieldChange('min_supplier_payout_bdt', parseFloat(e.target.value || 1000)));
-    sec3.querySelector('#set-max-payout')?.addEventListener('input', (e) => handleFieldChange('max_single_payout_bdt', parseFloat(e.target.value || 100000)));
-    sec3.querySelector('#set-cutoff-time')?.addEventListener('input', (e) => handleFieldChange('payout_cutoff_time', e.target.value));
-    sec3.querySelector('#set-payout-fee')?.addEventListener('change', (e) => handleFieldChange('payout_fee_covered', e.target.checked));
+    sec3.querySelector('#set-min-saler-payout')?.addEventListener('input', (e) => handleFieldChange('min_saler_payout_bdt', parseFloat((e.target as HTMLInputElement).value || '500')));
+    sec3.querySelector('#set-min-sup-payout')?.addEventListener('input', (e) => handleFieldChange('min_supplier_payout_bdt', parseFloat((e.target as HTMLInputElement).value || '1000')));
+    sec3.querySelector('#set-max-payout')?.addEventListener('input', (e) => handleFieldChange('max_single_payout_bdt', parseFloat((e.target as HTMLInputElement).value || '100000')));
+    sec3.querySelector('#set-cutoff-time')?.addEventListener('input', (e) => handleFieldChange('payout_cutoff_time', (e.target as HTMLInputElement).value));
+    sec3.querySelector('#set-payout-fee')?.addEventListener('change', (e) => handleFieldChange('payout_fee_covered', (e.target as HTMLInputElement).checked));
 
-    sec4.querySelector('#set-platform-take')?.addEventListener('input', (e) => handleFieldChange('platform_take_pct', parseFloat(e.target.value || 10.0)));
-    sec4.querySelector('#set-min-seller-margin')?.addEventListener('input', (e) => handleFieldChange('min_seller_margin_pct', parseFloat(e.target.value || 5.0)));
-    sec4.querySelector('#set-free-quota')?.addEventListener('input', (e) => handleFieldChange('merchant_free_quota', parseInt(e.target.value || 100, 10)));
+    sec4.querySelector('#set-platform-take')?.addEventListener('input', (e) => handleFieldChange('platform_take_pct', parseFloat((e.target as HTMLInputElement).value || '10')));
+    sec4.querySelector('#set-min-seller-margin')?.addEventListener('input', (e) => handleFieldChange('min_seller_margin_pct', parseFloat((e.target as HTMLInputElement).value || '5')));
+    sec4.querySelector('#set-free-quota')?.addEventListener('input', (e) => handleFieldChange('merchant_free_quota', parseInt((e.target as HTMLInputElement).value || '100', 10)));
 
-    sec5.querySelector('#set-staff-2fa')?.addEventListener('change', (e) => handleFieldChange('staff_2fa_enforced', e.target.checked));
-    sec5.querySelector('#set-session-timeout')?.addEventListener('input', (e) => handleFieldChange('session_timeout_minutes', parseInt(e.target.value || 60, 10)));
-    sec5.querySelector('#set-max-login-attempts')?.addEventListener('input', (e) => handleFieldChange('max_login_attempts', parseInt(e.target.value || 5, 10)));
+    sec5.querySelector('#set-staff-2fa')?.addEventListener('change', (e) => handleFieldChange('staff_2fa_enforced', (e.target as HTMLInputElement).checked));
+    sec5.querySelector('#set-session-timeout')?.addEventListener('input', (e) => handleFieldChange('session_timeout_minutes', parseInt((e.target as HTMLInputElement).value || '60', 10)));
+    sec5.querySelector('#set-max-login-attempts')?.addEventListener('input', (e) => handleFieldChange('max_login_attempts', parseInt((e.target as HTMLInputElement).value || '5', 10)));
 
-    sec6.querySelector('#set-maintenance-mode')?.addEventListener('change', (e) => handleFieldChange('maintenance_mode', e.target.checked));
-    sec6.querySelector('#set-read-only-mode')?.addEventListener('change', (e) => handleFieldChange('read_only_mode', e.target.checked));
-    sec6.querySelector('#set-maint-msg-en')?.addEventListener('input', (e) => handleFieldChange('maintenance_message_en', e.target.value));
-    sec6.querySelector('#set-maint-msg-bn')?.addEventListener('input', (e) => handleFieldChange('maintenance_message_bn', e.target.value));
+    sec6.querySelector('#set-maintenance-mode')?.addEventListener('change', (e) => handleFieldChange('maintenance_mode', (e.target as HTMLInputElement).checked));
+    sec6.querySelector('#set-read-only-mode')?.addEventListener('change', (e) => handleFieldChange('read_only_mode', (e.target as HTMLInputElement).checked));
+    sec6.querySelector('#set-maint-msg-en')?.addEventListener('input', (e) => handleFieldChange('maintenance_message_en', (e.target as HTMLInputElement).value));
+    sec6.querySelector('#set-maint-msg-bn')?.addEventListener('input', (e) => handleFieldChange('maintenance_message_bn', (e.target as HTMLInputElement).value));
 
     // 5. Change History Drawer
     if (showHistoryDrawer) {

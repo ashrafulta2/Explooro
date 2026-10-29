@@ -1,7 +1,7 @@
 /**
  * categories-page.css — Category Management & Modal Enhancements (/admin/catalog/categories).
  *
- * Imported by pages/admin/CategoriesPage.js ONLY, never by main.css. That keeps it in the
+ * Imported by pages/admin/CategoriesPage.ts ONLY, never by main.css. That keeps it in the
  * route's own chunk instead of the entry bundle, preserving the CSS performance budget.
  */
 
