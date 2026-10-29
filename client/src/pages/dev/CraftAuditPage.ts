@@ -38,6 +38,16 @@ function highlightElement(el) {
   }, 4000);
 }
 
+/**
+ * `tag.firstClass` for a finding's target. WHY getAttribute: an SVG element's `className` is an
+ * `SVGAnimatedString`, not a string, so `.split` threw the moment the audit met an icon and the page
+ * rendered empty. For HTML elements the attribute and `className` are the same string.
+ */
+function selectorOf(el: Element): string {
+  const cls = el.getAttribute('class');
+  return `${el.tagName.toLowerCase()}${cls ? '.' + cls.split(' ')[0] : ''}`;
+}
+
 export function runCraftAudit(root = document.body) {
   const findings = [];
   if (!root) return findings;
@@ -65,7 +75,7 @@ export function runCraftAudit(root = document.body) {
         type: 'PURE_GRAY_COLOR',
         category: 'Colour Craft',
         message: `Element uses pure untinted gray color: ${color}. Neutral tokens carry chroma, never R===G===B.`,
-        target: `${el.tagName.toLowerCase()}${el.className ? '.' + el.className.split(' ')[0] : ''}`,
+        target: selectorOf(el),
         element: el,
       });
     }
@@ -83,7 +93,7 @@ export function runCraftAudit(root = document.body) {
         type: 'UNTRACKED_DISPLAY_TEXT',
         category: 'Typography',
         message: `Display heading (${fontSize}px) has normal tracking. Use optical tracking tokens (--tracking-2xl..5xl).`,
-        target: `${el.tagName.toLowerCase()}${el.className ? '.' + el.className.split(' ')[0] : ''}`,
+        target: selectorOf(el),
         element: el,
       });
     }
@@ -108,7 +118,7 @@ export function runCraftAudit(root = document.body) {
             type: 'NESTED_RADIUS_VIOLATION',
             category: 'Geometry',
             message: `Child has same border-radius (${childRadius}px) as padded parent. Should be max(0, ${parentRadius}px - ${parentPadding}px).`,
-            target: `${child.tagName.toLowerCase()}${child.className ? '.' + child.className.split(' ')[0] : ''}`,
+            target: selectorOf(child),
             element: child,
           });
         }
@@ -126,7 +136,7 @@ export function runCraftAudit(root = document.body) {
         type: 'LINEAR_TRANSITION',
         category: 'Motion',
         message: `Interactive element uses linear transition timing. Use --ease-standard or --ease-spring.`,
-        target: `${el.tagName.toLowerCase()}${el.className ? '.' + el.className.split(' ')[0] : ''}`,
+        target: selectorOf(el),
         element: el,
       });
     }
@@ -143,7 +153,7 @@ export function runCraftAudit(root = document.body) {
         type: 'NON_TABULAR_NUMERAL',
         category: 'Typography',
         message: `Numeric element is missing tabular-nums. Add .text-numeric to prevent digit jitter.`,
-        target: `${el.tagName.toLowerCase()}${el.className ? '.' + el.className.split(' ')[0] : ''}`,
+        target: selectorOf(el),
         element: el,
       });
     }
