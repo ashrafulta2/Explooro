@@ -1,5 +1,5 @@
 /**
- * TeamPurchasePage.js — Customer Social Group Buying & Team Purchases Hub (Prompt 9.5).
+ * TeamPurchasePage.ts — Customer Social Group Buying & Team Purchases Hub (Prompt 9.5).
  *
  * Implements:
  * 1. Pinduoduo-style viral team purchase view (/team/:id and /account/team-purchases).
@@ -21,6 +21,7 @@ import { formatCurrency } from '../services/format.ts';
 import { toast } from '../services/toast.ts';
 import { bindBackControl, renderBackLink } from '../core/navBack.ts';
 import '../styles/components/team-purchases.css';
+import type { PageContext } from './types.ts';
 
 const DEFAULT_FALLBACK_TEAMS = [
   {
@@ -208,7 +209,19 @@ const CURATED_TEAM_DEAL_PRODUCTS = [
 ];
 
 export class TeamPurchasePage {
-  constructor(params = {}, navigate = null, query = {}) {
+  teamId: string | null;
+  navigate: ((path: string, options?: { replace?: boolean }) => void) | null;
+  query: Record<string, any>;
+  team: any = null;
+  myTeams: any[] = [];
+  exploreTeams: any[] = [];
+  activeFilter: string;
+  loading = true;
+  rootEl: HTMLElement | null = null;
+  timerInterval: ReturnType<typeof setInterval> | null = null;
+  unsubscribeLang: (() => void) | null = null;
+
+  constructor(params: Record<string, any> = {}, navigate = null, query: Record<string, any> = {}) {
     this.teamId = params?.id || null;
     this.navigate = navigate;
     this.query = query || {};
@@ -249,7 +262,7 @@ export class TeamPurchasePage {
     }
   }
 
-  navTo(url, opts = {}) {
+  navTo(url, opts: { replace?: boolean } = {}) {
     if (typeof this.navigate === 'function') {
       this.navigate(url, opts);
     } else {
@@ -286,7 +299,7 @@ export class TeamPurchasePage {
           this.team.remaining_seconds = this._computeRemaining(this.team);
         }
       } else {
-        const [myRes, publicRes] = await Promise.all([
+        const [myRes, publicRes]: Record<string, any>[] = await Promise.all([
           api.get('/account/team-purchases').catch(() => ({ team_purchases: [] })),
           api.get('/team-purchases').catch(() => ({ team_purchases: [] })),
         ]);
@@ -1124,9 +1137,9 @@ export class TeamPurchasePage {
     }
 
     // Filter tabs
-    this.rootEl.querySelectorAll('.team-tab-btn').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.team-tab-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        const filter = e.currentTarget.dataset.filter;
+        const filter = (e.currentTarget as HTMLElement).dataset.filter;
         if (filter && filter !== this.activeFilter) {
           this.activeFilter = filter;
           if (filter === 'explore') {
@@ -1140,9 +1153,9 @@ export class TeamPurchasePage {
     });
 
     // Copy buttons
-    this.rootEl.querySelectorAll('.btn-copy-card-link').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.btn-copy-card-link').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        const url = e.currentTarget.dataset.url;
+        const url = (e.currentTarget as HTMLElement).dataset.url;
         if (url) {
           navigator.clipboard.writeText(url);
           toast.success(isBn ? 'টিম লিংক কপি করা হয়েছে!' : 'Team link copied to clipboard!');
@@ -1151,10 +1164,10 @@ export class TeamPurchasePage {
     });
 
     // View Team SPA links
-    this.rootEl.querySelectorAll('.btn-view-team').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.btn-view-team').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        const id = e.currentTarget.dataset.id;
+        const id = (e.currentTarget as HTMLElement).dataset.id;
         if (id) {
           this.teamId = id;
           this.navTo(`/team/${id}`);
@@ -1164,10 +1177,10 @@ export class TeamPurchasePage {
     });
 
     // Join explore deal buttons
-    this.rootEl.querySelectorAll('.btn-join-explore-deal').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.btn-join-explore-deal').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        const id = e.currentTarget.dataset.id;
+        const id = (e.currentTarget as HTMLElement).dataset.id;
         if (id) {
           this.teamId = id;
           this.navTo(`/team/${id}`);
@@ -1177,10 +1190,10 @@ export class TeamPurchasePage {
     });
 
     // Start team product buttons
-    this.rootEl.querySelectorAll('.btn-start-team-product').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.btn-start-team-product').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        const slug = e.currentTarget.dataset.slug;
+        const slug = (e.currentTarget as HTMLElement).dataset.slug;
         if (slug) {
           this.navTo(`/product/${slug}`);
         }
@@ -1210,7 +1223,7 @@ export class TeamPurchasePage {
       });
     }
 
-    this.rootEl.querySelectorAll('.btn-explore-deals').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.btn-explore-deals').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         this.teamId = null;
@@ -1272,7 +1285,7 @@ export class TeamPurchasePage {
   }
 }
 
-export default function mountTeamPurchasePage(root, ctx = {}) {
+export default function mountTeamPurchasePage(root: HTMLElement, ctx: PageContext = {}) {
   const page = new TeamPurchasePage(ctx.params, ctx.navigate, ctx.query);
   page.mount(root, ctx.params, ctx.navigate, ctx.query);
   return () => page.unmount();

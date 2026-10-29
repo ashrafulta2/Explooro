@@ -1662,7 +1662,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.product.view_all',
         module: 'core',
-        load: () => import('./pages/admin/CatalogProductsPage.js'),
+        load: () => import('./pages/admin/CatalogProductsPage.ts'),
       },
       {
         path: '/admin/products',
@@ -1670,7 +1670,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.product.view_all',
         module: 'core',
-        load: () => import('./pages/admin/CatalogProductsPage.js'),
+        load: () => import('./pages/admin/CatalogProductsPage.ts'),
       },
       {
         path: '/supplier/products',
@@ -1678,7 +1678,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.product.manage_own',
         module: 'core',
-        load: () => import('./pages/admin/CatalogProductsPage.js'),
+        load: () => import('./pages/admin/CatalogProductsPage.ts'),
       },
       {
         path: '/saler/products',
@@ -2045,7 +2045,7 @@ async function bootRouterDemo() {
         requiresAuth: false,
         permission: null,
         module: 'group_buying',
-        load: () => import('./pages/TeamPurchasePage.js'),
+        load: () => import('./pages/TeamPurchasePage.ts'),
       },
       {
         path: '/team/:id',
@@ -2053,7 +2053,7 @@ async function bootRouterDemo() {
         requiresAuth: false,
         permission: null,
         module: 'group_buying',
-        load: () => import('./pages/TeamPurchasePage.js'),
+        load: () => import('./pages/TeamPurchasePage.ts'),
       },
       {
         path: '/account/team-purchases',
@@ -2061,7 +2061,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'group_buying',
-        load: () => import('./pages/TeamPurchasePage.js'),
+        load: () => import('./pages/TeamPurchasePage.ts'),
       },
       // Prompt 9.6: Abandoned Cart Recovery & Insights
       {

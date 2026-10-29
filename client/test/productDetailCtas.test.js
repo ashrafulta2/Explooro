@@ -130,7 +130,7 @@ describe('Product Detail CTAs — Chat with Shop Partner & Team Purchase Invaria
   });
 
   it('8. TeamPurchasePage detail view has structured status banner, constrained product media, and slots card', () => {
-    const pageSrc = readFileSync(join(root, 'src/pages/TeamPurchasePage.js'), 'utf8');
+    const pageSrc = readFileSync(join(root, 'src/pages/TeamPurchasePage.ts'), 'utf8');
     const cssSrc = readFileSync(join(root, 'src/styles/components/team-purchases.css'), 'utf8');
 
     assert.ok(cssSrc.includes('.team-status-banner'), 'team-purchases.css must define .team-status-banner');

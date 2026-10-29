@@ -23,7 +23,7 @@ const bn = JSON.parse(read('src/locales/bn.json'));
 
 const formSrc = read('src/components/product/TeamCheckoutForm.ts');
 const modalSrc = read('src/components/product/TeamPurchaseModal.ts');
-const pageSrc = read('src/pages/TeamPurchasePage.js');
+const pageSrc = read('src/pages/TeamPurchasePage.ts');
 const adminSrc = read('src/pages/admin/AdminGroupBuyPage.ts');
 
 describe('Team purchase checkout form', () => {

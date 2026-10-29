@@ -129,7 +129,7 @@ These are real and were left open on purpose. Do not assume they were missed.
    the seeded Postgres. Two related defects surfaced while wiring it and were fixed with it:
    - The page read `p.stock` and `p.category`, but the live API returns `stock_qty` and
      `category_name_en` — against a real server every row rendered as *Out of Stock* in the category
-     *General*. `normalizeProducts()` in `CatalogProductsPage.js` now bridges the two shapes.
+     *General*. `normalizeProducts()` in `CatalogProductsPage.ts` now bridges the two shapes.
    - `verified_suppliers_count` counted *products whose supplier is verified* under a KPI labelled
      "Verified Suppliers". Both the endpoint and the mock now count distinct suppliers.
 3. **The Module Control fix is mock-side.** `server/src/routes/module.routes.ts` already serves

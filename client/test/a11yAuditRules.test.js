@@ -173,7 +173,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
       'team-btn-share-wa must use #052e16 for WCAG AA/AAA compliant contrast on #25d366'
     );
 
-    const teamPagePath = path.join(clientRoot, 'src', 'pages', 'TeamPurchasePage.js');
+    const teamPagePath = path.join(clientRoot, 'src', 'pages', 'TeamPurchasePage.ts');
     const teamPage = fs.readFileSync(teamPagePath, 'utf8');
 
     assert.match(

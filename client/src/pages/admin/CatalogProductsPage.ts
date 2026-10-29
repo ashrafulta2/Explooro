@@ -1,5 +1,5 @@
 /**
- * CatalogProductsPage.js — Platform Catalog & Products Governance (Admin).
+ * CatalogProductsPage.ts — Platform Catalog & Products Governance (Admin).
  *
  * Implements:
  * 1. KPI Overview Strip (Total Products, Active/In-Stock, Low Stock, Categories, Total Inventory Value).
@@ -26,6 +26,7 @@ import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/produ
 import { ImageUploader } from '../../components/media/ImageUploader.ts';
 import { can } from '../../services/permissions.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
+import type { PageContext } from '../types.ts';
 
 // Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.ts — the API rejects more.
 const MAX_PRODUCT_PHOTOS = 8;
@@ -49,7 +50,7 @@ function attachImageFallback(img, title, ref, placeholderClassName) {
       // data-src on click) so replacing the <img> doesn't silently break that behaviour.
       if (img.dataset) {
         Object.entries(img.dataset).forEach(([key, value]) => {
-          placeholder.dataset[key] = value;
+          placeholder.dataset[key] = value as string;
         });
       }
       img.replaceWith(placeholder);
@@ -58,13 +59,13 @@ function attachImageFallback(img, title, ref, placeholderClassName) {
   );
 }
 
-export default function CatalogProductsPage(root, { navigate } = {}) {
+export default function CatalogProductsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'catalog-page';
 
   let products = [];
-  let stats = {
+  let stats: Record<string, any> = {
     total_products: 0,
     in_stock_count: 0,
     low_stock_count: 0,
@@ -227,7 +228,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   searchInput.addEventListener('input', (e) => {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
-      searchQuery = e.target.value.trim().toLowerCase();
+      searchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
       renderContent();
     }, 200);
   });
@@ -257,7 +258,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
   categorySelect.innerHTML = `<option value="ALL">${t('admin_catalog.all_categories', 'All Categories')}</option>` +
     categoriesList.map((c) => `<option value="${c}">${c}</option>`).join('');
   categorySelect.addEventListener('change', (e) => {
-    selectedCategory = e.target.value;
+    selectedCategory = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
@@ -272,7 +273,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     <option value="OUT_OF_STOCK">${t('admin_catalog.out_of_stock_only', 'Out of Stock (0)')}</option>
   `;
   stockSelect.addEventListener('change', (e) => {
-    selectedStockStatus = e.target.value;
+    selectedStockStatus = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
@@ -287,7 +288,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     <option value="standard">Standard Tier</option>
   `;
   tierSelect.addEventListener('change', (e) => {
-    selectedSupplierTier = e.target.value;
+    selectedSupplierTier = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
@@ -301,7 +302,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     <option value="REGULAR">${t('admin_catalog.regular_only', 'Regular Pricing')}</option>
   `;
   flashSaleSelect.addEventListener('change', (e) => {
-    selectedFlashSale = e.target.value;
+    selectedFlashSale = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
@@ -318,7 +319,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
     <option value="rating_desc">${t('admin_catalog.sort_rating_desc', 'Rating: Top Rated')}</option>
   `;
   sortSelect.addEventListener('change', (e) => {
-    sortBy = e.target.value;
+    sortBy = (e.target as HTMLInputElement).value;
     renderContent();
   });
 
@@ -536,7 +537,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
     const selectAllBox = table.querySelector('#select-all-header');
     selectAllBox?.addEventListener('change', (e) => {
-      if (e.target.checked) {
+      if ((e.target as HTMLInputElement).checked) {
         items.forEach((p) => selectedRefs.add(p.ref));
       } else {
         items.forEach((p) => selectedRefs.delete(p.ref));
@@ -633,7 +634,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
       // Checkbox click
       tr.querySelector('.row-checkbox')?.addEventListener('change', (e) => {
-        if (e.target.checked) {
+        if ((e.target as HTMLInputElement).checked) {
           selectedRefs.add(p.ref);
         } else {
           selectedRefs.delete(p.ref);
@@ -642,7 +643,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       });
 
       // Actions click
-      tr.querySelectorAll('.inspect-link, .inspect-btn').forEach((btn) => {
+      tr.querySelectorAll<HTMLElement>('.inspect-link, .inspect-btn').forEach((btn) => {
         btn.addEventListener('click', () => openProductDrawer(p));
       });
 
@@ -854,7 +855,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
   // WHY: the product API takes a real category_id, not a display name — load the live list.
   // `isSelected(category)` preselects the product's current category in the edit modal.
-  function fillCategoryOptions(selectEl, isSelected = () => false) {
+  function fillCategoryOptions(selectEl, isSelected: (c?: any) => boolean = () => false) {
     return api
       .get('/catalog/categories')
       .then((res) => {
@@ -987,7 +988,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
                 ? 'margin_pct'
                 : null;
         if (invalid) {
-          const el = form.querySelector(`[name="${invalid}"]`);
+          const el = form.querySelector<HTMLInputElement>(`[name="${invalid}"]`);
           el?.focus();
           el?.setAttribute('aria-invalid', 'true');
           toast.error(t('admin_catalog.validation_error', 'Please fill in required fields.'));
@@ -1013,7 +1014,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         const baseCost = Math.round(price * (1 - marginPct / 100) * 100) / 100;
         const titleBn = formData.get('title_bn')?.toString().trim() || titleEn;
 
-        const payload = {
+        const payload: Record<string, any> = {
           category_id: categoryId,
           title_en: titleEn,
           title_bn: titleBn,
@@ -1048,8 +1049,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       submitBtn.click();
     });
     // Clear the red "invalid" outline as soon as the user edits the field it was put on.
-    form.addEventListener('input', (e) => e.target.removeAttribute?.('aria-invalid'));
-    form.addEventListener('change', (e) => e.target.removeAttribute?.('aria-invalid'));
+    form.addEventListener('input', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
+    form.addEventListener('change', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
 
     modalFooter.append(cancelBtn, submitBtn);
 
@@ -1138,7 +1139,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
 
     // Values are assigned as properties, never interpolated into the markup: a title containing a
     // quote (e.g. 42" TV) used to break out of value="…" and truncate the field.
-    const field = (name) => form.querySelector(`[name="${name}"]`);
+    const field = (name) => form.querySelector<HTMLInputElement>(`[name="${name}"]`);
     const retailOf = (p) => parseFloat(p.default_retail_price ?? p.price) || 0;
     const marginOf = (p) => {
       const retail = retailOf(p);
@@ -1155,7 +1156,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       field('brand').value = p.brand || '';
       field('price').value = retailOf(p) ? retailOf(p).toFixed(2) : '';
       field('stock').value = p.stock_qty ?? p.stock ?? 0;
-      field('margin_pct').value = marginOf(p);
+      field('margin_pct').value = String(marginOf(p));
       field('partner_profit').value = p.partner_profit != null ? Number(p.partner_profit).toFixed(2) : '';
       field('description_en').value = p.description_en || '';
       field('description_bn').value = p.description_bn || '';
@@ -1267,7 +1268,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         // Field names are the live column names (PATCH /products/:idOrRef → product.repository
         // updateProduct's allow-list). The old payload (category name, price, stock, margin_pct,
         // image_url, district, is_flash_sale) matched none of them, so every edit was a no-op.
-        const payload = {
+        const payload: Record<string, any> = {
           title_en: titleEn,
           title_bn: str('title_bn') || titleEn,
           category_id: categoryId,
@@ -1316,8 +1317,8 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       e.preventDefault();
       saveBtn.click();
     });
-    form.addEventListener('input', (e) => e.target.removeAttribute?.('aria-invalid'));
-    form.addEventListener('change', (e) => e.target.removeAttribute?.('aria-invalid'));
+    form.addEventListener('input', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
+    form.addEventListener('change', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
 
     modalFooter.append(cancelBtn, saveBtn);
 
@@ -1421,7 +1422,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
       ${single ? `<p class="catalog-form-hint" data-slot="preview" aria-live="polite"></p>` : ''}
     `;
 
-    const field = (n) => form.querySelector(`[name="${n}"]`);
+    const field = (n) => form.querySelector<HTMLInputElement>(`[name="${n}"]`);
     const priceAfter = (p, pct) => Math.round(Number(p.price) * (1 - pct / 100) * 100) / 100;
     const preview = form.querySelector('[data-slot="preview"]');
     const updatePreview = () => {
@@ -1436,7 +1437,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
           : '';
     };
     form.addEventListener('input', (e) => {
-      e.target.removeAttribute?.('aria-invalid');
+      (e.target as HTMLElement).removeAttribute?.('aria-invalid');
       updatePreview();
     });
 
@@ -1546,7 +1547,7 @@ export default function CatalogProductsPage(root, { navigate } = {}) {
         <span class="catalog-form-hint">${t('admin_catalog.restock_hint', 'Added on top of current stock, including any sales since this page loaded.')}</span>
       </div>
     `;
-    const qtyEl = form.querySelector('[name="quantity"]');
+    const qtyEl = form.querySelector<HTMLInputElement>('[name="quantity"]');
     qtyEl.addEventListener('input', () => qtyEl.removeAttribute('aria-invalid'));
 
     const cancelBtn = Button({ label: t('common.cancel', 'Cancel'), variant: 'secondary', size: 'sm', onClick: () => modal.close() });

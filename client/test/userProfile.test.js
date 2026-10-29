@@ -43,7 +43,7 @@ const ACCOUNT_PAGES = [
   { prefix: 'coins-page', rootClass: 'coins-page', css: 'customer-coins', js: 'src/pages/customer/CoinsPage.ts' },
   { prefix: 'coupons-page', rootClass: 'coupons-page', css: 'customer-coupons', js: 'src/pages/customer/CouponsPage.ts' },
   { prefix: 'wishlist-page', rootClass: 'wishlist-page', css: 'wishlist', js: 'src/pages/customer/WishlistPage.ts' },
-  { prefix: 'team-page', rootClass: 'team-purchases-page', css: 'team-purchases', js: 'src/pages/TeamPurchasePage.js' },
+  { prefix: 'team-page', rootClass: 'team-purchases-page', css: 'team-purchases', js: 'src/pages/TeamPurchasePage.ts' },
   { prefix: 'following-page', rootClass: 'following-page', css: 'customer-following', js: 'src/pages/customer/FollowingFeedPage.ts' },
   { prefix: 'reviews-page', rootClass: 'reviews-page', css: 'customer-reviews', js: 'src/pages/customer/ReviewsPage.ts' },
   { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrdersPage.ts' },
