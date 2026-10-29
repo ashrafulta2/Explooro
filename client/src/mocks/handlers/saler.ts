@@ -1,7 +1,8 @@
 /**
- * saler.js — Mock handlers for the Shop Partner Dashboard, Analytics, Products, Orders, Store Status, Payouts & Quests.
+ * saler.ts — Mock handlers for the Shop Partner Dashboard, Analytics, Products, Orders, Store Status, Payouts & Quests.
  */
 import { listMockChatThreads, appendMockMessage, SELF } from './chat.ts';
+import type { MockRoute } from '../types.ts';
 
 const SEEDED_ONBOARDING_STEPS = [
   {
@@ -66,7 +67,7 @@ function buildTrends(range) {
 
 // ── In-Memory State for Shop Partner Features ──────────────────────────────────────
 
-let mockSalerProducts = [
+let mockSalerProducts: Record<string, any>[] = [
   {
     id: 1,
     product_id: 1,
@@ -1064,4 +1065,4 @@ export default [
       return { status: 200, body: { data: proView() } };
     },
   },
-];
+] satisfies MockRoute[];

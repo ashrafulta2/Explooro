@@ -6,7 +6,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { mockQuote } from '../src/mocks/handlers/live.js';
+import { mockQuote } from '../src/mocks/handlers/live.ts';
 import { mockDeliveryCharge } from '../src/mocks/handlers/delivery.ts';
 
 const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');

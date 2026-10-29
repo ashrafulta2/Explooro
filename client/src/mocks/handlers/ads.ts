@@ -1,11 +1,14 @@
 /**
- * ads.js — Mock API for the ad marketplace (catalogue, quoting, inventory, campaigns, pricing).
+ * ads.ts — Mock API for the ad marketplace (catalogue, quoting, inventory, campaigns, pricing).
  *
  * WHY the pricing math is repeated here: mocks stand in for the server, and the server's authority
  * on price is server/src/services/adPricing.ts. This file mirrors that engine closely enough for
  * VITE_API_MODE=mock to behave like the real thing — same line items, same discount/fee/VAT order,
  * same error codes. When a rate rule changes, change it there first, then mirror it here.
  */
+
+
+import type { MockRoute } from '../types.ts';
 
 const PREPAID_MODELS = ['FLAT_DAILY', 'FLAT_SLOT', 'CPS'];
 
@@ -14,7 +17,7 @@ const DEFAULT_TIER_DISCOUNTS = { STARTER: 0, VERIFIED_TRADER: 5, ELITE_PARTNER: 
 /** The signed-in shop partner's trust tier in mock mode — drives the loyalty discount on every quote. */
 const MOCK_TIER = 'VERIFIED_TRADER';
 
-let mockAdProducts = [
+let mockAdProducts: Record<string, any>[] = [
   // Mirrors migration 087: the one format every account type may buy.
   {
     id: 99,
@@ -465,7 +468,7 @@ function buildQuote(product, input, tier) {
   const total = afterDiscount + serviceFee + vat;
   const billingMode = PREPAID_MODELS.includes(product.pricing_model) ? 'PREPAID' : 'METERED';
 
-  const quote = {
+  const quote: Record<string, any> = {
     ad_product_key: product.key,
     pricing_model: product.pricing_model,
     billing_mode: billingMode,
@@ -529,7 +532,7 @@ const mockPromotableProducts = [
 // 12,400 accounts, each narrowing condition keeping a fixed share, so the number moves as it would.
 const MOCK_DIVISIONS = ['Barishal', 'Chattogram', 'Dhaka', 'Khulna', 'Mymensingh', 'Rajshahi', 'Rangpur', 'Sylhet'];
 const MOCK_MIN_AUDIENCE = 20;
-function mockEstimate(audience = {}) {
+function mockEstimate(audience: Record<string, any> = {}) {
   const a = audience || {};
   let people = 12400;
   if ((a.roles || []).length) people *= Math.min(1, 0.35 * a.roles.length + (a.roles.includes('customer') ? 0.45 : 0));
@@ -835,6 +838,6 @@ const adsHandlers = [
   },
   { method: 'POST', path: '/ads/impressions', handler() { return { status: 200, body: { recorded: true, billed: false } }; } },
   { method: 'POST', path: '/ads/clicks', handler() { return { status: 200, body: { recorded: true } }; } },
-];
+] satisfies MockRoute[];
 
 export default adsHandlers;

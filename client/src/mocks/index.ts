@@ -7,7 +7,7 @@
  * page routes, reusing its `matchPath` so the two systems agree on `:param` syntax.
  */
 import { matchPath, parseQuery } from '../core/router.js';
-import productHandlers from './handlers/products.js';
+import productHandlers from './handlers/products.ts';
 import discoveryHandlers from './handlers/discovery.ts';
 import storeHandlers from './handlers/stores.ts';
 import accessHandlers from './handlers/access.ts';
@@ -23,18 +23,18 @@ import { contentHandlers } from './handlers/content.ts';
 import supplierHandlers from './handlers/supplier.ts';
 import sampleKitHandlers from './handlers/sampleKit.ts';
 import payoutProtectionHandlers from './handlers/payoutProtection.ts';
-import salerHandlers from './handlers/saler.js';
+import salerHandlers from './handlers/saler.ts';
 import adminHandlers from './handlers/admin.js';
 import moduleHandlers from './handlers/modules.ts';
 import pageAccessHandlers from './handlers/pageAccess.ts';
 import vaultHandlers from './handlers/vault.ts';
-import liveHandlers from './handlers/live.js';
+import liveHandlers from './handlers/live.ts';
 import warrantyHandlers from './handlers/warranty.ts';
 import moderatorHandlers from './handlers/moderator.ts';
 import disputeHandlers from './handlers/disputes.ts';
 import returnHandlers from './handlers/returns.ts';
 import campaignHandlers from './handlers/campaigns.ts';
-import adsHandlers from './handlers/ads.js';
+import adsHandlers from './handlers/ads.ts';
 import themeHandlers from './handlers/theme.ts';
 import { localizationHandlers } from './handlers/localization.ts';
 import { genieHandlers } from './handlers/genie.ts';

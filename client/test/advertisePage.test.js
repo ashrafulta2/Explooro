@@ -102,7 +102,7 @@ describe('advertise strings and wiring', () => {
   });
 
   it('mock mode answers the wizard endpoints', () => {
-    const mocks = read('../src/mocks/handlers/ads.js');
+    const mocks = read('../src/mocks/handlers/ads.ts');
     for (const p of ["'/ads/easy/options'", "'/ads/audience-estimate'", "key: 'easy_boost'"]) assert.ok(mocks.includes(p), p);
   });
 });

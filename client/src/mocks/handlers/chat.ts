@@ -35,7 +35,7 @@ function resolveSelf(value) {
 const minutesAgo = (m) => new Date(Date.now() - m * 60_000).toISOString();
 
 /**
- * Shared thread seeds. `saler.js` serves the same three rows from `/saler/inbox/threads` so the
+ * Shared thread seeds. `saler.ts` serves the same three rows from `/saler/inbox/threads` so the
  * Unified Inbox and the /chat workspace never disagree about a thread's ref, channel or unread
  * count — the two surfaces read the same conversation.
  */

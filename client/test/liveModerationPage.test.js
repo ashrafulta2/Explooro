@@ -12,7 +12,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import liveHandlers from '../src/mocks/handlers/live.js';
+import liveHandlers from '../src/mocks/handlers/live.ts';
 
 const root = path.resolve(import.meta.dirname, '..', '..');
 const readText = (rel) => fs.readFileSync(path.resolve(root, rel), 'utf8');

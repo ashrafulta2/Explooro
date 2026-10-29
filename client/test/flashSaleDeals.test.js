@@ -6,7 +6,7 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const flashWidgetSrc = fs.readFileSync(path.resolve(root, 'src/components/product/FlashSaleWidget.ts'), 'utf8');
 const homeSrc = fs.readFileSync(path.resolve(root, 'src/pages/HomePage.js'), 'utf8');
-const productsMockSrc = fs.readFileSync(path.resolve(root, 'src/mocks/handlers/products.js'), 'utf8');
+const productsMockSrc = fs.readFileSync(path.resolve(root, 'src/mocks/handlers/products.ts'), 'utf8');
 const cssSrc = fs.readFileSync(path.resolve(root, 'src/styles/components/product.css'), 'utf8');
 const en = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/en.json'), 'utf8'));
 const bn = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/bn.json'), 'utf8'));

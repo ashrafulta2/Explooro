@@ -4,6 +4,7 @@
 import products from '../fixtures/products.json' with { type: 'json' };
 import stores from '../fixtures/stores.json' with { type: 'json' };
 import { resolveMockMediaUrl } from './media.ts';
+import type { MockRoute } from '../types.ts';
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
@@ -224,7 +225,7 @@ function toPaisa(amount) {
 // takes as product_id; fixture rows only had `ref`. Fixtures already flagged is_flash_sale get a
 // synthetic flash_sale_id (the live list's fs.id) so "End flash sale" has a deal to stop.
 const FIXTURE_FLASH_ID_FLOOR = 800_000;
-let activeProducts = products.map((p, i) => ({
+let activeProducts: Record<string, any>[] = products.map((p, i) => ({
   id: i + 1,
   ...p,
   ...(p.is_flash_sale && !p.flash_sale_id ? { flash_sale_id: FIXTURE_FLASH_ID_FLOOR + i + 1 } : {}),
@@ -1161,4 +1162,4 @@ export default [
       };
     },
   },
-];
+] satisfies MockRoute[];

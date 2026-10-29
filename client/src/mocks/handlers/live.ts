@@ -1,11 +1,12 @@
 /**
- * live.js — Mock API handlers for Live Stream Commerce (Prompt 10.1 / DFD Subsystem 15.0).
+ * live.ts — Mock API handlers for Live Stream Commerce (Prompt 10.1 / DFD Subsystem 15.0).
  */
 
 import { getMockSessionUser } from './auth.ts';
 import { mockDeliveryCharge } from './delivery.ts';
+import type { MockRoute } from '../types.ts';
 
-let mockLiveStreams = [
+let mockLiveStreams: Record<string, any>[] = [
   {
     id: 1,
     title: 'Dhakai Jamdani Live Showcase & Exclusive Flash Sale 🔥',
@@ -772,7 +773,7 @@ export const liveHandlers = [
       };
     },
   },
-];
+] satisfies MockRoute[];
 
 
 /**

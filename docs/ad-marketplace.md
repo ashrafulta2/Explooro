@@ -167,5 +167,5 @@ to it is the next piece of work, and it is one call per surface.
 | Shop Partner Ad Store + wizard | `client/src/pages/saler/AdCampaignPage.js` |
 | Admin rate cards | `client/src/pages/admin/AdminAdPricingPage.js` |
 | Styles (route chunk, never `main.css`) | `client/src/styles/components/ad-store.css` |
-| Mocks | `client/src/mocks/handlers/ads.js` |
+| Mocks | `client/src/mocks/handlers/ads.ts` |
 | Tests | `server/test/adPricing.test.js` |

@@ -34,7 +34,7 @@ const ROLE_POST = {
 const STAFF = ['admin', 'super_admin', 'moderator', 'editor'];
 const AUDIENCE_OF = { customer: 'CUSTOMERS', supplier: 'SUPPLIERS', saler: 'SHOP_PARTNERS' };
 
-const PRODUCT = {
+const PRODUCT: Record<string, any> = {
   id: 101, ref: 'PRD-PANJABI', slug: 'cotton-panjabi-navy', price: 1150,
   title_en: 'Cotton panjabi, navy', title_bn: 'সুতির পাঞ্জাবি, নেভি',
   rating_avg: 4.6, rating_count: 128, sold_count: 342, availability: 'IN',
@@ -533,7 +533,7 @@ export const communityHandlers = [
       const queued = posts.filter((p) => p.status === 'HIDDEN' || (p.status !== 'REMOVED' && openReports(p.id).length > 0))
         .sort((a, b) => openReports(b.id).length - openReports(a.id).length);
       const items = queued.map((p) => {
-        const counts = {};
+        const counts: Record<string, number> = {};
         for (const r of openReports(p.id)) counts[r.reason] = (counts[r.reason] || 0) + 1;
         const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
         return { ...serialize(p, user), top_reason: top ? top[0] : null, hidden_reason: p.hiddenReason };

@@ -2,7 +2,7 @@
  * campaigns.ts — Mock API handlers for Campaign & Promotion Manager (Prompt 9.2).
  */
 
-import { findMockProductById, findMockProductByFlashSaleId, setMockProductFlashSale } from './products.js';
+import { findMockProductById, findMockProductByFlashSaleId, setMockProductFlashSale } from './products.ts';
 import type { MockRoute } from '../types.ts';
 
 let mockFlashSales: Record<string, any>[] = [

@@ -11,7 +11,7 @@
  * shopper has been engaging with. It resets on reload — real history lives server-side.
  */
 import products from '../fixtures/products.json' with { type: 'json' };
-import { synthesizeSupplier, synthesizeDescription, synthesizeVariants } from './products.js';
+import { synthesizeSupplier, synthesizeDescription, synthesizeVariants } from './products.ts';
 import type { MockRoute } from '../types.ts';
 
 // Mirrors server/src/services/discoveryFeed.service.ts EVENT_WEIGHTS (test/discoverFeed.test.js pins the parity).

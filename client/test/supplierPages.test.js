@@ -247,7 +247,7 @@ test('8. B2B Escrow Contract Terms & Milestone Release Integrity', async (t) => 
 
 test('9. Catalog Products Creation and Action Handlers', async (t) => {
   await t.test('POST /products handler creates and lists new product correctly', async () => {
-    const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
+    const { default: productHandlers } = await import('../src/mocks/handlers/products.ts');
     const handler = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
     assert.ok(handler, 'POST /products handler exists');
 
@@ -275,7 +275,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
   });
 
   await t.test('POST /products rejects a payload without category_id, as the live server does', async () => {
-    const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
+    const { default: productHandlers } = await import('../src/mocks/handlers/products.ts');
     const handler = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
     // The old form shape — a category NAME and `price` — which the live server rejects.
     const res = handler.handler({ body: { title_en: 'X', title_bn: 'X', category: 'Clothing', price: 100 } });
@@ -284,7 +284,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
   });
 
   await t.test('POST /products links uploaded photos via media_ids and rejects unknown ones', async () => {
-    const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
+    const { default: productHandlers } = await import('../src/mocks/handlers/products.ts');
     const { default: mediaHandlers } = await import('../src/mocks/handlers/media.ts');
     const upload = mediaHandlers.find((h) => h.path === '/media/direct');
     const create = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
@@ -303,7 +303,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
   });
 
   await t.test('PATCH /products/:ref takes live field names and replaces photos, keeping attached ones', async () => {
-    const { default: productHandlers } = await import('../src/mocks/handlers/products.js');
+    const { default: productHandlers } = await import('../src/mocks/handlers/products.ts');
     const { default: mediaHandlers } = await import('../src/mocks/handlers/media.ts');
     const upload = mediaHandlers.find((h) => h.path === '/media/direct');
     const create = productHandlers.find((h) => h.method === 'POST' && h.path === '/products');
@@ -332,7 +332,7 @@ test('9. Catalog Products Creation and Action Handlers', async (t) => {
   });
 
   await t.test('restock adds to stored stock; flash sales start, block overlap and end via the live endpoints', async () => {
-    const { default: productHandlers, findMockProductById } = await import('../src/mocks/handlers/products.js');
+    const { default: productHandlers, findMockProductById } = await import('../src/mocks/handlers/products.ts');
     const { default: campaignHandlers } = await import('../src/mocks/handlers/campaigns.ts');
     const find = (list, method, path) => list.find((h) => h.method === method && h.path === path);
     const create = find(productHandlers, 'POST', '/products');
