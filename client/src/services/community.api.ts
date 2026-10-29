@@ -246,7 +246,9 @@ export async function removeComment(commentId: number | string) {
 }
 
 /** @param {'KEEP'|'HIDE'|'REMOVE'} action */
-export async function moderatePost(postId: number | string, action: 'KEEP' | 'HIDE' | 'REMOVE') {
+export type ModerationAction = 'KEEP' | 'HIDE' | 'REMOVE';
+
+export async function moderatePost(postId: number | string, action: ModerationAction) {
   const { data } = await api.post(`/admin/community/posts/${postId}/moderate`, { action });
   return data;
 }

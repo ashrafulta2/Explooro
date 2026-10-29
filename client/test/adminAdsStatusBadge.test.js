@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { statusBadge } from '../src/pages/admin/AdminAdsPage.js';
+import { statusBadge } from '../src/pages/admin/AdminAdsPage.ts';
 
 test('SCHEDULED is not shown as Paused', () => {
   assert.equal(statusBadge('SCHEDULED').en, 'Scheduled');

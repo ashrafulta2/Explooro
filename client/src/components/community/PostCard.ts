@@ -21,7 +21,7 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { formatBdt, formatNumber, formatRelativeTime } from '../../services/format.ts';
 import { REPORT_REASONS, errorText } from '../../services/community.api.ts';
-import type { CommunityPost, CommunityProduct } from '../../services/community.api.ts';
+import type { CommunityPost, CommunityProduct, ModerationAction } from '../../services/community.api.ts';
 
 export interface PostCardOptions {
   /** A serialized post from the API. */
@@ -35,7 +35,7 @@ export interface PostCardOptions {
   onLike: (post: CommunityPost) => Promise<{ liked: boolean; like_count: number }>;
   onSave?: (post: CommunityPost) => Promise<{ saved: boolean }>;
   onReport: (post: CommunityPost, values: { reason: string; note?: string }) => Promise<{ already_reported?: boolean }>;
-  onModerate?: (post: CommunityPost, action: string) => Promise<void>;
+  onModerate?: (post: CommunityPost, action: ModerationAction) => Promise<void>;
   /** Called when a guest tries to like or report. */
   onNeedSignIn?: () => void;
 }

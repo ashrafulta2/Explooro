@@ -1,5 +1,5 @@
 /**
- * SupplierInquiriesPage.js — Supplier Wholesale Buyer Inquiries & Custom Quotations Hub (Prompt 11.1).
+ * SupplierInquiriesPage.ts — Supplier Wholesale Buyer Inquiries & Custom Quotations Hub (Prompt 11.1).
  *
  * Route: /supplier/inquiries
  * Implements:
@@ -16,7 +16,7 @@ import { Badge } from '../../components/ui/Badge.ts';
 import { supplierModal } from './supplierModal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function SupplierInquiriesPage(root) {
+export default function SupplierInquiriesPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -76,7 +76,7 @@ export default function SupplierInquiriesPage(root) {
       </div>
     `;
 
-    header.querySelector('#refresh-inquiries-btn').onclick = () => render();
+    header.querySelector<HTMLElement>('#refresh-inquiries-btn').onclick = () => render();
     container.appendChild(header);
 
     // 2. Summary KPI Strip
@@ -130,7 +130,7 @@ export default function SupplierInquiriesPage(root) {
       </div>
     `;
 
-    toolbar.querySelectorAll('.supplier-chip').forEach((chip) => {
+    toolbar.querySelectorAll<HTMLElement>('.supplier-chip').forEach((chip) => {
       chip.onclick = () => {
         filterStatus = chip.dataset.status;
         render();
@@ -211,7 +211,7 @@ export default function SupplierInquiriesPage(root) {
         </div>
       `;
 
-      const quoteBtn = card.querySelector('.quote-btn');
+      const quoteBtn = card.querySelector<HTMLElement>('.quote-btn');
       if (quoteBtn) {
         quoteBtn.onclick = () => openCustomQuoteModal(inq);
       }
@@ -263,8 +263,8 @@ export default function SupplierInquiriesPage(root) {
 
     const close = () => modalBackdrop.close(false);
 
-    modalBackdrop.querySelector('#confirm-quote-btn').onclick = () => {
-      const price = parseFloat(modalBackdrop.querySelector('#offered-unit-price').value);
+    modalBackdrop.querySelector<HTMLElement>('#confirm-quote-btn').onclick = () => {
+      const price = parseFloat(modalBackdrop.querySelector<HTMLInputElement>('#offered-unit-price').value);
       if (isNaN(price) || price <= 0) return toast.error('Please enter a valid unit price.');
       inq.status = 'QUOTED';
       toast.success('Wholesale quote sent to buyer successfully.');

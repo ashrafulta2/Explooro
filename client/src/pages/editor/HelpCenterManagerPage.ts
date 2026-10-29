@@ -1,5 +1,5 @@
 /**
- * HelpCenterManagerPage.js — Knowledge Base & FAQs Management Hub.
+ * HelpCenterManagerPage.ts — Knowledge Base & FAQs Management Hub.
  *
  * Implements /editor/help-center and /editor/help:
  * - Category grouping: orders, finance, sourcing, warranties, account.
@@ -12,7 +12,7 @@ import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function HelpCenterManagerPage(root) {
+export default function HelpCenterManagerPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'editor-page-container';
 
@@ -95,13 +95,13 @@ export default function HelpCenterManagerPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-faq-btn').onclick = () => modal.close();
-    footer.querySelector('#save-faq-btn').onclick = async () => {
-      const category = content.querySelector('#faq-cat').value;
-      const title_en = content.querySelector('#faq-title-en').value.trim();
-      const title_bn = content.querySelector('#faq-title-bn').value.trim();
-      const content_en = content.querySelector('#faq-content-en').value.trim();
-      const content_bn = content.querySelector('#faq-content-bn').value.trim();
+    footer.querySelector<HTMLElement>('#cancel-faq-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-faq-btn').onclick = async () => {
+      const category = content.querySelector<HTMLInputElement>('#faq-cat').value;
+      const title_en = content.querySelector<HTMLInputElement>('#faq-title-en').value.trim();
+      const title_bn = content.querySelector<HTMLInputElement>('#faq-title-bn').value.trim();
+      const content_en = content.querySelector<HTMLInputElement>('#faq-content-en').value.trim();
+      const content_bn = content.querySelector<HTMLInputElement>('#faq-content-bn').value.trim();
 
       if (!title_en || !content_en) {
         toast.error('Please enter article title and answer content.');
@@ -166,7 +166,7 @@ export default function HelpCenterManagerPage(root) {
       </div>
     `;
 
-    header.querySelector('#new-faq-btn').onclick = () => openArticleModal();
+    header.querySelector<HTMLElement>('#new-faq-btn').onclick = () => openArticleModal();
     container.appendChild(header);
 
     // -------------------------------------------------------------------------
@@ -198,15 +198,15 @@ export default function HelpCenterManagerPage(root) {
       </div>
     `;
 
-    filterCard.querySelectorAll('.editor-chip').forEach((chip) => {
+    filterCard.querySelectorAll<HTMLElement>('.editor-chip').forEach((chip) => {
       chip.onclick = () => {
         activeCategory = chip.dataset.cat;
         render();
       };
     });
 
-    filterCard.querySelector('#faq-search').oninput = (e) => {
-      searchQuery = e.target.value.toLowerCase().trim();
+    filterCard.querySelector<HTMLElement>('#faq-search').oninput = (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
       render();
     };
 
@@ -281,8 +281,8 @@ export default function HelpCenterManagerPage(root) {
         </div>
       `;
 
-      row.querySelector('.js-edit-faq-btn').onclick = () => openArticleModal(article);
-      row.querySelector('.js-delete-faq-btn').onclick = () => handleDeleteArticle(article.id);
+      row.querySelector<HTMLElement>('.js-edit-faq-btn').onclick = () => openArticleModal(article);
+      row.querySelector<HTMLElement>('.js-delete-faq-btn').onclick = () => handleDeleteArticle(article.id);
 
       list.appendChild(row);
     });

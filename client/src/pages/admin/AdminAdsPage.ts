@@ -1,5 +1,5 @@
 /**
- * AdminAdsPage.js — Sponsored Ads Engine & Second-Price Auction Governance (Prompt 9.1).
+ * AdminAdsPage.ts — Sponsored Ads Engine & Second-Price Auction Governance (Prompt 9.1).
  *
  * Implements:
  * 1. Ad Auction & Campaign Vitals (Total Ad Spend, Impressions, Clicks, Avg CPC, Fraud Discarded).
@@ -18,6 +18,7 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
 const STATUS_BADGES = {
   ACTIVE: { tone: 'system-table__badge--success', en: 'Active', bn: 'চালু' },
@@ -34,7 +35,7 @@ export function statusBadge(status) {
   return STATUS_BADGES[status] ?? { tone: 'system-table__badge--info', en: String(status ?? '—'), bn: String(status ?? '—') };
 }
 
-export default function AdminAdsPage(root, { navigate } = {}) {
+export default function AdminAdsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');

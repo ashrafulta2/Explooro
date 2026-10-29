@@ -1,5 +1,5 @@
 /**
- * NotificationPreferencesPage.js — User Notification & Channel Preferences (Prompt 8.2 §6).
+ * NotificationPreferencesPage.ts — User Notification & Channel Preferences (Prompt 8.2 §6).
  *
  * Per-category, per-channel opt-in/out plus a quiet-hours window, saved in one PUT.
  *
@@ -20,6 +20,7 @@ import {
   isPersonalizationEnabled,
   setPersonalizationEnabled,
 } from '../../services/signals.ts';
+import type { PageContext } from '../types.ts';
 
 // WHY the channel list is data, not markup: every category renders the same four toggles, and a
 // fifth channel (WhatsApp, Prompt 8.3) should be one row here rather than four edits per card.
@@ -89,7 +90,7 @@ const defaultPref = (category) => ({
   quiet_hours_end: null,
 });
 
-export default function NotificationPreferencesPage(root, { navigate } = {}) {
+export default function NotificationPreferencesPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {

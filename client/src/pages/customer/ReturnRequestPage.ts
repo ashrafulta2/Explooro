@@ -31,7 +31,7 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
   let evidenceUrls = [];
   let preferredResolution = 'WALLET_REFUND';
 
-  function goTo(path, opts = {}) {
+  function goTo(path, opts: { replace?: boolean } = {}) {
     if (typeof navigate === 'function') {
       navigate(path, opts);
     } else {
@@ -226,15 +226,15 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
     });
 
     container.querySelector('#return-reason-select')?.addEventListener('change', (e) => {
-      selectedReason = e.target.value;
+      selectedReason = (e.target as HTMLSelectElement).value;
     });
 
     container.querySelector('#return-note')?.addEventListener('input', (e) => {
-      customerNote = e.target.value;
+      customerNote = (e.target as HTMLTextAreaElement).value;
     });
 
     container.querySelector('#btn-add-evidence')?.addEventListener('click', () => {
-      const urlInput = container.querySelector('#evidence-url-input');
+      const urlInput = container.querySelector<HTMLInputElement>('#evidence-url-input');
       const val = urlInput?.value?.trim();
       if (val) {
         evidenceUrls.push(val);
@@ -245,7 +245,7 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
 
     container.querySelectorAll('.btn-remove-evidence').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        const idx = parseInt(e.target.dataset.index, 10);
+        const idx = parseInt((e.target as HTMLElement).dataset.index, 10);
         evidenceUrls.splice(idx, 1);
         render();
       });
@@ -253,7 +253,7 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
 
     container.querySelectorAll('input[name="resolution"]').forEach((radio) => {
       radio.addEventListener('change', (e) => {
-        preferredResolution = e.target.value;
+        preferredResolution = (e.target as HTMLInputElement).value;
         render();
       });
     });

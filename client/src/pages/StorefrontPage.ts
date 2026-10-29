@@ -1,5 +1,5 @@
 /**
- * StorefrontPage.js — Public, SEO-indexable Shop Partner Storefront with Social Shop Partner Kit & QR Flyer (Prompt 4.8).
+ * StorefrontPage.ts — Public, SEO-indexable Shop Partner Storefront with Social Shop Partner Kit & QR Flyer (Prompt 4.8).
  */
 
 import { getStoreBySlug } from '../services/store.api.ts';
@@ -16,8 +16,9 @@ import { appStore } from '../state/appStore.ts';
 import { updateHead, buildStoreJsonLd } from '../services/seo.ts';
 import { formatExplooroBrandText, ICONS } from '../components/ui/icons.ts';
 import { recordTouch } from '../services/attribution.ts';
+import type { PageContext } from './types.ts';
 
-export default function StorefrontPage(root, { params, query, navigate }) {
+export default function StorefrontPage(root: HTMLElement, { params, query, navigate }: PageContext) {
   const container = document.createElement('div');
   container.className = 'container storefront-page';
 
@@ -68,8 +69,7 @@ export default function StorefrontPage(root, { params, query, navigate }) {
       const empty = EmptyState({
         title: isMissing ? t('store.not_found_title') : t('common.error_generic'),
         description: isMissing ? t('store.not_found_desc', { slug }) : String(err?.message ?? err),
-        actionLabel: t('common.back_to_marketplace'),
-        onAction: () => navigate('/'),
+        action: Button({ label: t('common.back_to_marketplace'), onClick: () => navigate('/') }),
       });
       container.append(empty);
     });
@@ -298,19 +298,17 @@ function openQrFlyerModal(store, storeUrl) {
   card.append(logo, shopTitle, canvas, inst, link);
   content.append(card);
 
+  // WHY a footer: Modal has no `primaryAction` / `secondaryAction`, so the flyer used to open with no
+  // Print or Close button.
+  const footer = document.createDocumentFragment();
+  footer.append(
+    Button({ label: t('common.close'), variant: 'secondary', onClick: () => modal.close() }),
+    Button({ label: `${t('social_kit.print_or_save')}`, variant: 'primary', onClick: () => window.print() }),
+  );
   const modal = Modal({
     title: t('social_kit.qr_flyer_title'),
     content,
-    primaryAction: {
-      label: `${t('social_kit.print_or_save')}`,
-      onClick: () => {
-        window.print();
-      },
-    },
-    secondaryAction: {
-      label: t('common.close'),
-      onClick: () => modal.close(),
-    },
+    footer,
   });
 
   modal.open();

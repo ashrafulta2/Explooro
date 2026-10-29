@@ -17,6 +17,7 @@
 import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
 import { Badge } from '../../components/ui/Badge.ts';
+import type { PageContext } from '../types.ts';
 
 let highlightedEl = null;
 
@@ -151,7 +152,7 @@ export function runCraftAudit(root = document.body) {
   return findings;
 }
 
-export default function CraftAuditPage(container, { navigate } = {}) {
+export default function CraftAuditPage(container: HTMLElement, { navigate }: PageContext = {}) {
   const root = document.createElement('div');
   root.className = 'craft-audit-page';
   root.style.cssText = `
@@ -190,7 +191,7 @@ export default function CraftAuditPage(container, { navigate } = {}) {
     const findings = runCraftAudit(document.body);
 
     const summaryCard = Card({
-      content: (() => {
+      body: (() => {
         const wrap = document.createElement('div');
         wrap.style.cssText = 'display: flex; justify-content: space-around; align-items: center; padding: var(--space-2) 0; flex-wrap: wrap; gap: var(--space-4);';
         wrap.innerHTML = `
@@ -220,7 +221,7 @@ export default function CraftAuditPage(container, { navigate } = {}) {
 
     if (findings.length === 0) {
       const allClearCard = Card({
-        content: (() => {
+        body: (() => {
           const wrap = document.createElement('div');
           wrap.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--space-8) var(--space-4); text-align: center; gap: var(--space-3);';
           wrap.innerHTML = `
@@ -238,7 +239,7 @@ export default function CraftAuditPage(container, { navigate } = {}) {
       root.append(allClearCard);
     } else {
       const findingsCard = Card({
-        content: (() => {
+        body: (() => {
           const wrap = document.createElement('div');
           wrap.style.cssText = 'display: flex; flex-direction: column; gap: var(--space-3);';
 

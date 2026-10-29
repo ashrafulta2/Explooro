@@ -508,7 +508,7 @@ test('the mock notices are the migration templates, and the settings page and dr
   const migrationKeys = [...sql.matchAll(/\('(COMMUNITY_[A-Z_]+)', 'COMMUNITY'/g)].map((m) => m[1]).sort();
   assert.deepEqual([...MOCK_COMMUNITY_TEMPLATES].sort(), migrationKeys);
 
-  assert.match(read('pages', 'settings', 'NotificationPreferencesPage.js'), /key: 'COMMUNITY'/);
+  assert.match(read('pages', 'settings', 'NotificationPreferencesPage.ts'), /key: 'COMMUNITY'/);
   assert.match(read('components', 'notifications', 'NotificationCenter.ts'), /id: 'COMMUNITY'/);
   for (const k of ['notifications.tab_community', 'notifications.cat_community_title', 'notifications.cat_community_desc', 'community.onepost.title', 'community.onepost.all']) {
     assert.ok(get(en, k) && get(bn, k), k);

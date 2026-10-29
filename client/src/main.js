@@ -163,11 +163,11 @@ async function bootRouterDemo() {
       { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.js') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
-      { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.js') },
+      { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.ts') },
       // A shop partner's tracked short link: counts the click, remembers the partner, then opens the target.
       { path: '/s/:code', title: 'Explooro', permission: null, module: 'social_seller_kit', load: () => import('./pages/ShortLinkPage.ts') },
       // Full-page shopping cart (replaced the right-side drawer).
-      { path: '/cart', title: 'Shopping Cart — Explooro', permission: null, module: 'core', load: () => import('./pages/CartPage.js') },
+      { path: '/cart', title: 'Shopping Cart — Explooro', permission: null, module: 'core', load: () => import('./pages/CartPage.ts') },
       // Prompt 5.4: Checkout & Order Tracking Pages
       // WHY requiresAuth: POST /orders/checkout is behind fastify.authenticate, so a guest used to
       // fill the whole form and only hit a 401 on "Place Order". The router guard now sends them to
@@ -542,7 +542,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.help.manage',
         module: 'core',
-        load: () => import('./pages/editor/HelpCenterManagerPage.js'),
+        load: () => import('./pages/editor/HelpCenterManagerPage.ts'),
       },
       {
         path: '/editor/help',
@@ -550,7 +550,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.help.manage',
         module: 'core',
-        load: () => import('./pages/editor/HelpCenterManagerPage.js'),
+        load: () => import('./pages/editor/HelpCenterManagerPage.ts'),
       },
       {
         path: '/editor/translations',
@@ -719,7 +719,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.shipment.view',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/SupplierShipmentsPage.js'),
+        load: () => import('./pages/supplier/SupplierShipmentsPage.ts'),
       },
       {
         path: '/supplier/inquiries',
@@ -727,7 +727,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'chat.thread.view_own',
         module: 'chat',
-        load: () => import('./pages/supplier/SupplierInquiriesPage.js'),
+        load: () => import('./pages/supplier/SupplierInquiriesPage.ts'),
       },
       {
         path: '/supplier/store-status',
@@ -789,7 +789,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerOrdersPage.js'),
+        load: () => import('./pages/saler/SalerOrdersPage.ts'),
       },
       {
         path: '/saler/orders/:id',
@@ -1079,7 +1079,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.ad.govern',
         module: 'sponsored_ads',
-        load: () => import('./pages/admin/AdminAdsPage.js'),
+        load: () => import('./pages/admin/AdminAdsPage.ts'),
       },
       {
         path: '/admin/ads',
@@ -1087,7 +1087,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.ad.govern',
         module: 'sponsored_ads',
-        load: () => import('./pages/admin/AdminAdsPage.js'),
+        load: () => import('./pages/admin/AdminAdsPage.ts'),
       },
       {
         path: '/admin/growth/ad-pricing',
@@ -1218,7 +1218,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.session.revoke',
         module: 'core',
-        load: () => import('./pages/admin/ActiveSessionsPage.js'),
+        load: () => import('./pages/admin/ActiveSessionsPage.ts'),
       },
       {
         path: '/admin/sessions',
@@ -1226,7 +1226,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.session.revoke',
         module: 'core',
-        load: () => import('./pages/admin/ActiveSessionsPage.js'),
+        load: () => import('./pages/admin/ActiveSessionsPage.ts'),
       },
       // Super Admin Security: 2FA Policy & Staff Directory
       {
@@ -1530,7 +1530,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.overview.view',
         module: 'core',
-        load: () => import('./pages/admin/FinanceDashboardPage.js'),
+        load: () => import('./pages/admin/FinanceDashboardPage.ts'),
       },
       // Prompt 7.2: Returns & Refunds
       {
@@ -1809,7 +1809,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/settings/NotificationPreferencesPage.js'),
+        load: () => import('./pages/settings/NotificationPreferencesPage.ts'),
       },
       // My Profile — the TopBar avatar menu's first item, and the only page in the app that shows
       // a user their own record. Role-agnostic on purpose: staff have profiles too, so this sits
@@ -1840,7 +1840,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/settings/NotificationPreferencesPage.js'),
+        load: () => import('./pages/settings/NotificationPreferencesPage.ts'),
       },
       {
         path: '/account/settings/notifications',
@@ -1848,7 +1848,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/settings/NotificationPreferencesPage.js'),
+        load: () => import('./pages/settings/NotificationPreferencesPage.ts'),
       },
       // Prompt 8.4: Real-Time Chat Interface
       {
@@ -2088,7 +2088,7 @@ async function bootRouterDemo() {
               title: 'Craft Audit — Explooro (dev)',
               permission: null,
               module: 'core',
-              load: () => import('./pages/dev/CraftAuditPage.js'),
+              load: () => import('./pages/dev/CraftAuditPage.ts'),
             },
           ]
         : []),

@@ -1,5 +1,5 @@
 /**
- * ActiveSessionsPage.js — Security Active Sessions & Device Management (Prompt 2.8 / Prompt 3.3).
+ * ActiveSessionsPage.ts — Security Active Sessions & Device Management (Prompt 2.8 / Prompt 3.3).
  *
  * Implements:
  * 1. Security Session Vitals (Active Operator Sessions, Unique IP Addresses, Concurrent Logins, Geo Locations).
@@ -17,8 +17,9 @@ import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function ActiveSessionsPage(root, { navigate } = {}) {
+export default function ActiveSessionsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -194,10 +195,10 @@ export default function ActiveSessionsPage(root, { navigate } = {}) {
     container.querySelector('.revoke-all-btn')?.addEventListener('click', async () => {
       const confirmed = await confirmDialog({
         title: isBn ? 'অন্যান্য সকল সেশন বাতিল' : 'Revoke All Other Sessions',
-        message: isBn ? 'আপনি কি নিশ্চিত যে বর্তমান ডিভাইস বাদে অন্য সকল সক্রিয় সেশন অবিলম্বে বন্ধ করে দিতে চান?' : 'Are you sure you want to force logout all other operator devices?',
+        description: isBn ? 'আপনি কি নিশ্চিত যে বর্তমান ডিভাইস বাদে অন্য সকল সক্রিয় সেশন অবিলম্বে বন্ধ করে দিতে চান?' : 'Are you sure you want to force logout all other operator devices?',
         confirmLabel: isBn ? 'সকল সেশন বন্ধ করুন' : 'Revoke All',
         cancelLabel: isBn ? 'বাতিল' : 'Cancel',
-        isDanger: true,
+        variant: 'danger',
       });
 
       if (confirmed) {
@@ -216,10 +217,10 @@ export default function ActiveSessionsPage(root, { navigate } = {}) {
 
         const confirmed = await confirmDialog({
           title: isBn ? 'সেশন বাতিল' : `Revoke Session: ${s.user_name}`,
-          message: isBn ? `আপনি কি নিশ্চিত যে ${s.user_name}-এর সেশনটি বন্ধ করতে চান?` : `Are you sure you want to revoke session ${s.session_id}?`,
+          description: isBn ? `আপনি কি নিশ্চিত যে ${s.user_name}-এর সেশনটি বন্ধ করতে চান?` : `Are you sure you want to revoke session ${s.session_id}?`,
           confirmLabel: isBn ? 'বাতিল করুন' : 'Revoke',
           cancelLabel: isBn ? 'ফিরে যান' : 'Go Back',
-          isDanger: true,
+          variant: 'danger',
         });
 
         if (confirmed) {

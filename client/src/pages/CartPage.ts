@@ -1,5 +1,5 @@
 /**
- * CartPage.js — the full-page shopping cart (route: /cart).
+ * CartPage.ts — the full-page shopping cart (route: /cart).
  *
  * Replaces the old right-side drawer, which squeezed a multi-parcel cart into ~420px. Items sit
  * in a wide column grouped by supplier parcel; the order summary is sticky beside them on desktop
@@ -15,6 +15,7 @@ import { formatCurrency } from '../services/format.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { loadCartPageStyles } from '../styles/loadCartPageStyles.ts';
 import { PLACEHOLDER_COLOURS, placeholderInitials, resolveProductImage } from '../components/product/ProductCard.ts';
+import type { PageContext } from './types.ts';
 
 const PARCEL_ICON_SVG = `
 <svg class="cart-page__notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -27,14 +28,14 @@ const PARCEL_ICON_SVG = `
 // Stock ceiling at or below which the row says "Only N left".
 const LOW_STOCK_THRESHOLD = 5;
 
-function el(tag, className, text) {
+function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
 
-export default function CartPage(root, { navigate } = {}) {
+export default function CartPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else window.location.assign(url);
@@ -210,9 +211,11 @@ export default function CartPage(root, { navigate } = {}) {
       label: t('cart.proceed_to_checkout'),
       variant: 'primary',
       size: 'lg',
-      className: 'cart-summary__checkout',
       onClick: () => nav('/checkout'),
     });
+    // WHY after the call: Button has no `className` option, so the full-width rule in cart-page.css
+    // never reached this button.
+    checkout.classList.add('cart-summary__checkout');
     box.append(checkout);
     // One parcel's charge, read back from the server's estimate rather than a number kept here.
     if (parcelCount > 0) {
@@ -226,9 +229,9 @@ export default function CartPage(root, { navigate } = {}) {
   function render() {
     // WHY: every cart mutation re-renders the page. Without restoring focus, a keyboard user
     // pressing "+" loses their place and has to tab back through the list from the top.
-    const focusKey = document.activeElement?.dataset?.focusKey;
+    const focusKey = (document.activeElement as HTMLElement | null)?.dataset?.focusKey;
 
-    const cart = cartStore.get().cart || { items: [] };
+    const cart: Record<string, any> = cartStore.get().cart || { items: [] };
     const items = cart.items || [];
     container.replaceChildren();
 
@@ -279,7 +282,7 @@ export default function CartPage(root, { navigate } = {}) {
     layout.append(main, aside);
     container.append(layout);
 
-    if (focusKey) container.querySelector(`[data-focus-key="${focusKey}"]`)?.focus();
+    if (focusKey) container.querySelector<HTMLElement>(`[data-focus-key="${focusKey}"]`)?.focus();
   }
 
   // WHY wait for the stylesheet: cart-page.css is a separate chunk, so on the first visit of a page

@@ -38,7 +38,7 @@ const mocksIndexSrc = read('src/mocks/index.ts');
  */
 const ACCOUNT_PAGES = [
   { prefix: 'profile-page', rootClass: 'profile-page', css: 'profile', js: 'src/pages/settings/ProfilePage.js' },
-  { prefix: 'notif-prefs-page', rootClass: 'notif-prefs-page', css: 'notification-prefs', js: 'src/pages/settings/NotificationPreferencesPage.js' },
+  { prefix: 'notif-prefs-page', rootClass: 'notif-prefs-page', css: 'notification-prefs', js: 'src/pages/settings/NotificationPreferencesPage.ts' },
   { prefix: 'addresses-page', rootClass: 'addresses-page', css: 'customer-addresses', js: 'src/pages/customer/AddressesPage.js' },
   { prefix: 'coins-page', rootClass: 'coins-page', css: 'customer-coins', js: 'src/pages/customer/CoinsPage.js' },
   { prefix: 'coupons-page', rootClass: 'coupons-page', css: 'customer-coupons', js: 'src/pages/customer/CouponsPage.js' },

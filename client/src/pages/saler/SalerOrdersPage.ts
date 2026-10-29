@@ -1,5 +1,5 @@
 /**
- * SalerOrdersPage.js — Shop Partner Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
+ * SalerOrdersPage.ts — Shop Partner Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
  *
  * Route: /saler/orders
  * Implements:
@@ -18,8 +18,9 @@ import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SalerOrdersPage(root, { navigate } = {}) {
+export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -32,7 +33,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
   container.className = 'saler-page-container';
 
   let orders = [];
-  let summary = {};
+  let summary: Record<string, any> = {};
   let currentTab = 'ALL';
   let searchQuery = '';
   let loading = true;
@@ -85,7 +86,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
       </div>
     `;
 
-    header.querySelector('#btn-export-csv').onclick = () => {
+    header.querySelector<HTMLElement>('#btn-export-csv').onclick = () => {
       exportCsv(orders);
     };
 
@@ -163,12 +164,12 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
       </div>
     `;
 
-    toolbar.querySelector('#order-search').oninput = (e) => {
-      searchQuery = e.target.value;
+    toolbar.querySelector<HTMLElement>('#order-search').oninput = (e) => {
+      searchQuery = (e.target as HTMLInputElement).value;
       loadData();
     };
 
-    toolbar.querySelectorAll('.tab-btn').forEach((btn) => {
+    toolbar.querySelectorAll<HTMLElement>('.tab-btn').forEach((btn) => {
       btn.onclick = () => {
         currentTab = btn.getAttribute('data-tab');
         loadData();
@@ -287,7 +288,7 @@ export default function SalerOrdersPage(root, { navigate } = {}) {
           </div>
         `;
 
-        card.querySelector('.btn-view-order').onclick = () => {
+        card.querySelector<HTMLElement>('.btn-view-order').onclick = () => {
           nav(`/saler/orders/${ord.id}`);
         };
 

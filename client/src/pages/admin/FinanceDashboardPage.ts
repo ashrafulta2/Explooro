@@ -1,5 +1,5 @@
 /**
- * FinanceDashboardPage.js — Platform Executive Finance Command Center (Prompt 6.5).
+ * FinanceDashboardPage.ts — Platform Executive Finance Command Center (Prompt 6.5).
  *
  * Implements:
  * 1. Financial Liability Metrics: GMV, Net Revenue, Escrow Liability, Pending Payouts, COD Exposure.
@@ -16,8 +16,9 @@ import { formatCompactBdt } from '../../services/adminDashboard.model.ts';
 import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
+import type { PageContext } from '../types.ts';
 
-export default function FinanceDashboardPage(root, { navigate } = {}) {
+export default function FinanceDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'page finance-dashboard-page';
 

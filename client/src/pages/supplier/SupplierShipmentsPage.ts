@@ -1,5 +1,5 @@
 /**
- * SupplierShipmentsPage.js — Supplier 3PL Courier Parcel Shipments & Tracking Hub (Prompt 11.1).
+ * SupplierShipmentsPage.ts — Supplier 3PL Courier Parcel Shipments & Tracking Hub (Prompt 11.1).
  *
  * Route: /supplier/shipments
  * Implements:
@@ -16,7 +16,7 @@ import { toast } from '../../services/toast.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function SupplierShipmentsPage(root) {
+export default function SupplierShipmentsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -101,7 +101,7 @@ export default function SupplierShipmentsPage(root) {
       </div>
     `;
 
-    header.querySelector('#refresh-shipments-btn').onclick = loadShipments;
+    header.querySelector<HTMLElement>('#refresh-shipments-btn').onclick = loadShipments;
     container.appendChild(header);
 
     // 2. Summary KPI Strip
@@ -165,17 +165,17 @@ export default function SupplierShipmentsPage(root) {
       </div>
     `;
 
-    const searchInput = toolbar.querySelector('#shipment-search-input');
+    const searchInput = toolbar.querySelector<HTMLInputElement>('#shipment-search-input');
     let debounceTimer;
     searchInput.oninput = (e) => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        searchQuery = e.target.value.trim();
+        searchQuery = (e.target as HTMLInputElement).value.trim();
         renderShipmentsList();
       }, 250);
     };
 
-    toolbar.querySelectorAll('.supplier-chip').forEach((chip) => {
+    toolbar.querySelectorAll<HTMLElement>('.supplier-chip').forEach((chip) => {
       chip.onclick = () => {
         filterStatus = chip.dataset.status;
         render();
@@ -283,7 +283,7 @@ export default function SupplierShipmentsPage(root) {
         </div>
       `;
 
-      card.querySelector('.track-btn').onclick = () => {
+      card.querySelector<HTMLElement>('.track-btn').onclick = () => {
         toast.info(`Fetching live GPS telemetry from ${s.carrier} network for ${s.tracking_number}...`);
       };
 
