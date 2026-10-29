@@ -33,6 +33,25 @@ Authenticate requests using either of the following HTTP headers:
 | `orders.create` | Write permission to inject partner orders on behalf of customers |
 | `webhooks.manage` | Permission to register, update, and inspect webhook endpoints |
 
+### Placing a partner order (`POST /public/orders`)
+A partner places a **Cash on Delivery** order for one of their customers. The order goes through the same checkout as the website (stock locks, pricing, supplier parcels, escrow on delivery); the partner never sets a price.
+
+- **The buyer is the customer, not the partner.** `customer.phone` finds the customer's Explooro account, or creates a bare one they can claim later by signing up with that phone. The order appears in the customer's own order history.
+- **The partner is credited as the shop partner** on every line whose product is active in their storefront, exactly as if the customer had bought from that storefront. Lines they do not carry, or an order placed for the partner's own phone, earn nothing.
+- **COD only.** `payment_method` may be omitted or `COD`; anything else is `400`. When the customer's trust score makes the order risky, the answer is `422 COD_OTP_REQUIRED` and the customer receives an SMS code. Repeat the same request, with the same `Idempotency-Key`, adding `otp_code`.
+- **`Idempotency-Key` header is required** (at most 200 characters) and belongs to your API key, so two partners can never collide on the same value. Repeating a key with the same customer and items returns the original order with `200` and `Idempotency-Replayed: true`; reusing it for a different order is `409 IDEMPOTENCY_MISMATCH`. Always retry a timed-out call with the same key.
+
+```bash
+curl -X POST http://localhost:3000/api/v1/public/orders \
+  -H "X-Api-Key: exp_live_..." \
+  -H "Idempotency-Key: 6f1c2a9e-order-1042" \
+  -H "Content-Type: application/json" \
+  -d '{"customer":{"name":"Rahim Uddin","phone":"01712345678"},
+       "shipping_address":{"division":"Dhaka","district":"Dhaka","upazila":"Dhanmondi","address_line":"House 12, Road 4"},
+       "items":[{"product_id":12,"quantity":2}]}'
+```
+
+
 ---
 
 ## 3. OpenAPI 3.0 Specification
@@ -175,11 +194,19 @@ paths:
 
   /public/orders:
     post:
-      summary: Place a partner order (requires orders.create scope)
+      summary: Place a Cash on Delivery order for a customer (requires orders.create scope)
       tags:
         - Orders
       security:
         - ApiKeyAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Your unique id for this order, at most 200 characters, scoped to your API key. Retry with the same value.
+          schema:
+            type: string
+            maxLength: 200
       requestBody:
         required: true
         content:
@@ -188,34 +215,29 @@ paths:
               $ref: '#/components/schemas/PartnerOrderRequest'
       responses:
         '201':
-          description: Order created successfully
+          description: Order created
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      order:
-                        type: object
-                        properties:
-                          id:
-                            type: integer
-                          ref:
-                            type: string
-                          total_amount:
-                            type: number
-                          status:
-                            type: string
+                $ref: '#/components/schemas/PartnerOrderResponse'
+        '200':
+          description: Replay of an order already placed with this Idempotency-Key (header Idempotency-Replayed true)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerOrderResponse'
         '400':
-          description: Invalid request payload
+          description: Invalid payload (VALIDATION_FAILED, details.field names the field), a payment method other than COD, or a missing Idempotency-Key (IDEMPOTENCY_KEY_REQUIRED)
+        '401':
+          description: Missing or invalid API key
         '403':
           description: Missing required scope orders.create
-        '501':
-          description: Partner ordering is not available yet (NOT_IMPLEMENTED). Scope and payload are still validated first.
+        '404':
+          description: A product or variant does not exist or is not on sale (details.product_id / details.variant_id)
+        '409':
+          description: IDEMPOTENCY_MISMATCH — the key was already used for a different order (details.order_ref), or INSUFFICIENT_STOCK (details.product_ref, requested, available)
+        '422':
+          description: COD_OTP_REQUIRED — an SMS code was sent to the customer; repeat the same request with otp_code
 
 components:
   securitySchemes:
@@ -267,8 +289,8 @@ components:
       type: object
       required:
         - customer
-        - items
         - shipping_address
+        - items
       properties:
         customer:
           type: object
@@ -280,10 +302,26 @@ components:
               type: string
             phone:
               type: string
-            email:
+              description: Bangladeshi mobile number (01XXXXXXXXX, 8801XXXXXXXXX or +8801XXXXXXXXX). Identifies the buyer.
+        shipping_address:
+          type: object
+          required:
+            - division
+            - district
+            - address_line
+          properties:
+            division:
+              type: string
+            district:
+              type: string
+            upazila:
+              type: string
+            address_line:
               type: string
         items:
           type: array
+          minItems: 1
+          description: Lines for the same product and variant are added together.
           items:
             type: object
             required:
@@ -296,24 +334,111 @@ components:
                 type: integer
               quantity:
                 type: integer
-        shipping_address:
-          type: object
-          required:
-            - address_line
-            - city
-          properties:
-            address_line:
-              type: string
-            city:
-              type: string
-            district:
-              type: string
-            postal_code:
-              type: string
+                minimum: 1
         payment_method:
           type: string
-          enum: [COD, PREPAID]
+          enum: [COD]
           default: COD
+        otp_code:
+          type: string
+          description: Only after a 422 COD_OTP_REQUIRED, the code the customer received by SMS.
+
+    PartnerOrderResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            order:
+              type: object
+              properties:
+                id:
+                  type: integer
+                ref:
+                  type: string
+                  example: ORD-8F2K1Q
+                items_amount:
+                  type: number
+                shipping_amount:
+                  type: number
+                  description: The delivery charge per supplier parcel, times the number of parcels
+                discount_amount:
+                  type: number
+                total_amount:
+                  type: number
+                  description: What the courier collects on delivery
+                currency:
+                  type: string
+                  example: BDT
+                payment_method:
+                  type: string
+                  example: COD
+                payment_status:
+                  type: string
+                  example: PENDING
+                is_otp_verified:
+                  type: boolean
+                recipient:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    phone:
+                      type: string
+                    division:
+                      type: string
+                    district:
+                      type: string
+                    upazila:
+                      type: string
+                      nullable: true
+                    address_line:
+                      type: string
+                placed_at:
+                  type: string
+                  format: date-time
+                sub_orders:
+                  type: array
+                  description: One parcel per supplier
+                  items:
+                    type: object
+                    properties:
+                      ref:
+                        type: string
+                      status:
+                        type: string
+                        example: PLACED
+                      supplier_name:
+                        type: string
+                      shipping_amount:
+                        type: number
+                      total_amount:
+                        type: number
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            product_id:
+                              type: integer
+                            product_ref:
+                              type: string
+                            variant_id:
+                              type: integer
+                              nullable: true
+                            variant_sku:
+                              type: string
+                              nullable: true
+                            title:
+                              type: string
+                            quantity:
+                              type: integer
+                            unit_price:
+                              type: number
+                            line_total:
+                              type: number
 ```
 
 ---

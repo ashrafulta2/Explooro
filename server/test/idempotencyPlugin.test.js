@@ -147,6 +147,7 @@ test('routes that own their key, auth routes and GETs are left alone', async () 
   assert.equal(second.headers['idempotency-replayed'], undefined, 'tokens are never cached or replayed');
   assert.equal(calls.hook, 2);
   assert.equal(isIdempotentRoute('/api/v1/things', 'GET'), false);
+  assert.equal(isIdempotentRoute('/api/v1/public/orders', 'POST'), false, 'partner orders own a per-API-key key (partnerOrder.service.ts)');
   assert.equal(isIdempotentRoute('/api/v1/x', 'POST', { idempotency: false }), false);
   assert.equal(isIdempotentRoute('/api/v1/payments/webhook/:gateway', 'POST'), false);
   assert.equal(isIdempotentRoute('/api/v1/admin/payouts/:id/approve', ['POST']), true);

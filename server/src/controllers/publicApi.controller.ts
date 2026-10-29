@@ -4,6 +4,7 @@
 
 import * as apiKeyService from '../services/apiKey.service.ts';
 import * as webhookService from '../services/webhookDelivery.service.ts';
+import * as partnerOrderService from '../services/partnerOrder.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 
@@ -228,32 +229,26 @@ export async function getPublicCategories(req, reply) {
 // PARTNER ORDER CREATION (WRITE)
 // -----------------------------------------------------------------------------
 
-export async function createPartnerOrder(req, _reply) {
+export async function createPartnerOrder(req, reply) {
   const apiKey = req.apiKey;
   if (!apiKey || !apiKeyService.hasScope(apiKey, 'orders.create')) {
     throw new AppError('FORBIDDEN', 'API key does not have the required "orders.create" permission scope.');
   }
 
-  const { customer, items } = req.body;
+  const result = await partnerOrderService.placePartnerOrder(req.server.db, req.server.cache, {
+    apiKey,
+    body: req.body,
+    idempotencyKey: req.headers['idempotency-key'],
+    smsSender: req.server.smsSender,
+    isDevelopment: Boolean(req.server.config?.isDevelopment),
+    ip: req.ip,
+  });
 
-  if (!items || !Array.isArray(items) || items.length === 0) {
-    throw new AppError('VALIDATION_FAILED', 'At least 1 item is required to place an order.');
+  // Same replay signal as POST /orders/checkout (order.controller.ts).
+  if (result.isReplay) {
+    return reply.header('Idempotency-Replayed', 'true').status(200).send({ success: true, data: { order: result.order } });
   }
-  if (!customer || !customer.phone || !customer.name) {
-    throw new AppError('VALIDATION_FAILED', 'Customer name and phone number are required.');
-  }
-
-  // WHY 501 and not an order: this endpoint called orderService.createOrder, which has never existed,
-  // so every partner order crashed with a TypeError and answered 500 INTERNAL_ERROR. Placing an order
-  // means pricing, stock locks, escrow and payment (services/checkout.service.ts), and a partner
-  // ordering for a customer who has no account is a product decision not yet made. Until it is, the
-  // endpoint says so instead of crashing. Scope and payload are still checked first, so an integration
-  // already gets the 403/400 answers it will get once ordering works.
-  throw new AppError(
-    'NOT_IMPLEMENTED',
-    'Placing orders through the public API is not available yet.',
-    'পাবলিক API দিয়ে অর্ডার দেওয়া এখনো চালু হয়নি।'
-  );
+  return reply.status(201).send({ success: true, data: { order: result.order } });
 }
 
 // -----------------------------------------------------------------------------

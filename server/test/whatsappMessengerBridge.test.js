@@ -82,8 +82,8 @@ function createMockDb() {
     async query(sql, params = []) {
       const q = sql.trim();
 
-      // SELECT users (+ profile name) WHERE u.phone = $1
-      if (q.includes('FROM users u') && q.includes('WHERE u.phone = $1')) {
+      // SELECT users WHERE phone = $1 (shadowCustomer.service.ts)
+      if (q.includes('FROM users WHERE phone = $1')) {
         const ph = params[0];
         const found = users.filter((u) => u.phone === ph);
         return { rows: found };

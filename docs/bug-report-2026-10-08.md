@@ -130,8 +130,8 @@ How the less obvious ones were fixed:
 ### Still open — needs a product decision
 
 1. ~~**Team-purchase completion**~~ — **fixed 2026-10-09**, see below.
-2. **Partner orders** (`POST /public/orders`) call `orderService.createOrder`, which does not exist.
-   The check cannot see this, because it is a JavaScript error, not SQL.
+2. ~~**Partner orders**~~ — **fixed 2026-10-30.** `POST /public/orders` now places a COD order for the
+   customer through the real checkout (`services/partnerOrder.service.ts`); see `docs/public-api.md`.
 3. **Maker-checker approval** has no registered executor for `finance.payout.approve`,
    `orders.cod.reconcile`, `orders.dispute.arbitrate`, `users.kyc.approve` or
    `finance.escrow.release_manual`. Submitting now works; what approving does depends on each

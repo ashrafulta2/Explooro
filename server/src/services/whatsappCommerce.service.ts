@@ -9,7 +9,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { generateRef } from '../lib/ref.ts';
+import { findOrCreateCustomerByPhone } from './shadowCustomer.service.ts';
 import { createWhatsAppSender } from '../integrations/whatsapp/index.ts';
 import { sendToUser } from '../sockets/presence.ts';
 import { withTransaction } from '../config/db.ts';
@@ -121,44 +121,7 @@ export async function ingestInboundMessage(db, {
 }) {
   const runner = async (txClient) => {
     // 1. Find or create customer shadow account
-    let customerUserId = null;
-    const { rows: existingUsers } = await txClient.query(
-      `SELECT u.id, COALESCE(up.display_name, up.full_name) AS full_name, u.phone
-       FROM users u
-       LEFT JOIN user_profiles up ON up.user_id = u.id
-       WHERE u.phone = $1 LIMIT 1`,
-      [fromPhone]
-    );
-
-    if (existingUsers.length > 0) {
-      customerUserId = existingUsers[0].id;
-    } else {
-      // WHY three statements: `users` holds neither the name nor the role. The display name lives
-      // on `user_profiles` and the role is a row in `user_roles` -> `roles`, the same shape
-      // auth.service.ts creates a signup with. `ref` is NOT NULL with no default, so it is minted
-      // here rather than left to the database.
-      const { rows: createdUsers } = await txClient.query(
-        `INSERT INTO users (ref, phone, status)
-         VALUES ($1, $2, 'ACTIVE')
-         RETURNING id`,
-        [generateRef('USR'), fromPhone]
-      );
-      customerUserId = createdUsers[0].id;
-
-      await txClient.query(
-        `INSERT INTO user_profiles (user_id, full_name, display_name)
-         VALUES ($1, $2, $2)
-         ON CONFLICT (user_id) DO NOTHING`,
-        [customerUserId, customerName]
-      );
-
-      await txClient.query(
-        `INSERT INTO user_roles (user_id, role_id)
-         SELECT $1, r.id FROM roles r WHERE r.key = 'customer'
-         ON CONFLICT (user_id, role_id) DO NOTHING`,
-        [customerUserId]
-      );
-    }
+    const { id: customerUserId } = await findOrCreateCustomerByPhone(txClient, { phone: fromPhone, name: customerName });
 
     // 2. Find or create unified chat_thread between customer and shop partner
     const participantIds = [Math.min(Number(customerUserId), Number(salerId)), Math.max(Number(customerUserId), Number(salerId))];

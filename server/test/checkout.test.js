@@ -943,4 +943,56 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     }
     assert.ok(fresh.orderItems.every((i) => i.saler_id === null));
   });
+
+  test('Lines passed in (a public API order) go through the same checkout and leave the cart alone', async () => {
+    const fresh = createMockDb();
+    const result = await executeCheckout(fresh, createMemoryCache(), {
+      userId: 1,
+      idempotencyKey: 'api:AK-1:lines-001',
+      recipientName: 'Karim Ahmed',
+      recipientPhone: '01711111111',
+      division: 'Dhaka',
+      district: 'Dhaka',
+      addressLine: 'House 12, Road 4, Dhanmondi',
+      paymentMethod: 'COD',
+      lines: [{
+        product_id: 1, variant_id: null, qty: 2, unit_price: 700, supplier_id: 101,
+        saler_id: 201, short_link_id: null, attribution_source: 'STOREFRONT', bundle_id: null,
+        product_title_en: 'Handloom Cotton Saree', product_title_bn: 'হ্যান্ডলুম সুতি শাড়ি',
+      }],
+    });
+
+    assert.equal(result.isReplay, false);
+    assert.equal(result.order.sub_orders.length, 1, 'one supplier, one parcel');
+    assert.equal(Number(result.order.items_amount), 1400);
+    assert.equal(fresh.products.find((p) => p.id === 1).stock_qty, 8, 'stock is decremented under the lock');
+    assert.equal(fresh.subOrders[0].saler_id, 201, 'the partner on the line is credited on the parcel');
+    assert.equal(Number(fresh.subOrders[0].saler_commission), 160, '2 x the ৳80 partner share');
+    const cart = fresh.carts.find((c) => c.id === 1);
+    assert.equal(cart.status, 'ACTIVE', "the customer's own cart is not converted");
+    assert.equal(fresh.cartItems.filter((ci) => ci.cart_id === 1).length, 2, 'nor emptied');
+  });
+
+  test('Lines passed in still fail on stock checkout cannot cover', async () => {
+    const fresh = createMockDb();
+    await assert.rejects(
+      executeCheckout(fresh, createMemoryCache(), {
+        userId: 1,
+        idempotencyKey: 'api:AK-1:lines-002',
+        recipientName: 'Karim Ahmed',
+        recipientPhone: '01711111111',
+        division: 'Dhaka',
+        district: 'Dhaka',
+        addressLine: 'House 12',
+        paymentMethod: 'COD',
+        lines: [{
+          product_id: 2, variant_id: null, qty: 2, unit_price: 1200, supplier_id: 102,
+          saler_id: null, short_link_id: null, attribution_source: null, bundle_id: null,
+          product_title_en: 'Premium Linen Panjabi', product_title_bn: 'প্রিমিয়াম লিনেন পাঞ্জাবি',
+        }],
+      }),
+      (err) => err.code === 'INSUFFICIENT_STOCK'
+    );
+    assert.equal(fresh.orders.length, 0);
+  });
 });

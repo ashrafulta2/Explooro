@@ -51,6 +51,7 @@ export async function executeCheckout(pool, cache, {
   smsSender = null,
   isDevelopment = false,
   ip = null,
+  lines = null,
 }) {
   // 1. Validate Idempotency-Key requirement
   if (!idempotencyKey || typeof idempotencyKey !== 'string') {
@@ -83,14 +84,22 @@ export async function executeCheckout(pool, cache, {
   }
 
   // 2. Load Cart
-  if (guestToken && userId) {
-    try {
-      await cartService.mergeGuestCartOnLogin(pool, { guestToken, userId });
-    } catch {}
-  }
-  let cart = await cartService.getCart(pool, { userId, guestToken });
-  if ((!cart || !cart.items || cart.items.length === 0) && guestToken) {
-    cart = await cartService.getCart(pool, { guestToken });
+  // WHY `lines`: an order placed through the public API (partnerOrder.service.ts) has no cart. Its
+  // lines have the cart line shape and go through the same locks, pricing and escrow below; only the
+  // cart conversion at the end is skipped (cart_id is null).
+  let cart;
+  if (lines) {
+    cart = { cart_id: null, items: lines };
+  } else {
+    if (guestToken && userId) {
+      try {
+        await cartService.mergeGuestCartOnLogin(pool, { guestToken, userId });
+      } catch {}
+    }
+    cart = await cartService.getCart(pool, { userId, guestToken });
+    if ((!cart || !cart.items || cart.items.length === 0) && guestToken) {
+      cart = await cartService.getCart(pool, { guestToken });
+    }
   }
   if (!cart || !cart.items || cart.items.length === 0) {
     throw new AppError(
@@ -475,11 +484,13 @@ export async function executeCheckout(pool, cache, {
     }
 
     // 11. Convert Cart & Clear Items
-    await client.query(
-      `UPDATE carts SET status = 'CONVERTED', converted_order_id = $1, updated_at = now() WHERE id = $2`,
-      [rootOrder.id, cart.cart_id]
-    );
-    await cartRepo.clearCartItems(client, cart.cart_id);
+    if (cart.cart_id != null) {
+      await client.query(
+        `UPDATE carts SET status = 'CONVERTED', converted_order_id = $1, updated_at = now() WHERE id = $2`,
+        [rootOrder.id, cart.cart_id]
+      );
+      await cartRepo.clearCartItems(client, cart.cart_id);
+    }
 
     // 12. Commit Transaction
     await client.query('COMMIT');

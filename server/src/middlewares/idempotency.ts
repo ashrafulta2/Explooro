@@ -39,6 +39,7 @@ const EXEMPT = [
 // Layering a second cache-backed replay on top would change the replay response they already define.
 const OWN_KEY = [
   /^\/api\/v1\/orders\/checkout$/,
+  /^\/api\/v1\/public\/orders$/,
   /^\/api\/v1\/payments\/initiate$/,
   /^\/api\/v1\/vault\/withdraw$/,
   /^\/api\/v1\/subscriptions\/subscribe$/,
