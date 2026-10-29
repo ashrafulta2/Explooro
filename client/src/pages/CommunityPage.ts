@@ -1,7 +1,7 @@
 /**
  * CommunityPage — the /community timeline (module `community_posts`).
  *
- * One mixed feed for everyone, narrowed by tabs (Reviews / Updates / Ideas / News) and two small
+ * One mixed feed for everyone, narrowed by tabs (Ideas / Updates / News / Reviews) and two small
  * filters (who posted, sort). Each role gets its own post window:
  *   customer review · supplier update · shop partner idea · admin announcement.
  * Staff with `community.post.moderate` also get a Moderation tab: posts go live at once and are
@@ -31,10 +31,10 @@ import {
 const PAGE_SIZE = 20;
 const TABS = [
   { key: '', label: 'community.tab.all', count: 'ALL' },
-  { key: 'REVIEW', label: 'community.tab.review', count: 'REVIEW' },
-  { key: 'UPDATE', label: 'community.tab.update', count: 'UPDATE' },
   { key: 'IDEA', label: 'community.tab.idea', count: 'IDEA' },
+  { key: 'UPDATE', label: 'community.tab.update', count: 'UPDATE' },
   { key: 'ANNOUNCEMENT', label: 'community.tab.announce', count: 'ANNOUNCEMENT' },
+  { key: 'REVIEW', label: 'community.tab.review', count: 'REVIEW' },
 ];
 const FROM = ['', 'customer', 'supplier', 'saler', 'admin'];
 
