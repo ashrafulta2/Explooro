@@ -1,5 +1,5 @@
 /**
- * PageAvailabilityPage.js — /admin/platform/pages, the super admin's per-page switchboard.
+ * PageAvailabilityPage.ts — /admin/platform/pages, the super admin's per-page switchboard.
  *
  * Sits beside /admin/platform/modules, not above it. A module answers "does this capability work";
  * this answers "may the user see this page". Both are needed: switching `multi_warehouse` off to
@@ -22,6 +22,7 @@ import { setPageToggles, getPageToggles, PAGE_STATES } from '../../services/page
 import { listPages, PAGE_PORTALS, pageLabel } from '../../config/pageRegistry.ts';
 
 import { trackStyleLoad } from '../../core/styleGate.ts';
+import type { PageContext } from '../types.ts';
 // WHY dynamic: Vite splits this into the route's CSS chunk, keeping it out of the entry bundle,
 // whose gzipped budget (70KB, client/vite.config.js) is close to its ceiling. The node:test suite
 // also imports page modules directly, where a static `.css` import throws
@@ -41,10 +42,10 @@ function loadStyles() {
 /** Roles a LIMITED page can be released to — the platform's role keys, not an invented list. */
 const AUDIENCE_ROLES = ['super_admin', 'admin', 'moderator', 'editor', 'supplier', 'saler', 'customer'];
 
-export default function PageAvailabilityPage(root, { navigate } = {}) {
+export default function PageAvailabilityPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadStyles();
 
-  const auth = appStore.get()?.auth || {};
+  const auth: { permissions?: string[] } = appStore.get()?.auth || {};
   const permissions = auth.permissions || [];
   const canToggle = permissions.includes('platform.page.toggle');
 
@@ -112,7 +113,7 @@ export default function PageAvailabilityPage(root, { navigate } = {}) {
   searchInput.placeholder = t('page_availability.search_placeholder', 'Search by page name or path…');
   searchInput.setAttribute('aria-label', searchInput.placeholder);
   searchInput.addEventListener('input', (e) => {
-    searchQuery = e.target.value.trim().toLowerCase();
+    searchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
     renderList();
   });
 
@@ -125,7 +126,7 @@ export default function PageAvailabilityPage(root, { navigate } = {}) {
     `<option value="ALL">${t('page_availability.filter_portal', 'All portals')}</option>` +
     PAGE_PORTALS.map((p) => `<option value="${p.key}">${isBn ? p.label_bn : p.label_en}</option>`).join('');
   portalSelect.addEventListener('change', (e) => {
-    selectedPortal = e.target.value;
+    selectedPortal = (e.target as HTMLInputElement).value;
     renderList();
   });
 
@@ -138,7 +139,7 @@ export default function PageAvailabilityPage(root, { navigate } = {}) {
       (s) => `<option value="${s}">${t(`page_availability.state_${s.toLowerCase()}`, s)}</option>`
     ).join('');
   stateSelect.addEventListener('change', (e) => {
-    selectedState = e.target.value;
+    selectedState = (e.target as HTMLInputElement).value;
     renderList();
   });
 

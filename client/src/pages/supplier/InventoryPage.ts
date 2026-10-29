@@ -1,5 +1,5 @@
 /**
- * InventoryPage.js — Supplier Live Stock, Low-Stock Thresholds & Warehouse Allocation (Prompt 11.1).
+ * InventoryPage.ts — Supplier Live Stock, Low-Stock Thresholds & Warehouse Allocation (Prompt 11.1).
  *
  * Implements:
  * - Real-time SKU stock levels, low-stock threshold warning indicators, and out-of-stock telemetry.
@@ -17,7 +17,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function InventoryPage(root) {
+export default function InventoryPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -72,7 +72,7 @@ export default function InventoryPage(root) {
       </div>
     `;
 
-    header.querySelector('#refresh-inv-btn').onclick = loadInventory;
+    header.querySelector<HTMLElement>('#refresh-inv-btn').onclick = loadInventory;
     container.appendChild(header);
 
     // 2. Summary Metric Strip
@@ -141,17 +141,17 @@ export default function InventoryPage(root) {
       </div>
     `;
 
-    const searchInput = toolbar.querySelector('#search-input');
+    const searchInput = toolbar.querySelector<HTMLInputElement>('#search-input');
     let debounceTimer;
     searchInput.oninput = (e) => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        searchQuery = e.target.value.trim();
+        searchQuery = (e.target as HTMLInputElement).value.trim();
         loadInventory();
       }, 300);
     };
 
-    toolbar.querySelectorAll('.supplier-chip').forEach((chip) => {
+    toolbar.querySelectorAll<HTMLElement>('.supplier-chip').forEach((chip) => {
       chip.onclick = () => {
         filterStatus = chip.dataset.status;
         loadInventory();
@@ -178,10 +178,12 @@ export default function InventoryPage(root) {
           icon: '📦',
           title: t('supplier.no_inventory_found', 'No inventory items match your filter'),
           description: t('supplier.no_inventory_desc', 'Try clearing your search filters or add a new product SKU to your catalog.'),
-          actionLabel: t('supplier.add_product', 'Add Product'),
-          onAction: () => {
-            window.location.href = '/supplier/products';
-          },
+          action: Button({
+            label: t('supplier.add_product', 'Add Product'),
+            onClick: () => {
+              window.location.href = '/supplier/products';
+            },
+          }),
         })
       );
       return;
@@ -271,7 +273,7 @@ export default function InventoryPage(root) {
     tableWrapper.innerHTML = tableHtml;
 
     // Attach Stock Adjuster click listeners
-    tableWrapper.querySelectorAll('.adjust-stock-btn').forEach((btn) => {
+    tableWrapper.querySelectorAll<HTMLElement>('.adjust-stock-btn').forEach((btn) => {
       btn.onclick = () => {
         const id = btn.dataset.id;
         const item = items.find((i) => String(i.id) === String(id));
@@ -345,18 +347,18 @@ export default function InventoryPage(root) {
     });
 
     const close = () => modal.close(false);
-    footer.querySelector('#cancel-stock-btn').onclick = close;
+    footer.querySelector<HTMLElement>('#cancel-stock-btn').onclick = close;
 
-    const qtyInput = content.querySelector('#stock-qty-input');
+    const qtyInput = content.querySelector<HTMLInputElement>('#stock-qty-input');
     const bump = (delta) => {
-      qtyInput.value = Math.max(0, (parseInt(qtyInput.value || '0', 10) || 0) + delta);
+      qtyInput.value = String(Math.max(0, (parseInt(qtyInput.value || '0', 10) || 0) + delta));
     };
-    content.querySelector('#decrement-10-btn').onclick = () => bump(-10);
-    content.querySelector('#decrement-1-btn').onclick = () => bump(-1);
-    content.querySelector('#increment-1-btn').onclick = () => bump(1);
-    content.querySelector('#increment-10-btn').onclick = () => bump(10);
+    content.querySelector<HTMLElement>('#decrement-10-btn').onclick = () => bump(-10);
+    content.querySelector<HTMLElement>('#decrement-1-btn').onclick = () => bump(-1);
+    content.querySelector<HTMLElement>('#increment-1-btn').onclick = () => bump(1);
+    content.querySelector<HTMLElement>('#increment-10-btn').onclick = () => bump(10);
 
-    footer.querySelector('#save-stock-btn').onclick = async () => {
+    footer.querySelector<HTMLElement>('#save-stock-btn').onclick = async () => {
       const newQty = parseInt(qtyInput.value || '0', 10);
       try {
         await supplierApi.updateStock({ productId: item.id, stockQty: newQty });

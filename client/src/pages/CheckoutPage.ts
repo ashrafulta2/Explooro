@@ -1,5 +1,5 @@
 /**
- * CheckoutPage.js — Streamlined Single-Phase Express Checkout (Prompt 5.4).
+ * CheckoutPage.ts — Streamlined Single-Phase Express Checkout (Prompt 5.4).
  *
  * Implements a frictionless, unified 1-page checkout experience:
  *  - Auto-prefills delivery name, phone, district & address from user profile and saved drafts
@@ -22,8 +22,9 @@ import { formatCurrency } from '../services/format.ts';
 import { toast } from '../services/toast.ts';
 import { t } from '../services/i18n.ts';
 import { Button } from '../components/ui/Button.ts';
+import type { PageContext } from './types.ts';
 
-export default function CheckoutPage(root, { navigate } = {}) {
+export default function CheckoutPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'checkout-page container';
 
@@ -31,10 +32,10 @@ export default function CheckoutPage(root, { navigate } = {}) {
   let isSubmitting = false;
 
   // Retrieve authenticated user profile to auto-fill defaults
-  const user = getCurrentUser() || appStore.state?.auth?.user || {};
+  const user = getCurrentUser() || appStore.get().auth?.user || {};
 
   // Load saved draft if present, falling back to profile details
-  const draft = loadCheckoutDraft() || {};
+  const draft: Record<string, any> = loadCheckoutDraft() || {};
   let addressData = {
     recipient_name: draft.address?.recipient_name || user.full_name || user.display_name || user.name || '',
     recipient_phone: draft.address?.recipient_phone || user.phone || '',
@@ -64,7 +65,7 @@ export default function CheckoutPage(root, { navigate } = {}) {
   const handleOffline = () => {
     isOnline = false;
     offlineBanner.classList.remove('hidden');
-    toast.warn(t('checkout.offline_toast'));
+    toast.warning(t('checkout.offline_toast'));
   };
   window.addEventListener('online', handleOnline);
   window.addEventListener('offline', handleOffline);
@@ -311,14 +312,13 @@ export default function CheckoutPage(root, { navigate } = {}) {
       label: isSubmitting ? t('checkout.placing_order') : t('checkout.place_order'),
       variant: 'primary',
       size: 'lg',
-      className: 'checkout-page__submit-btn mt-6',
       disabled: isSubmitting,
       onClick: async () => {
         if (isSubmitting) return;
 
         // Direct in-place validation
         if (addressForm && !addressForm.validate()) {
-          toast.warn(t('checkout.fill_required_fields') || 'Please fill in the required delivery fields.');
+          toast.warning(t('checkout.fill_required_fields') || 'Please fill in the required delivery fields.');
           return;
         }
 
@@ -349,10 +349,10 @@ export default function CheckoutPage(root, { navigate } = {}) {
             // page offers "Pay now" for anything left unpaid.
             try {
               const paid = await payForOrder(result.order);
-              if (paid.redirected) return;
+              if ((paid as { redirected?: true }).redirected) return;
               toast.success(t('checkout.payment_success'));
             } catch {
-              toast.warn(t('checkout.payment_failed_after_order'));
+              toast.warning(t('checkout.payment_failed_after_order'));
             }
           } else {
             toast.success(t('checkout.order_success') || 'Order placed successfully!');
@@ -364,7 +364,7 @@ export default function CheckoutPage(root, { navigate } = {}) {
         } catch (err) {
           if (err.code === 'COD_OTP_REQUIRED') {
             paymentSelector?.promptOtp(err.details?.phone || addressData.recipient_phone);
-            toast.warn(t('checkout.cod_otp_required_notice'));
+            toast.warning(t('checkout.cod_otp_required_notice'));
           } else {
             const isBn = document.documentElement.lang === 'bn';
             const msg = isBn && err.messageBn ? err.messageBn : err.message;
@@ -376,6 +376,8 @@ export default function CheckoutPage(root, { navigate } = {}) {
         }
       },
     });
+    // WHY after the call: Button has no `className` option, so these classes were never applied.
+    placeOrderBtn.classList.add('checkout-page__submit-btn', 'mt-6');
 
     card.append(placeOrderBtn);
 

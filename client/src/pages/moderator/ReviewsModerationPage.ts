@@ -1,5 +1,5 @@
 /**
- * ReviewsModerationPage.js — Moderator Review Integrity Queue (Prompt 7.7-C).
+ * ReviewsModerationPage.ts — Moderator Review Integrity Queue (Prompt 7.7-C).
  *
  * Implements:
  * 1. Queue of flagged product reviews awaiting moderation.
@@ -40,7 +40,7 @@ const SEED_REVIEWS = [
   { id: 'rv5', flag_reason: 'UNVERIFIED_PURCHASE',  status: 'PENDING', reviewer_name: 'Rubel M.',  product_name: 'Xiaomi Smart TV 43"',  rating: 2, body: 'Poor build quality and display issues after 2 weeks.', created_at: new Date(Date.now()-14400000).toISOString() },
 ];
 
-export default function ReviewsModerationPage(root) {
+export default function ReviewsModerationPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'reviews-moderation-page';
   container.style.cssText = `
@@ -182,7 +182,7 @@ export default function ReviewsModerationPage(root) {
     document.body.appendChild(backdrop);
     backdrop.querySelector('#btn-cancel-reject').addEventListener('click',()=>backdrop.remove());
     backdrop.querySelector('#btn-confirm-reject').addEventListener('click',()=>{
-      const reason=backdrop.querySelector('#sel-reject-reason').value;
+      const reason=backdrop.querySelector<HTMLInputElement>('#sel-reject-reason').value;
       backdrop.remove();
       decide(reviewId,'REJECTED',reason);
     });

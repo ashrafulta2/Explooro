@@ -1,5 +1,5 @@
 /**
- * SupplierHelpPage.js — Supplier Operations Hub, Interactive Checklist & Help Center (Prompt 11.1).
+ * SupplierHelpPage.ts — Supplier Operations Hub, Interactive Checklist & Help Center (Prompt 11.1).
  *
  * Implements:
  * 1. Supplier Operational Routine Checklist (interactive progress tracking).
@@ -14,7 +14,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 
-export default function SupplierHelpPage(root) {
+export default function SupplierHelpPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -61,7 +61,7 @@ export default function SupplierHelpPage(root) {
       </div>
     `;
 
-    header.querySelector('#open-ticket-btn').onclick = openSupportTicketModal;
+    header.querySelector<HTMLElement>('#open-ticket-btn').onclick = openSupportTicketModal;
     container.appendChild(header);
 
     // 2. Interactive Operational Routine Checklist
@@ -220,10 +220,10 @@ export default function SupplierHelpPage(root) {
     `;
 
     // Accordion toggle behavior
-    faqSection.querySelectorAll('.supplier-faq-item').forEach((item) => {
-      const btn = item.querySelector('.supplier-faq-item__header');
-      const body = item.querySelector('.supplier-faq-item__body');
-      const chevron = item.querySelector('.faq-chevron');
+    faqSection.querySelectorAll<HTMLElement>('.supplier-faq-item').forEach((item) => {
+      const btn = item.querySelector<HTMLElement>('.supplier-faq-item__header');
+      const body = item.querySelector<HTMLElement>('.supplier-faq-item__body');
+      const chevron = item.querySelector<HTMLElement>('.faq-chevron');
 
       btn.onclick = () => {
         const isOpen = body.style.display !== 'none';
@@ -296,9 +296,9 @@ export default function SupplierHelpPage(root) {
 
     const close = () => modalBackdrop.close(false);
 
-    modalBackdrop.querySelector('#submit-ticket-action-btn').onclick = () => {
-      const subject = modalBackdrop.querySelector('#ticket-subject').value.trim();
-      const body = modalBackdrop.querySelector('#ticket-body').value.trim();
+    modalBackdrop.querySelector<HTMLElement>('#submit-ticket-action-btn').onclick = () => {
+      const subject = modalBackdrop.querySelector<HTMLInputElement>('#ticket-subject').value.trim();
+      const body = modalBackdrop.querySelector<HTMLInputElement>('#ticket-body').value.trim();
       if (!subject || !body) {
         toast.error('Please enter both subject and description.');
         return;

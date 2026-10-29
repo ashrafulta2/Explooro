@@ -1,5 +1,5 @@
 /**
- * SupplierForecastingPage.js — AI-Powered Demand Forecasting for Suppliers (Prompt 7.7-E).
+ * SupplierForecastingPage.ts — AI-Powered Demand Forecasting for Suppliers (Prompt 7.7-E).
  *
  * Implements:
  * 1. Demand forecast per SKU — 30/60/90 day projections with a stock-vs-reorder mini bar.
@@ -47,7 +47,7 @@ const RISK_CONFIG = {
 const TREND_ICONS = { UP: '📈', DOWN: '📉', STABLE: '➡️' };
 const TREND_KEYS = { UP: 'sup_forecast.trend_up', DOWN: 'sup_forecast.trend_down', STABLE: 'sup_forecast.trend_stable' };
 
-export default function SupplierForecastingPage(root) {
+export default function SupplierForecastingPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-forecasting-page';
   container.style.cssText = `
@@ -256,7 +256,7 @@ export default function SupplierForecastingPage(root) {
     container.querySelector('#btn-export-csv')?.addEventListener('click', exportCsv);
     container.querySelectorAll('.btn-horizon').forEach(b=>b.addEventListener('click',()=>{ horizon=parseInt(b.getAttribute('data-horizon')); fetchForecasts(); }));
     container.querySelectorAll('.btn-risk-filter').forEach(b=>b.addEventListener('click',()=>{ riskFilter=b.getAttribute('data-risk'); render(); }));
-    container.querySelector('#inp-sku-search')?.addEventListener('input',e=>{ searchQuery=e.target.value; render(); });
+    container.querySelector('#inp-sku-search')?.addEventListener('input',e=>{ searchQuery=(e.target as HTMLInputElement).value; render(); });
   }
 
   fetchForecasts();

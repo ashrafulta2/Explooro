@@ -1,7 +1,7 @@
 /**
  * page-availability.css — /admin/platform/pages (the per-page switchboard).
  *
- * Imported DYNAMICALLY by PageAvailabilityPage.js, never from main.css: the entry bundle's CSS
+ * Imported DYNAMICALLY by PageAvailabilityPage.ts, never from main.css: the entry bundle's CSS
  * budget (70KB gzipped, enforced by client/vite.config.js) is close to its ceiling, and a
  * stylesheet imported from both places silently lands in the entry bundle AND a route chunk.
  *

@@ -1,5 +1,5 @@
 /**
- * SalerStoreStatusPage.js — Shop Partner Physical Shop, Showroom & Customer Pickup Desk Status (Prompt 11.1 / §AL.2).
+ * SalerStoreStatusPage.ts — Shop Partner Physical Shop, Showroom & Customer Pickup Desk Status (Prompt 11.1 / §AL.2).
  *
  * Route: /saler/store-status
  * Implements:
@@ -16,6 +16,7 @@ import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.
 import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
+import type { PageContext } from '../types.ts';
 
 const DAYS_OF_WEEK = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
@@ -33,7 +34,7 @@ const DISTRICT_OPTIONS = [
   'Barishal', 'Rangpur', 'Mymensingh', 'Bogura', 'Gazipur', 'Narayanganj', 'Cumilla'
 ];
 
-export default function SalerStoreStatusPage(root, { navigate } = {}) {
+export default function SalerStoreStatusPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'saler-page-container';
 
@@ -123,7 +124,7 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
         </button>
       </div>
     `;
-    header.querySelector('#btn-save-top').onclick = saveAll;
+    header.querySelector<HTMLElement>('#btn-save-top').onclick = saveAll;
     container.append(header);
 
     // 2. Hero Live Status Banner
@@ -158,7 +159,7 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
       </div>
     `;
 
-    banner.querySelector('#btn-toggle-open').onclick = async () => {
+    banner.querySelector<HTMLElement>('#btn-toggle-open').onclick = async () => {
       store.is_open = !store.is_open;
       await salerApi.updateStoreStatus({ is_open: store.is_open });
       toast.success(store.is_open ? 'Store marked as OPEN' : 'Store marked as CLOSED');
@@ -209,9 +210,9 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
       </div>
     `;
 
-    hoursCard.querySelector('#master-open-time').onchange = (e) => { store.open_time = e.target.value; };
-    hoursCard.querySelector('#master-close-time').onchange = (e) => { store.close_time = e.target.value; };
-    hoursCard.querySelector('#btn-apply-all-days').onclick = () => {
+    hoursCard.querySelector<HTMLElement>('#master-open-time').onchange = (e) => { store.open_time = (e.target as HTMLInputElement).value; };
+    hoursCard.querySelector<HTMLElement>('#master-close-time').onchange = (e) => { store.close_time = (e.target as HTMLInputElement).value; };
+    hoursCard.querySelector<HTMLElement>('#btn-apply-all-days').onclick = () => {
       DAYS_OF_WEEK.forEach((d) => {
         if (store.weekly_schedule[d]?.is_open) {
           store.weekly_schedule[d].open_time = store.open_time;
@@ -264,17 +265,17 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
         </div>
       `;
 
-      row.querySelector('.day-toggle').onchange = (e) => {
-        dayConfig.is_open = e.target.checked;
+      row.querySelector<HTMLElement>('.day-toggle').onchange = (e) => {
+        dayConfig.is_open = (e.target as HTMLInputElement).checked;
         store.weekly_schedule[day] = dayConfig;
         render();
       };
-      row.querySelector('.day-open').onchange = (e) => {
-        dayConfig.open_time = e.target.value;
+      row.querySelector<HTMLElement>('.day-open').onchange = (e) => {
+        dayConfig.open_time = (e.target as HTMLInputElement).value;
         store.weekly_schedule[day] = dayConfig;
       };
-      row.querySelector('.day-close').onchange = (e) => {
-        dayConfig.close_time = e.target.value;
+      row.querySelector<HTMLElement>('.day-close').onchange = (e) => {
+        dayConfig.close_time = (e.target as HTMLInputElement).value;
         store.weekly_schedule[day] = dayConfig;
       };
 
@@ -329,15 +330,15 @@ export default function SalerStoreStatusPage(root, { navigate } = {}) {
       </div>
     `;
 
-    locationCard.querySelector('#loc-shop-name').oninput = (e) => { store.shop_name = e.target.value; };
-    locationCard.querySelector('#loc-district').onchange = (e) => { store.district = e.target.value; };
-    locationCard.querySelector('#loc-address').oninput = (e) => { store.address = e.target.value; };
-    locationCard.querySelector('#loc-phone').oninput = (e) => { store.phone = e.target.value; };
-    locationCard.querySelector('#loc-pickup-toggle').onchange = (e) => {
-      store.pickup_enabled = e.target.checked;
+    locationCard.querySelector<HTMLElement>('#loc-shop-name').oninput = (e) => { store.shop_name = (e.target as HTMLInputElement).value; };
+    locationCard.querySelector<HTMLElement>('#loc-district').onchange = (e) => { store.district = (e.target as HTMLInputElement).value; };
+    locationCard.querySelector<HTMLElement>('#loc-address').oninput = (e) => { store.address = (e.target as HTMLInputElement).value; };
+    locationCard.querySelector<HTMLElement>('#loc-phone').oninput = (e) => { store.phone = (e.target as HTMLInputElement).value; };
+    locationCard.querySelector<HTMLElement>('#loc-pickup-toggle').onchange = (e) => {
+      store.pickup_enabled = (e.target as HTMLInputElement).checked;
       render();
     };
-    locationCard.querySelector('#loc-pickup-notes').oninput = (e) => { store.pickup_notes = e.target.value; };
+    locationCard.querySelector<HTMLElement>('#loc-pickup-notes').oninput = (e) => { store.pickup_notes = (e.target as HTMLInputElement).value; };
 
     rightCol.append(locationCard);
     grid.append(rightCol);

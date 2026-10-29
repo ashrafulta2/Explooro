@@ -166,10 +166,10 @@ test('7.7 pages — titles resolve through i18n, not hardcoded literals', () => 
   const pages = {
     'client/src/pages/moderator/MyAccessPage.js': 'mod_access.title',
     'client/src/pages/moderator/PenaltiesPage.js': 'mod_penalties.title',
-    'client/src/pages/moderator/ReportsPage.js': 'mod_reports.title',
-    'client/src/pages/moderator/ReviewsModerationPage.js': 'mod_reviews.title',
+    'client/src/pages/moderator/ReportsPage.ts': 'mod_reports.title',
+    'client/src/pages/moderator/ReviewsModerationPage.ts': 'mod_reviews.title',
     'client/src/pages/moderator/UgcModerationPage.js': 'mod_ugc.title',
-    'client/src/pages/supplier/ForecastingPage.js': 'sup_forecast.title',
+    'client/src/pages/supplier/ForecastingPage.ts': 'sup_forecast.title',
   };
   for (const [file, titleKey] of Object.entries(pages)) {
     const src = readText(file);
@@ -181,7 +181,7 @@ test('7.7 pages — titles resolve through i18n, not hardcoded literals', () => 
 });
 
 test('7.7 routes — each route names a real permission and module', () => {
-  const routeBlocks = [...mainSrc.matchAll(/load:\s*\(\)\s*=>\s*import\('\.\/pages\/(?:moderator|supplier)\/(?:MyAccessPage|PenaltiesPage|ReportsPage|ReviewsModerationPage|UgcModerationPage|ForecastingPage)\.js'\)/g)];
+  const routeBlocks = [...mainSrc.matchAll(/load:\s*\(\)\s*=>\s*import\('\.\/pages\/(?:moderator|supplier)\/(?:MyAccessPage|PenaltiesPage|ReportsPage|ReviewsModerationPage|UgcModerationPage|ForecastingPage)\.(?:js|ts)'\)/g)];
   assert.equal(routeBlocks.length, 6, 'expected all six 7.7 routes registered in main.js');
 
   const specs = [

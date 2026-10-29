@@ -27,7 +27,7 @@ import zlib from 'node:zlib';
  * three times what collapsing nine duplicated shell blocks did. To audit, cross-reference the
  * `@import`s in main.css against `grep -rn "styles/components/.*\.css" client/src/pages`. Before
  * removing an import, confirm every consumer of those classes imports the sheet itself —
- * OrderDetailPage.js used the order-card classes without importing anything, which is what made
+ * OrderDetailPage.ts used the order-card classes without importing anything, which is what made
  * the duplicate look load-bearing.
  */
 function performanceBudgetPlugin() {

@@ -1,5 +1,5 @@
 /**
- * LedgerPage.js — Double-Entry General Ledger & Zero-Drift Financial Accounting (Prompt 6.1 / Prompt 6.5).
+ * LedgerPage.ts — Double-Entry General Ledger & Zero-Drift Financial Accounting (Prompt 6.1 / Prompt 6.5).
  *
  * Implements:
  * 1. Financial Reconciliation Header (Total Debits, Total Credits, System Drift: ৳0.00 Invariant).
@@ -18,8 +18,9 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
-export default function LedgerPage(root, { navigate } = {}) {
+export default function LedgerPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -274,9 +275,9 @@ export default function LedgerPage(root, { navigate } = {}) {
     const searchInput = container.querySelector('#ledger-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value;
+        searchQuery = (e.target as HTMLInputElement).value;
         render();
-        const input = root.querySelector('#ledger-search-input');
+        const input = root.querySelector<HTMLInputElement>('#ledger-search-input');
         if (input) {
           input.focus();
           input.setSelectionRange(input.value.length, input.value.length);
@@ -285,7 +286,7 @@ export default function LedgerPage(root, { navigate } = {}) {
     }
 
     container.querySelector('#tx-type-select')?.addEventListener('change', (e) => {
-      typeFilter = e.target.value;
+      typeFilter = (e.target as HTMLInputElement).value;
       render();
     });
 

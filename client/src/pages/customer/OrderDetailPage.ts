@@ -1,5 +1,5 @@
 /**
- * OrderDetailPage.js — Order details, parcel tracking, and order cancellation (Prompt 5.4).
+ * OrderDetailPage.ts — Order details, parcel tracking, and order cancellation (Prompt 5.4).
  *
  * Implements:
  *  - Full order inspection with parent billing and recipient details
@@ -18,8 +18,9 @@ import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { goBack, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-orders.css';
+import type { PageContext } from '../types.ts';
 
-export default function OrderDetailPage(root, { params = {}, navigate } = {}) {
+export default function OrderDetailPage(root: HTMLElement, { params = {}, navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'order-detail-page container';
 
@@ -305,7 +306,7 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
           payBtn.setLabel(t('order_tracking.paying'));
           try {
             const result = await payForOrder(order);
-            if (result.redirected) return;
+            if ((result as { redirected?: true }).redirected) return;
             toast.success(t('checkout.payment_success'));
             renderOrderDetail(container, orderIdOrRef, navigate);
           } catch (err) {
@@ -330,13 +331,14 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
         label: t('order_tracking.cancel_order_btn'),
         variant: 'danger',
         size: 'md',
-        className: 'w-full',
         onClick: () => {
           showCancelModal(order, navigate, () => {
             renderOrderDetail(container, orderIdOrRef, navigate);
           });
         },
       });
+      // WHY after the call: Button has no `className` option, so `w-full` was never applied.
+      cancelBtn.classList.add('w-full');
       cancelWrap.append(cancelBtn);
       summaryCard.append(cancelWrap);
     }
@@ -372,7 +374,7 @@ function showCancelModal(order, navigate, onRefresh) {
 
   modalContent.querySelector('#modal-cancel-btn').addEventListener('click', () => modal.closeModal());
   modalContent.querySelector('#modal-confirm-btn').addEventListener('click', async () => {
-    const reason = modalContent.querySelector('#cancel-reason-input').value.trim();
+    const reason = modalContent.querySelector<HTMLInputElement>('#cancel-reason-input').value.trim();
     try {
       await cancelOrder(order.id, reason);
       toast.success(t('order_tracking.cancel_success') || 'Order cancelled successfully.');

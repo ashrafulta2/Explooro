@@ -1,5 +1,5 @@
 /**
- * BatchManagerPage.js — FEFO Batch Expiration Timeline, Clearance Sale Actions & Recalls (Prompt 11.1).
+ * BatchManagerPage.ts — FEFO Batch Expiration Timeline, Clearance Sale Actions & Recalls (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AJ:
  * - Lot/Batch Number tracking with Mfg & Exp dates.
@@ -19,7 +19,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function BatchManagerPage(root) {
+export default function BatchManagerPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -95,8 +95,8 @@ export default function BatchManagerPage(root) {
       </div>
     `;
 
-    header.querySelector('#create-batch-btn').onclick = openCreateBatchModal;
-    header.querySelector('#refresh-batch-btn').onclick = loadData;
+    header.querySelector<HTMLElement>('#create-batch-btn').onclick = openCreateBatchModal;
+    header.querySelector<HTMLElement>('#refresh-batch-btn').onclick = loadData;
     container.appendChild(header);
 
     // 2. Timeline KPI Summary Strip
@@ -157,7 +157,7 @@ export default function BatchManagerPage(root) {
       </div>
     `;
 
-    toolbar.querySelectorAll('.supplier-chip').forEach((chip) => {
+    toolbar.querySelectorAll<HTMLElement>('.supplier-chip').forEach((chip) => {
       chip.onclick = () => {
         filterStatus = chip.dataset.status;
         render();
@@ -186,8 +186,7 @@ export default function BatchManagerPage(root) {
           icon: '🏷️',
           title: t('supplier.no_batches_found', 'No batches found in this view'),
           description: t('supplier.no_batches_desc', 'Create a new stock lot or change your status filter to see other batches.'),
-          actionLabel: t('supplier.create_batch_btn', 'Create New Batch'),
-          onAction: openCreateBatchModal,
+          action: Button({ label: t('supplier.create_batch_btn', 'Create New Batch'), onClick: openCreateBatchModal }),
         })
       );
       return;
@@ -255,7 +254,7 @@ export default function BatchManagerPage(root) {
       `;
 
       // 1-Click Clearance Action
-      const clearanceBtn = card.querySelector('.clearance-btn');
+      const clearanceBtn = card.querySelector<HTMLElement>('.clearance-btn');
       if (clearanceBtn) {
         clearanceBtn.onclick = async () => {
           try {
@@ -269,7 +268,7 @@ export default function BatchManagerPage(root) {
       }
 
       // Recall Isolation
-      const recallBtn = card.querySelector('.recall-btn');
+      const recallBtn = card.querySelector<HTMLElement>('.recall-btn');
       if (recallBtn) {
         recallBtn.onclick = async () => {
           if (!confirm(`Are you sure you want to recall batch #${batch.batch_number}? This will immediately freeze checkout for these units.`)) return;
@@ -330,11 +329,11 @@ export default function BatchManagerPage(root) {
 
     const close = () => modalBackdrop.close(false);
 
-    modalBackdrop.querySelector('#save-batch-btn').onclick = async () => {
-      const batchNum = modalBackdrop.querySelector('#batch-number-input').value.trim();
-      const whId = modalBackdrop.querySelector('#warehouse-select').value;
-      const qty = parseInt(modalBackdrop.querySelector('#batch-qty-input').value, 10);
-      const expDate = modalBackdrop.querySelector('#batch-exp-input').value;
+    modalBackdrop.querySelector<HTMLElement>('#save-batch-btn').onclick = async () => {
+      const batchNum = modalBackdrop.querySelector<HTMLInputElement>('#batch-number-input').value.trim();
+      const whId = modalBackdrop.querySelector<HTMLInputElement>('#warehouse-select').value;
+      const qty = parseInt(modalBackdrop.querySelector<HTMLInputElement>('#batch-qty-input').value, 10);
+      const expDate = modalBackdrop.querySelector<HTMLInputElement>('#batch-exp-input').value;
 
       if (!batchNum || !expDate || isNaN(qty)) {
         toast.error('Please fill in all required fields.');

@@ -1,5 +1,5 @@
 /**
- * ReportsPage.js — Moderator User Reports Handling Queue (Prompt 7.7-B).
+ * ReportsPage.ts — Moderator User Reports Handling Queue (Prompt 7.7-B).
  *
  * Implements:
  * 1. Filterable queue of user-submitted reports (spam, harassment, counterfeit, etc.).
@@ -47,7 +47,7 @@ const SEED_REPORTS = [
   { id: 'r5', report_type: 'INAPPROPRIATE', status: 'OPEN', reporter_name: 'Farhan Ahmed', reported_name: 'Fashion Hub BD',   subject: 'Product images contain nudity',                       created_at: new Date(Date.now()-18000000).toISOString() },
 ];
 
-export default function ReportsPage(root) {
+export default function ReportsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'reports-page';
   container.style.cssText = `
@@ -236,17 +236,17 @@ export default function ReportsPage(root) {
     container.querySelectorAll('.btn-type-filter').forEach(btn=>{
       btn.addEventListener('click',()=>{ typeFilter=btn.getAttribute('data-type'); fetchReports(); });
     });
-    container.querySelector('#sel-status')?.addEventListener('change',e=>{ statusFilter=e.target.value; fetchReports(); });
+    container.querySelector('#sel-status')?.addEventListener('change',e=>{ statusFilter=(e.target as HTMLInputElement).value; fetchReports(); });
     container.querySelector('#btn-bulk-dismiss')?.addEventListener('click', bulkDismiss);
     container.querySelectorAll('.report-row').forEach(row=>{
       row.addEventListener('click', e=>{
-        if(e.target.type==='checkbox') return;
+        if((e.target as HTMLInputElement).type==='checkbox') return;
         const id = row.getAttribute('data-id');
         expandedId = expandedId===id ? null : id;
         render();
       });
     });
-    container.querySelectorAll('.chk-report').forEach(chk=>{
+    container.querySelectorAll<HTMLInputElement>('.chk-report').forEach(chk=>{
       chk.addEventListener('change',()=>{
         const id = chk.getAttribute('data-id');
         if(chk.checked) selectedIds.add(id); else selectedIds.delete(id);

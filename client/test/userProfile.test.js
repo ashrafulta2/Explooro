@@ -49,7 +49,7 @@ const ACCOUNT_PAGES = [
   { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrdersPage.ts' },
   // The tracking detail page renders the same shell and the same order cards, so it carries
   // its own import of customer-orders.css — that sheet is deliberately absent from main.css.
-  { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrderDetailPage.js' },
+  { prefix: 'orders-page', rootClass: 'orders-page', css: 'customer-orders', js: 'src/pages/customer/OrderDetailPage.ts' },
   { prefix: 'warranties-page', rootClass: 'warranties-page', css: 'customer-warranties', js: 'src/pages/customer/WarrantyCardsPage.js' },
   { prefix: 'become-saler-page', rootClass: 'become-saler-page', css: 'customer-become-saler', js: 'src/pages/customer/BecomeSalerPage.js' },
 ];

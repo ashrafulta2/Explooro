@@ -172,10 +172,10 @@ async function bootRouterDemo() {
       // WHY requiresAuth: POST /orders/checkout is behind fastify.authenticate, so a guest used to
       // fill the whole form and only hit a 401 on "Place Order". The router guard now sends them to
       // /login?redirect=/checkout first (the cart survives, it is not session-bound).
-      { path: '/checkout', title: 'Secure Checkout — Explooro', requiresAuth: true, permission: null, module: 'core', load: () => import('./pages/CheckoutPage.js') },
-      { path: '/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
-      { path: '/customer/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
-      { path: '/orders/:id', title: 'Order Details — Explooro', requiresAuth: true, permission: null, module: 'core', load: () => import('./pages/customer/OrderDetailPage.js') },
+      { path: '/checkout', title: 'Secure Checkout — Explooro', requiresAuth: true, permission: null, module: 'core', load: () => import('./pages/CheckoutPage.ts') },
+      { path: '/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.ts') },
+      { path: '/customer/orders', title: 'My Orders — Explooro', requiresAuth: true, permission: 'orders.order.view_own', module: 'core', load: () => import('./pages/customer/OrderDetailPage.ts') },
+      { path: '/orders/:id', title: 'Order Details — Explooro', requiresAuth: true, permission: null, module: 'core', load: () => import('./pages/customer/OrderDetailPage.ts') },
       // Prompt 10.1: Live Stream Commerce
       { path: '/live', title: 'Live Broadcasts — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
       { path: '/live/:id', title: 'Live Shopping — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
@@ -591,7 +591,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.inventory.manage',
         module: 'core',
-        load: () => import('./pages/supplier/InventoryPage.js'),
+        load: () => import('./pages/supplier/InventoryPage.ts'),
       },
       {
         path: '/supplier/batches',
@@ -599,7 +599,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.batch.manage',
         module: 'fefo_batches',
-        load: () => import('./pages/supplier/BatchManagerPage.js'),
+        load: () => import('./pages/supplier/BatchManagerPage.ts'),
       },
       {
         path: '/supplier/warehouses',
@@ -623,7 +623,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.consignment.create',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/FulfilmentPage.js'),
+        load: () => import('./pages/supplier/FulfilmentPage.ts'),
       },
       {
         path: '/supplier/fulfillment',
@@ -631,7 +631,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.consignment.create',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/FulfilmentPage.js'),
+        load: () => import('./pages/supplier/FulfilmentPage.ts'),
       },
       {
         path: '/supplier/shipping',
@@ -639,7 +639,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.consignment.create',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/FulfilmentPage.js'),
+        load: () => import('./pages/supplier/FulfilmentPage.ts'),
       },
       {
         path: '/supplier/salers',
@@ -711,7 +711,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/supplier/SupplierHelpPage.js'),
+        load: () => import('./pages/supplier/SupplierHelpPage.ts'),
       },
       {
         path: '/supplier/shipments',
@@ -752,7 +752,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'physical_shop_status',
-        load: () => import('./pages/saler/SalerStoreStatusPage.js'),
+        load: () => import('./pages/saler/SalerStoreStatusPage.ts'),
       },
       {
         path: '/saler/social-kit',
@@ -1037,7 +1037,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.ledger.view',
         module: 'core',
-        load: () => import('./pages/admin/LedgerPage.js'),
+        load: () => import('./pages/admin/LedgerPage.ts'),
       },
       {
         path: '/admin/ledger',
@@ -1045,7 +1045,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.ledger.view',
         module: 'core',
-        load: () => import('./pages/admin/LedgerPage.js'),
+        load: () => import('./pages/admin/LedgerPage.ts'),
       },
       {
         path: '/admin/finance/escrow',
@@ -1348,7 +1348,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.page.view',
         module: 'core',
-        load: () => import('./pages/admin/PageAvailabilityPage.js'),
+        load: () => import('./pages/admin/PageAvailabilityPage.ts'),
       },
       // Prompt 3.3: Users & Access Admin Pages
       {
@@ -1764,7 +1764,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'moderation.report.handle',
         module: 'core',
-        load: () => import('./pages/moderator/ReportsPage.js'),
+        load: () => import('./pages/moderator/ReportsPage.ts'),
       },
       // Prompt 7.7-C: Review Integrity Moderation
       {
@@ -1773,7 +1773,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'moderation.review.handle',
         module: 'review_integrity',
-        load: () => import('./pages/moderator/ReviewsModerationPage.js'),
+        load: () => import('./pages/moderator/ReviewsModerationPage.ts'),
       },
       // Prompt 7.7-D: UGC Video & Content Approval
       {
@@ -1791,7 +1791,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'ai_forecasting',
-        load: () => import('./pages/supplier/ForecastingPage.js'),
+        load: () => import('./pages/supplier/ForecastingPage.ts'),
       },
       // Prompt 8.3: Unified Multi-Channel Inbox
       {
@@ -2070,7 +2070,7 @@ async function bootRouterDemo() {
         requiresAuth: false,
         permission: null,
         module: 'cart_recovery',
-        load: () => import('./pages/CheckoutPage.js'),
+        load: () => import('./pages/CheckoutPage.ts'),
       },
       { path: '/dev/shell', title: 'Shell Preview — Explooro (dev)', permission: null, module: 'core', load: () => import('./pages/dev/DevShellSwitcher.ts') },
       // Prompt 1.8: DEV-only.

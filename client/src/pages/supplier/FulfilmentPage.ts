@@ -1,5 +1,5 @@
 /**
- * FulfilmentPage.js — Supplier 3PL Order Fulfilment Queue, Packing Slips & Consignments (Prompt 11.1).
+ * FulfilmentPage.ts — Supplier 3PL Order Fulfilment Queue, Packing Slips & Consignments (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AL.1:
  * - Fulfilment queue of pending orders awaiting packaging.
@@ -18,7 +18,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 
-export default function FulfilmentPage(root) {
+export default function FulfilmentPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
@@ -71,8 +71,8 @@ export default function FulfilmentPage(root) {
       </div>
     `;
 
-    header.querySelector('#refresh-queue-btn').onclick = loadQueue;
-    const printAllBtn = header.querySelector('#print-all-btn');
+    header.querySelector<HTMLElement>('#refresh-queue-btn').onclick = loadQueue;
+    const printAllBtn = header.querySelector<HTMLElement>('#print-all-btn');
     if (printAllBtn) {
       printAllBtn.onclick = () => window.print();
     }
@@ -225,7 +225,7 @@ export default function FulfilmentPage(root) {
       `;
 
       // 1-Click Consignment
-      const consignBtn = card.querySelector('.consign-btn');
+      const consignBtn = card.querySelector<HTMLElement>('.consign-btn');
       if (consignBtn) {
         consignBtn.onclick = async () => {
           const carrier = order.district === 'Dhaka' ? 'PATHAO' : 'STEADFAST';
@@ -240,12 +240,12 @@ export default function FulfilmentPage(root) {
       }
 
       // Print Packing Slip Dialog
-      card.querySelector('.print-slip-btn').onclick = () => {
+      card.querySelector<HTMLElement>('.print-slip-btn').onclick = () => {
         openPrintSlipModal(order);
       };
 
       // Print Label Dialog
-      const printLabelBtn = card.querySelector('.print-label-btn');
+      const printLabelBtn = card.querySelector<HTMLElement>('.print-label-btn');
       if (printLabelBtn) {
         printLabelBtn.onclick = () => {
           openPrintLabelModal(order);

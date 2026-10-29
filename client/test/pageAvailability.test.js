@@ -253,7 +253,7 @@ describe('page availability — the admin surface is registered and guarded', ()
   });
 
   it('the page CSS is lazy-loaded, never imported into the entry bundle', () => {
-    const pageSrc = read('src/pages/admin/PageAvailabilityPage.js');
+    const pageSrc = read('src/pages/admin/PageAvailabilityPage.ts');
     assert.match(pageSrc, /import\('\.\.\/\.\.\/styles\/components\/page-availability\.css'\)/);
     assert.doesNotMatch(
       pageSrc,

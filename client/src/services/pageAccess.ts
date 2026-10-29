@@ -36,6 +36,8 @@ export interface PageToggle {
   state: 'LIVE' | 'COMING_SOON' | 'HIDDEN' | 'LIMITED' | string;
   allowed_roles: string[];
   allowed_user_ids: string[];
+  reason?: string | null;
+  updated_at?: string | null;
 }
 
 /** The verdict for one viewer; `LIMITED` is a stored state and never comes out of here. */
