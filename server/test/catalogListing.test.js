@@ -131,7 +131,7 @@ describe('GET /products — sort', () => {
   });
 
   test('the grid dropdown sends `sort`, and every one of its values reaches the ORDER BY', async () => {
-    // The four values client/src/pages/HomePage.js's sortOptions can produce. Before the fix all
+    // The four values client/src/pages/HomePage.ts's sortOptions can produce. Before the fix all
     // four produced `p.created_at DESC`, because only `sort_by` was read.
     const expected = {
       price_asc: 'p.default_retail_price ASC',

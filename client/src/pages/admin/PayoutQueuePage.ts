@@ -1,5 +1,5 @@
 /**
- * PayoutQueuePage.js — Admin Payout Queue & Risk Management Dashboard (Prompt 6.3).
+ * PayoutQueuePage.ts — Admin Payout Queue & Risk Management Dashboard (Prompt 6.3).
  *
  * Implements:
  * - Unified Admin Page layout adhering to design-system §15 & admin-pages.css tokens
@@ -22,8 +22,9 @@ import { confirmDialog, confirmDialogWithReason } from '../../components/ui/Conf
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
+import type { PageContext } from '../types.ts';
 
-export default function PayoutQueuePage(root, { navigate } = {}) {
+export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'admin-page payout-queue-page';
 
@@ -163,7 +164,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
 
     const confirmed = await confirmDialog({
       title: t('payout.batch_disburse_title'),
-      message: t('payout.batch_disburse_confirm', { count: selectedIds.size }),
+      description: t('payout.batch_disburse_confirm', { count: selectedIds.size }),
       confirmLabel: t('payout.batch_disburse_btn'),
       variant: 'primary',
     });
@@ -721,27 +722,27 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
 
     const searchInput = container.querySelector('.payout-queue-page__search-input');
     searchInput?.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       render();
     });
 
     const statusSelect = container.querySelector('.payout-queue-page__status-select');
     statusSelect?.addEventListener('change', (e) => {
-      statusFilter = e.target.value;
+      statusFilter = (e.target as HTMLInputElement).value;
       selectedIds.clear();
       loadData();
     });
 
     const methodSelect = container.querySelector('.payout-queue-page__method-select');
     methodSelect?.addEventListener('change', (e) => {
-      methodFilter = e.target.value;
+      methodFilter = (e.target as HTMLInputElement).value;
       selectedIds.clear();
       loadData();
     });
 
     const riskSelect = container.querySelector('.payout-queue-page__risk-select');
     riskSelect?.addEventListener('change', (e) => {
-      riskFilter = e.target.value;
+      riskFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
@@ -756,7 +757,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
 
     const selectAll = container.querySelector('.payout-queue-page__select-all');
     selectAll?.addEventListener('change', (e) => {
-      if (e.target.checked) {
+      if ((e.target as HTMLInputElement).checked) {
         actionableVisible.forEach((p) => selectedIds.add(p.id));
       } else {
         actionableVisible.forEach((p) => selectedIds.delete(p.id));
@@ -764,16 +765,16 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
       render();
     });
 
-    container.querySelectorAll('.payout-queue-page__item-check').forEach((cb) => {
+    container.querySelectorAll<HTMLElement>('.payout-queue-page__item-check').forEach((cb) => {
       cb.addEventListener('change', (e) => {
-        const id = parseInt(e.target.dataset.id, 10);
-        if (e.target.checked) selectedIds.add(id);
+        const id = parseInt((e.target as HTMLElement).dataset.id, 10);
+        if ((e.target as HTMLInputElement).checked) selectedIds.add(id);
         else selectedIds.delete(id);
         render();
       });
     });
 
-    container.querySelectorAll('.payout-queue-page__batch-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.payout-queue-page__batch-btn').forEach((btn) => {
       btn.addEventListener('click', handleBatchDisburse);
     });
 
@@ -782,7 +783,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
       render();
     });
 
-    container.querySelectorAll('.payout-queue-page__copy-ref-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.payout-queue-page__copy-ref-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const ref = btn.dataset.ref;
@@ -790,7 +791,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.payout-queue-page__approve-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.payout-queue-page__approve-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = parseInt(btn.dataset.id, 10);
@@ -799,7 +800,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.payout-queue-page__reject-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.payout-queue-page__reject-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = parseInt(btn.dataset.id, 10);
@@ -808,7 +809,7 @@ export default function PayoutQueuePage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.payout-queue-page__details-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.payout-queue-page__details-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const id = parseInt(btn.dataset.id, 10);

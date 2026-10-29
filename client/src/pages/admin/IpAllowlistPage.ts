@@ -1,5 +1,5 @@
 /**
- * IpAllowlistPage.js — Admin Network IP Allowlist & Firewall Management.
+ * IpAllowlistPage.ts — Admin Network IP Allowlist & Firewall Management.
  *
  * Implements:
  * 1. Current Operator IP detection & 1-click allowlist inclusion.
@@ -16,8 +16,9 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
+import type { PageContext } from '../types.ts';
 
-export default function IpAllowlistPage(root, { navigate } = {}) {
+export default function IpAllowlistPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page ip-allowlist-page';
@@ -87,7 +88,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
     const newMode = firewallMode === 'ENFORCING' ? 'MONITORING' : 'ENFORCING';
     const confirmed = await confirmDialog({
       title: isBn ? 'ফায়ারওয়াল মোড পরিবর্তন' : 'Change Firewall Mode',
-      message: isBn
+      description: isBn
         ? `আপনি কি ফায়ারওয়াল মোড "${newMode === 'ENFORCING' ? 'কঠোর এনফোর্সিং' : 'মনিটরিং'}" করতে চান?`
         : `Switch firewall mode to ${newMode}? In ENFORCING mode, unauthorized IPs will be strictly blocked.`,
       confirmLabel: isBn ? 'হ্যাঁ, পরিবর্তন করুন' : `Switch to ${newMode}`,
@@ -123,7 +124,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
   async function handleDeleteEntry(entry) {
     const confirmed = await confirmDialog({
       title: isBn ? 'আইপি অনুমোদন বাতিল' : 'Delete IP Allowlist Entry',
-      message: isBn
+      description: isBn
         ? `আপনি কি নিশ্চিত যে "${entry.label}" (${entry.cidr}) তালিকা থেকে মুছে ফেলতে চান?`
         : `Are you sure you want to remove "${entry.label}" (${entry.cidr}) from the allowlist?`,
       confirmLabel: isBn ? 'মুছে ফেলুন' : 'Delete Entry',
@@ -527,25 +528,25 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
 
     container.querySelector('#form-use-current-ip-btn')?.addEventListener('click', () => {
       formIp = `${currentIp}/32`;
-      const ipInput = container.querySelector('#form-ip-input');
+      const ipInput = container.querySelector<HTMLInputElement>('#form-ip-input');
       if (ipInput) ipInput.value = formIp;
     });
 
     container.querySelector('#form-label-input')?.addEventListener('input', (e) => {
-      formLabel = e.target.value;
+      formLabel = (e.target as HTMLInputElement).value;
     });
 
     container.querySelector('#form-ip-input')?.addEventListener('input', (e) => {
-      formIp = e.target.value;
+      formIp = (e.target as HTMLInputElement).value;
     });
 
     container.querySelector('#form-scope-select')?.addEventListener('change', (e) => {
-      formScope = e.target.value;
+      formScope = (e.target as HTMLInputElement).value;
     });
 
     container.querySelector('#add-ip-form')?.addEventListener('submit', handleAddSubmit);
 
-    container.querySelectorAll('.toggle-entry-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.toggle-entry-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const entryId = parseInt(btn.dataset.id, 10);
         const entry = entries.find((e) => e.id === entryId);
@@ -553,7 +554,7 @@ export default function IpAllowlistPage(root, { navigate } = {}) {
       });
     });
 
-    container.querySelectorAll('.delete-entry-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.delete-entry-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const entryId = parseInt(btn.dataset.id, 10);
         const entry = entries.find((e) => e.id === entryId);

@@ -255,7 +255,7 @@ test('4. Shop Partner Route Registration Invariants in main.js', async (t) => {
       'SalerStoreStatusPage.ts',
       'SocialKitPage.ts',
       'SourcingCatalogPage.ts',
-      'StoreBuilderPage.js',
+      'StoreBuilderPage.ts',
       'UnifiedInboxPage.ts',
       'WithdrawalsPage.ts',
     ];

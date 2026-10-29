@@ -4,12 +4,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
-const homeSrc = fs.readFileSync(path.resolve(root, 'src/pages/HomePage.js'), 'utf8');
+const homeSrc = fs.readFileSync(path.resolve(root, 'src/pages/HomePage.ts'), 'utf8');
 const cssSrc = fs.readFileSync(path.resolve(root, 'src/styles/components/product.css'), 'utf8');
 const en = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/en.json'), 'utf8'));
 const bn = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/bn.json'), 'utf8'));
 
-test('Floating Browse & Filter bar — elements & structure in HomePage.js', () => {
+test('Floating Browse & Filter bar — elements & structure in HomePage.ts', () => {
   assert.ok(homeSrc.includes('home-floating-bar'), 'HomePage must contain home-floating-bar');
   assert.ok(homeSrc.includes('home-floating-bar__toggle'), 'HomePage must contain floating toggle');
   assert.ok(homeSrc.includes('home-floating-bar__toggle-icon'), 'Floating toggle must contain filter icon');
@@ -18,7 +18,7 @@ test('Floating Browse & Filter bar — elements & structure in HomePage.js', () 
   assert.ok(homeSrc.includes('home-floating-bar__toggle-active'), 'Floating toggle must contain active category chip');
 });
 
-test('Floating Toolbar — features & controls in HomePage.js', () => {
+test('Floating Toolbar — features & controls in HomePage.ts', () => {
   assert.ok(homeSrc.includes('home-floating-toolbar'), 'HomePage must contain home-floating-toolbar');
   assert.ok(homeSrc.includes('home-floating-toolbar__feeds'), 'Toolbar must contain feeds row');
   assert.ok(homeSrc.includes('home-floating-toolbar__search'), 'Toolbar must contain search form');
@@ -33,7 +33,7 @@ test('Floating Toolbar — features & controls in HomePage.js', () => {
   assert.ok(homeSrc.includes('newest'), 'Sort dropdown must support newest');
 });
 
-test('Floating Toolbar — dragging & positioning mechanics in HomePage.js', () => {
+test('Floating Toolbar — dragging & positioning mechanics in HomePage.ts', () => {
   assert.ok(homeSrc.includes('pointerdown'), 'Toggle must handle pointerdown for drag');
   assert.ok(homeSrc.includes('pointermove'), 'Window must handle pointermove for drag');
   assert.ok(homeSrc.includes('pointerup'), 'Window must handle pointerup for drag');

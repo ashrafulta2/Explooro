@@ -308,7 +308,7 @@ test('every string the page renders exists in BOTH en.json and bn.json', () => {
   const bn = JSON.parse(read('../src/locales/bn.json')).admin.dashboard;
   assert.deepEqual(Object.keys(en).sort(), Object.keys(bn).sort(), 'en and bn have identical key sets');
 
-  const source = read('../src/pages/admin/AdminDashboardPage.js');
+  const source = read('../src/pages/admin/AdminDashboardPage.ts');
   const used = new Set([...source.matchAll(/\btr\('([a-z0-9_]+)'/g)].map((m) => m[1]));
   // Dynamic keys the template builds at runtime.
   for (const g of KPI_GROUPS) {
@@ -331,6 +331,6 @@ test('every string the page renders exists in BOTH en.json and bn.json', () => {
 });
 
 test('the page module loads and exports a mount function that returns a cleanup', async () => {
-  const mod = await import('../src/pages/admin/AdminDashboardPage.js');
+  const mod = await import('../src/pages/admin/AdminDashboardPage.ts');
   assert.equal(typeof mod.default, 'function');
 });

@@ -67,7 +67,7 @@ test('Personalized feed admin — client invariants', async (t) => {
     const block = routeBlock.slice(0, routeBlock.indexOf('},') + 2);
     assert.match(block, /permission: 'platform\.recommendation\.view'/, 'route guard = nav guard');
     assert.match(block, /module: 'core'/, 'route module = nav module');
-    assert.match(block, /RecommendationSettingsPage\.js/);
+    assert.match(block, /RecommendationSettingsPage\.ts/);
   });
 
   await t.test('1b. Both permission keys exist; the update key is delegable and not CRITICAL', () => {
@@ -114,7 +114,7 @@ test('Personalized feed admin — client invariants', async (t) => {
   });
 
   await t.test('2c. Every static key the page asks for exists', () => {
-    const src = read('src', 'pages', 'admin', 'RecommendationSettingsPage.js');
+    const src = read('src', 'pages', 'admin', 'RecommendationSettingsPage.ts');
     const keys = [...src.matchAll(/t\(\s*'admin_reco\.([a-z_.]+)'/g)].map((m) => m[1]);
     assert.ok(keys.length > 40, 'the page uses its namespace');
     const has = (dict, dotted) => dotted.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), dict);
@@ -319,13 +319,13 @@ test('Personalized feed admin — client invariants', async (t) => {
   });
 
   await t.test('5. The page imports its own stylesheet and main.css does not (a double import ships it twice)', () => {
-    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.js');
+    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.ts');
     assert.match(page, /import '\.\.\/\.\.\/styles\/components\/reco-settings\.css'/);
     assert.doesNotMatch(read('src', 'styles', 'main.css'), /reco-settings/);
   });
 
   await t.test('5b. The reason gate uses the minimum the server sends, and the page copies no bound', () => {
-    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.js');
+    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.ts');
     assert.match(page, /trim\(\)\.length < minReason\(\)/);
     assert.match(page, /data\?\.min_reason_length \?\? FALLBACK_MIN_REASON/);
     // A bound copied into the page would drift from the service that enforces it.
@@ -333,14 +333,14 @@ test('Personalized feed admin — client invariants', async (t) => {
   });
 
   await t.test('5c. Save is gated on the section being dirty and valid, and on the reason', () => {
-    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.js');
+    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.ts');
     assert.match(page, /live\.saveBtn\?\.setDisabled\(!changed \|\| list\.length > 0 \|\| isSaving\)/);
     assert.match(page, /base_updated_at: meta\[key\]\.updated_at \?\? null/);
     assert.match(page, /err\?\.code === 'CONFLICT'/);
   });
 
   await t.test('5d. Nothing typed by a person reaches innerHTML unescaped', () => {
-    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.js');
+    const page = read('src', 'pages', 'admin', 'RecommendationSettingsPage.ts');
     const templates = [...page.matchAll(/innerHTML = `([\s\S]*?)`;/g)].map((m) => m[1]);
     assert.ok(templates.length >= 4);
     for (const tpl of templates) {

@@ -35,6 +35,7 @@ import { PersonalizedRails } from '../components/product/PersonalizedRails.ts';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.ts';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.ts';
 import { updateHead, buildWebsiteJsonLd } from '../services/seo.ts';
+import type { PageContext } from './types.ts';
 
 // All categories derived from the product fixture — populated lazily from the first API response
 const KNOWN_CATEGORIES = [
@@ -77,7 +78,7 @@ function setURLParam(key, value) {
   window.history.replaceState(null, '', newUrl);
 }
 
-export default function HomePage(root, { navigate }) {
+export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   const cleanups = [];
 
   const lang = getLanguage();
@@ -122,7 +123,7 @@ export default function HomePage(root, { navigate }) {
     if (activeFeed === feedId) return;
     activeFeed = feedId;
     setURLParam('feed', activeFeed);
-    for (const t of page.querySelectorAll('.feed-switcher__tab, .home-floating-toolbar__feed-tab')) {
+    for (const t of page.querySelectorAll<HTMLElement>('.feed-switcher__tab, .home-floating-toolbar__feed-tab')) {
       t.setAttribute('aria-selected', t.dataset.id === activeFeed ? 'true' : 'false');
     }
     rebuildGrid();
@@ -148,7 +149,7 @@ export default function HomePage(root, { navigate }) {
   function syncCategory(catId) {
     activeCategory = catId;
     setURLParam('category', catId);
-    for (const p of page.querySelectorAll('.category-pills__pill')) {
+    for (const p of page.querySelectorAll<HTMLElement>('.category-pills__pill')) {
       p.setAttribute('aria-selected', p.dataset.id === catId ? 'true' : 'false');
     }
     rebuildGrid();
@@ -374,7 +375,7 @@ export default function HomePage(root, { navigate }) {
         sp.delete('q');
         const newUrl = `${window.location.pathname}${sp.toString() ? '?' + sp.toString() : ''}`;
         window.history.replaceState(null, '', newUrl);
-        const topSearch = document.querySelector('.topbar__product-search-input');
+        const topSearch = document.querySelector<HTMLInputElement>('.topbar__product-search-input');
         if (topSearch) topSearch.value = '';
         rebuildGrid();
       });
@@ -387,7 +388,7 @@ export default function HomePage(root, { navigate }) {
 
     /** Returns the mock-compatible query object from current URL state. */
     function buildQuery(cursor) {
-      const q = {};
+      const q: Record<string, any> = {};
       if (cursor) q.cursor = cursor;
       q.limit = 20;
       const searchKeyword = sp.get('q');

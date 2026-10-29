@@ -1,5 +1,5 @@
 /**
- * CampaignManagerPage.js — Admin Growth Campaign & Promotion Manager (Prompt 9.2).
+ * CampaignManagerPage.ts — Admin Growth Campaign & Promotion Manager (Prompt 9.2).
  *
  * Provides:
  * - Tab 1: Flash Sales Oversight (Active/Scheduled deals, live stock counters, countdown timer, deal scheduler, emergency stop).
@@ -15,6 +15,14 @@ import { formatCurrency, formatNumber, formatDate } from '../../services/format.
 import { Modal } from '../../components/ui/Modal.ts';
 
 export class CampaignManagerPage {
+  activeTab: 'flash_sales' | 'coupons';
+  flashSales: any[] = [];
+  coupons: any[] = [];
+  loading = true;
+  rootEl: HTMLElement | null = null;
+  unsubscribeLang: (() => void) | null = null;
+  countdownTimer: ReturnType<typeof setInterval> | null = null;
+
   constructor({ initialTab = 'flash_sales' } = {}) {
     this.activeTab = initialTab === 'coupons' ? 'coupons' : 'flash_sales'; // 'flash_sales' | 'coupons'
     this.flashSales = [];
@@ -47,7 +55,7 @@ export class CampaignManagerPage {
   async fetchData() {
     this.loading = true;
     try {
-      const [fsRes, cRes] = await Promise.all([
+      const [fsRes, cRes]: Record<string, any>[] = await Promise.all([
         api.get('/admin/growth/campaigns/flash-sales').catch(() => ({ flash_sales: [] })),
         api.get('/admin/growth/coupons').catch(() => ({ coupons: [] })),
       ]);
@@ -62,7 +70,7 @@ export class CampaignManagerPage {
 
   _startLiveCountdown() {
     this.countdownTimer = setInterval(() => {
-      const liveTimerEls = this.rootEl?.querySelectorAll('.live-countdown');
+      const liveTimerEls = this.rootEl?.querySelectorAll<HTMLElement>('.live-countdown');
       if (!liveTimerEls || liveTimerEls.length === 0) return;
 
       const now = Date.now();
@@ -492,9 +500,9 @@ export class CampaignManagerPage {
   }
 
   _attachEvents() {
-    this.rootEl.querySelectorAll('.tab-btn').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        this.activeTab = btn.dataset.tab;
+        this.activeTab = btn.dataset.tab as typeof this.activeTab;
         this.render();
       });
     });
@@ -518,7 +526,7 @@ export class CampaignManagerPage {
       });
     }
 
-    this.rootEl.querySelectorAll('.btn-emergency-stop').forEach((btn) => {
+    this.rootEl.querySelectorAll<HTMLElement>('.btn-emergency-stop').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.id;
         const title = btn.dataset.title;
@@ -530,7 +538,7 @@ export class CampaignManagerPage {
             ? 'আপনি কি নিশ্চিত যে এই চলমান ফ্ল্যাশ সেলটি সঙ্গে সঙ্গে বন্ধ করতে চান? এটি সাথে সাথে সব ডিসকাউন্ট প্রত্যাহার করবে।'
             : 'Are you sure you want to immediately halt this flash sale campaign? All promotions on this deal will stop instantly.',
           confirmLabel: isBn ? 'হ্যাঁ, এখনই বন্ধ করুন' : 'Yes, Stop Immediately',
-          danger: true,
+          variant: 'danger',
         });
 
         if (confirmed) {
@@ -548,7 +556,7 @@ export class CampaignManagerPage {
       });
     });
 
-    this.rootEl.querySelectorAll('.toggle-coupon-active').forEach((input) => {
+    this.rootEl.querySelectorAll<HTMLInputElement>('.toggle-coupon-active').forEach((input) => {
       input.addEventListener('change', async () => {
         const id = input.dataset.id;
         const isActive = input.checked;
@@ -606,9 +614,9 @@ export class CampaignManagerPage {
     modalBackdrop.open(document.activeElement);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
-    modalBackdrop.querySelector('#form-create-flash-sale').addEventListener('submit', async (e) => {
+    modalBackdrop.querySelector('#form-create-flash-sale')!.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const form = e.target;
+      const form = e.target as unknown as Record<string, HTMLInputElement>;
       const data = {
         title: form.title.value,
         product_id: parseInt(form.product_id.value, 10),
@@ -683,7 +691,7 @@ export class CampaignManagerPage {
 
     modalBackdrop.querySelector('#form-create-coupon').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const form = e.target;
+      const form = e.target as HTMLFormElement & Record<string, HTMLInputElement>;
       const data = {
         code: form.code.value.trim().toUpperCase(),
         discount_type: form.discount_type.value,
@@ -718,7 +726,7 @@ export class CampaignManagerPage {
 // but both route here and the page always opened on the Flash Sales tab — so clicking Coupons landed
 // on flash sales and looked like a broken link. The coupon catalogue was one click away the whole
 // time; this just honours which door the admin came through.
-export default function mountCampaignManagerPage(root) {
+export default function mountCampaignManagerPage(root: HTMLElement) {
   const initialTab = window.location.pathname.includes('/coupons') ? 'coupons' : 'flash_sales';
   const page = new CampaignManagerPage({ initialTab });
   page.mount(root);

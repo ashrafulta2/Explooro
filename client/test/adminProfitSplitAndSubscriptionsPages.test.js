@@ -37,7 +37,7 @@ describe('Super Admin Profit Splits & Subscriptions Governance', () => {
     });
 
     it('SubscriptionsPage imports cleanly and exports a default mount function', async () => {
-      const mod = await import('../src/pages/admin/SubscriptionsPage.js');
+      const mod = await import('../src/pages/admin/SubscriptionsPage.ts');
       assert.ok(mod.default, 'SubscriptionsPage has default export');
       assert.equal(typeof mod.default, 'function', 'SubscriptionsPage export is a function');
     });

@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
 const flashWidgetSrc = fs.readFileSync(path.resolve(root, 'src/components/product/FlashSaleWidget.ts'), 'utf8');
-const homeSrc = fs.readFileSync(path.resolve(root, 'src/pages/HomePage.js'), 'utf8');
+const homeSrc = fs.readFileSync(path.resolve(root, 'src/pages/HomePage.ts'), 'utf8');
 const productsMockSrc = fs.readFileSync(path.resolve(root, 'src/mocks/handlers/products.ts'), 'utf8');
 const cssSrc = fs.readFileSync(path.resolve(root, 'src/styles/components/product.css'), 'utf8');
 const en = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/en.json'), 'utf8'));
@@ -25,14 +25,14 @@ test('FlashSaleWidget — internationalization for View All Deals', () => {
   assert.equal(bn.marketplace.flash_sale.view_all_deals, 'সব অফার দেখুন');
 });
 
-test('HomePage.js — FlashSaleWidget onViewAll wiring and smooth scroll', () => {
+test('HomePage.ts — FlashSaleWidget onViewAll wiring and smooth scroll', () => {
   assert.ok(homeSrc.includes('onViewAll: () => {'), 'HomePage must pass onViewAll callback to FlashSaleWidget');
   assert.ok(homeSrc.includes('syncFeed(\'flash\')'), 'onViewAll callback must synchronize feed to flash');
   assert.ok(homeSrc.includes('catalogSection?.scrollIntoView'), 'onViewAll callback must scroll catalogSection into view');
   assert.ok(homeSrc.includes("behavior: 'smooth'"), 'scrollIntoView must use smooth scrolling');
 });
 
-test('HomePage.js — does not unmount FlashSaleWidget during grid rebuilds', () => {
+test('HomePage.ts — does not unmount FlashSaleWidget during grid rebuilds', () => {
   // rebuildGrid should not call unmountFlashWidget() as that causes layout flash and disrupts scroll
   const rebuildGridIdx = homeSrc.indexOf('function rebuildGrid() {');
   const nextFunctionIdx = homeSrc.indexOf('function handleAction(', rebuildGridIdx);

@@ -156,7 +156,7 @@ async function bootRouterDemo() {
   // that actually exist makes that class of drift impossible.
   const featureRoutes = [
       // Prompt 4.5: real marketplace home replaces the Prompt 1.5 stub.
-      { path: '/', title: 'Explooro — Marketplace', permission: null, module: 'core', load: () => import('./pages/HomePage.js') },
+      { path: '/', title: 'Explooro — Marketplace', permission: null, module: 'core', load: () => import('./pages/HomePage.ts') },
       // Prompt 4.4 (plan A): TopBar search results page.
       { path: '/search', title: 'Search — Explooro', permission: null, module: 'core', load: () => import('./pages/SearchResultsPage.ts') },
       // Prompt 4.6: real product detail page replaces the Prompt 1.5 stub.
@@ -442,7 +442,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.recommendation.view',
         module: 'core',
-        load: () => import('./pages/admin/RecommendationSettingsPage.js'),
+        load: () => import('./pages/admin/RecommendationSettingsPage.ts'),
       },
       // Prompt 10.8: Content Commerce, Reels, Academy & Editor Dashboard
       {
@@ -494,7 +494,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/editor/EditorDashboardPage.js'),
+        load: () => import('./pages/editor/EditorDashboardPage.ts'),
       },
       {
         path: '/editor/dashboard',
@@ -502,7 +502,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/editor/EditorDashboardPage.js'),
+        load: () => import('./pages/editor/EditorDashboardPage.ts'),
       },
       {
         path: '/editor/banners',
@@ -744,7 +744,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'virtual_storefront',
-        load: () => import('./pages/saler/StoreBuilderPage.js'),
+        load: () => import('./pages/saler/StoreBuilderPage.ts'),
       },
       {
         path: '/saler/store-status',
@@ -936,7 +936,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'admin.dashboard.view',
         module: 'core',
-        load: () => import('./pages/admin/AdminDashboardPage.js'),
+        load: () => import('./pages/admin/AdminDashboardPage.ts'),
       },
       {
         path: '/admin/dashboard',
@@ -944,7 +944,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'admin.dashboard.view',
         module: 'core',
-        load: () => import('./pages/admin/AdminDashboardPage.js'),
+        load: () => import('./pages/admin/AdminDashboardPage.ts'),
       },
       {
         path: '/admin/health',
@@ -1252,7 +1252,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.ip.manage',
         module: 'core',
-        load: () => import('./pages/admin/IpAllowlistPage.js'),
+        load: () => import('./pages/admin/IpAllowlistPage.ts'),
       },
       {
         path: '/admin/ip-allowlist',
@@ -1260,7 +1260,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.ip.manage',
         module: 'core',
-        load: () => import('./pages/admin/IpAllowlistPage.js'),
+        load: () => import('./pages/admin/IpAllowlistPage.ts'),
       },
       // Super Admin Security: Cryptographic Backups & Disaster Recovery
       {
@@ -1303,7 +1303,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.subscription.manage',
         module: 'subscription_fees',
-        load: () => import('./pages/admin/SubscriptionsPage.js'),
+        load: () => import('./pages/admin/SubscriptionsPage.ts'),
       },
       {
         path: '/admin/subscriptions',
@@ -1311,7 +1311,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.subscription.manage',
         module: 'core',
-        load: () => import('./pages/admin/SubscriptionsPage.js'),
+        load: () => import('./pages/admin/SubscriptionsPage.ts'),
       },
       // Prompt 2.8: Real Auth Pages
       { path: '/login', title: 'Sign In — Explooro', permission: null, module: 'core', load: () => import('./pages/auth/LoginPage.ts') },
@@ -1456,7 +1456,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.payout.approve',
         module: 'core',
-        load: () => import('./pages/admin/PayoutQueuePage.js'),
+        load: () => import('./pages/admin/PayoutQueuePage.ts'),
       },
       {
         path: '/admin/payouts',
@@ -1464,7 +1464,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.payout.approve',
         module: 'core',
-        load: () => import('./pages/admin/PayoutQueuePage.js'),
+        load: () => import('./pages/admin/PayoutQueuePage.ts'),
       },
       // Prompt 6.4: COD Reconciliation
       {
@@ -1820,7 +1820,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/settings/ProfilePage.js'),
+        load: () => import('./pages/settings/ProfilePage.ts'),
       },
       {
         path: '/profile',
@@ -1828,7 +1828,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/settings/ProfilePage.js'),
+        load: () => import('./pages/settings/ProfilePage.ts'),
       },
       // Account settings — the customer sidebar item and the TopBar user menu both point at
       // /account/settings; notification preferences is the only settings surface today, so both
@@ -1893,7 +1893,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.campaign.manage',
         module: 'flash_sale',
-        load: () => import('./pages/admin/CampaignManagerPage.js'),
+        load: () => import('./pages/admin/CampaignManagerPage.ts'),
       },
       {
         path: '/admin/growth/coupons',
@@ -1901,7 +1901,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.coupon.manage',
         module: 'coupons',
-        load: () => import('./pages/admin/CampaignManagerPage.js'),
+        load: () => import('./pages/admin/CampaignManagerPage.ts'),
       },
       // Customer Coupons & Vouchers Hub
       {
@@ -1934,7 +1934,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.campaign.manage',
         module: 'flash_sale',
-        load: () => import('./pages/admin/CampaignManagerPage.js'),
+        load: () => import('./pages/admin/CampaignManagerPage.ts'),
       },
       {
         path: '/campaigns',
@@ -1942,7 +1942,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.campaign.manage',
         module: 'flash_sale',
-        load: () => import('./pages/admin/CampaignManagerPage.js'),
+        load: () => import('./pages/admin/CampaignManagerPage.ts'),
       },
       // Prompt 9.3: Multi-Tier Referral & Network Growth Engine
       {

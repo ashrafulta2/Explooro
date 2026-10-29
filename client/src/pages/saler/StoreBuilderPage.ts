@@ -1,5 +1,5 @@
 /**
- * StoreBuilderPage.js — Virtual storefront builder with live availability check, curated shelves,
+ * StoreBuilderPage.ts — Virtual storefront builder with live availability check, curated shelves,
  * dedicated 1-Tap Quick Share Hub & Social Shop Partner Kit with zero-dependency QR flyers (Prompt 4.8).
  */
 
@@ -16,8 +16,9 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { formatExplooroBrandText, ICONS } from '../../components/ui/icons.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
+import type { PageContext } from '../types.ts';
 
-export default function StoreBuilderPage(root, { navigate }) {
+export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageContext) {
   const container = document.createElement('div');
   container.className = 'container store-builder';
   root.append(container);
@@ -340,7 +341,7 @@ export default function StoreBuilderPage(root, { navigate }) {
       value: storeState.shop_name,
       required: true,
       onInput: (e) => {
-        storeState.shop_name = e.target.value;
+        storeState.shop_name = (e.target as HTMLInputElement).value;
         syncLivePreview();
       },
     });
@@ -380,7 +381,7 @@ export default function StoreBuilderPage(root, { navigate }) {
     slugStatus.textContent = '✓ ' + t('store_builder.slug_current', 'Current active slug');
 
     slugInput.addEventListener('input', (e) => {
-      const raw = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+      const raw = (e.target as HTMLInputElement).value.toLowerCase().replace(/[^a-z0-9-]/g, '');
       slugInput.value = raw;
       storeState.slug = raw;
       syncLivePreview();
@@ -427,7 +428,7 @@ export default function StoreBuilderPage(root, { navigate }) {
       rows: 3,
       placeholder: t('store_builder.bio_placeholder', 'Tell customers what makes your store unique...'),
       onInput: (e) => {
-        storeState.bio = e.target.value;
+        storeState.bio = (e.target as HTMLInputElement).value;
         syncLivePreview();
       },
     });
@@ -439,7 +440,7 @@ export default function StoreBuilderPage(root, { navigate }) {
       value: storeState.announcement,
       placeholder: 'e.g. Free shipping on all orders over ৳1,000 this week!',
       onInput: (e) => {
-        storeState.announcement = e.target.value;
+        storeState.announcement = (e.target as HTMLInputElement).value;
         syncLivePreview();
       },
     });
@@ -474,7 +475,7 @@ export default function StoreBuilderPage(root, { navigate }) {
       btn.addEventListener('click', () => {
         storeState.banner_url = th.bg;
         storeState.banner_key = th.key;
-        presetRow.querySelectorAll('.store-builder__preset-btn').forEach((b) => b.classList.remove('store-builder__preset-btn--active'));
+        presetRow.querySelectorAll<HTMLElement>('.store-builder__preset-btn').forEach((b) => b.classList.remove('store-builder__preset-btn--active'));
         btn.classList.add('store-builder__preset-btn--active');
         syncLivePreview();
       });
@@ -500,8 +501,8 @@ export default function StoreBuilderPage(root, { navigate }) {
       value: storeState.social_links?.whatsapp || '',
       placeholder: '+88017XXXXXXXX',
       onInput: (e) => {
-        if (!storeState.social_links) storeState.social_links = {};
-        storeState.social_links.whatsapp = e.target.value;
+        if (!storeState.social_links) storeState.social_links = {} as typeof storeState.social_links;
+        storeState.social_links.whatsapp = (e.target as HTMLInputElement).value;
         syncLivePreview();
       },
     });
@@ -511,8 +512,8 @@ export default function StoreBuilderPage(root, { navigate }) {
       value: storeState.social_links?.facebook || '',
       placeholder: 'https://facebook.com/yourshop',
       onInput: (e) => {
-        if (!storeState.social_links) storeState.social_links = {};
-        storeState.social_links.facebook = e.target.value;
+        if (!storeState.social_links) storeState.social_links = {} as typeof storeState.social_links;
+        storeState.social_links.facebook = (e.target as HTMLInputElement).value;
         syncLivePreview();
       },
     });
@@ -522,8 +523,8 @@ export default function StoreBuilderPage(root, { navigate }) {
       value: storeState.social_links?.instagram || '',
       placeholder: 'https://instagram.com/yourshop',
       onInput: (e) => {
-        if (!storeState.social_links) storeState.social_links = {};
-        storeState.social_links.instagram = e.target.value;
+        if (!storeState.social_links) storeState.social_links = {} as typeof storeState.social_links;
+        storeState.social_links.instagram = (e.target as HTMLInputElement).value;
         syncLivePreview();
       },
     });
@@ -697,7 +698,7 @@ export default function StoreBuilderPage(root, { navigate }) {
 
       // Apply background gradient preset to banner if active
       if (storeState.banner_url && storeState.banner_url.startsWith('linear-gradient')) {
-        const b = previewHeader.querySelector('.store-header__banner');
+        const b = previewHeader.querySelector<HTMLInputElement>('.store-header__banner');
         if (b) b.style.background = storeState.banner_url;
       }
 
@@ -827,19 +828,17 @@ export default function StoreBuilderPage(root, { navigate }) {
     card.append(logo, shopTitle, canvas, inst, link);
     content.append(card);
 
+    // WHY a footer: Modal has no `primaryAction` / `secondaryAction`, so the flyer used to open with no Print
+    // and no Close button (the storefront's flyer had the same defect, fixed in step 37).
+    const footer = document.createDocumentFragment();
+    footer.append(
+      Button({ label: t('common.close', 'Close'), variant: 'secondary', onClick: () => modal.close() }),
+      Button({ label: `${t('social_kit.print_or_save', 'Print / Save Flyer')}`, variant: 'primary', onClick: () => window.print() }),
+    );
     const modal = Modal({
       title: t('social_kit.qr_flyer_title', 'Printable Branded QR Flyer'),
       content,
-      primaryAction: {
-        label: `${t('social_kit.print_or_save', 'Print / Save Flyer')}`,
-        onClick: () => {
-          window.print();
-        },
-      },
-      secondaryAction: {
-        label: t('common.close', 'Close'),
-        onClick: () => modal.close(),
-      },
+      footer,
     });
 
     modal.open();

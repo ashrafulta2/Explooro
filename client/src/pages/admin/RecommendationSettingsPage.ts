@@ -1,5 +1,5 @@
 /**
- * RecommendationSettingsPage.js — governance of the personalized home feed.
+ * RecommendationSettingsPage.ts — governance of the personalized home feed.
  *
  * Implements /admin/platform/recommendations:
  * 1. One tab per settings section — signal weights, windows and caps, home rails, diversity,
@@ -55,6 +55,7 @@ import {
   missingRails,
   toPercent,
 } from '../../services/recoSettings.ts';
+import type { PageContext } from '../types.ts';
 
 const FALLBACK_MIN_REASON = 10;
 const FUNNEL_WINDOWS = [7, 30, 90];
@@ -70,15 +71,15 @@ const fieldLabel = (key) => t(`admin_reco.field.${key}`, humanize(key));
 const fieldHint = (key) => t(`admin_reco.hint.${key}`, '');
 const railTitle = (key) => t(`discover.rails.${key}_title`, humanize(key));
 
-export default function RecommendationSettingsPage(root, { navigate } = {}) {
+export default function RecommendationSettingsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page reco-page';
 
   let data = null;
   let order = [];
-  let saved = {}; // section key -> value as the server has it
-  let drafts = {}; // section key -> value being edited
+  let saved: Record<string, any> = {}; // section key -> value as the server has it
+  let drafts: Record<string, any> = {}; // section key -> value being edited
   let meta = {}; // section key -> the full section description from the API
   let active = 'weights';
   let isLoading = true;
@@ -319,7 +320,7 @@ export default function RecommendationSettingsPage(root, { navigate } = {}) {
       inputmode: spec.type === 'int' ? 'numeric' : 'decimal',
       disabled,
       onInput: (event) => {
-        onValue(parseNumber(event.target.value));
+        onValue(parseNumber((event.target as HTMLInputElement).value));
         refreshChrome();
       },
     });
@@ -365,7 +366,7 @@ export default function RecommendationSettingsPage(root, { navigate } = {}) {
     return wrap;
   }
 
-  function switchField({ label, hint, checked, onValue, disabled }) {
+  function switchField({ label, hint, checked, onValue, disabled }: { label: string; hint?: string; checked: any; onValue: (v: any) => void; disabled?: boolean }) {
     return Switch({
       label,
       hint,
@@ -588,7 +589,7 @@ export default function RecommendationSettingsPage(root, { navigate } = {}) {
     return frag;
   }
 
-  function statCard(label, value, sub) {
+  function statCard(label, value, sub?) {
     const div = document.createElement('div');
     div.className = 'reco-stat';
     const dt = document.createElement('dt');
@@ -626,7 +627,7 @@ export default function RecommendationSettingsPage(root, { navigate } = {}) {
         statCard(t('admin_reco.stat_errors', 'Cache errors'), num(rt.pool.errors + rt.settings.errors), t('admin_reco.stat_errors_sub', 'a failing cache never fails the page')),
         statCard(t('admin_reco.stat_coalesced', 'Identical requests shared'), num(rt.pool.coalesced))
       );
-      for (const [name, l] of Object.entries(rt.latency || {})) {
+      for (const [name, l] of Object.entries<Record<string, any>>(rt.latency || {})) {
         dl.append(
           statCard(
             t(`admin_reco.stat_latency_${name}`, `${humanize(name)} response`),
@@ -1072,8 +1073,8 @@ export default function RecommendationSettingsPage(root, { navigate } = {}) {
       const f = pendingFocus;
       pendingFocus = null;
       const target = f.tab
-        ? container.querySelector(`#reco-tab-${f.tab}`)
-        : container.querySelectorAll(`[data-rail="${f.rail}"] .reco-rail__order button`)[f.dir < 0 ? 0 : 1];
+        ? container.querySelector<HTMLElement>(`#reco-tab-${f.tab}`)
+        : container.querySelectorAll<HTMLElement>(`[data-rail="${f.rail}"] .reco-rail__order button`)[f.dir < 0 ? 0 : 1];
       target?.focus();
     }
   }

@@ -146,7 +146,7 @@ export function formatFullBdt(value: unknown, { lang }: FormatOptions = {}): str
   return `৳${formatNumber(Number.isFinite(num) ? Number(num.toFixed(2)) : 0, { lang })}`;
 }
 
-export function formatKpiValue(kpiDef: Pick<KpiDef, 'format'>, kpi: { value?: unknown } | null | undefined, opts: FormatOptions = {}): string {
+export function formatKpiValue(kpiDef: Pick<KpiDef, 'format'>, kpi: { value?: unknown } | null | undefined, opts: FormatOptions & { units?: { crore: string; lakh: string } } = {}): string {
   const value = kpi?.value ?? 0;
   if (kpiDef.format === 'currency') return formatCompactBdt(value, opts);
   if (kpiDef.format === 'percent') return `${formatDecimal(value, 2, opts)}%`;

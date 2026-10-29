@@ -1,5 +1,5 @@
 /**
- * ProfilePage.js — "My Profile": the one place a signed-in user sees and edits their own details.
+ * ProfilePage.ts — "My Profile": the one place a signed-in user sees and edits their own details.
  *
  * Route: /account/profile (alias: /profile). Reached from the TopBar avatar menu, which is
  * role-agnostic — a Super Admin, a Supplier and a Customer all land on this same page, because a
@@ -39,6 +39,7 @@ import {
   getDistrictsByDivision,
   getUpazilasByDistrict,
 } from '../../data/bangladeshGeo.ts';
+import type { PageContext } from '../types.ts';
 
 // Matches media.service.ts's avatar ceiling. Checked here so an oversized pick fails instantly
 // instead of after uploading megabytes the server will reject anyway.
@@ -88,7 +89,7 @@ function readFileAsDataUrl(file) {
   });
 }
 
-export default function ProfilePage(root, { navigate } = {}) {
+export default function ProfilePage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -335,7 +336,7 @@ export default function ProfilePage(root, { navigate } = {}) {
   // ---------------------------------------------------------------------------
 
   /** Every editable control, keyed by the API field it writes. */
-  const fields = {};
+  const fields: Record<string, any> = {};
   let actionsBar = null;
   let saveBtn = null;
   let resetBtn = null;
@@ -600,9 +601,9 @@ export default function ProfilePage(root, { navigate } = {}) {
 
     upazilas.forEach((name) => {
       const opt = document.createElement('option');
-      const value = typeof name === 'string' ? name : name.name_en;
+      const value = typeof name === 'string' ? name : (name as { name_en: string }).name_en;
       opt.value = value;
-      opt.textContent = typeof name === 'string' ? name : (getLanguage() === 'bn' ? name.name_bn : name.name_en);
+      opt.textContent = typeof name === 'string' ? name : (getLanguage() === 'bn' ? (name as any).name_bn : (name as any).name_en);
       if (value === keep) opt.selected = true;
       select.append(opt);
     });
@@ -705,7 +706,7 @@ export default function ProfilePage(root, { navigate } = {}) {
   // ---------------------------------------------------------------------------
 
   function collectPayload() {
-    const payload = {
+    const payload: Record<string, any> = {
       full_name: fields.full_name.value,
       display_name: fields.display_name.value,
       gender: fields.gender.value || null,

@@ -28,7 +28,7 @@ const mainSrc = read('src/main.js');
 const topBarSrc = read('src/components/shell/TopBar.ts');
 const mainCss = read('src/styles/main.css');
 const profileCss = read('src/styles/components/profile.css');
-const pageSrc = read('src/pages/settings/ProfilePage.js');
+const pageSrc = read('src/pages/settings/ProfilePage.ts');
 const mockSrc = read('src/mocks/handlers/me.ts');
 const mocksIndexSrc = read('src/mocks/index.ts');
 
@@ -37,7 +37,7 @@ const mocksIndexSrc = read('src/mocks/index.ts');
  * used before the migration, the class its root element still carries, and its stylesheet.
  */
 const ACCOUNT_PAGES = [
-  { prefix: 'profile-page', rootClass: 'profile-page', css: 'profile', js: 'src/pages/settings/ProfilePage.js' },
+  { prefix: 'profile-page', rootClass: 'profile-page', css: 'profile', js: 'src/pages/settings/ProfilePage.ts' },
   { prefix: 'notif-prefs-page', rootClass: 'notif-prefs-page', css: 'notification-prefs', js: 'src/pages/settings/NotificationPreferencesPage.ts' },
   { prefix: 'addresses-page', rootClass: 'addresses-page', css: 'customer-addresses', js: 'src/pages/customer/AddressesPage.ts' },
   { prefix: 'coins-page', rootClass: 'coins-page', css: 'customer-coins', js: 'src/pages/customer/CoinsPage.ts' },
@@ -114,7 +114,7 @@ test('2. The page is actually reachable', async (t) => {
         new RegExp(`path: '${routePath}',[\\s\\S]{0,320}?load: \\(\\) => import\\('([^']+)'\\)`)
       );
       assert.ok(block, `${routePath} is not registered in main.js`);
-      assert.equal(block[1], './pages/settings/ProfilePage.js', `${routePath} loads the profile page`);
+      assert.equal(block[1], './pages/settings/ProfilePage.ts', `${routePath} loads the profile page`);
       assert.match(block[0], /requiresAuth: true/, `${routePath} must require a session`);
       assert.match(block[0], /permission: null/, `${routePath} needs no permission — every role has a profile`);
       assert.match(block[0], /module: 'core'/, `${routePath} must not be gated on a toggleable module`);

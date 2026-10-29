@@ -1,7 +1,7 @@
 /**
  * reco-settings.css — the controls specific to /admin/platform/recommendations.
  *
- * Imported by pages/admin/RecommendationSettingsPage.js ONLY, never by main.css, so it lands in the
+ * Imported by pages/admin/RecommendationSettingsPage.ts ONLY, never by main.css, so it lands in the
  * route's own chunk instead of the entry bundle where the CSS budget is measured (CLAUDE.md
  * constraint 8). The surrounding cards, diff, authority and history lists are shared with the
  * Language page through language-settings.css. Semantic role tokens only — no literal hex.

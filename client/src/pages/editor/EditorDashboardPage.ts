@@ -1,5 +1,5 @@
 /**
- * EditorDashboardPage.js — Editor Portal Central Dashboard & Content Management Studio (Prompt 10.8).
+ * EditorDashboardPage.ts — Editor Portal Central Dashboard & Content Management Studio (Prompt 10.8).
  *
  * Implements /editor:
  * - Real-time KPI summary cards with direct navigation triggers.
@@ -15,7 +15,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 
-export default function EditorDashboardPage(root) {
+export default function EditorDashboardPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'editor-page-container';
 
@@ -126,14 +126,14 @@ export default function EditorDashboardPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-q-banner-btn').onclick = () => modal.close();
-    footer.querySelector('#save-q-banner-btn').onclick = async () => {
-      const slot = content.querySelector('#q-banner-slot').value;
-      const title_en = content.querySelector('#q-banner-title-en').value.trim();
-      const title_bn = content.querySelector('#q-banner-title-bn').value.trim();
-      const image_url_desktop = content.querySelector('#q-banner-img').value.trim();
-      const target_link = content.querySelector('#q-banner-link').value.trim() || '/';
-      const display_order = parseInt(content.querySelector('#q-banner-order').value, 10) || 1;
+    footer.querySelector<HTMLElement>('#cancel-q-banner-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-q-banner-btn').onclick = async () => {
+      const slot = content.querySelector<HTMLInputElement>('#q-banner-slot').value;
+      const title_en = content.querySelector<HTMLInputElement>('#q-banner-title-en').value.trim();
+      const title_bn = content.querySelector<HTMLInputElement>('#q-banner-title-bn').value.trim();
+      const image_url_desktop = content.querySelector<HTMLInputElement>('#q-banner-img').value.trim();
+      const target_link = content.querySelector<HTMLInputElement>('#q-banner-link').value.trim() || '/';
+      const display_order = parseInt(content.querySelector<HTMLInputElement>('#q-banner-order').value, 10) || 1;
 
       if (!title_en || !title_bn || !image_url_desktop) {
         toast.error('Please enter English title, Bangla title and image URL.');
@@ -212,12 +212,12 @@ export default function EditorDashboardPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-q-story-btn').onclick = () => modal.close();
-    footer.querySelector('#save-q-story-btn').onclick = async () => {
-      const author_name = content.querySelector('#q-story-author').value.trim();
-      const title_en = content.querySelector('#q-story-title-en').value.trim();
-      const cover_image_url = content.querySelector('#q-story-cover').value.trim();
-      const content_en = content.querySelector('#q-story-content').value.trim();
+    footer.querySelector<HTMLElement>('#cancel-q-story-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-q-story-btn').onclick = async () => {
+      const author_name = content.querySelector<HTMLInputElement>('#q-story-author').value.trim();
+      const title_en = content.querySelector<HTMLInputElement>('#q-story-title-en').value.trim();
+      const cover_image_url = content.querySelector<HTMLInputElement>('#q-story-cover').value.trim();
+      const content_en = content.querySelector<HTMLInputElement>('#q-story-content').value.trim();
 
       if (!title_en || !cover_image_url) {
         toast.error('Please enter title and cover image.');
@@ -301,12 +301,12 @@ export default function EditorDashboardPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-q-up-btn').onclick = () => modal.close();
-    footer.querySelector('#save-q-up-btn').onclick = async () => {
-      const version = content.querySelector('#q-up-ver').value.trim();
-      const category = content.querySelector('#q-up-cat').value;
-      const title_en = content.querySelector('#q-up-title').value.trim();
-      const summary_en = content.querySelector('#q-up-summary').value.trim();
+    footer.querySelector<HTMLElement>('#cancel-q-up-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-q-up-btn').onclick = async () => {
+      const version = content.querySelector<HTMLInputElement>('#q-up-ver').value.trim();
+      const category = content.querySelector<HTMLInputElement>('#q-up-cat').value;
+      const title_en = content.querySelector<HTMLInputElement>('#q-up-title').value.trim();
+      const summary_en = content.querySelector<HTMLInputElement>('#q-up-summary').value.trim();
 
       if (!version || !title_en || !summary_en) {
         toast.error('Please enter version, title and summary.');
@@ -420,10 +420,10 @@ export default function EditorDashboardPage(root) {
       </div>
     `;
 
-    header.querySelector('#quick-add-banner-btn').onclick = () => openQuickBannerModal();
-    header.querySelector('#quick-add-story-btn').onclick = () => openQuickStoryModal();
-    header.querySelector('#quick-add-up-btn').onclick = () => openQuickAnnouncementModal();
-    header.querySelector('#refresh-dashboard-btn').onclick = loadData;
+    header.querySelector<HTMLElement>('#quick-add-banner-btn').onclick = () => openQuickBannerModal();
+    header.querySelector<HTMLElement>('#quick-add-story-btn').onclick = () => openQuickStoryModal();
+    header.querySelector<HTMLElement>('#quick-add-up-btn').onclick = () => openQuickAnnouncementModal();
+    header.querySelector<HTMLElement>('#refresh-dashboard-btn').onclick = loadData;
 
     container.appendChild(header);
 
@@ -581,7 +581,7 @@ export default function EditorDashboardPage(root) {
       </div>
     `;
 
-    consoleHeader.querySelectorAll('.editor-chip').forEach((chip) => {
+    consoleHeader.querySelectorAll<HTMLElement>('.editor-chip').forEach((chip) => {
       chip.onclick = () => {
         activeConsoleTab = chip.dataset.tab;
         render();
@@ -640,19 +640,19 @@ export default function EditorDashboardPage(root) {
           </table>
         `;
 
-        tableWrapper.querySelectorAll('[data-action="toggle-banner"]').forEach((btn) => {
+        tableWrapper.querySelectorAll<HTMLElement>('[data-action="toggle-banner"]').forEach((btn) => {
           btn.onclick = () => {
             const b = banners.find((x) => x.id === parseInt(btn.dataset.id, 10));
             if (b) handleToggleBannerActive(b);
           };
         });
-        tableWrapper.querySelectorAll('[data-action="edit-banner"]').forEach((btn) => {
+        tableWrapper.querySelectorAll<HTMLElement>('[data-action="edit-banner"]').forEach((btn) => {
           btn.onclick = () => {
             const b = banners.find((x) => x.id === parseInt(btn.dataset.id, 10));
             if (b) openQuickBannerModal(b);
           };
         });
-        tableWrapper.querySelectorAll('[data-action="del-banner"]').forEach((btn) => {
+        tableWrapper.querySelectorAll<HTMLElement>('[data-action="del-banner"]').forEach((btn) => {
           btn.onclick = () => handleDeleteBanner(parseInt(btn.dataset.id, 10));
         });
 
@@ -689,8 +689,8 @@ export default function EditorDashboardPage(root) {
               <button class="btn btn--xs btn--outline text-danger" id="del-story-row-btn">🗑️</button>
             </div>
           `;
-          row.querySelector('#edit-story-row-btn').onclick = () => openQuickStoryModal(s);
-          row.querySelector('#del-story-row-btn').onclick = () => handleDeleteStory(s.id);
+          row.querySelector<HTMLElement>('#edit-story-row-btn').onclick = () => openQuickStoryModal(s);
+          row.querySelector<HTMLElement>('#del-story-row-btn').onclick = () => handleDeleteStory(s.id);
           list.appendChild(row);
         });
 
@@ -729,8 +729,8 @@ export default function EditorDashboardPage(root) {
               <button class="btn btn--xs btn--outline text-danger" id="del-up-row-btn">🗑️</button>
             </div>
           `;
-          row.querySelector('#edit-up-row-btn').onclick = () => openQuickAnnouncementModal(w);
-          row.querySelector('#del-up-row-btn').onclick = () => handleDeleteWhatsNew(w.id);
+          row.querySelector<HTMLElement>('#edit-up-row-btn').onclick = () => openQuickAnnouncementModal(w);
+          row.querySelector<HTMLElement>('#del-up-row-btn').onclick = () => handleDeleteWhatsNew(w.id);
           list.appendChild(row);
         });
 

@@ -274,7 +274,7 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
   });
 
   await t.test('14. StoreBuilderPage slug input has associated label and aria-label', () => {
-    const storeBuilderPath = path.join(clientRoot, 'src', 'pages', 'saler', 'StoreBuilderPage.js');
+    const storeBuilderPath = path.join(clientRoot, 'src', 'pages', 'saler', 'StoreBuilderPage.ts');
     const content = fs.readFileSync(storeBuilderPath, 'utf8');
 
     assert.match(

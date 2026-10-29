@@ -98,7 +98,7 @@ describe('Super Admin Security & Disaster Recovery — Client Invariants', () =>
     const staff2faMod = await import('../src/pages/admin/Staff2faPage.ts');
     assert.equal(typeof staff2faMod.default, 'function', 'Staff2faPage must export default function');
 
-    const ipAllowlistMod = await import('../src/pages/admin/IpAllowlistPage.js');
+    const ipAllowlistMod = await import('../src/pages/admin/IpAllowlistPage.ts');
     assert.equal(typeof ipAllowlistMod.default, 'function', 'IpAllowlistPage must export default function');
 
     const backupMod = await import('../src/pages/admin/BackupPage.ts');

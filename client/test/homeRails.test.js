@@ -118,7 +118,7 @@ test('clicking products surfaces continue_browsing first, and opting out removes
 
 // ── 3. Wiring guards ────────────────────────────────────────────────────────────────────────────
 test('the home page mounts the rails above the catalog and hides them while narrowing', () => {
-  const home = read('pages/HomePage.js');
+  const home = read('pages/HomePage.ts');
   assert.match(home, /PersonalizedRails\(/);
   assert.match(home, /railsView\.setVisible\(show\)/);
   // Every param that narrows the catalog hides the rails.

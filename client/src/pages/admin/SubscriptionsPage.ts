@@ -1,5 +1,5 @@
 /**
- * SubscriptionsPage.js — Super Admin Merchant Subscriptions & Fee Governance Engine.
+ * SubscriptionsPage.ts — Super Admin Merchant Subscriptions & Fee Governance Engine.
  *
  * Implements:
  * 1. Module status banner linking to Module Control (Dormant Free Launch Mode vs Active Fee Engine).
@@ -20,8 +20,9 @@ import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber, formatDate } from '../../services/format.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SubscriptionsPage(root, { navigate } = {}) {
+export default function SubscriptionsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
   container.className = 'admin-page subscriptions-page';
@@ -344,7 +345,7 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
       </div>
     `;
 
-    plansPanel.querySelectorAll('.btn-plan-edit').forEach((btn) => {
+    plansPanel.querySelectorAll<HTMLElement>('.btn-plan-edit').forEach((btn) => {
       btn.addEventListener('click', () => {
         const pId = btn.getAttribute('data-plan-id');
         const p = plans.find((pl) => String(pl.id) === pId);
@@ -509,19 +510,19 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     const statusSelect = rosterPanel.querySelector('.roster-status-select');
 
     searchInput?.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       render();
     });
     roleSelect?.addEventListener('change', (e) => {
-      roleFilter = e.target.value;
+      roleFilter = (e.target as HTMLInputElement).value;
       render();
     });
     statusSelect?.addEventListener('change', (e) => {
-      statusFilter = e.target.value;
+      statusFilter = (e.target as HTMLInputElement).value;
       render();
     });
 
-    rosterPanel.querySelectorAll('.btn-sub-waiver').forEach((btn) => {
+    rosterPanel.querySelectorAll<HTMLElement>('.btn-sub-waiver').forEach((btn) => {
       btn.addEventListener('click', () => {
         const sId = btn.getAttribute('data-sub-id');
         const sub = subscribers.find((s) => String(s.id) === String(sId));
@@ -594,17 +595,17 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     const oInput = policyPanel.querySelector('.overage-input');
     const gInput = policyPanel.querySelector('.grace-input');
 
-    qInput?.addEventListener('input', (e) => (freeQuota = parseInt(e.target.value, 10) || 100));
-    oInput?.addEventListener('input', (e) => (defaultOverage = parseFloat(e.target.value) || 5.0));
-    gInput?.addEventListener('input', (e) => (graceDays = parseInt(e.target.value, 10) || 5));
+    qInput?.addEventListener('input', (e) => (freeQuota = parseInt((e.target as HTMLInputElement).value, 10) || 100));
+    oInput?.addEventListener('input', (e) => (defaultOverage = parseFloat((e.target as HTMLInputElement).value) || 5.0));
+    gInput?.addEventListener('input', (e) => (graceDays = parseInt((e.target as HTMLInputElement).value, 10) || 5));
 
-    policyPanel.querySelector('.period-input')?.addEventListener('input', (e) => (billingDays = parseInt(e.target.value, 10) || 30));
+    policyPanel.querySelector('.period-input')?.addEventListener('input', (e) => (billingDays = parseInt((e.target as HTMLInputElement).value, 10) || 30));
     // WHY Number.isNaN, not `|| default`: 0 is a valid reminder window ("never remind").
     policyPanel.querySelector('.reminder-input')?.addEventListener('input', (e) => {
-      const v = parseInt(e.target.value, 10);
+      const v = parseInt((e.target as HTMLInputElement).value, 10);
       reminderDays = Number.isNaN(v) ? 0 : v;
     });
-    policyPanel.querySelector('.auto-renew-input')?.addEventListener('change', (e) => (autoRenewDefault = e.target.checked));
+    policyPanel.querySelector('.auto-renew-input')?.addEventListener('change', (e) => (autoRenewDefault = (e.target as HTMLInputElement).checked));
 
     policyPanel.querySelector('.fee-settings-form')?.addEventListener('submit', handleSaveSettings);
     container.append(policyPanel);
@@ -644,8 +645,8 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     const durSelect = wrap.querySelector('.waiver-duration-select');
     const rInput = wrap.querySelector('.waiver-reason-input');
 
-    durSelect?.addEventListener('change', (e) => (waiverDuration = e.target.value));
-    rInput?.addEventListener('input', (e) => (waiverReason = e.target.value));
+    durSelect?.addEventListener('change', (e) => (waiverDuration = (e.target as HTMLInputElement).value));
+    rInput?.addEventListener('input', (e) => (waiverReason = (e.target as HTMLInputElement).value));
 
     const footer = document.createElement('div');
     footer.className = 'flex items-center justify-end gap-2 w-full';
@@ -730,13 +731,13 @@ export default function SubscriptionsPage(root, { navigate } = {}) {
     const extraInput = wrap.querySelector('.plan-extra-fee');
     const rebateInput = wrap.querySelector('.plan-rebate');
 
-    nameEnInput?.addEventListener('input', (e) => (planNameEn = e.target.value));
-    nameBnInput?.addEventListener('input', (e) => (planNameBn = e.target.value));
-    feeInput?.addEventListener('input', (e) => (planMonthlyFee = parseFloat(e.target.value) || 0));
-    listInput?.addEventListener('input', (e) => (planFreeListings = parseInt(e.target.value, 10) || 100));
-    extraInput?.addEventListener('input', (e) => (planExtraFee = parseFloat(e.target.value) || 0));
-    rebateInput?.addEventListener('input', (e) => (planRebatePct = parseFloat(e.target.value) || 0));
-    wrap.querySelector('.plan-active')?.addEventListener('change', (e) => (planActive = e.target.checked));
+    nameEnInput?.addEventListener('input', (e) => (planNameEn = (e.target as HTMLInputElement).value));
+    nameBnInput?.addEventListener('input', (e) => (planNameBn = (e.target as HTMLInputElement).value));
+    feeInput?.addEventListener('input', (e) => (planMonthlyFee = parseFloat((e.target as HTMLInputElement).value) || 0));
+    listInput?.addEventListener('input', (e) => (planFreeListings = parseInt((e.target as HTMLInputElement).value, 10) || 100));
+    extraInput?.addEventListener('input', (e) => (planExtraFee = parseFloat((e.target as HTMLInputElement).value) || 0));
+    rebateInput?.addEventListener('input', (e) => (planRebatePct = parseFloat((e.target as HTMLInputElement).value) || 0));
+    wrap.querySelector('.plan-active')?.addEventListener('change', (e) => (planActive = (e.target as HTMLInputElement).checked));
 
     const footer = document.createElement('div');
     footer.className = 'flex items-center justify-end gap-2 w-full';

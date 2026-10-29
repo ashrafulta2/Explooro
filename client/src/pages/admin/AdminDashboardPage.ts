@@ -1,5 +1,5 @@
 /**
- * AdminDashboardPage.js — Super Admin Executive Cockpit & Analytics (Prompt 11.4 / Master Spec §AL.4).
+ * AdminDashboardPage.ts — Super Admin Executive Cockpit & Analytics (Prompt 11.4 / Master Spec §AL.4).
  *
  * What this page does:
  *  1. 11 executive KPIs in three groups, each a drill-through link, with a period-over-period delta
@@ -58,6 +58,7 @@ import {
   summariseSeries,
   validateCustomRange,
 } from '../../services/adminDashboard.model.ts';
+import type { PageContext } from '../types.ts';
 
 const AUTO_REFRESH_KEY = 'explooro:admin-dashboard:auto-refresh';
 const PERM_ROLLUP = 'admin.analytics.rollup';
@@ -88,13 +89,13 @@ function iconEl(name) {
   return span;
 }
 
-export default function AdminDashboardPage(root, { navigate } = {}) {
+export default function AdminDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadAdminCockpitStyles();
   const isBn = () => getLanguage() === 'bn';
   // Picks `<field>_bn` or `<field>_en` for the active locale, falling back to the other one.
   const loc = (obj, field) =>
     (isBn() ? obj?.[`${field}_bn`] || obj?.[`${field}_en`] : obj?.[`${field}_en`] || obj?.[`${field}_bn`]) ?? '';
-  const tr = (key, params) => t(`admin.dashboard.${key}`, params);
+  const tr = (key: string, params?: Record<string, any>) => t(`admin.dashboard.${key}`, params);
   const num = (n) => formatNumber(Number(n) || 0);
 
   const nav = (url) => {
@@ -117,14 +118,14 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
     alertsLoaded: false,
     alertsStatus: 'loading',
     query: '',
-    severity: 'ALL',
+    severity: 'ALL' as 'ALL' | import('../../services/adminDashboard.model.ts').Severity,
     showCleared: false,
     show: { gmv: true, revenue: true },
     autoRefresh: readAutoRefresh(),
     refreshing: false,
   };
 
-  let els = {};
+  let els: Record<string, any> = {};
   let overviewSeq = 0; // a slow reply for an old timeframe must never overwrite a newer one
   let alertsSeq = 0;
   let autoTimer = null;
@@ -225,7 +226,7 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
     const to = els.toInput?.value || '';
     const check = validateCustomRange(from, to);
     if (!check.ok) {
-      state.rangeError = check.error;
+      state.rangeError = (check as { error: string }).error;
       renderToolbarState();
       return;
     }
@@ -497,7 +498,7 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
       ariaLabel: tr('alerts_search_label'),
       onInput: (e) => {
         clearTimeout(searchTimer);
-        const value = e.target.value;
+        const value = (e.target as HTMLInputElement).value;
         searchTimer = setTimeout(() => {
           state.query = value;
           renderAlerts();
@@ -657,7 +658,7 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
               onClick: () => {
                 state.query = '';
                 state.severity = 'ALL';
-                const box = document.querySelector('[data-slot="search"] input');
+                const box = document.querySelector<HTMLInputElement>('[data-slot="search"] input');
                 if (box) box.value = '';
                 renderAlerts();
               },
@@ -719,7 +720,7 @@ export default function AdminDashboardPage(root, { navigate } = {}) {
     ).join('');
   }
 
-  function renderKpiCard(def, kpi = {}, { lang, units }) {
+  function renderKpiCard(def, kpi: Record<string, any> = {}, { lang, units }) {
     const label = tr(`kpi_${def.key}_label`);
     const hint = tr(`kpi_${def.key}_hint`);
     const value = formatKpiValue(def, kpi, { lang, units });
