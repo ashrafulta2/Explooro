@@ -1,5 +1,5 @@
 /**
- * ReturnsPage.js — Customer Returns & Refunds Listing Page
+ * ReturnsPage.ts — Customer Returns & Refunds Listing Page
  *
  * Route: /account/returns
  *
@@ -15,12 +15,14 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { toast } from '../../services/toast.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
+import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Tabs } from '../../components/ui/Tabs.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
+import type { PageContext } from '../types.ts';
 
-export default function ReturnsPage(root, { navigate } = {}) {
+export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -156,7 +158,7 @@ export default function ReturnsPage(root, { navigate } = {}) {
         <div class="customer-return-card__stepper">
           ${steps.map((step) => {
             let stateClass = '';
-            let iconOrNum = step.num;
+            let iconOrNum: string | number = step.num;
             if (isRejected && step.num === 4) {
               stateClass = 'customer-return-card__step--danger';
               iconOrNum = '✕';
@@ -272,12 +274,9 @@ export default function ReturnsPage(root, { navigate } = {}) {
         icon: '🔄',
         title: t('customer_returns.empty_title'),
         description: t('customer_returns.empty_desc'),
-        action: {
-          label: t('customer_returns.view_orders_btn'),
-          onClick: () => nav('/account/orders'),
-        },
+        action: Button({ label: t('customer_returns.view_orders_btn'), onClick: () => nav('/account/orders') }),
       });
-      listSlot.append(empty.element || empty);
+      listSlot.append(empty);
       return;
     }
 
@@ -425,7 +424,7 @@ export default function ReturnsPage(root, { navigate } = {}) {
       }
 
       // Order badge & links
-      card.querySelectorAll('[data-order-ref], [data-order-link]').forEach((el) => {
+      card.querySelectorAll<HTMLElement>('[data-order-ref], [data-order-link]').forEach((el) => {
         el.addEventListener('click', (e) => {
           e.preventDefault();
           nav('/account/orders');
@@ -433,7 +432,7 @@ export default function ReturnsPage(root, { navigate } = {}) {
       });
 
       // Copy tracking buttons
-      card.querySelectorAll('[data-copy-tracking]').forEach((btn) => {
+      card.querySelectorAll<HTMLElement>('[data-copy-tracking]').forEach((btn) => {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
           const trk = btn.getAttribute('data-copy-tracking');

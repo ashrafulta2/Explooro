@@ -188,7 +188,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const fs = await import('node:fs');
     const path = await import('node:path');
 
-    const cardPath = path.resolve(import.meta.dirname, '../src/pages/saler/SourcingCatalogPage.js');
+    const cardPath = path.resolve(import.meta.dirname, '../src/pages/saler/SourcingCatalogPage.ts');
     const cardContent = fs.readFileSync(cardPath, 'utf8');
     assert.ok(!cardContent.includes("sourcing.card.wholesale_cost"), 'Sourcing catalog cards must not display raw wholesale cost');
     assert.ok(cardContent.includes("sourcing.card.price"), 'Sourcing catalog cards must display the supplier price');

@@ -27,7 +27,7 @@ test('Admin Platform Suite Integrity', async (t) => {
       '../src/pages/admin/IntegrationsPage.js',
       '../src/pages/admin/SettingsPage.js',
       '../src/pages/admin/ApiKeysPage.js',
-      '../src/pages/admin/ModuleControlPage.js',
+      '../src/pages/admin/ModuleControlPage.ts',
       '../src/pages/admin/ThemeStudioPage.js',
     ];
 

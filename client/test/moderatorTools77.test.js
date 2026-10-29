@@ -165,10 +165,10 @@ test('7.7 i18n — en/bn parity for every new section', () => {
 test('7.7 pages — titles resolve through i18n, not hardcoded literals', () => {
   const pages = {
     'client/src/pages/moderator/MyAccessPage.js': 'mod_access.title',
-    'client/src/pages/moderator/PenaltiesPage.js': 'mod_penalties.title',
+    'client/src/pages/moderator/PenaltiesPage.ts': 'mod_penalties.title',
     'client/src/pages/moderator/ReportsPage.ts': 'mod_reports.title',
     'client/src/pages/moderator/ReviewsModerationPage.ts': 'mod_reviews.title',
-    'client/src/pages/moderator/UgcModerationPage.js': 'mod_ugc.title',
+    'client/src/pages/moderator/UgcModerationPage.ts': 'mod_ugc.title',
     'client/src/pages/supplier/ForecastingPage.ts': 'sup_forecast.title',
   };
   for (const [file, titleKey] of Object.entries(pages)) {

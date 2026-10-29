@@ -1,5 +1,5 @@
 /**
- * WhatsNewManagerPage.js — Platform Changelog & Release Announcements Manager.
+ * WhatsNewManagerPage.ts — Platform Changelog & Release Announcements Manager.
  *
  * Implements /editor/whats-new:
  * - Version updates, release notes, and audience targeting.
@@ -18,7 +18,7 @@ import { pickMessage } from '../../core/api.ts';
 // Same cap as HIGHLIGHT_LIMITS.maxItems in server/src/services/content.service.ts.
 const MAX_HIGHLIGHTS = 6;
 
-export default function WhatsNewManagerPage(root) {
+export default function WhatsNewManagerPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'editor-page-container';
 
@@ -102,14 +102,14 @@ export default function WhatsNewManagerPage(root) {
     `;
 
     // Highlight cards: the popup's icon + title + description rows (highlights_json).
-    const hlList = content.querySelector('#update-hl-list');
-    const hlAdd = content.querySelector('#update-hl-add');
+    const hlList = content.querySelector<HTMLElement>('#update-hl-list');
+    const hlAdd = content.querySelector<HTMLElement>('#update-hl-add');
 
     function syncHlAdd() {
       hlAdd.hidden = hlList.children.length >= MAX_HIGHLIGHTS;
     }
 
-    function addHighlightRow(h = {}) {
+    function addHighlightRow(h: Record<string, string> = {}) {
       const row = document.createElement('div');
       row.className = 'whats-new-hl-editor__row';
       row.innerHTML = `
@@ -137,7 +137,7 @@ export default function WhatsNewManagerPage(root) {
           <textarea class="form-textarea" rows="2" data-hl="desc_bn" maxlength="240">${escapeHtml(h.desc_bn)}</textarea>
         </label>
       `;
-      row.querySelector('[data-hl-remove]').onclick = () => {
+      row.querySelector<HTMLElement>('[data-hl-remove]').onclick = () => {
         row.remove();
         syncHlAdd();
       };
@@ -147,7 +147,7 @@ export default function WhatsNewManagerPage(root) {
 
     function readHighlights() {
       return [...hlList.children].map((row) => {
-        const v = (k) => row.querySelector(`[data-hl="${k}"]`).value.trim();
+        const v = (k) => row.querySelector<HTMLInputElement>(`[data-hl="${k}"]`).value.trim();
         return { icon: v('icon'), title_en: v('title_en'), title_bn: v('title_bn'), desc_en: v('desc_en'), desc_bn: v('desc_bn') };
       });
     }
@@ -176,15 +176,15 @@ export default function WhatsNewManagerPage(root) {
     document.body.appendChild(modal);
     modal.open();
 
-    footer.querySelector('#cancel-update-btn').onclick = () => modal.close();
-    footer.querySelector('#save-update-btn').onclick = async () => {
-      const version = content.querySelector('#update-ver').value.trim();
-      const category = content.querySelector('#update-cat').value;
-      const target_audience = content.querySelector('#update-aud').value;
-      const title_en = content.querySelector('#update-title-en').value.trim();
-      const title_bn = content.querySelector('#update-title-bn').value.trim();
-      const summary_en = content.querySelector('#update-summary-en').value.trim();
-      const summary_bn = content.querySelector('#update-summary-bn').value.trim();
+    footer.querySelector<HTMLElement>('#cancel-update-btn').onclick = () => modal.close();
+    footer.querySelector<HTMLElement>('#save-update-btn').onclick = async () => {
+      const version = content.querySelector<HTMLInputElement>('#update-ver').value.trim();
+      const category = content.querySelector<HTMLInputElement>('#update-cat').value;
+      const target_audience = content.querySelector<HTMLInputElement>('#update-aud').value;
+      const title_en = content.querySelector<HTMLInputElement>('#update-title-en').value.trim();
+      const title_bn = content.querySelector<HTMLInputElement>('#update-title-bn').value.trim();
+      const summary_en = content.querySelector<HTMLInputElement>('#update-summary-en').value.trim();
+      const summary_bn = content.querySelector<HTMLInputElement>('#update-summary-bn').value.trim();
 
       const highlights_json = readHighlights();
 
@@ -255,7 +255,7 @@ export default function WhatsNewManagerPage(root) {
       </div>
     `;
 
-    header.querySelector('#new-announcement-btn').onclick = () => openUpdateModal();
+    header.querySelector<HTMLElement>('#new-announcement-btn').onclick = () => openUpdateModal();
     container.appendChild(header);
 
     // -------------------------------------------------------------------------
@@ -284,15 +284,15 @@ export default function WhatsNewManagerPage(root) {
       </div>
     `;
 
-    filterCard.querySelectorAll('.editor-chip').forEach((chip) => {
+    filterCard.querySelectorAll<HTMLElement>('.editor-chip').forEach((chip) => {
       chip.onclick = () => {
         activeCategory = chip.dataset.cat;
         render();
       };
     });
 
-    filterCard.querySelector('#update-search').oninput = (e) => {
-      searchQuery = e.target.value.toLowerCase().trim();
+    filterCard.querySelector<HTMLElement>('#update-search').oninput = (e) => {
+      searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
       render();
     };
 
@@ -368,8 +368,8 @@ export default function WhatsNewManagerPage(root) {
         </div>
       `;
 
-      row.querySelector('.js-edit-up-btn').onclick = () => openUpdateModal(item);
-      row.querySelector('.js-delete-up-btn').onclick = () => handleDeleteUpdate(item.id);
+      row.querySelector<HTMLElement>('.js-edit-up-btn').onclick = () => openUpdateModal(item);
+      row.querySelector<HTMLElement>('.js-delete-up-btn').onclick = () => handleDeleteUpdate(item.id);
 
       list.appendChild(row);
     });

@@ -21,6 +21,7 @@ import { ProductFeed } from '../components/product/ProductFeed.ts';
 import { CategoryPills } from '../components/product/CategoryPills.ts';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.ts';
 import { Drawer } from '../components/ui/Drawer.ts';
+import type { PageContext } from './types.ts';
 
 // Category ids are names (matching the catalog's mock filter + the marketplace home's own list).
 // Kept local, like HomePage's KNOWN_CATEGORIES, rather than importing a page-private const.
@@ -42,7 +43,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 /** The snake_case query object the feed sends, read from the current URL. */
 function filtersFromUrl() {
   const sp = new URLSearchParams(window.location.search);
-  const f = {};
+  const f: Record<string, string> = {};
   const q = sp.get('q');
   if (q) f.q = q;
   const category = sp.get('category');
@@ -66,7 +67,7 @@ function setUrlParam(key, value) {
   window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
 }
 
-export default function DiscoverFeedPage(root, { navigate }) {
+export default function DiscoverFeedPage(root: HTMLElement, { navigate }: PageContext) {
   const lang = getLanguage();
   const { auth } = appStore.get();
   const role = auth?.role || 'customer';
@@ -201,7 +202,7 @@ export default function DiscoverFeedPage(root, { navigate }) {
     const newUrl = window.location.pathname + (sp.toString() ? '?' + sp.toString() : '');
     window.history.replaceState(null, '', newUrl);
     searchInput.value = '';
-    const allPillNodes = pills.querySelectorAll('.category-pills__pill');
+    const allPillNodes = pills.querySelectorAll<HTMLElement>('.category-pills__pill');
     for (const p of allPillNodes) {
       p.setAttribute('aria-selected', p.dataset.id === 'all' ? 'true' : 'false');
     }

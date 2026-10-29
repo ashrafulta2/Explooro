@@ -11,7 +11,7 @@
  *      filtered feed is shareable and back-button-safe (mirrors filtersFromUrl/setUrlParam).
  *   4. Mock feed contract — the in-memory handler filters (AND-composed), ranks engaged categories
  *      up, and paginates with a correct has_more / next_offset.
- *   5. Draggable pill geometry — the floating "Browse & filter" pill (DiscoverFeedPage.js) clamps
+ *   5. Draggable pill geometry — the floating "Browse & filter" pill (DiscoverFeedPage.ts) clamps
  *      itself inside the feed, distinguishes a tap from a drag, and re-anchors its dropdown under the
  *      moved pill. Mirrors setBarPos()/positionToolbar()/the drag threshold, with a source-parity
  *      guard so the mirror can't silently drift from the component.
@@ -71,7 +71,7 @@ test('Discover — Locale Integrity', async (t) => {
 
   await t.test('4. Every discover.* key the page and feed render exists in the dictionary', () => {
     const sources = [
-      '../src/pages/DiscoverFeedPage.js',
+      '../src/pages/DiscoverFeedPage.ts',
       '../src/components/product/ProductFeed.ts',
     ].map((rel) => fs.readFileSync(path.resolve(import.meta.dirname, rel), 'utf8')).join('\n');
 
@@ -130,7 +130,7 @@ test('Discover — Event Weight Parity (mock ⇄ server)', async (t) => {
 });
 
 test('Discover — Filter State ⇄ URL Round Trip', async (t) => {
-  // Mirrors filtersFromUrl() / setUrlParam() in DiscoverFeedPage.js: default/"all" values are
+  // Mirrors filtersFromUrl() / setUrlParam() in DiscoverFeedPage.ts: default/"all" values are
   // omitted so a clean feed has a clean URL, and everything else survives a reload.
   const setUrlParam = (params, key, value) => {
     if (value == null || value === '' || value === 'all') params.delete(key);
@@ -254,7 +254,7 @@ test('Discover — Mock Feed Contract', async (t) => {
 
 // Read the page source once; suites 5 pins its own constants from it so the mirror can't drift.
 const pageSrc = fs.readFileSync(
-  path.resolve(import.meta.dirname, '../src/pages/DiscoverFeedPage.js'),
+  path.resolve(import.meta.dirname, '../src/pages/DiscoverFeedPage.ts'),
   'utf8'
 );
 const feedSrc = fs.readFileSync(
@@ -264,7 +264,7 @@ const feedSrc = fs.readFileSync(
 
 test('Discover — Draggable Pill Geometry', async (t) => {
   // The pill defaults to CSS top-centre and only switches to explicit coordinates once dragged.
-  // These mirror the pure geometry inside DiscoverFeedPage.js (setBarPos / positionToolbar / the
+  // These mirror the pure geometry inside DiscoverFeedPage.ts (setBarPos / positionToolbar / the
   // tap-vs-drag threshold). A parity sub-test asserts the component still contains the same logic.
 
   // Pull the real constants out of the source so a change there flows into this test automatically.

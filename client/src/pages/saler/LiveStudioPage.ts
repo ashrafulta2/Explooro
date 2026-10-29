@@ -1,5 +1,5 @@
 /**
- * LiveStudioPage.js — Shop Partner & Supplier Live Streaming Studio (Prompt 10.1 / DFD Subsystem 15.0).
+ * LiveStudioPage.ts — Shop Partner & Supplier Live Streaming Studio (Prompt 10.1 / DFD Subsystem 15.0).
  *
  * Implements:
  * 1. Stream creation, scheduling & catalog showcase product selection.
@@ -19,8 +19,9 @@ import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { toast } from '../../services/toast.ts';
 import { formatBdt } from '../../services/format.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
+import type { PageContext } from '../types.ts';
 
-export default function LiveStudioPage(root, { navigate }) {
+export default function LiveStudioPage(root: HTMLElement, { navigate }: PageContext) {
   const container = document.createElement('div');
   container.className = 'container live-studio-page';
   root.append(container);
@@ -112,11 +113,11 @@ export default function LiveStudioPage(root, { navigate }) {
 
     modalContent.querySelector('#schedule-stream-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const title = modalContent.querySelector('#stream-title').value;
-      const desc = modalContent.querySelector('#stream-desc').value;
-      const cover = modalContent.querySelector('#stream-cover').value;
+      const title = modalContent.querySelector<HTMLInputElement>('#stream-title').value;
+      const desc = modalContent.querySelector<HTMLInputElement>('#stream-desc').value;
+      const cover = modalContent.querySelector<HTMLInputElement>('#stream-cover').value;
 
-      const checkedProds = Array.from(modalContent.querySelectorAll('#product-picker input:checked')).map((el) => ({
+      const checkedProds = Array.from(modalContent.querySelectorAll<HTMLInputElement>('#product-picker input:checked')).map((el) => ({
         product_id: Number(el.value),
         special_price: null,
       }));
@@ -332,7 +333,7 @@ export default function LiveStudioPage(root, { navigate }) {
     });
 
     // Host Chat
-    const hostInput = stage.querySelector('#host-chat-input');
+    const hostInput = stage.querySelector<HTMLInputElement>('#host-chat-input');
     const sendBtn = stage.querySelector('#host-send-chat-btn');
     const chatBox = stage.querySelector('#studio-chat-messages');
 
@@ -344,7 +345,7 @@ export default function LiveStudioPage(root, { navigate }) {
     };
 
     sendBtn?.addEventListener('click', sendHostMessage);
-    hostInput?.addEventListener('keydown', (e) => {
+    hostInput?.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'Enter') sendHostMessage();
     });
 
@@ -353,23 +354,23 @@ export default function LiveStudioPage(root, { navigate }) {
     wsManager.send('live:join', { stream_id: activeStream.id });
 
     wsManager.onMessage((frame) => {
-      const { type, payload } = frame;
+      const { type, payload } = frame as unknown as { type: string; payload: any };
       if (payload?.streamId && Number(payload.streamId) !== activeStream.id) return;
 
       if (type === 'live:viewer_count') {
         viewerCount = payload.viewerCount;
         const el = stage.querySelector('#studio-viewers');
-        if (el) el.textContent = viewerCount;
+        if (el) el.textContent = String(viewerCount);
       } else if (type === 'live:reaction_broadcast') {
         totalLikes = payload.totalLikes;
         const el = stage.querySelector('#studio-likes');
-        if (el) el.textContent = totalLikes;
+        if (el) el.textContent = String(totalLikes);
       } else if (type === 'live:sale_event') {
         totalSales = payload.totalSalesCount;
         totalRevenue = payload.totalSalesAmount;
         const sEl = stage.querySelector('#studio-sales');
         const rEl = stage.querySelector('#studio-revenue');
-        if (sEl) sEl.textContent = totalSales;
+        if (sEl) sEl.textContent = String(totalSales);
         if (rEl) rEl.textContent = formatBdt(totalRevenue);
         toast.success(`🎉 New Live Sale: ৳${payload.orderAmount} (${payload.productTitle})`);
       } else if (type === 'live:chat_message') {

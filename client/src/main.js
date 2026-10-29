@@ -179,8 +179,8 @@ async function bootRouterDemo() {
       // Prompt 10.1: Live Stream Commerce
       { path: '/live', title: 'Live Broadcasts — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
       { path: '/live/:id', title: 'Live Shopping — Explooro', permission: null, module: 'live_commerce', load: () => import('./pages/LiveStreamPage.js') },
-      { path: '/saler/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
-      { path: '/supplier/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.js') },
+      { path: '/saler/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.ts') },
+      { path: '/supplier/live-studio', title: 'Live Studio — Explooro', requiresAuth: true, permission: 'live.stream.host', module: 'live_commerce', load: () => import('./pages/saler/LiveStudioPage.ts') },
       // WHY not LiveStreamPage: /moderator/live used to load the customer-facing shopping browse
       // page, so the "Live Streams" nav item under REVIEW QUEUES opened a storefront with a "Host a
       // Live Stream" button and no moderation controls at all.
@@ -195,7 +195,7 @@ async function bootRouterDemo() {
         // WHY the stylesheet is loaded here and not imported by the page: salerPages.test.js imports
         // every shop partner page under plain node, which cannot load a .css file. Importing it from the
         // route keeps the CSS out of the entry bundle (70KB budget) and the page importable.
-        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./pages/saler/SourcingCatalogPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./pages/saler/SourcingCatalogPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/saler/incentives',
@@ -277,7 +277,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
+        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
       },
       {
         path: '/supplier/warranty',
@@ -285,7 +285,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
+        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
       },
       {
         path: '/supplier/warranties',
@@ -293,7 +293,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
+        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
       },
       {
         path: '/supplier/warranty-claims',
@@ -301,7 +301,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.js'),
+        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
       },
       // Prompt 10.5: Cross-Seller Bundling & Demand Surge Pricing
       {
@@ -464,7 +464,7 @@ async function bootRouterDemo() {
         title: 'Discover — Explooro',
         permission: null,
         module: 'discovery_feed',
-        load: () => import('./pages/DiscoverFeedPage.js'),
+        load: () => import('./pages/DiscoverFeedPage.ts'),
       },
       {
         path: '/community',
@@ -534,7 +534,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.announcement.publish',
         module: 'whats_new',
-        load: () => import('./pages/editor/WhatsNewManagerPage.js'),
+        load: () => import('./pages/editor/WhatsNewManagerPage.ts'),
       },
       {
         path: '/editor/help-center',
@@ -1069,7 +1069,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.b2b_escrow.manage',
         module: 'b2b_escrow',
-        load: () => import('./pages/admin/AdminB2bEscrowPage.js'),
+        load: () => import('./pages/admin/AdminB2bEscrowPage.ts'),
       },
 
       // Admin Growth & Gamification (Ads, Quests, Group Buy)
@@ -1192,7 +1192,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.announcement.publish',
         module: 'whats_new',
-        load: () => import('./pages/editor/WhatsNewManagerPage.js'),
+        load: () => import('./pages/editor/WhatsNewManagerPage.ts'),
       },
       {
         path: '/admin/content/translations',
@@ -1329,7 +1329,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.module.view',
         module: 'core',
-        load: () => import('./pages/admin/ModuleControlPage.js'),
+        load: () => import('./pages/admin/ModuleControlPage.ts'),
       },
       {
         path: '/admin/modules',
@@ -1337,7 +1337,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.module.view',
         module: 'core',
-        load: () => import('./pages/admin/ModuleControlPage.js'),
+        load: () => import('./pages/admin/ModuleControlPage.ts'),
       },
       // Per-page availability — the layer beside the module system. `module: 'core'` on purpose:
       // this is the surface that un-parks a parked page, so it can never be parked itself (it is
@@ -1389,7 +1389,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.permission.grant',
         module: 'core',
-        load: () => import('./pages/admin/AccessGrantsPage.js'),
+        load: () => import('./pages/admin/AccessGrantsPage.ts'),
       },
       {
         path: '/admin/approvals',
@@ -1539,7 +1539,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'returns_engine',
-        load: () => import('./pages/customer/ReturnsPage.js'),
+        load: () => import('./pages/customer/ReturnsPage.ts'),
       },
       {
         path: '/customer/orders/:id/return',
@@ -1555,7 +1555,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.return.view_all',
         module: 'returns_engine',
-        load: () => import('./pages/admin/ReturnsQueuePage.js'),
+        load: () => import('./pages/admin/ReturnsQueuePage.ts'),
       },
       {
         path: '/admin/warranty-claims',
@@ -1571,7 +1571,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.return.review',
         module: 'returns_engine',
-        load: () => import('./pages/admin/ReturnsQueuePage.js'),
+        load: () => import('./pages/admin/ReturnsQueuePage.ts'),
       },
       {
         path: '/moderator/returns',
@@ -1579,7 +1579,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'orders.return.review',
         module: 'returns_engine',
-        load: () => import('./pages/admin/ReturnsQueuePage.js'),
+        load: () => import('./pages/admin/ReturnsQueuePage.ts'),
       },
       // Prompt 7.3: Dispute Arbitration (Three-Way)
       {
@@ -1755,7 +1755,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'users.account.penalise',
         module: 'core',
-        load: () => import('./pages/moderator/PenaltiesPage.js'),
+        load: () => import('./pages/moderator/PenaltiesPage.ts'),
       },
       // Prompt 7.7-B: User Reports Queue
       {
@@ -1782,7 +1782,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'moderation.ugc.approve',
         module: 'ugc_video_wall',
-        load: () => import('./pages/moderator/UgcModerationPage.js'),
+        load: () => import('./pages/moderator/UgcModerationPage.ts'),
       },
       // Prompt 7.7-E: Supplier AI Demand Forecasting
       {

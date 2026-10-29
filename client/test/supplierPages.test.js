@@ -164,7 +164,7 @@ test('6. Warranty Claims Review & Resolution', async (t) => {
   });
 
   await t.test('The supplier page posts to the live review route', () => {
-    const source = readFileSync(new URL('../src/pages/supplier/WarrantyClaimsPage.js', import.meta.url), 'utf8');
+    const source = readFileSync(new URL('../src/pages/supplier/WarrantyClaimsPage.ts', import.meta.url), 'utf8');
     assert.ok(source.includes('/supplier/claims/${claim.id}/review'));
     assert.equal(source.includes('/resolve`'), false);
   });

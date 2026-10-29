@@ -1,7 +1,7 @@
 /**
  * discover-feed.css — the /discover surface: a full-screen, one-product-at-a-time vertical feed.
  *
- * Imported by pages/DiscoverFeedPage.js (not main.css) so Vite code-splits it into the /discover
+ * Imported by pages/DiscoverFeedPage.ts (not main.css) so Vite code-splits it into the /discover
  * route chunk — it never weighs on the entry bundle. All colours come from design tokens; no raw hex.
  */
 

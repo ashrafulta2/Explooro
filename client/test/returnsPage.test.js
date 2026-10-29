@@ -34,8 +34,8 @@ test('Customer Returns Hub — Invariants & Logic', async (t) => {
     }
   });
 
-  await t.test('2. ReturnsPage.js adheres to Vanilla CSS and Explooro account shell', () => {
-    const pageSrc = read('src/pages/customer/ReturnsPage.js');
+  await t.test('2. ReturnsPage.ts adheres to Vanilla CSS and Explooro account shell', () => {
+    const pageSrc = read('src/pages/customer/ReturnsPage.ts');
 
     // Must use account shell
     assert.match(pageSrc, /account-page returns-page/, 'Must use standard account-page returns-page container');

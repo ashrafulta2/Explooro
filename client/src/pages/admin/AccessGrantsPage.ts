@@ -1,5 +1,5 @@
 /**
- * AccessGrantsPage.js — Manage standing access grants (Mode A) with time-boxes and revocations (Prompt 3.3).
+ * AccessGrantsPage.ts — Manage standing access grants (Mode A) with time-boxes and revocations (Prompt 3.3).
  *
  * Implements:
  * 1. Overview of time-boxed elevated permissions issued by Super Admins.
@@ -50,7 +50,7 @@ function humanizeKey(key) {
     .join(' › ');
 }
 
-export default function AccessGrantsPage(root) {
+export default function AccessGrantsPage(root: HTMLElement) {
   const lang = () => (getLanguage() === 'bn' ? 'bn' : 'en');
   const container = document.createElement('div');
   container.className = 'admin-users access-grants';
@@ -125,7 +125,7 @@ export default function AccessGrantsPage(root) {
     btn.setAttribute('aria-pressed', String(statusFilter === opt.key));
     btn.addEventListener('click', () => {
       statusFilter = opt.key;
-      filterBar.querySelectorAll('button').forEach((b) => {
+      filterBar.querySelectorAll<HTMLElement>('button').forEach((b) => {
         b.className = 'btn btn--secondary btn--sm';
         b.setAttribute('aria-pressed', 'false');
       });
@@ -206,7 +206,7 @@ export default function AccessGrantsPage(root) {
     footer.replaceChildren();
 
     try {
-      const query = { status: statusFilter, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE };
+      const query: Record<string, any> = { status: statusFilter, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE };
       if (search) query.q = search;
       const res = await api.get('/admin/grants', { query });
       if (seq !== loadSeq) return; // a newer filter/search/page superseded this response
@@ -324,8 +324,8 @@ export default function AccessGrantsPage(root) {
         totalPages,
         totalItems: total,
         pageSize: PAGE_SIZE,
-        onChange: ({ page: next }) => {
-          page = next;
+        onChange: (change) => {
+          page = (change as { page: number }).page;
           loadGrants();
           tableWrap.scrollIntoView({ block: 'nearest' });
         },

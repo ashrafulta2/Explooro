@@ -1,5 +1,5 @@
 /**
- * WarrantyClaimsPage.js — Supplier Digital Warranty & Claims Hub (Prompt 10.4).
+ * WarrantyClaimsPage.ts — Supplier Digital Warranty & Claims Hub (Prompt 10.4).
  *
  * Route: /supplier/claims, /supplier/warranty-claims
  * Gated by: `digital_warranty` module flag, `support.warranty.manage` permission.
@@ -16,7 +16,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
 import { ClaimTimeline } from '../../components/warranty/ClaimTimeline.ts';
 
-export default function WarrantyClaimsPage(root) {
+export default function WarrantyClaimsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
   container.setAttribute('data-module', 'digital_warranty');
@@ -283,7 +283,7 @@ export default function WarrantyClaimsPage(root) {
 
     tableCard.innerHTML = tableHtml;
 
-    tableCard.querySelectorAll('.review-claim-btn').forEach((btn) => {
+    tableCard.querySelectorAll<HTMLElement>('.review-claim-btn').forEach((btn) => {
       btn.onclick = () => {
         const id = btn.dataset.id;
         const claim = claims.find((c) => String(c.id) === String(id));
@@ -398,9 +398,9 @@ export default function WarrantyClaimsPage(root) {
 
     const close = () => modalBackdrop.close(false);
 
-    modalBackdrop.querySelector('#confirm-resolution-btn').onclick = async () => {
-      const action = modalBackdrop.querySelector('#resolution-action-select').value;
-      const notes = modalBackdrop.querySelector('#technician-notes').value.trim();
+    modalBackdrop.querySelector<HTMLElement>('#confirm-resolution-btn').onclick = async () => {
+      const action = modalBackdrop.querySelector<HTMLInputElement>('#resolution-action-select').value;
+      const notes = modalBackdrop.querySelector<HTMLInputElement>('#technician-notes').value.trim();
 
       // The live API takes action APPROVE/REJECT plus a resolution; a REFUND only escalates to an admin.
       const isReject = action === 'REJECT';
@@ -424,30 +424,30 @@ export default function WarrantyClaimsPage(root) {
   }
 
   // Setup tab listeners
-  navTabs.querySelector('#tab-claims-btn').onclick = () => {
+  navTabs.querySelector<HTMLElement>('#tab-claims-btn').onclick = () => {
     activeTab = 'claims';
     navTabs.querySelector('#tab-claims-btn').classList.add('supplier-chip--active');
     navTabs.querySelector('#tab-analytics-btn').classList.remove('supplier-chip--active');
     renderContent();
   };
 
-  navTabs.querySelector('#tab-analytics-btn').onclick = () => {
+  navTabs.querySelector<HTMLElement>('#tab-analytics-btn').onclick = () => {
     activeTab = 'analytics';
     navTabs.querySelector('#tab-analytics-btn').classList.add('supplier-chip--active');
     navTabs.querySelector('#tab-claims-btn').classList.remove('supplier-chip--active');
     renderContent();
   };
 
-  filterBar.querySelectorAll('.supplier-chip').forEach((chip) => {
+  filterBar.querySelectorAll<HTMLElement>('.supplier-chip').forEach((chip) => {
     chip.onclick = () => {
       filterStatus = chip.dataset.status;
-      filterBar.querySelectorAll('.supplier-chip').forEach((c) => c.classList.remove('supplier-chip--active'));
+      filterBar.querySelectorAll<HTMLElement>('.supplier-chip').forEach((c) => c.classList.remove('supplier-chip--active'));
       chip.classList.add('supplier-chip--active');
       renderClaimsQueue();
     };
   });
 
-  header.querySelector('#refresh-claims-btn').onclick = loadData;
+  header.querySelector<HTMLElement>('#refresh-claims-btn').onclick = loadData;
 
   loadData();
   root.appendChild(container);

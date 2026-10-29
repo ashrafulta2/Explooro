@@ -81,7 +81,7 @@ system prompt and tool schema — the dominant fixed cost of a grounded, tool-us
   If the running total is at or above the cap, the turn **does not throw** — it degrades (see §7).
 - The cap and the current month's spend are readable by Admin via
   `GET /api/v1/ai/usage` (permission `ai.config.manage`) and editable via
-  `PATCH /api/v1/ai/usage/cap`, both audit-logged. `client/src/pages/admin/ModuleControlPage.js`
+  `PATCH /api/v1/ai/usage/cap`, both audit-logged. `client/src/pages/admin/ModuleControlPage.ts`
   renders this as a compact spend card above the "AI & Advanced" module group, since that is
   already where every AI module lives in the admin's mental model.
 

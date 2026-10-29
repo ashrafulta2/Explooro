@@ -1,5 +1,5 @@
 /**
- * PenaltiesPage.js — Moderator Account Penalty & Suspension Enforcement (Prompt 7.7-A).
+ * PenaltiesPage.ts — Moderator Account Penalty & Suspension Enforcement (Prompt 7.7-A).
  *
  * Implements:
  * 1. Searchable user lookup by phone / email / user ID.
@@ -29,7 +29,7 @@ const STATUS_COLORS = {
   EXPIRED:  { bg: 'var(--surface-2,#f1f5f9)',   text: 'var(--text-secondary,#64748b)',border: 'var(--border-default,#cbd5e1)', labelKey: 'mod_penalties.status_expired' },
 };
 
-export default function PenaltiesPage(root) {
+export default function PenaltiesPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'penalties-page';
   container.style.cssText = `
@@ -83,7 +83,7 @@ export default function PenaltiesPage(root) {
     submitting = true;
     renderForm();
     try {
-      const payload = { user_id: selectedUser.id, user_name: selectedUser.name, penalty_type: penaltyType, reason };
+      const payload: Record<string, any> = { user_id: selectedUser.id, user_name: selectedUser.name, penalty_type: penaltyType, reason };
       const pt = PENALTY_TYPES.find(p => p.key === penaltyType);
       if (pt?.requiresDuration) payload.duration_days = durationDays;
       await api.post('/moderation/penalties', payload);
@@ -300,14 +300,14 @@ export default function PenaltiesPage(root) {
   }
 
   function attachFormListeners() {
-    container.querySelector('#inp-user-search')?.addEventListener('input', e => { searchQuery = e.target.value; });
+    container.querySelector('#inp-user-search')?.addEventListener('input', e => { searchQuery = (e.target as HTMLInputElement).value; });
     container.querySelector('#btn-search-user')?.addEventListener('click', searchUsers);
     container.querySelector('#btn-clear-user')?.addEventListener('click', () => { selectedUser = null; renderForm(); });
     container.querySelectorAll('.btn-penalty-type').forEach(btn => {
       btn.addEventListener('click', () => { penaltyType = btn.getAttribute('data-key'); renderForm(); });
     });
-    container.querySelector('#inp-duration')?.addEventListener('input', e => { durationDays = parseInt(e.target.value)||7; });
-    container.querySelector('#inp-reason')?.addEventListener('input', e => { reason = e.target.value; });
+    container.querySelector('#inp-duration')?.addEventListener('input', e => { durationDays = parseInt((e.target as HTMLInputElement).value)||7; });
+    container.querySelector('#inp-reason')?.addEventListener('input', e => { reason = (e.target as HTMLInputElement).value; });
     container.querySelector('#btn-submit-penalty')?.addEventListener('click', submitPenalty);
   }
 

@@ -1,5 +1,5 @@
 /**
- * UgcModerationPage.js — Moderator UGC Video & Content Approval Queue (Prompt 7.7-D).
+ * UgcModerationPage.ts — Moderator UGC Video & Content Approval Queue (Prompt 7.7-D).
  *
  * Implements:
  * 1. Queue of user-generated videos and content awaiting approval.
@@ -40,7 +40,7 @@ const SEED_UGC = [
   { id: 'u6', content_type: 'PRODUCT_REVIEW',   ai_score: 'FLAGGED',  title: 'Honest review: worst product I ever bought!',  duration: '9:18', views: 673,  created_at: new Date(Date.now()-18000000).toISOString(),uploader_name: 'ReviewKing BD'  },
 ];
 
-export default function UgcModerationPage(root) {
+export default function UgcModerationPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'ugc-moderation-page';
   container.style.cssText = `
@@ -259,13 +259,13 @@ export default function UgcModerationPage(root) {
     container.querySelectorAll('.btn-ai-filter').forEach(b=>b.addEventListener('click',()=>{ aiFilter=b.getAttribute('data-ai'); fetchUgc(); }));
     container.querySelectorAll('.ugc-row').forEach(row=>{
       row.addEventListener('click',e=>{
-        if(e.target.type==='checkbox') return;
+        if((e.target as HTMLInputElement).type==='checkbox') return;
         const id=row.getAttribute('data-id');
         expandedId=expandedId===id?null:id;
         render();
       });
     });
-    container.querySelectorAll('.chk-ugc').forEach(chk=>{
+    container.querySelectorAll<HTMLInputElement>('.chk-ugc').forEach(chk=>{
       chk.addEventListener('change',()=>{
         const id=chk.getAttribute('data-id');
         if(chk.checked) selectedIds.add(id); else selectedIds.delete(id);

@@ -1,5 +1,5 @@
 /**
- * ReturnsQueuePage.js — Admin & Staff Returns Moderation Workspace (Prompt 7.2).
+ * ReturnsQueuePage.ts — Admin & Staff Returns Moderation Workspace (Prompt 7.2).
  *
  * Implements:
  * 1. Filter tabs by state (REQUESTED, APPROVED, PICKUP_SCHEDULED, RECEIVED, INSPECTED, REFUNDED, REJECTED, DISPUTED)
@@ -17,7 +17,7 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import '../../styles/components/returns.css';
 
-export default function ReturnsQueuePage(root) {
+export default function ReturnsQueuePage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'returns-queue-page';
   container.style.cssText = `
@@ -369,31 +369,31 @@ export default function ReturnsQueuePage(root) {
 
     container.querySelector('#btn-refresh-queue')?.addEventListener('click', fetchQueue);
 
-    container.querySelectorAll('.tab-btn').forEach((btn) => {
+    container.querySelectorAll<HTMLElement>('.tab-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
-        currentTab = e.target.dataset.tab;
+        currentTab = (e.target as HTMLElement).dataset.tab;
         fetchQueue();
       });
     });
 
-    container.querySelectorAll('.btn-approve-return').forEach((btn) => {
-      btn.addEventListener('click', (e) => handleApprove(e.target.dataset.id));
+    container.querySelectorAll<HTMLElement>('.btn-approve-return').forEach((btn) => {
+      btn.addEventListener('click', (e) => handleApprove((e.target as HTMLElement).dataset.id));
     });
 
-    container.querySelectorAll('.btn-reject-return').forEach((btn) => {
-      btn.addEventListener('click', (e) => handleReject(e.target.dataset.id));
+    container.querySelectorAll<HTMLElement>('.btn-reject-return').forEach((btn) => {
+      btn.addEventListener('click', (e) => handleReject((e.target as HTMLElement).dataset.id));
     });
 
-    container.querySelectorAll('.btn-inspect-pass').forEach((btn) => {
-      btn.addEventListener('click', (e) => handleInspect(e.target.dataset.id, true));
+    container.querySelectorAll<HTMLElement>('.btn-inspect-pass').forEach((btn) => {
+      btn.addEventListener('click', (e) => handleInspect((e.target as HTMLElement).dataset.id, true));
     });
 
-    container.querySelectorAll('.btn-inspect-fail').forEach((btn) => {
-      btn.addEventListener('click', (e) => handleInspect(e.target.dataset.id, false));
+    container.querySelectorAll<HTMLElement>('.btn-inspect-fail').forEach((btn) => {
+      btn.addEventListener('click', (e) => handleInspect((e.target as HTMLElement).dataset.id, false));
     });
 
-    container.querySelectorAll('.btn-execute-refund').forEach((btn) => {
-      btn.addEventListener('click', (e) => handleRefund(e.target.dataset.id));
+    container.querySelectorAll<HTMLElement>('.btn-execute-refund').forEach((btn) => {
+      btn.addEventListener('click', (e) => handleRefund((e.target as HTMLElement).dataset.id));
     });
   }
 

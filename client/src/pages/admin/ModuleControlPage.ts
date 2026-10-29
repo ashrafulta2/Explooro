@@ -1,5 +1,5 @@
 /**
- * ModuleControlPage.js — Grouped Module Control Panel UI (Prompt 3.2).
+ * ModuleControlPage.ts — Grouped Module Control Panel UI (Prompt 3.2).
  *
  * Renders all 68 platform modules in an accessible, grouped accordion layout with live search,
  * filters, optimistic switches, reason modals, and dependency cascade support.
@@ -17,6 +17,7 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { setFlags } from '../../services/featureFlags.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { loadModuleControlStyles } from '../../styles/loadModuleControlStyles.ts';
+import type { PageContext } from '../types.ts';
 
 const GROUP_ORDER = [
   { key: 'trust', icon: '🛡️', label_en: 'Trust & Safety', label_bn: 'নিরাপত্তা ও আস্থা' },
@@ -30,13 +31,13 @@ const GROUP_ORDER = [
   { key: 'system', icon: '⚙️', label_en: 'System', label_bn: 'সিস্টেম' },
 ];
 
-export default function ModuleControlPage(root, { navigate } = {}) {
+export default function ModuleControlPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadModuleControlStyles();
 
   const container = document.createElement('div');
   container.className = 'module-control';
 
-  const authState = appStore.get()?.auth || {};
+  const authState: { roles?: string[]; role?: string } = appStore.get()?.auth || {};
   const isSuperAdmin = (authState.roles || []).includes('super_admin') || authState.role === 'super_admin';
 
   let allModules = [];
@@ -94,7 +95,7 @@ export default function ModuleControlPage(root, { navigate } = {}) {
   searchInput.placeholder = t('modules.search_placeholder');
   searchInput.setAttribute('aria-label', t('modules.search_placeholder'));
   searchInput.addEventListener('input', (e) => {
-    searchQuery = e.target.value.trim().toLowerCase();
+    searchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
     renderList();
   });
   searchWrap.append(searchIcon, searchInput);
@@ -107,7 +108,7 @@ export default function ModuleControlPage(root, { navigate } = {}) {
   groupSelect.innerHTML = `<option value="ALL">${t('modules.filter_all_groups')}</option>` +
     GROUP_ORDER.map((g) => `<option value="${g.key}">${g.icon} ${isBn ? g.label_bn : g.label_en}</option>`).join('');
   groupSelect.addEventListener('change', (e) => {
-    selectedGroup = e.target.value;
+    selectedGroup = (e.target as HTMLInputElement).value;
     renderList();
   });
 
@@ -121,7 +122,7 @@ export default function ModuleControlPage(root, { navigate } = {}) {
     <option value="OFF">${t('modules.filter_state_off')}</option>
   `;
   stateSelect.addEventListener('change', (e) => {
-    selectedState = e.target.value;
+    selectedState = (e.target as HTMLInputElement).value;
     renderList();
   });
 

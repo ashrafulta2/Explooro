@@ -1,5 +1,5 @@
 /**
- * AdminB2bEscrowPage.js — B2B Wholesale Escrow Governance & Milestone Settlement (Prompt 10.6).
+ * AdminB2bEscrowPage.ts — B2B Wholesale Escrow Governance & Milestone Settlement (Prompt 10.6).
  *
  * Implements:
  * 1. B2B wholesale escrow metrics (total value, active contracts, disbursed value, disputed deals).
@@ -22,6 +22,7 @@ import { listB2bDeals, releaseMilestone } from '../../services/b2bEscrow.api.ts'
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import { trackStyleLoad } from '../../core/styleGate.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.js';
+import type { PageContext } from '../types.ts';
 
 // WHY dynamic: Vite splits this into the route's CSS chunk (keeping it out of the entry bundle's
 // budget), and the node:test suite imports page modules directly, where a static `.css` import
@@ -73,7 +74,7 @@ const num = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export default function AdminB2bEscrowPage(root, { navigate } = {}) {
+export default function AdminB2bEscrowPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   loadStyles();
   const container = document.createElement('div');
@@ -91,7 +92,7 @@ export default function AdminB2bEscrowPage(root, { navigate } = {}) {
   function dealTitle(d) {
     return pick(d.title_en || d.deal_title || d.ref, d.title_bn);
   }
-  function milestoneLabel(m, index) {
+  function milestoneLabel(m, index?) {
     return pick(m.label_en || m.title, m.label_bn) || `#${m.sequence_no ?? index + 1}`;
   }
 
@@ -290,7 +291,7 @@ export default function AdminB2bEscrowPage(root, { navigate } = {}) {
       mount.innerHTML = list.map(dealCard).join('');
     }
 
-    mount.querySelectorAll('.release-milestone-btn').forEach((btn) => {
+    mount.querySelectorAll<HTMLElement>('.release-milestone-btn').forEach((btn) => {
       btn.addEventListener('click', () => handleRelease(btn));
     });
   }
@@ -410,7 +411,7 @@ export default function AdminB2bEscrowPage(root, { navigate } = {}) {
 
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
     container.querySelector('.b2b-search')?.addEventListener('input', (e) => {
-      searchQuery = e.target.value;
+      searchQuery = (e.target as HTMLInputElement).value;
       renderDeals();
     });
 

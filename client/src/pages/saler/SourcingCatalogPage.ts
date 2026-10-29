@@ -1,5 +1,5 @@
 /**
- * SourcingCatalogPage.js — Shop Partner Supplier Catalog & Sourcing Opportunity Feed (Prompt 4.7).
+ * SourcingCatalogPage.ts — Shop Partner Supplier Catalog & Sourcing Opportunity Feed (Prompt 4.7).
  *
  * Route: /saler/sourcing
  * Gated by: `sourcing` module flag, `saler.sourcing.view` permission, and `can_sell` restriction.
@@ -43,7 +43,14 @@ const SORT_OPTIONS = [
   { value: 'price_desc', label_en: 'Price: High to Low', label_bn: 'দাম: বেশি থেকে কম' },
 ];
 
-export default function SourcingCatalogPage(root) {
+// WHY: `Skeleton` has no `className` option, so the margins these placeholders were given
+// ('m-3', 'mx-3 mb-3') were never applied; this adds them to the element it returns.
+function withClass<T extends Element>(node: T, className: string): T {
+  node.classList.add(...className.split(' '));
+  return node;
+}
+
+export default function SourcingCatalogPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'sourcing-page';
   container.setAttribute('data-module', 'sourcing');
@@ -96,7 +103,7 @@ export default function SourcingCatalogPage(root) {
     label: `✨ ${t('ai.sourcing_trigger')}`,
     variant: 'secondary',
     size: 'sm',
-    onClick: (e) => openAssistantPanel({ agentType: 'sourcing', trigger: e.currentTarget }),
+    onClick: (e) => openAssistantPanel({ agentType: 'sourcing', trigger: e.currentTarget as HTMLElement }),
   });
 
   heroHeader.append(heroTitle, heroSubtitle, askAiBtn);
@@ -110,7 +117,7 @@ export default function SourcingCatalogPage(root) {
   hero.append(heroHeader, heroStats);
 
   // Check user restriction (can_sell)
-  const auth = appStore.get()?.auth || {};
+  const auth: Record<string, any> = appStore.get()?.auth || {};
   const restrictions = auth.restrictions || [];
   const isSellRestricted = restrictions.some((r) => r.capability === 'can_sell' && r.mode === 'BLOCK');
 
@@ -177,7 +184,7 @@ export default function SourcingCatalogPage(root) {
     <option value="standard">${t('sourcing.filters.tier_standard')}</option>
   `;
   tierSelect.addEventListener('change', (e) => {
-    state.verificationTier = e.target.value;
+    state.verificationTier = (e.target as HTMLInputElement).value;
     loadProducts();
   });
   tierGroup.append(tierLabel, tierSelect);
@@ -198,7 +205,7 @@ export default function SourcingCatalogPage(root) {
     <option value="${opt.value}">${isBn ? opt.label_bn : opt.label_en}</option>
   `).join('');
   sortSelect.addEventListener('change', (e) => {
-    state.sortBy = e.target.value;
+    state.sortBy = (e.target as HTMLInputElement).value;
     loadProducts();
   });
   sortGroup.append(sortLabel, sortSelect);
@@ -263,8 +270,8 @@ export default function SourcingCatalogPage(root) {
       skelCard.className = 'sourcing-card';
       skelCard.append(
         Skeleton({ width: '100%', height: '220px' }),
-        Skeleton({ width: '80%', height: '20px', className: 'm-3' }),
-        Skeleton({ width: '50%', height: '16px', className: 'mx-3 mb-3' })
+        withClass(Skeleton({ width: '80%', height: '20px' }), 'm-3'),
+        withClass(Skeleton({ width: '50%', height: '16px' }), 'mx-3 mb-3')
       );
       grid.append(skelCard);
     }
