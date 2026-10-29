@@ -6,7 +6,7 @@
  * nav item stays visible with a badge, which is the difference between this state and HIDDEN: the
  * user is being told "this is coming", not being left to wonder whether it exists.
  *
- * Distinct from pages/dev/RoleStubPage.js, which stands in for a page that has not been BUILT.
+ * Distinct from pages/dev/RoleStubPage.ts, which stands in for a page that has not been BUILT.
  * This one stands in for a page that is built and deliberately not released yet, so it never
  * offers the dev shell as an escape hatch — it sends the user back where they came from.
  */
@@ -14,13 +14,14 @@ import { navItems } from '../config/navigation.js';
 import { t } from '../services/i18n.ts';
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
+import type { PageContext } from './types.ts';
 
 const CLOCK_ICON =
   '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" ' +
   'stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle>' +
   '<path d="M12 7.5V12l3 2"></path></svg>';
 
-export default function ComingSoonPage(root, { navigate } = {}) {
+export default function ComingSoonPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const path = window.location.pathname;
   const item = navItems.find((i) => i.path === path);
 

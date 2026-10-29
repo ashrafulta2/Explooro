@@ -1,5 +1,5 @@
 /**
- * SalerReturnProtectionPage.js — Which suppliers protect a shop partner's commission against returns, and what
+ * SalerReturnProtectionPage.ts — Which suppliers protect a shop partner's commission against returns, and what
  * the shop partner has been paid under that promise.
  *
  * Route: /saler/return-protection  (module: sourcing, read: shop partner.sourcing.view)
@@ -15,14 +15,14 @@ import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
   return node;
 }
 
-export default function SalerReturnProtectionPage(root) {
+export default function SalerReturnProtectionPage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
   const header = el('header', 'supplier-header');
   header.append(el('h1', '', t('rprot.saler_title')), el('p', 'supplier-header__sub', t('rprot.saler_subtitle')));

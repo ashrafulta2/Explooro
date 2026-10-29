@@ -71,7 +71,7 @@ const DEMO_LOOKS = [
 const ago = (hours) => new Date(Date.now() - hours * 3600_000).toISOString();
 
 let nextId = 100;
-const posts = [
+const posts: Record<string, any>[] = [
   {
     id: 1, type: 'ANNOUNCEMENT', kind: 'ANNOUNCEMENT', authorRole: 'admin', authorId: 2, authorName: 'Explooro Team',
     title: 'Eid delivery cut-off dates',

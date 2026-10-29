@@ -1,8 +1,9 @@
 /** NotFoundStub — the router's `notFound` fallback. Real 404 page is Prompt 1.7. */
 import { t } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
+import type { PageContext } from '../types.ts';
 
-export default function NotFoundStub(root, { navigate }) {
+export default function NotFoundStub(root: HTMLElement, { navigate }: PageContext) {
   const wrap = document.createElement('div');
   wrap.className = 'route-stub';
   const heading = document.createElement('h2');

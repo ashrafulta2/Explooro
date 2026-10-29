@@ -10,8 +10,9 @@ import { api } from '../core/api.ts';
 import { t } from '../services/i18n.ts';
 import { toast } from '../services/toast.ts';
 import { recordTouch } from '../services/attribution.ts';
+import type { PageContext } from './types.ts';
 
-export default function ShortLinkPage(root, { params, navigate } = {}) {
+export default function ShortLinkPage(root: HTMLElement, { params, navigate }: PageContext = {}) {
   const code = String(params?.code || '').trim().toLowerCase();
 
   const status = document.createElement('p');

@@ -39,7 +39,7 @@ test('InfoTip is registered in the component gallery', () => {
 test('every data-page-info marker sits on a <p> element', () => {
   const roots = ['../src/pages/', '../src/components/'];
   const files = [
-    'AcademyPage.js', 'StoriesFeedPage.js', 'VaultPage.js', 'admin/SettingsPage.js', 'admin/BackupPage.js',
+    'AcademyPage.js', 'StoriesFeedPage.js', 'VaultPage.ts', 'admin/SettingsPage.js', 'admin/BackupPage.js',
     'moderator/MyAccessPage.js', 'supplier/StoreStatusPage.js', 'saler/SalerDashboardPage.js',
   ];
   for (const f of files) {

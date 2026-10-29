@@ -1,10 +1,13 @@
 /**
  * Mock handlers for the product catalog — cursor-paginated per docs/api-contract.md §4.1.
  */
-import products from '../fixtures/products.json' with { type: 'json' };
+import productFixtures from '../fixtures/products.json' with { type: 'json' };
 import stores from '../fixtures/stores.json' with { type: 'json' };
 import { resolveMockMediaUrl } from './media.ts';
 import type { MockRoute } from '../types.ts';
+
+// WHY widened: the handlers add fields the fixture rows never had (`id`, `flash_sale_id`, `slug`).
+const products: Record<string, any>[] = productFixtures;
 
 function traceId() {
   return `MOCK-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
@@ -784,7 +787,7 @@ export default [
     method: 'GET',
     path: '/sourcing/catalog',
     handler({ query }) {
-      let filtered = products.map((p, i) => {
+      let filtered: Record<string, any>[] = products.map((p, i) => {
         const pricing = synthesizePricing(p);
         const tier = p.supplier_tier || 'standard';
         const shippingSpeed = tier === 'elite' ? 'fast_24h' : tier === 'verified' ? 'standard_48h' : 'standard_72h';
@@ -1044,7 +1047,7 @@ export default [
       const minMargin = parseFloat(query?.min_margin_pct || 0);
       const tier = query?.verification_tier;
 
-      let catalog = products.map((p, i) => {
+      let catalog: Record<string, any>[] = products.map((p, i) => {
         const price = parseFloat(p.price || 500);
         const wholesale = Math.round(price * 0.75);
         const profit = Math.round(price - wholesale - (price * 0.05));

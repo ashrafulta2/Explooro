@@ -1,5 +1,5 @@
 /**
- * SalerMarketingKitsPage.js — Ready-made promotion from suppliers: captions, hashtags, selling points,
+ * SalerMarketingKitsPage.ts — Ready-made promotion from suppliers: captions, hashtags, selling points,
  * product photos and a video link, to copy from when a shop partner lists a product.
  *
  * Route: /saler/marketing-kits  (module: sourcing, permission: shop partner.sourcing.view)
@@ -15,7 +15,7 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 
-function el(tag, className, text) {
+function el(tag: string, className?: string, text?: string) {
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text !== undefined) node.textContent = text;
@@ -29,7 +29,7 @@ export function filterKits(kits, query) {
   return kits.filter((k) => `${k.title_en} ${k.title_bn || ''} ${k.supplier_name || ''}`.toLowerCase().includes(q));
 }
 
-export default function SalerMarketingKitsPage(root) {
+export default function SalerMarketingKitsPage(root: HTMLElement) {
   const container = el('div', 'supplier-page-container');
 
   const header = el('header', 'supplier-header');

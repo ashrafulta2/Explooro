@@ -59,7 +59,7 @@ describe('page availability — the shared resolver is the only implementation',
   it('main.js hands the router that same resolver and a COMING_SOON page', () => {
     const src = read('src/main.js');
     assert.match(src, /resolvePageState: \(route, ctx\) => resolvePageAccess\(route\.path, ctx\)/);
-    assert.match(src, /comingSoonRoute: \{ load: \(\) => import\('\.\/pages\/ComingSoonPage\.js'\) \}/);
+    assert.match(src, /comingSoonRoute: \{ load: \(\) => import\('\.\/pages\/ComingSoonPage\.ts'\) \}/);
     assert.match(src, /await initPageAccess\(\)/);
     assert.match(src, /registerPages\(allRoutes\)/);
   });

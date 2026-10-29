@@ -7,8 +7,9 @@ import { navItems } from '../../config/navigation.js';
 import { t } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import type { PageContext } from '../types.ts';
 
-export default function RoleStubPage(root, { navigate }) {
+export default function RoleStubPage(root: HTMLElement, { navigate }: PageContext) {
   const item = navItems.find((i) => i.path === window.location.pathname);
   const wrap = document.createElement('div');
   wrap.className = 'route-stub';

@@ -165,7 +165,7 @@ async function bootRouterDemo() {
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.js') },
       // A shop partner's tracked short link: counts the click, remembers the partner, then opens the target.
-      { path: '/s/:code', title: 'Explooro', permission: null, module: 'social_seller_kit', load: () => import('./pages/ShortLinkPage.js') },
+      { path: '/s/:code', title: 'Explooro', permission: null, module: 'social_seller_kit', load: () => import('./pages/ShortLinkPage.ts') },
       // Full-page shopping cart (replaced the right-side drawer).
       { path: '/cart', title: 'Shopping Cart — Explooro', permission: null, module: 'core', load: () => import('./pages/CartPage.js') },
       // Prompt 5.4: Checkout & Order Tracking Pages
@@ -219,7 +219,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerMarketingKitsPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerMarketingKitsPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/saler/fast-payout',
@@ -227,7 +227,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerFastPayoutPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerFastPayoutPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/saler/return-protection',
@@ -235,7 +235,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerReturnProtectionPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerReturnProtectionPage.ts')]).then(([, , page]) => page),
       },
       // Prompt 10.3: AI Creative Studio (ad copy generation)
       {
@@ -457,7 +457,7 @@ async function bootRouterDemo() {
         title: 'Shoppable Video Reels — Explooro',
         permission: null,
         module: 'content_commerce',
-        load: () => import('./pages/ReelsPage.js'),
+        load: () => import('./pages/ReelsPage.ts'),
       },
       {
         path: '/discover',
@@ -655,7 +655,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./pages/supplier/SupplierScorecardPage.js')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./pages/supplier/SupplierScorecardPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/incentive',
@@ -687,7 +687,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierFastPayoutPage.js')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierFastPayoutPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/return-protection',
@@ -1498,7 +1498,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.payout.request',
         module: 'core',
-        load: () => import('./pages/VaultPage.js'),
+        load: () => import('./pages/VaultPage.ts'),
       },
       {
         path: '/saler/vault',
@@ -1506,7 +1506,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.payout.request',
         module: 'core',
-        load: () => import('./pages/VaultPage.js'),
+        load: () => import('./pages/VaultPage.ts'),
       },
       {
         path: '/saler/vault/payouts',
@@ -1522,7 +1522,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.payout.request',
         module: 'core',
-        load: () => import('./pages/VaultPage.js'),
+        load: () => import('./pages/VaultPage.ts'),
       },
       {
         path: '/admin/finance',
@@ -2072,7 +2072,7 @@ async function bootRouterDemo() {
         module: 'cart_recovery',
         load: () => import('./pages/CheckoutPage.js'),
       },
-      { path: '/dev/shell', title: 'Shell Preview — Explooro (dev)', permission: null, module: 'core', load: () => import('./pages/dev/DevShellSwitcher.js') },
+      { path: '/dev/shell', title: 'Shell Preview — Explooro (dev)', permission: null, module: 'core', load: () => import('./pages/dev/DevShellSwitcher.ts') },
       // Prompt 1.8: DEV-only.
       ...(import.meta.env.DEV
         ? [
@@ -2119,7 +2119,7 @@ async function bootRouterDemo() {
       requiresAuth: true,
       permission: item.permission,
       module: item.module,
-      load: () => import('./pages/dev/RoleStubPage.js'),
+      load: () => import('./pages/dev/RoleStubPage.ts'),
     }));
 
   const allRoutes = [...featureRoutes, ...stubRoutes];
@@ -2132,12 +2132,12 @@ async function bootRouterDemo() {
     root: appShell.pageOutlet,
     loginPath: '/login',
     routes: allRoutes,
-    notFound: { load: () => import('./pages/dev/NotFoundStub.js') },
+    notFound: { load: () => import('./pages/dev/NotFoundStub.ts') },
     getAuthContext: () => ({ ...appStore.get().auth, modules: appStore.get().modules }),
     // The SAME resolver Sidebar.js and CommandPalette.js filter with — super-admin-audit §5
     // invariant 1 ("the nav guard must equal the route guard"), now covering page availability too.
     resolvePageState: (route, ctx) => resolvePageAccess(route.path, ctx),
-    comingSoonRoute: { load: () => import('./pages/ComingSoonPage.js') },
+    comingSoonRoute: { load: () => import('./pages/ComingSoonPage.ts') },
     // WHY: a permission/module guard failure used to bounce the user to `/` in total silence —
     // a moderator clicking a queue they lack the grant for just found themselves on the
     // marketplace home with no idea why. Returning nothing keeps the router's own fallback.

@@ -634,7 +634,7 @@ export const liveHandlers = [
         streams = streams.filter((s) => s.status === status);
       }
 
-      const enriched = streams.map((s) => {
+      const enriched: Record<string, any>[] = streams.map((s) => {
         const messages = mockStreamMessages[s.id] ?? [];
         return {
           ...s,

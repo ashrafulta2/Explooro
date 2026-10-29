@@ -1,5 +1,5 @@
 /**
- * SupplierScorecardPage.js — How shop partners see this supplier, and exactly what they are judged on.
+ * SupplierScorecardPage.ts — How shop partners see this supplier, and exactly what they are judged on.
  *
  * Route: /supplier/scorecard  (module: sourcing, permission: supplier.analytics.view)
  *
@@ -13,7 +13,7 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 
-export default function SupplierScorecardPage(root) {
+export default function SupplierScorecardPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 

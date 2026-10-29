@@ -11,6 +11,7 @@ import { setMockRole, logOutMock, appStore } from '../../state/appStore.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Card } from '../../components/ui/Card.ts';
+import type { PageContext } from '../types.ts';
 
 const ROLE_HOME = {
   super_admin: '/admin',
@@ -22,7 +23,7 @@ const ROLE_HOME = {
   customer: '/',
 };
 
-export default function DevShellSwitcher(root, { query, navigate }) {
+export default function DevShellSwitcher(root: HTMLElement, { query, navigate }: PageContext) {
   const wrap = document.createElement('div');
   wrap.className = 'route-stub';
 

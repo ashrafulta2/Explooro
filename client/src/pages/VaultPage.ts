@@ -1,5 +1,5 @@
 /**
- * VaultPage.js — Earner Vault & Financial Command Center (Prompt 6.5).
+ * VaultPage.ts — Earner Vault & Financial Command Center (Prompt 6.5).
  *
  * Combines:
  * 1. BalanceSummary (4 clarity balance buckets & Payout CTA)
@@ -15,7 +15,7 @@ import { BalanceSummary } from '../components/vault/BalanceSummary.ts';
 import { EscrowTimeline } from '../components/vault/EscrowTimeline.ts';
 import { LedgerTable } from '../components/vault/LedgerTable.ts';
 
-export default function VaultPage(root) {
+export default function VaultPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'page vault-page';
 
