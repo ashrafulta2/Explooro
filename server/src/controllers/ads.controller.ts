@@ -6,6 +6,7 @@ import * as adsService from '../services/ads.service.ts';
 import * as adProductsService from '../services/adProducts.service.ts';
 import * as adDestination from '../services/adDestination.service.ts';
 import * as adAudience from '../services/adAudience.service.ts';
+import * as adDensity from '../services/adDensity.service.ts';
 import * as adProductRepo from '../repositories/adProduct.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 
@@ -272,6 +273,39 @@ export async function updateAdProductPricing(req, reply) {
   });
 
   return reply.send({ product: result });
+}
+
+const densityShape = (d) => ({ SEARCH_RESULTS: d.SEARCH_RESULTS, FEED: d.FEED });
+
+/** GET /ads/density — where sponsored cards go in the search and feed grids. Never fails. */
+export async function getDensity(req, reply) {
+  const density = await adDensity.loadDensity(req.db || req.server?.db);
+  return reply.send({ density: densityShape(density) });
+}
+
+/** GET /admin/ads/density — the density, its bounds, and the timestamp the form sends back. */
+export async function getAdminDensity(req, reply) {
+  const density = await adDensity.loadDensity(req.db || req.server?.db);
+  return reply.send({
+    density: densityShape(density),
+    updated_at: density.updated_at,
+    limits: adDensity.DENSITY_LIMITS,
+    defaults: adDensity.DEFAULT_DENSITY,
+  });
+}
+
+/** PUT /admin/ads/density */
+export async function updateAdminDensity(req, reply) {
+  const body = req.body || {};
+  const density = await adDensity.updateDensity(req.db || req.server?.db, {
+    input: body.density,
+    reason: body.reason,
+    userId: req.user?.id ?? null,
+    actorRole: req.user?.roles?.[0] ?? req.user?.role ?? null,
+    expectedUpdatedAt: body.expected_updated_at ?? null,
+    reqContext: { ip: req.ip, userAgent: req.headers?.['user-agent'], traceId: req.traceId },
+  });
+  return reply.send({ density: densityShape(density), updated_at: density.updated_at });
 }
 
 /**

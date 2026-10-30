@@ -85,6 +85,11 @@ export default async function adsRoutes(app) {
     preHandler: [requireModule, viewerIfSignedIn],
   }, adsController.runAuction);
 
+  // Where the auction's winners go in a product grid (migration 090). Public like the auction itself.
+  app.get('/ads/density', {
+    preHandler: [requireModule],
+  }, adsController.getDensity);
+
   // Reserved placements are the prepaid counterpart of the auction: already bought, already paid.
   app.get('/ads/reserved', {
     preHandler: [requireModule],
@@ -112,6 +117,30 @@ export default async function adsRoutes(app) {
     config: { page: '/admin/growth/ad-pricing' },
     preHandler: [app.authenticate, requireModule, requireGovernAds],
   }, adsController.updateAdProductPricing);
+
+  // Ad density sits on the same page and behind the same key as pricing: both decide what an ad
+  // costs the shopper's attention. Strict, reasoned, audited and stale-checked (adDensity.service.ts).
+  app.get('/admin/ads/density', {
+    config: { page: '/admin/growth/ad-pricing' },
+    preHandler: [app.authenticate, requireModule, requireGovernAds],
+  }, adsController.getAdminDensity);
+
+  app.put('/admin/ads/density', {
+    config: { page: '/admin/growth/ad-pricing' },
+    preHandler: [app.authenticate, requireModule, requireGovernAds],
+    schema: {
+      body: {
+        type: 'object',
+        required: ['density', 'reason'],
+        additionalProperties: false,
+        properties: {
+          density: { type: 'object' },
+          reason: { type: 'string', minLength: 10, maxLength: 500 },
+          expected_updated_at: { type: ['string', 'null'] },
+        },
+      },
+    },
+  }, adsController.updateAdminDensity);
 
   // 5. Admin & Moderator Review Queue
   app.get('/admin/ads/campaigns/review', {

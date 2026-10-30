@@ -22,7 +22,7 @@
 import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { adsApi } from '../services/ads.api.ts';
-import { adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
+import { AD_DENSITY, adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.ts';
 import { isFeatureEnabled } from '../services/featureFlags.ts';
 import { HomeTop } from '../components/home/HomeTop.ts';
@@ -294,7 +294,7 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
 
   // Home Feed Promotion: paid cards placed inside the product grid (CPM, so each counts once it has
   // been on screen). The auction runs once per visit; every rebuilt grid places the same winners.
-  let feedAds = [];
+  let feedAds = { ads: [], density: AD_DENSITY.FEED };
   const feedAdsReady = fetchInlineAds('FEED', { limit: 3 }).then((ads) => { feedAds = ads; });
 
   // Toolbar (count + filter trigger button)

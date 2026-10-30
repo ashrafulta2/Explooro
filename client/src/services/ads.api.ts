@@ -172,6 +172,18 @@ export const adsApi = {
     return res?.campaigns ?? res?.data?.campaigns ?? [];
   },
 
+  /**
+   * Where sponsored cards go in the search and feed grids: `{ SEARCH_RESULTS: { first_at, every }, FEED: … }`.
+   * Resolves to null on failure (the caller keeps its fallback); never rejects.
+   */
+  async getDensity(): Promise<Record<string, { first_at: number; every: number }> | null> {
+    try {
+      const res = await api.get('/ads/density');
+      return res?.density ?? res?.data?.density ?? null;
+    } catch {
+      return null;
+    }
+  },
   async setCampaignPaused(id: number | string, paused: boolean) {
     return api.post(`/ads/campaigns/${encodeURIComponent(id)}/${paused ? 'pause' : 'resume'}`, {});
   },

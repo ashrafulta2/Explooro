@@ -11,7 +11,7 @@ import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
-import { adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
+import { AD_DENSITY, adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { updateHead } from '../services/seo.ts';
@@ -73,7 +73,7 @@ export default function SearchResultsPage(root: HTMLElement, { query, navigate }
 
   // Search Boost: paid winners for these keywords are placed inside the result grid (see
   // components/ads/adPlacement.ts for where and how often), tagged "Sponsored".
-  let adCards = adInterleaver('SEARCH_RESULTS', []);
+  let adCards = adInterleaver('SEARCH_RESULTS', { ads: [], density: AD_DENSITY.SEARCH_RESULTS });
   const adsReady = fetchInlineAds('SEARCH_RESULTS', { keyword: term, limit: 3 }).then((ads) => {
     adCards = adInterleaver('SEARCH_RESULTS', ads);
   });

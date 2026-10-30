@@ -81,10 +81,13 @@ export default function AdminAdPricingPage(root: HTMLElement) {
   let products = [];
   let windowDays = 30;
   let isLoading = true;
+  // Sponsored card density (GET /admin/ads/density). null = not loaded, so the section is left out.
+  let density = null;
 
   async function loadData() {
     isLoading = true;
     render();
+    const densityReq = api.get('/admin/ads/density').catch(() => null);
     try {
       const res = await api.get('/admin/ads/products');
       products = res.products || [];
@@ -93,9 +96,123 @@ export default function AdminAdPricingPage(root: HTMLElement) {
       products = [];
       toast.error(err.message || 'Failed to load ad pricing');
     } finally {
+      density = await densityReq;
       isLoading = false;
       render();
     }
+  }
+
+  /** The first 24 cards of a grid, ad or organic, for the preview. Same rule as adBefore() in adPlacement.ts. */
+  function previewCells(firstAt, every) {
+    const cells = [];
+    for (let i = 0; cells.length < 24; i += 1) {
+      if (i >= firstAt && every >= 1 && (i - firstAt) % every === 0) cells.push(true);
+      if (cells.length < 24) cells.push(false);
+    }
+    return cells.map((ad) => `<span class="ad-density__cell${ad ? ' ad-density__cell--ad' : ''}"></span>`).join('');
+  }
+
+  function renderDensity() {
+    if (!density?.density) return '';
+    const lim = density.limits || { first_at: { min: 0, max: 12 }, every: { min: 4, max: 40 } };
+    const PLACES = [
+      { key: 'SEARCH_RESULTS', en: 'Search results', bn: 'সার্চ ফলাফল' },
+      { key: 'FEED', en: 'Home feed', bn: 'হোম ফিড' },
+    ];
+    return `
+      <section class="ad-rate-card ad-density" data-density>
+        <div class="ad-rate-card__head">
+          <span class="ad-rate-card__icon" aria-hidden="true">🧭</span>
+          <div>
+            <h3 class="ad-rate-card__name">${isBn ? 'স্পন্সর্ড কার্ড কতবার দেখাবে' : 'How often sponsored cards appear'}</h3>
+            <span class="ad-rate-card__model">ads.density</span>
+          </div>
+        </div>
+        <p class="ad-density__hint" style="margin-bottom: var(--space-3);">
+          ${isBn
+            ? `বেশি ঘন ঘন ad দেখালে ক্রেতা বিরক্ত হন, কম হলে আয় কমে। প্রতি ${lim.every.min}টার কম card এ একটা ad রাখা যায় না, তাই দুটো ad কখনো পাশাপাশি বসে না। নতুন নিয়ম ক্রেতার পরের page load থেকে কাজ করবে।`
+            : `Too often and shoppers tune out; too rarely and ad revenue drops. An ad can't appear more than once per ${lim.every.min} cards, so two never sit side by side. Shoppers get the change on their next page load.`}
+        </p>
+        <div class="ad-density__rows">
+          ${PLACES.map((pl) => {
+            const row = density.density[pl.key];
+            return `
+              <div>
+                <strong>${isBn ? pl.bn : pl.en}</strong>
+                <div class="ad-density__preview" data-preview="${pl.key}" aria-hidden="true">${previewCells(row.first_at, row.every)}</div>
+                <div class="ad-rate-card__fields">
+                  <div class="field">
+                    <label class="field__label" for="den-${pl.key}-first">${isBn ? 'প্রথম ad কোন card এর আগে (০ = একদম প্রথম)' : 'First ad before card (0 = very first)'}</label>
+                    <div class="field__control">
+                      <input class="input" id="den-${pl.key}-first" type="number" step="1" min="${lim.first_at.min}" max="${lim.first_at.max}"
+                             data-den="${pl.key}" data-den-field="first_at" value="${row.first_at}" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="den-${pl.key}-every">${isBn ? 'এরপর প্রতি কয়টা card এ একটা ad' : 'Then one ad every N cards'}</label>
+                    <div class="field__control">
+                      <input class="input" id="den-${pl.key}-every" type="number" step="1" min="${lim.every.min}" max="${lim.every.max}"
+                             data-den="${pl.key}" data-den-field="every" value="${row.every}" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="field">
+          <label class="field__label" for="den-reason">${isBn ? 'পরিবর্তনের কারণ (অডিট লগে যাবে)' : 'Reason for the change (goes to the audit log)'}</label>
+          <div class="field__control">
+            <textarea class="input ad-density__reason" id="den-reason" maxlength="500"></textarea>
+          </div>
+        </div>
+        <div class="ad-rate-card__foot">
+          <p class="ad-density__hint">${isBn ? 'ঘর গুলো ক্রেতার প্রথম ২৪টা card; হলুদ ঘর = ad।' : 'Squares are the first 24 cards a shopper sees; amber = ad.'}</p>
+          <button type="button" class="btn btn--primary btn--sm font-bold" data-save-density>
+            ${isBn ? 'ঘনত্ব সংরক্ষণ করুন' : 'Save density'}
+          </button>
+        </div>
+      </section>
+    `;
+  }
+
+  function wireDensity() {
+    const section = container.querySelector('[data-density]');
+    if (!section) return;
+    const read = () => {
+      const out = {};
+      section.querySelectorAll<HTMLInputElement>('[data-den]').forEach((input) => {
+        out[input.dataset.den] ??= {};
+        out[input.dataset.den][input.dataset.denField] = input.value === '' ? null : Number(input.value);
+      });
+      return out;
+    };
+    section.addEventListener('input', () => {
+      const next = read();
+      for (const [key, row] of Object.entries<Record<string, number>>(next)) {
+        const box = section.querySelector(`[data-preview="${key}"]`);
+        if (box && Number.isInteger(row.first_at) && Number.isInteger(row.every)) box.innerHTML = previewCells(row.first_at, row.every);
+      }
+    });
+    section.querySelector<HTMLButtonElement>('[data-save-density]')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget as HTMLButtonElement;
+      const reason = section.querySelector<HTMLTextAreaElement>('#den-reason')?.value.trim() || '';
+      if (reason.length < 10) {
+        toast.error(isBn ? 'অন্তত ১০ অক্ষরের একটি কারণ লিখুন।' : 'Give a reason of at least 10 characters.');
+        return;
+      }
+      btn.disabled = true;
+      try {
+        const res = await api.put('/admin/ads/density', { density: read(), reason, expected_updated_at: density.updated_at });
+        density = { ...density, density: res.density, updated_at: res.updated_at };
+        toast.success(isBn ? 'নতুন ঘনত্ব সংরক্ষিত হয়েছে' : 'New density saved');
+        render();
+      } catch (err) {
+        // The server's message names the field and its range, or says the form is stale (409).
+        toast.error((isBn && err.message_bn) || err.message || (isBn ? 'সংরক্ষণ করা যায়নি' : 'Could not save'));
+        btn.disabled = false;
+      }
+    });
   }
 
   function renderField(product, field) {
@@ -232,12 +349,15 @@ export default function AdminAdPricingPage(root: HTMLElement) {
         </div>
       </div>
 
-      <div class="ad-pricing-grid mt-4">
+      <div class="mt-4">${renderDensity()}</div>
+
+      <div class="ad-pricing-grid">
         ${products.map((p) => renderCard(p)).join('')}
       </div>
     `;
 
     container.querySelector('.refresh-btn')?.addEventListener('click', () => loadData());
+    wireDensity();
 
     container.querySelectorAll<HTMLElement>('[data-save]').forEach((btn) => {
       btn.addEventListener('click', () => savePricing(Number(btn.dataset.save), btn));

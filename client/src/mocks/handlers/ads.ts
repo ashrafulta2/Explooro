@@ -523,6 +523,12 @@ const MOCK_AUCTION_ADS = [
   },
 ];
 
+// Sponsored card density (server adDensity.service.ts, migration 090).
+const MOCK_DENSITY_LIMITS = { first_at: { min: 0, max: 12 }, every: { min: 4, max: 40 } };
+const MOCK_DENSITY_DEFAULTS = { SEARCH_RESULTS: { first_at: 0, every: 8 }, FEED: { first_at: 2, every: 8 } };
+let mockDensity: Record<string, { first_at: number; every: number }> = structuredClone(MOCK_DENSITY_DEFAULTS);
+let mockDensityUpdatedAt = new Date(Date.now() - 3 * 86400000).toISOString();
+
 // What the ad wizard's product picker offers in mock mode: store items first, then supplied products.
 const mockPromotableProducts = [
   { id: 101, ref: 'PRD-101', title_en: 'Handloom Jamdani Saree', title_bn: 'তাঁতের জামদানি শাড়ি', stock_qty: 24, source: 'STORE' },
@@ -836,6 +842,41 @@ const adsHandlers = [
         product_id: null,
       };
       return { status: 200, body: { placements: placement === 'HOME_HERO' ? [row] : [] } };
+    },
+  },
+  // Mirrors server adDensity.service.ts: same envelope, same bounds, strict writes, stale check.
+  { method: 'GET', path: '/ads/density', handler() { return { status: 200, body: { density: mockDensity } }; } },
+  {
+    method: 'GET',
+    path: '/admin/ads/density',
+    handler() {
+      return { status: 200, body: { density: mockDensity, updated_at: mockDensityUpdatedAt, limits: MOCK_DENSITY_LIMITS, defaults: MOCK_DENSITY_DEFAULTS } };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/ads/density',
+    handler({ body }) {
+      if (typeof body?.reason !== 'string' || body.reason.trim().length < 10) {
+        return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message_en: 'Give a reason of at least 10 characters for this change.', message_bn: 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।' } } };
+      }
+      if (body.expected_updated_at && body.expected_updated_at !== mockDensityUpdatedAt) {
+        return { status: 409, body: { error: { code: 'PRECONDITION_CHANGED', message_en: 'Someone changed the ad density after you opened the page. Reload and try again.', message_bn: 'আপনি page খোলার পরে কেউ বিজ্ঞাপনের ঘনত্ব বদলেছেন। Reload করে আবার চেষ্টা করুন।' } } };
+      }
+      const next: Record<string, { first_at: number; every: number }> = {};
+      for (const p of ['SEARCH_RESULTS', 'FEED']) {
+        for (const f of ['first_at', 'every']) {
+          const v = body?.density?.[p]?.[f];
+          const { min, max } = MOCK_DENSITY_LIMITS[f];
+          if (!Number.isInteger(v) || v < min || v > max) {
+            return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message_en: `${p}.${f} must be a whole number from ${min} to ${max}.`, message_bn: `${p}.${f} ${min} থেকে ${max} এর মধ্যে একটি পূর্ণসংখ্যা হতে হবে।` } } };
+          }
+        }
+        next[p] = { first_at: body.density[p].first_at, every: body.density[p].every };
+      }
+      mockDensity = next;
+      mockDensityUpdatedAt = new Date().toISOString();
+      return { status: 200, body: { density: mockDensity, updated_at: mockDensityUpdatedAt } };
     },
   },
   { method: 'POST', path: '/ads/impressions', handler() { return { status: 200, body: { recorded: true, billed: false } }; } },

@@ -22,15 +22,32 @@ export interface AdDensity {
   every: number;
 }
 
-// WHY these numbers: search puts its first ad first because the shopper has just said what they want,
-// so a matching paid product is useful there. The feed waits two cards so the page opens on its own
-// picks. One ad per eight organic cards is two full rows on desktop, which keeps ads out of the same
-// row and never side by side. They are presentation rules, not prices; the auction's `limit` caps
-// how many ads a page gets at all.
+// The live numbers are configuration: `ads.density` in platform_settings (migration 090), set at
+// /admin/growth/ad-pricing and served by GET /ads/density. These are only the fallback for when that
+// request fails, and must equal DEFAULT_DENSITY in server/src/services/adDensity.service.ts
+// (server/test/adDensity.test.js). Search leads with an ad because the shopper has just said what
+// they want; the feed opens on its own picks; one ad per eight is two full desktop rows.
 export const AD_DENSITY: Record<InlinePlacement, AdDensity> = {
   SEARCH_RESULTS: { firstAt: 0, every: 8 },
   FEED: { firstAt: 2, every: 8 },
 };
+
+let densityRequest: Promise<Record<InlinePlacement, AdDensity>> | null = null;
+
+/** The platform's density, fetched once per page load; the fallback above on any failure. */
+export function fetchAdDensity(): Promise<Record<InlinePlacement, AdDensity>> {
+  densityRequest ??= adsApi.getDensity().then((raw) => {
+    const out = { ...AD_DENSITY };
+    for (const p of Object.keys(AD_DENSITY) as InlinePlacement[]) {
+      const row = raw?.[p];
+      if (Number.isInteger(row?.first_at) && Number.isInteger(row?.every)) {
+        out[p] = { firstAt: row.first_at, every: row.every };
+      }
+    }
+    return out;
+  });
+  return densityRequest;
+}
 
 /**
  * Which ad (0-based) goes immediately in front of organic card `organicIndex`, or -1 for none.
@@ -43,23 +60,32 @@ export function adBefore(organicIndex: number, { firstAt, every }: AdDensity): n
   return (organicIndex - start) / gap;
 }
 
+export interface InlineAds {
+  ads: SponsoredAdData[];
+  density: AdDensity;
+}
+
 /**
- * Fetches the winners for one grid placement and loads the ad stylesheet. Resolves to [] when the
- * module is off, nothing won, or the request failed, so a grid that waits on it is never held up by
- * an error.
+ * Fetches the winners and the density for one grid placement, and loads the ad stylesheet. Resolves
+ * to no ads when the module is off, nothing won, or a request failed, so a grid that waits on it is
+ * never held up by an error.
  */
 export async function fetchInlineAds(
   placement: InlinePlacement,
   { keyword = '', limit = 3 }: { keyword?: string; limit?: number } = {}
-): Promise<SponsoredAdData[]> {
-  if (!isFeatureEnabled('sponsored_ads')) return [];
+): Promise<InlineAds> {
+  const none = { ads: [], density: AD_DENSITY[placement] };
+  if (!isFeatureEnabled('sponsored_ads')) return none;
   try {
-    const winners = (await adsApi.runAuction(placement, { keyword, limit })) as SponsoredAdData[];
-    if (!winners.length) return [];
+    const [winners, density] = await Promise.all([
+      adsApi.runAuction(placement, { keyword, limit }) as Promise<SponsoredAdData[]>,
+      fetchAdDensity(),
+    ]);
+    if (!winners.length) return none;
     await loadSponsoredStyles();
-    return winners;
+    return { ads: winners, density: density[placement] };
   } catch {
-    return [];
+    return none;
   }
 }
 
@@ -70,11 +96,11 @@ export interface AdInterleaver {
 }
 
 /** Hands a ProductGrid one ad card at each density position until the winners run out. */
-export function adInterleaver(placement: InlinePlacement, ads: SponsoredAdData[]): AdInterleaver {
+export function adInterleaver(placement: InlinePlacement, { ads, density }: InlineAds): AdInterleaver {
   const slots: SponsoredSlot[] = [];
   return {
     at(organicIndex) {
-      const n = adBefore(organicIndex, AD_DENSITY[placement]);
+      const n = adBefore(organicIndex, density);
       const ad = n >= 0 ? ads[n] : null;
       if (!ad) return null;
       const slot = new SponsoredSlot({ ad, variant: 'card', placement });

@@ -453,6 +453,15 @@
 
 .ad-toggle { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-muted); cursor: pointer; }
 
+/* Sponsored card density: a preview of the first rows a shopper sees, one square per card. */
+.ad-density { margin-bottom: var(--space-4); }
+.ad-density__rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--space-4); }
+.ad-density__preview { display: grid; grid-template-columns: repeat(4, 14px); gap: 4px; margin: var(--space-2) 0 var(--space-3); }
+.ad-density__cell { width: 14px; height: 14px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--border-subtle); }
+.ad-density__cell--ad { background: var(--warning-bg); border-color: var(--warning); }
+.ad-density__hint { font-size: var(--text-xs); color: var(--text-muted); margin: 0; }
+.ad-density__reason { width: 100%; min-height: 64px; }
+
 /* ------------------------------------------------------------------------------------------ *
  * Responsive
  * ------------------------------------------------------------------------------------------ */
