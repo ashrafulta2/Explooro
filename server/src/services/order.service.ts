@@ -12,6 +12,7 @@ import * as orderRepo from '../repositories/order.repository.ts';
 import * as couponRepo from '../repositories/coupon.repository.ts';
 import * as liveRepo from '../repositories/liveStream.repository.ts';
 import * as trustScoreService from './trustScore.service.ts';
+import { refundCancelledVaultOrder, VAULT_METHOD } from './vaultCheckout.service.ts';
 
 export const CANCELLATION_CONFIG = {
   WINDOW_MINUTES: 30,
@@ -132,6 +133,16 @@ export async function cancelOrder(pool, refOrId, userContext, reason = null) {
 
     // 4. Update sub-orders and root order status to CANCELLED
     await orderRepo.cancelOrder(client, order.id);
+
+    // 5. A vault order was paid at checkout, so its sub-orders are CONFIRMED (cancelOrder above only
+    //    touches PLACED) and its money is in escrow. Hand the money back to the vault and cancel them.
+    if (order.payment_method === VAULT_METHOD && order.payment_status === 'PAID') {
+      await refundCancelledVaultOrder(client, order, { actorId: userContext.userId ?? null, reason: reason || 'Order cancelled' });
+      await client.query(
+        `UPDATE sub_orders SET status = 'CANCELLED', updated_at = now() WHERE order_id = $1 AND status = 'CONFIRMED'`,
+        [order.id]
+      );
+    }
 
     await client.query('COMMIT');
 

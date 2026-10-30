@@ -45,6 +45,23 @@ export const walletTopupHandlers = [
 ] satisfies MockRoute[];
 
 /**
+ * Pays a mock checkout from the vault (orders.ts). Mirrors vaultCheckout.service: refuses a short
+ * balance with what is missing, and otherwise takes exactly the order total. Returns the shortfall
+ * in taka, 0 when paid.
+ */
+export function spendMockVault(amount) {
+  const total = Number(amount);
+  if (balance < total) return Number((total - balance).toFixed(2));
+  balance = Number((balance - total).toFixed(2));
+  return 0;
+}
+
+/** Gives a cancelled mock vault order its total back. */
+export function refundMockVault(amount) {
+  balance = Number((balance + Number(amount)).toFixed(2));
+}
+
+/**
  * Finishes a mock top-up for POST /payments/execute (declared once, in orders.ts, which asks here
  * first). Returns the response, or null when the reference is not a top-up. Credits once only.
  */

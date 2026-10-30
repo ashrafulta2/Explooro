@@ -29,7 +29,7 @@ export default async function orderRoutes(fastify) {
             district: { type: 'string' },
             upazila: { type: 'string' },
             address_line: { type: 'string' },
-            payment_method: { type: 'string', enum: ['BKASH', 'NAGAD', 'ROCKET', 'CARD', 'COD'] },
+            payment_method: { type: 'string', enum: ['BKASH', 'NAGAD', 'ROCKET', 'CARD', 'COD', 'WALLET'] },
             coupon_code: { type: 'string' },
             otp_code: { type: 'string' },
           },

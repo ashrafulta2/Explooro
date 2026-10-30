@@ -14,6 +14,7 @@ import { PaymentSelector } from '../components/checkout/PaymentSelector.ts';
 import { getCart, fetchCart, clearCart } from '../services/cart.ts';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.ts';
 import { needsOnlinePayment, payForOrder } from '../services/payment.api.ts';
+import { getTopUps } from '../services/walletTopup.api.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { customerApi } from '../services/customer.api.ts';
 import { getCurrentUser } from '../services/session.ts';
@@ -105,6 +106,14 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
   }
 
   let userAddresses = [];
+  let vaultBalance: number | null = null;
+
+  /** What the order will cost: the same sum the summary shows and the server charges. */
+  function orderTotal() {
+    if (!cartData) return 0;
+    const shipping = Number(cartData.estimated_shipping) || 0;
+    return Math.max(0, Number(cartData.subtotal || 0) + shipping - Number(cartData.discount_amount || 0));
+  }
 
   async function loadCartData() {
     try {
@@ -148,6 +157,15 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
           }
         }
       } catch {}
+
+      // WHY no error: without a balance the vault option is simply not offered.
+      try {
+        const own = await getTopUps();
+        vaultBalance = Number(own?.balance);
+        if (!Number.isFinite(vaultBalance)) vaultBalance = null;
+      } catch {
+        vaultBalance = null;
+      }
 
       renderCheckoutForm();
       renderSummary();
@@ -212,7 +230,8 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
 
     paymentSelector = PaymentSelector({
       initialMethod: paymentMethod,
-      orderTotal: cartData ? Number(cartData.estimated_total || cartData.subtotal) : 0,
+      orderTotal: orderTotal(),
+      vaultBalance,
       onChange: (method) => {
         paymentMethod = method;
         persistDraft();

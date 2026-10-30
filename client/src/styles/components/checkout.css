@@ -75,6 +75,12 @@
 .payment-selector__info { flex: 1; }
 .payment-selector__title { display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: var(--text-primary); font-size: 0.95rem; }
 .payment-selector__desc { font-size: 0.825rem; color: var(--text-secondary); margin-top: 2px; }
+.payment-selector__card--disabled { cursor: not-allowed; }
+.payment-selector__card--disabled:hover { border-color: var(--border-subtle); background: var(--surface-0); }
+.payment-selector__card--disabled .payment-selector__icon,
+.payment-selector__card--disabled .payment-selector__title { opacity: 0.6; }
+.payment-selector__short { font-size: 0.8rem; color: var(--danger); margin-top: 4px; }
+.payment-selector__short a { color: var(--text-brand); font-weight: 700; }
 
 /* Parcels */
 .checkout-page__parcels-wrap { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }

@@ -29,6 +29,7 @@ import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumbe
 import { computeCheckoutCouponDiscount, allocateDiscountBySupplier } from './coupon.service.ts';
 import { pickParcelSaler } from './attribution.service.ts';
 import * as shortlinkService from './shortlink.service.ts';
+import { payOrderFromVault, VAULT_METHOD } from './vaultCheckout.service.ts';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -470,6 +471,12 @@ export async function executeCheckout(pool, cache, {
           lineTotal: pItem.lineTotal,
         });
       }
+    }
+
+    // 9b. A vault order is paid now, in this transaction: a short balance rolls back the whole order,
+    //     and a paid order never exists without its escrow (vaultCheckout.service.ts).
+    if (paymentMethod === VAULT_METHOD) {
+      await payOrderFromVault(client, { orderId: rootOrder.id, orderRef, userId, totalPaisa: totalAmountPaisa });
     }
 
     // 10. Record Coupon Redemption

@@ -20,6 +20,10 @@ import { goBack, renderBackLink } from '../../core/navBack.ts';
 import '../../styles/components/customer-orders.css';
 import type { PageContext } from '../types.ts';
 
+// The same names the checkout's payment picker shows, so a shopper never reads a code like WALLET.
+const METHOD_LABEL_KEY = { BKASH: 'checkout.bkash', NAGAD: 'checkout.nagad', ROCKET: 'checkout.rocket', CARD: 'checkout.card', COD: 'checkout.cod', WALLET: 'checkout.vault' };
+const methodLabel = (m) => (METHOD_LABEL_KEY[String(m || '').toUpperCase()] ? t(METHOD_LABEL_KEY[String(m).toUpperCase()]) : m || '');
+
 export default function OrderDetailPage(root: HTMLElement, { params = {}, navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'order-detail-page container';
@@ -79,7 +83,7 @@ async function renderOrdersList(container, navigate) {
           <span class="badge ${ord.payment_status === 'PAID' ? 'badge--success' : 'badge--neutral'}">${getPaymentStatusLabel(ord.payment_status)}</span>
         </div>
         <div class="order-card__body">
-          <div class="text-sm">${t('order_tracking.parcel_count_label', { count: ord.sub_order_count || 1 })} · ${ord.payment_method}</div>
+          <div class="text-sm">${t('order_tracking.parcel_count_label', { count: ord.sub_order_count || 1 })} · ${methodLabel(ord.payment_method)}</div>
           <div class="order-card__total">${formatCurrency(ord.total_amount)}</div>
         </div>
         <div class="order-card__footer">
@@ -145,7 +149,7 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
           <div class="customer-order-card__ref-row">
             <span class="text-xs text-secondary uppercase font-semibold">${t('checkout.payment_method')}</span>
           </div>
-          <div class="customer-order-card__date"><strong>${order.payment_method}</strong></div>
+          <div class="customer-order-card__date"><strong>${methodLabel(order.payment_method)}</strong></div>
         </div>
         <div class="customer-order-card__ref-group">
           <div class="customer-order-card__ref-row">
@@ -322,7 +326,10 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
     }
 
     // Cancellation Action (if eligible)
-    const canCancel = subOrders.some((s) => s.status === 'PLACED');
+    // WHY a vault order too: it is paid at checkout so its parcels start CONFIRMED, and cancelling one
+    // refunds the vault (server vaultCheckout.service.ts). A paid gateway order has no refund path yet.
+    const paidFromVault = order.payment_method === 'WALLET' && order.payment_status === 'PAID';
+    const canCancel = subOrders.some((s) => s.status === 'PLACED' || (paidFromVault && s.status === 'CONFIRMED'));
     if (canCancel) {
       const cancelWrap = document.createElement('div');
       cancelWrap.className = 'mt-6';

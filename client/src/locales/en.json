@@ -1,7 +1,7 @@
 {
   "topup": {
     "title": "Add money",
-    "subtitle": "Put money in your vault with bKash, Nagad or a card, then use it to run ads.",
+    "subtitle": "Put money in your vault with bKash, Nagad or a card, then use it to pay for orders or run ads.",
     "balance": "Your vault balance",
     "form_title": "How much would you like to add?",
     "amount": "Amount (৳)",
@@ -2765,6 +2765,12 @@
     "badge_dbbl": "DBBL",
     "badge_card": "Visa / MC",
     "badge_cash": "Cash",
+    "vault": "My Explooro Vault",
+    "vault_desc": "Pay from your vault balance. Available: {{balance}}",
+    "vault_short": "You need {{short}} more for this order.",
+    "vault_add_money": "Add money",
+    "vault_note": "The order total is taken from your vault now. If you cancel the order, the full amount goes back to your vault.",
+    "badge_vault": "Balance",
     "online_restored_toast": "Connection restored. You are back online!",
     "offline_toast": "You are currently offline. Entered data is saved locally.",
     "cart_load_failed": "Failed to load cart for checkout.",

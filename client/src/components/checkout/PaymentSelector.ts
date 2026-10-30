@@ -7,15 +7,20 @@
  *  - Rocket
  *  - Cards
  *  - Cash on Delivery (COD) with advance fee policy and inline OTP challenge
+ *  - The shopper's own vault (WALLET), shown only when the page passes a balance; it cannot be picked
+ *    while the balance is short of the order total (the server refuses it as well)
  */
 
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { t } from '../../services/i18n.ts';
+import { formatCurrency } from '../../services/format.ts';
 import { Button } from '../ui/Button.ts';
 
 export interface PaymentSelectorOptions {
   initialMethod?: string;
   orderTotal?: number;
+  /** The shopper's vault balance. null/undefined hides the vault option (guest, or not loaded). */
+  vaultBalance?: number | null;
   onChange?: (method: string) => void;
   onOtpSubmit?: (code: string) => void;
 }
@@ -33,20 +38,31 @@ export interface PaymentSelectorParts {
 export function PaymentSelector({
   initialMethod = 'COD',
   orderTotal = 0,
+  vaultBalance = null,
   onChange,
   onOtpSubmit,
 }: PaymentSelectorOptions = {}): PaymentSelectorParts {
   const container = document.createElement('div');
   container.className = 'payment-selector';
 
-  let selectedMethod = initialMethod;
+  const vaultShort = vaultBalance == null ? 0 : Math.max(orderTotal - vaultBalance, 0);
+  // WHY: a draft may remember the vault from a visit when the balance covered the cart; it may not now.
+  let selectedMethod = initialMethod === 'WALLET' && (vaultBalance == null || vaultShort > 0) ? 'COD' : initialMethod;
   let otpState = {
     required: false,
     phone: '',
     code: '',
   };
 
-  const methods = [
+  const methods: { id: string; title: string; desc: string; icon: string; badge: string; flag?: string; disabled?: boolean }[] = [
+    ...(vaultBalance == null ? [] : [{
+      id: 'WALLET',
+      title: t('checkout.vault'),
+      desc: t('checkout.vault_desc', { balance: formatCurrency(vaultBalance.toFixed(2)) }),
+      icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M20 7H5a2 2 0 0 1 0-4h13v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h15V7"></path><path d="M16 14h.01"></path></svg>',
+      badge: t('checkout.badge_vault'),
+      disabled: vaultShort > 0,
+    }]),
     {
       id: 'BKASH',
       title: t('checkout.bkash'),
@@ -100,11 +116,11 @@ export function PaymentSelector({
     if (!isEnabled) return;
 
     const card = document.createElement('label');
-    card.className = `payment-selector__card ${selectedMethod === m.id ? 'payment-selector__card--selected' : ''}`;
+    card.className = `payment-selector__card ${selectedMethod === m.id ? 'payment-selector__card--selected' : ''} ${m.disabled ? 'payment-selector__card--disabled' : ''}`;
     card.setAttribute('for', `pay-method-${m.id}`);
 
     card.innerHTML = `
-      <input type="radio" id="pay-method-${m.id}" name="payment_method" value="${m.id}" ${selectedMethod === m.id ? 'checked' : ''} class="payment-selector__radio" />
+      <input type="radio" id="pay-method-${m.id}" name="payment_method" value="${m.id}" ${selectedMethod === m.id ? 'checked' : ''} ${m.disabled ? 'disabled' : ''} class="payment-selector__radio" />
       <div class="payment-selector__icon">${m.icon}</div>
       <div class="payment-selector__info">
         <div class="payment-selector__title">
@@ -112,6 +128,7 @@ export function PaymentSelector({
           <span class="badge badge--neutral">${m.badge}</span>
         </div>
         <div class="payment-selector__desc">${m.desc}</div>
+        ${m.disabled ? `<div class="payment-selector__short">${t('checkout.vault_short', { short: formatCurrency(vaultShort.toFixed(2)) })} <a href="/wallet/top-up">${t('checkout.vault_add_money')}</a></div>` : ''}
       </div>
     `;
 
@@ -136,6 +153,13 @@ export function PaymentSelector({
 
   function renderExtraPanels() {
     extraPanel.innerHTML = '';
+
+    if (selectedMethod === 'WALLET') {
+      const vaultNotice = document.createElement('div');
+      vaultNotice.className = 'payment-selector__notice alert alert--info';
+      vaultNotice.innerHTML = `<div class="alert__body">${t('checkout.vault_note')}</div>`;
+      extraPanel.append(vaultNotice);
+    }
 
     if (selectedMethod === 'COD') {
       const codNotice = document.createElement('div');

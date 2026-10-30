@@ -5,7 +5,7 @@
  */
 
 import { clearMockCart } from './cart.ts';
-import { executeMockTopUp } from './walletTopup.ts';
+import { executeMockTopUp, spendMockVault, refundMockVault } from './walletTopup.ts';
 import type { MockRoute } from '../types.ts';
 
 // transactionRef -> order id, for the mock /payments/* handlers below.
@@ -155,6 +155,16 @@ const orderHandlers = [
         ],
       };
 
+      // A vault order is paid at once, as on the server (vaultCheckout.service.ts), or refused when short.
+      if (newOrder.payment_method === 'WALLET') {
+        const short = spendMockVault(newOrder.total_amount);
+        if (short > 0) {
+          return { status: 422, body: { error: { code: 'INSUFFICIENT_VAULT_BALANCE', message_en: `Your vault is ৳${short.toFixed(2)} short of this order. Add money or pick another way to pay.`, message_bn: `এই অর্ডারের জন্য আপনার ভল্টে ৳${short.toFixed(2)} কম আছে। টাকা যোগ করুন অথবা অন্যভাবে পরিশোধ করুন।` } } };
+        }
+        newOrder.payment_status = 'PAID';
+        for (const s of newOrder.sub_orders) s.status = 'CONFIRMED';
+      }
+
       mockOrders.unshift(newOrder);
       clearMockCart();
       return { status: 201, body: { data: { order: newOrder } } };
@@ -192,6 +202,11 @@ const orderHandlers = [
         order.sub_orders.forEach((so) => {
           so.status = 'CANCELLED';
         });
+        // A vault order's money goes back to the vault, once (vaultCheckout.service.ts).
+        if (order.payment_method === 'WALLET' && order.payment_status === 'PAID') {
+          refundMockVault(order.total_amount);
+          order.payment_status = 'REFUNDED';
+        }
       }
       return { status: 200, body: { data: { order, message_en: 'Order cancelled successfully' } } };
     },
