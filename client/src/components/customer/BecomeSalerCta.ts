@@ -35,7 +35,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null }: B
           ${t('customer.become_saler.headline', 'Open Your Online Store in 1 Tap')} <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg>
         </h2>
         <p class="become-saler-cta__desc">
-          ${t('customer.become_saler.subtext', 'Sell 100+ wholesale products under your own store name and earn 20-35% profit per order. Zero hassle packaging & shipping, with instant bKash/Bank cashouts.')}
+          ${t('customer.become_saler.subtext', 'Sell 100+ wholesale products under your own store name. Suppliers pack and ship every order, and once a month you get a share of the partner reward pool for what you did.')}
         </p>
 
         <div class="become-saler-cta__benefits">
@@ -49,7 +49,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null }: B
           </div>
           <div class="become-saler-cta__benefit-item">
             <span class="text-success font-bold">✓</span>
-            <span>${t('customer.become_saler.benefit_3', 'Instant bKash & Bank cashouts')}</span>
+            <span>${t('customer.become_saler.benefit_3', 'Monthly reward, cash out to bKash or bank')}</span>
           </div>
         </div>
       </div>

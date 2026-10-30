@@ -310,43 +310,13 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     );
   });
 
-  await t.test('16. BecomeSalerPage profit calculator sliders have associated labels and aria-labels', () => {
+  await t.test('16. BecomeSalerPage reward factors are an ordered list with headings', () => {
     const becomeSalerPath = path.join(clientRoot, 'src', 'pages', 'customer', 'BecomeSalerPage.ts');
     const content = fs.readFileSync(becomeSalerPath, 'utf8');
 
-    // Labels with htmlFor
-    assert.match(
-      content,
-      /<label[^>]*for="calc-orders-slider"/,
-      'calc-orders-slider must have an associated label'
-    );
-    assert.match(
-      content,
-      /<label[^>]*for="calc-price-slider"/,
-      'calc-price-slider must have an associated label'
-    );
-    assert.match(
-      content,
-      /<label[^>]*for="calc-margin-slider"/,
-      'calc-margin-slider must have an associated label'
-    );
-
-    // Inputs with aria-label
-    assert.match(
-      content,
-      /<input[^>]*id="calc-orders-slider"[^>]*aria-label="/,
-      'calc-orders-slider must have aria-label attribute'
-    );
-    assert.match(
-      content,
-      /<input[^>]*id="calc-price-slider"[^>]*aria-label="/,
-      'calc-price-slider must have aria-label attribute'
-    );
-    assert.match(
-      content,
-      /<input[^>]*id="calc-margin-slider"[^>]*aria-label="/,
-      'calc-margin-slider must have aria-label attribute'
-    );
+    // The factors are ranked, so their order has to reach a screen reader, not just the eye.
+    assert.match(content, /<ol class="become-saler-reward__factors">/, 'reward factors must be an <ol>');
+    assert.match(content, /<h3 class="become-saler-reward__factor-title">/, 'each factor must be a heading');
   });
 
   await t.test('17. customer-coins.css satisfies WCAG AA contrast across stats, badges, and streak nodes', () => {

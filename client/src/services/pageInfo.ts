@@ -33,7 +33,7 @@ const INFO_CLASSES = [
   'page-subtitle', 'stream-discovery__subtitle', 'sourcing-hero__subtitle',
   'admin-panel__subtitle', 'admin-chart-panel__subtitle', 'saler-card__subtitle',
   'editor-card__subtitle', 'system-panel__sub', 'cod-recon-panel__subtitle',
-  'warranties-guide__subtitle', 'profit-calc__subtitle', 'become-saler-calculator__subtitle',
+  'warranties-guide__subtitle', 'profit-calc__subtitle', 'become-saler-reward__subtitle',
   'ad-wizard__subtitle', 'settings-section-desc', 'team-detail-slots-card__subtitle', 'card__subtitle',
 ];
 

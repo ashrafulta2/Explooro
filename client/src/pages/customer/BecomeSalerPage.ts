@@ -5,7 +5,7 @@
  * 1. Low-literacy friendly, high-contrast visual shop partner onboarding with 100% bilingual i18n.
  * 2. Active Shop Partner status detection with direct deep-links to Store Builder, Shop Partner Analytics & Sourcing.
  * 3. Genuine 1-Click Shop Partner upgrade calling customerApi.becomeSaler() with role mutation & vanity store provisioning.
- * 4. Interactive real-time Monthly Profit Potential Calculator.
+ * 4. How the monthly partner reward pool pays a shop partner (no per-sale profit).
  * 5. Traditional Business vs Explooro Selling comparison matrix.
  * 6. 4-Step visual workflow roadmap & interactive FAQ accordion.
  * 7. 15-Second low-literacy video guide modal.
@@ -15,7 +15,7 @@
 
 import { customerApi } from '../../services/customer.api.ts';
 import { t } from '../../services/i18n.ts';
-import { formatCurrency } from '../../services/format.ts';
+import { formatNumber } from '../../services/format.ts';
 import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
@@ -63,7 +63,7 @@ export default function BecomeSalerPage(root: HTMLElement, { navigate }: PageCon
       ${t('customer.become_saler.page_title', '1-Click Shop Partner Upgrade')}
     </h1>
     <p class="account-page__subtitle">
-      ${t('customer.become_saler.page_subtitle', 'Turn wholesale catalog products into your own profitable brand. No inventory holding, no packaging stress, zero upfront cost.')}
+      ${t('customer.become_saler.page_subtitle', 'Turn wholesale catalog products into your own branded store. No inventory holding, no packaging stress, zero upfront cost.')}
     </p>
   `;
 
@@ -186,8 +186,8 @@ function renderSalerPageContent(container, { is_saler = false } = {}, nav) {
   // Section B: 1-Click Provisioning Hero Card
   renderProvisioningHero(wrap, { is_saler }, nav);
 
-  // Section C: Interactive Monthly Profit Potential Calculator
-  renderProfitCalculator(wrap);
+  // Section C: How the monthly partner reward works
+  renderRewardExplainer(wrap);
 
   // Section D: Explooro vs Traditional Business Comparison Matrix
   renderComparisonMatrix(wrap);
@@ -214,7 +214,7 @@ function renderProvisioningHero(container, { is_saler }, nav) {
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${t('customer.become_saler.headline', 'Open Your Online Store in 1 Tap')}
       </h2>
       <p class="become-saler-hero__subtext">
-        ${t('customer.become_saler.subtext', 'Sell 100+ wholesale products under your own store name and earn 20-35% profit per order. Zero hassle packaging & shipping, with instant bKash/Bank cashouts.')}
+        ${t('customer.become_saler.subtext', 'Sell 100+ wholesale products under your own store name. Suppliers pack and ship every order, and once a month you get a share of the partner reward pool for what you did.')}
       </p>
 
       <div class="become-saler-hero__benefits">
@@ -228,7 +228,7 @@ function renderProvisioningHero(container, { is_saler }, nav) {
         </div>
         <div class="become-saler-hero__benefit-item">
           <span class="become-saler-hero__benefit-check">✓</span>
-          <span>${t('customer.become_saler.benefit_3', 'Instant bKash & Bank cashouts')}</span>
+          <span>${t('customer.become_saler.benefit_3', 'Monthly reward, cash out to bKash or bank')}</span>
         </div>
       </div>
     </div>
@@ -309,137 +309,50 @@ function renderProvisioningHero(container, { is_saler }, nav) {
 }
 
 /**
- * Interactive Monthly Profit Potential Calculator
+ * How the monthly partner reward works.
+ *
+ * WHY: a shop partner earns nothing per sale. A sale's partner share goes to the
+ * PARTNER_REWARD_POOL and the pool is shared out once a month by score (server
+ * services/partnerReward.service.ts). The weights are configuration (`partner_reward.rules`)
+ * and a customer cannot read them, so this section names the four factors in the order the
+ * rules require and never prints a taka figure or a percentage.
  */
-function renderProfitCalculator(container) {
+const REWARD_FACTORS = ['sales', 'social', 'community', 'activity'];
+
+function renderRewardExplainer(container) {
   const card = document.createElement('div');
-  card.className = 'become-saler-calculator';
+  card.className = 'become-saler-reward';
+
+  const factors = REWARD_FACTORS.map((key, idx) => `
+    <li class="become-saler-reward__factor">
+      <span class="become-saler-reward__rank">${formatNumber(idx + 1)}</span>
+      <div>
+        <h3 class="become-saler-reward__factor-title">${t(`customer.become_saler.reward_factor_${key}`)}</h3>
+        <p class="become-saler-reward__factor-desc">${t(`customer.become_saler.reward_factor_${key}_desc`)}</p>
+      </div>
+    </li>`).join('');
 
   card.innerHTML = `
-    <div class="become-saler-calculator__header">
-      <div class="inline-flex items-center gap-2">
-        <span class="badge badge--success text-[10px] font-bold">
-          💰 ${t('customer.become_saler.calculator_badge', 'Passive & Shop Partner Income')}
-        </span>
-      </div>
-      <h2 class="become-saler-calculator__title">
-        🧮 ${t('customer.become_saler.calculator_title', 'Monthly Profit Potential Calculator')}
+    <div class="become-saler-reward__header">
+      <span class="badge badge--success text-[10px] font-bold">
+        💰 ${t('customer.become_saler.reward_badge', 'Shop partner income')}
+      </span>
+      <h2 class="become-saler-reward__title">
+        🏆 ${t('customer.become_saler.reward_title', 'How your monthly reward works')}
       </h2>
-      <p class="become-saler-calculator__subtitle">
-        ${t('customer.become_saler.calculator_subtitle', 'See how much you can earn every month with Explooro zero-inventory selling.')}
-      </p>
+      <p class="become-saler-reward__subtitle">${t('customer.become_saler.reward_subtitle')}</p>
     </div>
 
-    <div class="become-saler-calculator__body">
-      <div class="become-saler-calculator__controls">
-        <div class="become-saler-calculator__control-group">
-          <div class="become-saler-calculator__label-row">
-            <label for="calc-orders-slider">${t('customer.become_saler.calculator_orders_label', 'Expected Daily Orders')}:</label>
-            <span id="calc-orders-readout" class="become-saler-calculator__slider-val">5 ${t('customer.become_saler.calculator_orders_unit', 'orders/day')}</span>
-          </div>
-          <input 
-            id="calc-orders-slider" 
-            type="range" 
-            min="1" 
-            max="50" 
-            value="5" 
-            aria-label="${t('customer.become_saler.calculator_orders_label', 'Expected Daily Orders')}" 
-            class="become-saler-calculator__range" 
-          />
-        </div>
+    <p class="become-saler-reward__order-note">${t('customer.become_saler.reward_order_note', 'Listed from what counts most to what counts least.')}</p>
+    <ol class="become-saler-reward__factors">${factors}</ol>
 
-        <div class="become-saler-calculator__control-group">
-          <div class="become-saler-calculator__label-row">
-            <label for="calc-price-slider">${t('customer.become_saler.calculator_avg_price_label', 'Average Retail Order Value')}:</label>
-            <span id="calc-price-readout" class="become-saler-calculator__slider-val font-mono">${formatCurrency(1500)}</span>
-          </div>
-          <input 
-            id="calc-price-slider" 
-            type="range" 
-            min="500" 
-            max="10000" 
-            step="250" 
-            value="1500" 
-            aria-label="${t('customer.become_saler.calculator_avg_price_label', 'Average Retail Order Value')}" 
-            class="become-saler-calculator__range" 
-          />
-        </div>
-
-        <div class="become-saler-calculator__control-group">
-          <div class="become-saler-calculator__label-row">
-            <label for="calc-margin-slider">${t('customer.become_saler.calculator_margin_label', 'Average Shop Partner Profit Margin')}:</label>
-            <span id="calc-margin-readout" class="become-saler-calculator__slider-val font-mono">25% (${formatCurrency(375)}${t('customer.become_saler.per_order_unit', '/order')})</span>
-          </div>
-          <input 
-            id="calc-margin-slider" 
-            type="range" 
-            min="10" 
-            max="40" 
-            step="5" 
-            value="25" 
-            aria-label="${t('customer.become_saler.calculator_margin_label', 'Average Shop Partner Profit Margin')}" 
-            class="become-saler-calculator__range" 
-          />
-        </div>
-      </div>
-
-      <div class="become-saler-calculator__readouts">
-        <div class="become-saler-calculator__kpi-card">
-          <span class="become-saler-calculator__kpi-label">${t('customer.become_saler.calculator_daily_profit', 'Estimated Daily Profit')}</span>
-          <span id="calc-daily-total" class="become-saler-calculator__kpi-val">${formatCurrency(1875)}</span>
-        </div>
-        <div class="become-saler-calculator__kpi-card become-saler-calculator__kpi-card--primary">
-          <span class="become-saler-calculator__kpi-label">${t('customer.become_saler.calculator_monthly_profit', 'Estimated Monthly Earnings')}</span>
-          <span id="calc-monthly-total" class="become-saler-calculator__kpi-val">${formatCurrency(56250)}</span>
-        </div>
-      </div>
+    <div class="become-saler-reward__payout">
+      <h3 class="become-saler-reward__factor-title">${t('customer.become_saler.reward_payout_title', 'When you get paid')}</h3>
+      <p class="become-saler-reward__factor-desc">${t('customer.become_saler.reward_payout_desc')}</p>
+      <p class="become-saler-reward__factor-desc">${t('customer.become_saler.reward_estimate_note')}</p>
     </div>
   `;
 
-  const ordersSlider = card.querySelector<HTMLInputElement>('#calc-orders-slider');
-  const priceSlider = card.querySelector<HTMLInputElement>('#calc-price-slider');
-  const marginSlider = card.querySelector<HTMLInputElement>('#calc-margin-slider');
-
-  const ordersReadout = card.querySelector('#calc-orders-readout');
-  const priceReadout = card.querySelector('#calc-price-readout');
-  const marginReadout = card.querySelector('#calc-margin-readout');
-  const dailyTotal = card.querySelector('#calc-daily-total');
-  const monthlyTotal = card.querySelector('#calc-monthly-total');
-
-  function updateCalculations() {
-    const orders = Number(ordersSlider.value);
-    const avgPrice = Number(priceSlider.value);
-    const marginPct = Number(marginSlider.value);
-
-    const profitPerOrder = Math.round(avgPrice * (marginPct / 100));
-    const daily = orders * profitPerOrder;
-    const monthly = daily * 30;
-
-    const ordersText = `${orders} ${t('customer.become_saler.calculator_orders_unit', 'orders/day')}`;
-    const priceText = formatCurrency(avgPrice);
-    const marginText = `${marginPct}% (${formatCurrency(profitPerOrder)}${t('customer.become_saler.per_order_unit', '/order')})`;
-
-    ordersSlider.setAttribute('aria-valuenow', String(orders));
-    ordersSlider.setAttribute('aria-valuetext', ordersText);
-    ordersReadout.textContent = ordersText;
-
-    priceSlider.setAttribute('aria-valuenow', String(avgPrice));
-    priceSlider.setAttribute('aria-valuetext', priceText);
-    priceReadout.textContent = priceText;
-
-    marginSlider.setAttribute('aria-valuenow', String(marginPct));
-    marginSlider.setAttribute('aria-valuetext', marginText);
-    marginReadout.textContent = marginText;
-
-    dailyTotal.textContent = formatCurrency(daily);
-    monthlyTotal.textContent = formatCurrency(monthly);
-  }
-
-  ordersSlider.addEventListener('input', updateCalculations);
-  priceSlider.addEventListener('input', updateCalculations);
-  marginSlider.addEventListener('input', updateCalculations);
-
-  updateCalculations();
   container.append(card);
 }
 
@@ -481,9 +394,9 @@ function renderComparisonMatrix(container) {
             <td class="become-saler-comparison__cell-exp">🚚 ${t('customer.become_saler.comparison_exp_delivery', 'Suppliers pack & auto-ship via 3PL')}</td>
           </tr>
           <tr>
-            <td class="become-saler-comparison__cell-feature">${t('customer.become_saler.comparison_row_payout', 'Earnings Settlement')}</td>
+            <td class="become-saler-comparison__cell-feature">${t('customer.become_saler.comparison_row_payout', 'Earnings')}</td>
             <td class="become-saler-comparison__cell-trad">${t('customer.become_saler.comparison_trad_payout', 'Manual cash tracking & debt risk')}</td>
-            <td class="become-saler-comparison__cell-exp">💳 ${t('customer.become_saler.comparison_exp_payout', 'Escrow Vault with instant bKash cashout')}</td>
+            <td class="become-saler-comparison__cell-exp">💳 ${t('customer.become_saler.comparison_exp_payout', 'Monthly reward to your vault, cash out to bKash')}</td>
           </tr>
           <tr>
             <td class="become-saler-comparison__cell-feature">${t('customer.become_saler.comparison_row_setup', 'Time to Launch')}</td>
@@ -519,8 +432,8 @@ function renderHowItWorks(container) {
 
       <div class="become-saler-step-card">
         <div class="become-saler-step-card__num">2</div>
-        <h3 class="become-saler-step-card__title">${t('customer.become_saler.step_2_title', '2. Select Products & Set Prices')}</h3>
-        <p class="become-saler-step-card__desc">${t('customer.become_saler.step_2_desc', 'Pick trending products from the wholesale catalog, customize retail prices and margins.')}</p>
+        <h3 class="become-saler-step-card__title">${t('customer.become_saler.step_2_title', '2. Pick Products for Your Store')}</h3>
+        <p class="become-saler-step-card__desc">${t('customer.become_saler.step_2_desc', 'Choose trending products from the wholesale catalog. The supplier sets the price, so there are no margins to work out.')}</p>
       </div>
 
       <div class="become-saler-step-card">
@@ -531,8 +444,8 @@ function renderHowItWorks(container) {
 
       <div class="become-saler-step-card">
         <div class="become-saler-step-card__num">4</div>
-        <h3 class="become-saler-step-card__title">${t('customer.become_saler.step_4_title', '4. Collect Profits to bKash')}</h3>
-        <p class="become-saler-step-card__desc">${t('customer.become_saler.step_4_desc', 'Suppliers ship orders automatically. When delivered, your profit lands instantly in your wallet.')}</p>
+        <h3 class="become-saler-step-card__title">${t('customer.become_saler.step_4_title', '4. Earn Your Monthly Reward')}</h3>
+        <p class="become-saler-step-card__desc">${t('customer.become_saler.step_4_desc', 'Suppliers ship orders automatically. Every delivered sale, link visit, community post and active day earns points toward your monthly share of the pool.')}</p>
       </div>
     </div>
   `;
@@ -559,7 +472,7 @@ function renderFaqSection(container) {
           <span>▾</span>
         </summary>
         <div class="become-saler-faq__content">
-          ${t('customer.become_saler.faq_a1', 'No. There is zero signup fee and zero inventory purchase required. You sell from supplier stock and earn profit on every successful sale.')}
+          ${t('customer.become_saler.faq_a1', 'No. There is zero signup fee and zero inventory purchase required. You sell from supplier stock and earn a monthly share of the partner reward pool.')}
         </div>
       </details>
 
@@ -579,7 +492,7 @@ function renderFaqSection(container) {
           <span>▾</span>
         </summary>
         <div class="become-saler-faq__content">
-          ${t('customer.become_saler.faq_a3', 'Once an order is marked delivered and passes the 7-day warranty window, your profit automatically moves to your Available Vault balance for instant bKash/Nagad/Bank withdrawal.')}
+          ${t('customer.become_saler.faq_a3', 'You are not paid per order. A few days after each month ends, the partner reward pool is shared out by points and your share goes to your vault, ready to withdraw to bKash, Nagad or a bank.')}
         </div>
       </details>
 
@@ -589,7 +502,7 @@ function renderFaqSection(container) {
           <span>▾</span>
         </summary>
         <div class="become-saler-faq__content">
-          ${t('customer.become_saler.faq_a4', 'Yes! You have 100% control over your storefront name, bio, social links, and custom retail margins inside Store Builder.')}
+          ${t('customer.become_saler.faq_a4', 'You have full control over your store name, bio, logo and social links in Store Builder. Prices are set by the supplier and are the same in every store, so customers always see a fair price.')}
         </div>
       </details>
     </div>
@@ -613,7 +526,7 @@ function openSalerWalkthroughModal(nav) {
       </div>
       <div>
         <div class="text-sm font-bold text-primary">${t('customer.become_saler.video_modal_headline', '15-Second Shop Partner Business Walkthrough')}</div>
-        <div class="text-xs text-muted">${t('customer.become_saler.video_modal_sub', 'Learn how to launch, sell, and withdraw your first profit.')}</div>
+        <div class="text-xs text-muted">${t('customer.become_saler.video_modal_sub', 'Learn how to launch your store, share it, and earn your monthly reward.')}</div>
       </div>
     </div>
     <div class="become-saler-video-modal__tips">
@@ -621,7 +534,7 @@ function openSalerWalkthroughModal(nav) {
       <ul>
         <li>${t('customer.become_saler.tip_1', 'Launch your store in 1 tap with zero paperwork and no upfront cost.')}</li>
         <li>${t('customer.become_saler.tip_2', 'Add high-demand handloom sarees, fashion, and tech from verified suppliers.')}</li>
-        <li>${t('customer.become_saler.tip_3', 'Suppliers deliver automatically; collect profit instantly to bKash upon delivery.')}</li>
+        <li>${t('customer.become_saler.tip_3', 'Suppliers deliver automatically; your sales, shares and posts earn points for the monthly reward.')}</li>
       </ul>
     </div>
   `;

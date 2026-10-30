@@ -193,7 +193,7 @@ function renderSimpleMode(container, data, nav) {
     {
       id: 'simple_add_product',
       title: t('saler.dashboard.action_add_product', '1. Add Product'),
-      desc: t('saler.dashboard.action_add_product_desc', 'Browse 100+ wholesale items with 20-35% profit margin.'),
+      desc: t('saler.dashboard.action_add_product_desc', 'Browse 100+ wholesale items to add to your store.'),
       icon: '🔍',
       url: '/saler/sourcing',
       btnText: 'Source Products →',
@@ -220,7 +220,7 @@ function renderSimpleMode(container, data, nav) {
     {
       id: 'simple_earnings',
       title: t('saler.dashboard.action_earnings', '4. Check Earnings'),
-      desc: t('saler.dashboard.action_earnings_desc', 'Review delivered order profits and withdraw instantly to bKash/Bank.'),
+      desc: t('saler.dashboard.action_earnings_desc', 'See your monthly reward and withdraw your vault balance to bKash/Bank.'),
       icon: '💰',
       url: '/saler/vault',
       btnText: 'Open Digital Vault →',
@@ -238,7 +238,7 @@ function renderSimpleMode(container, data, nav) {
     {
       id: 'simple_help',
       title: t('saler.dashboard.action_help', '6. Shop Partner Academy & Help'),
-      desc: t('saler.dashboard.action_help_desc', 'Watch 15-second selling tutorials and learn how to scale your profit.'),
+      desc: t('saler.dashboard.action_help_desc', 'Watch 15-second selling tutorials and learn how to grow your sales.'),
       icon: '🎓',
       url: '/academy',
       btnText: 'Watch Academy Lessons →',
@@ -572,7 +572,7 @@ function renderToolsGrid(container, data, nav) {
       url: '/saler/sourcing',
       module: 'sourcing',
       perm: 'saler.sourcing.view',
-      badge: '20-35% Margins',
+      badge: 'Supplier-set prices',
     },
     {
       id: 'tool_creative',
@@ -697,7 +697,7 @@ function renderToolsGrid(container, data, nav) {
     {
       id: 'tool_my_products',
       name: t('saler.tools.my_products', 'Curated Store Products'),
-      desc: t('saler.tools.my_products_desc', 'Adjust price markups, review supplier stock levels, and set custom retail margins.'),
+      desc: t('saler.tools.my_products_desc', 'Review supplier stock levels and choose which products your store shows.'),
       icon: '🏷️',
       url: '/saler/products',
       module: 'virtual_storefront',

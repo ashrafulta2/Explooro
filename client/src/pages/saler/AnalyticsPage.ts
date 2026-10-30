@@ -38,14 +38,14 @@ export default function AnalyticsPage(root: HTMLElement) {
         &lt; ${t('saler.analytics.back_to_dashboard', 'Dashboard')}
       </a>
       <span>/</span>
-      <span class="font-bold text-primary">${t('saler.analytics.title', 'Sales & Profit Analytics')}</span>
+      <span class="font-bold text-primary">${t('saler.analytics.title', 'Sales Analytics')}</span>
     </div>
     <h1 class="saler-header-row__title">
       <span>📊</span>
-      <span>${t('saler.analytics.title', 'Sales & Profit Analytics')}</span>
+      <span>${t('saler.analytics.title', 'Sales Analytics')}</span>
     </h1>
     <p class="saler-header-row__subtitle">
-      ${t('saler.analytics.subtitle', 'Live revenue reconciliation, profit margins, conversion funnels, and traffic source attribution.')}
+      ${t('saler.analytics.subtitle', 'Store sales, what they added to the reward pool, conversion funnels, and traffic sources.')}
     </p>
   `;
 
@@ -143,9 +143,9 @@ function renderKpiCards(container, summary: Record<string, any> = {}) {
       color: 'primary',
     },
     {
-      title: t('saler.analytics.net_profit', 'Net Profit Margin'),
+      title: t('saler.analytics.net_profit', 'Added to the reward pool'),
       value: formatCurrency(profit),
-      subtext: t('saler.analytics.profit_desc', '100% reconciled with wallet ledger balance'),
+      subtext: t('saler.analytics.profit_desc', 'Shared out monthly by points, not paid to you per sale'),
       icon: '💎',
       color: 'success',
     },
@@ -183,9 +183,12 @@ function renderKpiCards(container, summary: Record<string, any> = {}) {
 }
 
 /**
- * 2. Pure Inline SVG Multi-Line / Area Chart (Gross Sales vs. Net Profit)
+ * 2. Pure Inline SVG Multi-Line / Area Chart (Gross Sales vs. what was added to the reward pool)
  */
 function renderRevenueTrendChart(container, trends = [], summary: Record<string, any> = {}) {
+  // WHY: `net_profit` is the partner share each day's sales added to the reward pool, not money
+  // paid to the partner. Resolved here because the map callbacks below shadow `t`.
+  const poolLabel = t('saler.analytics.net_profit', 'Added to the reward pool');
   const card = document.createElement('div');
   card.className = 'saler-chart-card';
 
@@ -194,7 +197,7 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
   header.innerHTML = `
     <div>
       <h3 class="saler-card__title">
-        📈 ${t('saler.analytics.trend_title', 'Revenue & Profit Trajectory')}
+        📈 ${t('saler.analytics.trend_title', 'Sales & Pool Contribution Trend')}
       </h3>
       <p class="saler-card__subtitle">${t('saler.analytics.trend_desc', 'Daily performance trend line with dual margin breakdown.')}</p>
     </div>
@@ -203,7 +206,7 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10B981;"></span> Gross GMV
       </span>
       <span class="saler-row text-muted font-medium" style="gap:6px;">
-        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2563EB;"></span> Net Profit
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2563EB;"></span> ${poolLabel}
       </span>
     </div>
   `;
@@ -265,7 +268,7 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
 
   const profitDots = trends.map((t, idx) => `
     <circle cx="${getX(idx)}" cy="${getY(Number(t.net_profit))}" r="3" fill="#2563EB" stroke="#fff" stroke-width="1.5">
-      <title>${t.label}: Net Profit ৳${t.net_profit}</title>
+      <title>${t.label}: ${poolLabel} ৳${t.net_profit}</title>
     </circle>
   `).join('');
 

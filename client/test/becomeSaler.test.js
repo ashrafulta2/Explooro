@@ -3,16 +3,20 @@
  *
  * Tests:
  * 1. Locale integrity — en/bn parity for customer.become_saler keys, nav keys, no double emoji.
- * 2. Calculator arithmetic invariants — precision across volume and margin boundaries.
+ * 2. No per-sale profit promise: the calculator is gone and the reward factors are ranked.
  * 3. Vanity slug generation & normalization rules.
  * 4. API mock handler contracts.
  */
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import { customerHandlers } from '../src/mocks/handlers/customer.ts';
+
+const clientRoot = path.resolve(import.meta.dirname, '..');
 
 test('1. Locale integrity for customer.become_saler', async (t) => {
   await t.test('en/bn key parity for become_saler', () => {
@@ -37,33 +41,31 @@ test('1. Locale integrity for customer.become_saler', async (t) => {
   });
 });
 
-test('2. Profit calculator arithmetic invariants', async (t) => {
-  function calculateEarnings(ordersPerDay, avgOrderPrice, marginPct) {
-    const profitPerOrder = Math.round(avgOrderPrice * (marginPct / 100));
-    const dailyProfit = ordersPerDay * profitPerOrder;
-    const monthlyProfit = dailyProfit * 30;
-    return { profitPerOrder, dailyProfit, monthlyProfit };
-  }
+test('2. No per-sale profit promise (partner reward pool, migrations 085/086)', async (t) => {
+  const page = fs.readFileSync(path.join(clientRoot, 'src', 'pages', 'customer', 'BecomeSalerPage.ts'), 'utf8');
 
-  await t.test('Standard scenario: 5 orders/day @ ৳1,500 with 25% margin', () => {
-    const res = calculateEarnings(5, 1500, 25);
-    assert.equal(res.profitPerOrder, 375);
-    assert.equal(res.dailyProfit, 1875);
-    assert.equal(res.monthlyProfit, 56250);
+  await t.test('the profit calculator is gone', () => {
+    assert.doesNotMatch(page, /type="range"|calc-margin-slider|calculator_/, 'a partner earns no margin per order to calculate');
   });
 
-  await t.test('Minimum scenario: 1 order/day @ ৳500 with 10% margin', () => {
-    const res = calculateEarnings(1, 500, 10);
-    assert.equal(res.profitPerOrder, 50);
-    assert.equal(res.dailyProfit, 50);
-    assert.equal(res.monthlyProfit, 1500);
+  await t.test('the reward section names the four factors in the rule order', () => {
+    // WHY: partner_reward.rules requires sales >= social >= community >= activity, and the page
+    // lists the factors "from what counts most", so this order is a claim about the rules.
+    assert.match(page, /REWARD_FACTORS = \['sales', 'social', 'community', 'activity'\]/);
+    for (const key of ['sales', 'social', 'community', 'activity']) {
+      for (const [lang, dict] of [['en', enDict], ['bn', bnDict]]) {
+        assert.ok(dict.customer.become_saler[`reward_factor_${key}`], `${lang} reward_factor_${key}`);
+        assert.ok(dict.customer.become_saler[`reward_factor_${key}_desc`], `${lang} reward_factor_${key}_desc`);
+      }
+    }
   });
 
-  await t.test('Power-saler scenario: 30 orders/day @ ৳2,000 with 30% margin', () => {
-    const res = calculateEarnings(30, 2000, 30);
-    assert.equal(res.profitPerOrder, 600);
-    assert.equal(res.dailyProfit, 18000);
-    assert.equal(res.monthlyProfit, 540000);
+  await t.test('no become_saler copy promises a percentage or a per-order profit', () => {
+    for (const [lang, dict] of [['en', enDict], ['bn', bnDict]]) {
+      for (const [k, v] of Object.entries(dict.customer.become_saler)) {
+        assert.doesNotMatch(v, /[0-9০-৯]\s*%|profit per order|প্রতি অর্ডারে .*লাভ/i, `${lang}.customer.become_saler.${k}: ${v}`);
+      }
+    }
   });
 });
 

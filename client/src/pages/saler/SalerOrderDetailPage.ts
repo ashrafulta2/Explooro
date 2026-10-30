@@ -104,7 +104,8 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
     `;
     container.append(header);
 
-    // 2. Settlement & Commission KPI Callout
+    // 2. Reward pool contribution callout. WHY: since migration 085 a partner's share of an order
+    // is escrowed to the PARTNER_REWARD_POOL, so this is what the order added to the pool, not pay.
     const kpiBox = document.createElement('div');
     kpiBox.className = 'saler-card';
     kpiBox.style.borderLeftWidth = '4px';
@@ -112,19 +113,19 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
     kpiBox.innerHTML = `
       <div class="saler-row--between">
         <div class="saler-stack--xs">
-          <div class="text-xs font-bold text-muted uppercase tracking-wider">Your Shop Partner Commission on this Order</div>
+          <div class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_orders.pool_contribution_label')}</div>
           <div class="text-3xl font-black font-mono text-emerald-600" style="color: var(--success-600, #16a34a);">+${formatCurrency(order.saler_commission_earned)}</div>
           <div class="text-xs text-muted">
-            Escrow Status: <strong class="${order.escrow_status === 'RELEASED' ? 'text-emerald-600' : 'text-amber-600'}">${order.escrow_status === 'RELEASED' ? '✓ Settled & Available in Vault' : '🔒 Locked in Escrow (Clears upon delivery confirmation)'}</strong>
+            ${t('saler_orders.pool_status_label')}: <strong class="${order.escrow_status === 'RELEASED' ? 'text-emerald-600' : 'text-amber-600'}">${order.escrow_status === 'RELEASED' ? t('saler_orders.escrow_released') : `🔒 ${t('saler_orders.pool_locked')}`}</strong>
           </div>
         </div>
         <div class="saler-row text-right" style="gap: 16px;">
           <div>
-            <div class="text-[10px] text-muted uppercase">Customer Total</div>
+            <div class="text-[10px] text-muted uppercase">${t('saler_orders.customer_total')}</div>
             <div class="text-lg font-bold font-mono text-foreground">${formatCurrency(order.total_retail_amount)}</div>
           </div>
           <div style="border-left: 1px solid var(--border-subtle); padding-left: 16px;">
-            <div class="text-[10px] text-muted uppercase">Supplier Payout</div>
+            <div class="text-[10px] text-muted uppercase">${t('saler_orders.supplier_payout')}</div>
             <div class="text-lg font-bold font-mono text-muted">${formatCurrency(order.total_wholesale_cost)}</div>
           </div>
         </div>
