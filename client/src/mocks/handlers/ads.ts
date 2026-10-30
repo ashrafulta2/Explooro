@@ -512,12 +512,14 @@ const MOCK_AUCTION_ADS = [
   {
     campaignId: 9002, creativeId: 9102, headline: 'Premium Cotton Panjabi', description: 'Handloom cotton, free size guide.',
     bannerImageUrl: '', callToAction: 'SHOP_NOW', destinationUrl: '/search?q=panjabi', productId: null,
-    product: { default_retail_price: 1850 }, chargedCpc: 2.5,
+    product: { default_retail_price: 1850, compare_at_price: 2200, shop_name: 'Rahim Fashion', avg_rating: 4.6, review_count: 212 },
+    chargedCpc: 2.5,
   },
   {
     campaignId: 9003, creativeId: 9103, headline: 'Organic Honey 500g', description: 'Sundarban honey, lab tested.',
     bannerImageUrl: '', callToAction: 'VIEW_PRODUCT', destinationUrl: '/search?q=honey', productId: null,
-    product: { default_retail_price: 650 }, chargedCpc: 1.5,
+    product: { default_retail_price: 650, shop_name: 'Sundarban Naturals', avg_rating: 4.8, review_count: 96 },
+    chargedCpc: 1.5,
   },
 ];
 

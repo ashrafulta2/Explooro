@@ -11,7 +11,7 @@ import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
-import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
+import { adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { updateHead } from '../services/seo.ts';
@@ -71,8 +71,21 @@ export default function SearchResultsPage(root: HTMLElement, { query, navigate }
     }
   }
 
+  // Search Boost: paid winners for these keywords are placed inside the result grid (see
+  // components/ads/adPlacement.ts for where and how often), tagged "Sponsored".
+  let adCards = adInterleaver('SEARCH_RESULTS', []);
+  const adsReady = fetchInlineAds('SEARCH_RESULTS', { keyword: term, limit: 3 }).then((ads) => {
+    adCards = adInterleaver('SEARCH_RESULTS', ads);
+  });
+  cleanups.push(() => adCards.cleanup());
+
   async function fetchPage(cursor) {
-    const result = await listProducts({ q: term, limit: 20, ...(cursor ? { cursor } : {}) });
+    // WHY wait on the ads for the first page only: the cards are placed as the page is drawn, and
+    // fetchInlineAds never rejects, so the wait is one parallel request, never an error.
+    const [result] = await Promise.all([
+      listProducts({ q: term, limit: 20, ...(cursor ? { cursor } : {}) }),
+      cursor ? null : adsReady,
+    ]);
     if (!cursor) {
       const total = result.meta?.total ?? result.products.length;
       // One search event per results page load, with the real count: a zero here is the "our catalog
@@ -97,13 +110,10 @@ export default function SearchResultsPage(root: HTMLElement, { query, navigate }
     emptyDescription: t('marketplace.search_page.empty_desc', { query: term }),
     // Opening a card from here is a SEARCH_CLICK carrying this query, not a plain CLICK.
     signalContext: { query: term },
+    interleave: (i) => adCards.at(i),
   });
   cleanups.push(cleanup);
-
-  // Search Boost: paid winners for these keywords sit above the organic results, tagged "Sponsored".
-  const sponsored = SponsoredStrip({ placement: 'SEARCH_RESULTS', keyword: term, limit: 3 });
-  cleanups.push(sponsored.cleanup);
-  page.append(sponsored.el, el);
+  page.append(el);
 
   root.append(page);
   return () => cleanups.forEach((fn) => fn());

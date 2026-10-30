@@ -55,6 +55,8 @@ export interface ProductGridOptions {
   emptyTitle?: string | null;
   emptyDescription?: string | null;
   signalContext?: SignalContext | null;
+  /** Called before each organic card with its running index; a returned element is placed first (paid cards). */
+  interleave?: ((organicIndex: number) => HTMLElement | null) | null;
 }
 
 /** Inline SVG: chevron up (back to top). */
@@ -75,6 +77,7 @@ export function ProductGrid({
   emptyTitle = null,
   emptyDescription = null,
   signalContext = null,
+  interleave = null,
 }: ProductGridOptions): ProductWidgetHandle {
   // ── Back-to-top button (fixed, outside the grid scroll) ─────────────────
   const backTop = document.createElement('button');
@@ -122,6 +125,7 @@ export function ProductGrid({
   let hasMore = true;
   let loading = false;
   let firstLoad = true;
+  let organicCount = 0;
 
   // Show skeletons on first mount
   for (let i = 0; i < INITIAL_SKELETONS; i += 1) {
@@ -166,6 +170,9 @@ export function ProductGrid({
         // The grid names itself unless the caller already did: a card with a query is a search result.
         const context = { source: signalContext?.query ? 'search' : 'grid', ...signalContext };
         for (const product of products) {
+          const paid = interleave?.(organicCount);
+          if (paid) grid.append(paid);
+          organicCount += 1;
           grid.append(
             ProductCard({ product, role, modules, lang, size: 'full', onNavigate, onAction, signalContext: context })
           );

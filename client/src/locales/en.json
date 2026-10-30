@@ -3566,6 +3566,17 @@
   },
   "ads": {
     "sponsored": "Sponsored",
+    "slot": {
+      "aria_label": "Advertisement",
+      "why_label": "Why am I seeing this ad?",
+      "why_text": "A seller paid to show this here because it matches what you are browsing. It does not change the order of the other results.",
+      "off": "{{pct}}% off",
+      "reviews": "{{count}} reviews",
+      "cta_shop_now": "Shop now",
+      "cta_learn_more": "Learn more",
+      "cta_get_offer": "Get offer",
+      "cta_view_product": "View product"
+    },
     "page_title": "Sponsored Ad Campaigns",
     "page_subtitle": "Boost your products across search results, category banners, and feed",
     "btn_create_campaign": "Create Campaign",

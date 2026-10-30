@@ -112,44 +112,28 @@ export class SponsoredSlot {
             ` : ''}
           </div>
           <div class="sponsored-banner-footer">
-            <button type="button" class="btn btn-primary btn-sm sponsored-cta-btn">
+            <button type="button" class="btn btn--primary btn--sm sponsored-cta-btn">
               ${this._formatCta(ad.callToAction, isBn)} →
             </button>
           </div>
         </div>
       `;
     } else {
-      // 'card' or 'feed' format
-      const product = ad.product || {};
-      const imgUrl = ad.bannerImageUrl || product.thumbnail_url || product.primary_image_url || '/placeholder.png';
-      const priceFormatted = product.default_retail_price ? `৳${Number(product.default_retail_price).toLocaleString('en-US')}` : '';
-
-      container.innerHTML = `
-        <div class="sponsored-product-card">
-          <div class="sponsored-card-header">
-            <span class="sponsored-tag" aria-label="${isBn ? 'বিজ্ঞাপন' : 'Advertisement'}">
-              ${isBn ? 'স্পন্সর্ড' : 'Sponsored'}
-            </span>
-          </div>
-          <div class="sponsored-card-image-wrap">
-            <img src="${this._escapeHtml(imgUrl)}" alt="${this._escapeHtml(ad.headline)}" class="sponsored-card-img" loading="lazy" />
-          </div>
-          <div class="sponsored-card-body">
-            <h4 class="sponsored-card-title">${this._escapeHtml(ad.headline || ad.title)}</h4>
-            ${ad.description ? `<p class="sponsored-card-desc">${this._escapeHtml(ad.description)}</p>` : ''}
-            ${priceFormatted ? `<div class="sponsored-card-price">${priceFormatted}</div>` : ''}
-            <button type="button" class="btn btn-outline btn-sm sponsored-cta-btn">
-              ${this._formatCta(ad.callToAction, isBn)}
-            </button>
-          </div>
-        </div>
-      `;
+      // 'card' or 'feed' format: the same footprint as a ProductCard, so it can sit in a product grid.
+      container.innerHTML = this._cardMarkup(ad);
+      this._wireCard(container);
     }
 
-    // Attach click listener
+    // Attach click listener (the "why this ad" button handles its own clicks and stops them here)
     container.addEventListener('click', (e) => {
       e.preventDefault();
       this._handleClick();
+    });
+    container.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target === container) {
+        e.preventDefault();
+        this._handleClick();
+      }
     });
 
     this.element = container;
@@ -240,7 +224,89 @@ export class SponsoredSlot {
     }
   }
 
-  _formatCta(ctaKey = 'SHOP_NOW', isBn = false): string {
+  /**
+   * The product-card ad. Every line past the title is optional and only drawn when the ad carries
+   * it: shop name, rating, a struck-through price with its saving. Those are what make a shopper
+   * want to open a card, so the ad shows them exactly as an organic card would.
+   */
+  _cardMarkup(ad: SponsoredAdData): string {
+    const product = (ad.product || {}) as Record<string, any>;
+    const esc = (v: unknown) => this._escapeHtml(v);
+    const title = ad.headline || ad.title || product.title_en || '';
+    const imgUrl = ad.bannerImageUrl || product.thumbnail_url || product.primary_image_url || product.main_image || '';
+
+    const price = Number(product.special_price || product.default_retail_price || product.price || 0);
+    const was = Number(product.compare_at_price || (product.special_price ? product.price : 0) || 0);
+    const offPct = was > price && price > 0 ? Math.round(((was - price) / was) * 100) : 0;
+    const money = (n: number) => `৳${n.toLocaleString(getLanguage() === 'bn' ? 'bn-BD' : 'en-US')}`;
+
+    const shop = product.shop_name || product.store?.shop_name || '';
+    const rating = Number(product.avg_rating ?? product.rating ?? 0);
+    const reviews = Number(product.review_count ?? 0);
+    const meta = [
+      shop ? `<span class="sponsored-card-shop">${esc(shop)}</span>` : '',
+      rating > 0
+        ? `<span class="sponsored-card-rating" ${reviews ? `title="${esc(t('ads.slot.reviews', { count: reviews }))}"` : ''}><span aria-hidden="true">★</span> ${rating.toFixed(1)}${reviews ? ` <span class="sponsored-card-reviews">(${reviews})</span>` : ''}</span>`
+        : '',
+    ].filter(Boolean).join('');
+
+    const media = imgUrl
+      ? `<img src="${esc(imgUrl)}" alt="${esc(title)}" class="sponsored-card-img" loading="lazy" />`
+      : '';
+
+    return `
+      <article class="sponsored-product-card">
+        <div class="sponsored-card-image-wrap${imgUrl ? '' : ' is-empty'}">
+          ${media}
+          <span class="sponsored-tag" aria-label="${esc(t('ads.slot.aria_label'))}">${esc(t('ads.sponsored'))}</span>
+          <button type="button" class="sponsored-why" aria-expanded="false" aria-label="${esc(t('ads.slot.why_label'))}" title="${esc(t('ads.slot.why_label'))}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          </button>
+        </div>
+        <div class="sponsored-card-body">
+          <h4 class="sponsored-card-title">${esc(title)}</h4>
+          ${meta ? `<p class="sponsored-card-meta">${meta}</p>` : ad.description ? `<p class="sponsored-card-desc">${esc(ad.description)}</p>` : ''}
+          ${price > 0 ? `
+            <div class="sponsored-card-price">
+              <span>${money(price)}</span>
+              ${offPct ? `<s class="sponsored-card-was">${money(was)}</s><span class="sponsored-card-off">${esc(t('ads.slot.off', { pct: offPct }))}</span>` : ''}
+            </div>` : ''}
+          <p class="sponsored-why-note" hidden>${esc(t('ads.slot.why_text'))}</p>
+          <span class="btn btn--primary btn--sm sponsored-cta-btn">${esc(this._formatCta(ad.callToAction))}</span>
+        </div>
+      </article>
+    `;
+  }
+
+  /** Card behaviour: the whole card is one link-like target, and a broken image falls back cleanly. */
+  _wireCard(container: HTMLElement) {
+    container.tabIndex = 0;
+    container.setAttribute('role', 'link');
+
+    const img = container.querySelector<HTMLImageElement>('.sponsored-card-img');
+    img?.addEventListener('error', () => {
+      // WHY: a dead image URL otherwise leaves a square of alt text, the "broken ad" look.
+      img.parentElement?.classList.add('is-empty');
+      img.remove();
+    }, { once: true });
+
+    const why = container.querySelector<HTMLButtonElement>('.sponsored-why');
+    const note = container.querySelector<HTMLElement>('.sponsored-why-note');
+    why?.addEventListener('click', (e) => {
+      // WHY stopPropagation: opening the explanation is not a click on the ad, so it must not bill.
+      e.stopPropagation();
+      e.preventDefault();
+      if (!note) return;
+      note.hidden = !note.hidden;
+      why.setAttribute('aria-expanded', String(!note.hidden));
+    });
+  }
+
+  _formatCta(ctaKey = 'SHOP_NOW', isBn?: boolean): string {
+    if (isBn === undefined) {
+      const keys = { SHOP_NOW: 'cta_shop_now', LEARN_MORE: 'cta_learn_more', GET_OFFER: 'cta_get_offer', VIEW_PRODUCT: 'cta_view_product' };
+      return t(`ads.slot.${keys[ctaKey] || 'cta_shop_now'}`);
+    }
     const ctas = {
       SHOP_NOW: isBn ? 'এখনই কিনুন' : 'Shop Now',
       LEARN_MORE: isBn ? 'বিস্তারিত দেখুন' : 'Learn More',

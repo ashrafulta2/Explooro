@@ -22,7 +22,7 @@
 import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { adsApi } from '../services/ads.api.ts';
-import { SponsoredStrip } from '../components/ads/SponsoredStrip.ts';
+import { adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.ts';
 import { isFeatureEnabled } from '../services/featureFlags.ts';
 import { HomeTop } from '../components/home/HomeTop.ts';
@@ -292,11 +292,10 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   gridColumn.className = 'home-catalog__grid-col';
   catalogSection.append(gridColumn);
 
-  // Home Feed Promotion: paid cards blended in above the product grid (CPM, so each counts once it
-  // has been on screen). Mounted once; the grid below is rebuilt on every filter change.
-  const feedAds = SponsoredStrip({ placement: 'FEED', variant: 'feed', limit: 3 });
-  cleanups.push(feedAds.cleanup);
-  gridColumn.append(feedAds.el);
+  // Home Feed Promotion: paid cards placed inside the product grid (CPM, so each counts once it has
+  // been on screen). The auction runs once per visit; every rebuilt grid places the same winners.
+  let feedAds = [];
+  const feedAdsReady = fetchInlineAds('FEED', { limit: 3 }).then((ads) => { feedAds = ads; });
 
   // Toolbar (count + filter trigger button)
   const toolbar = document.createElement('div');
@@ -411,7 +410,8 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
     }
 
     return async (cursor) => {
-      const result = await listProducts(buildQuery(cursor));
+      // The first page waits for the feed ads so they can be placed as it is drawn (never rejects).
+      const [result] = await Promise.all([listProducts(buildQuery(cursor)), cursor ? null : feedAdsReady]);
       
       // Inject CATEGORY_BANNER ads on the first page if a category is selected
       if (!cursor && activeCategory && activeCategory !== 'all') {
@@ -470,6 +470,7 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
     currentGridEl && currentGridEl.remove();
 
     const generation = ++gridGeneration;
+    let adCards = null;
     const { el, cleanup } = ProductGrid({
       fetchPage: buildFetchPage(generation),
       role,
@@ -477,10 +478,12 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
       lang: getLanguage(),
       onNavigate: navigate,
       onAction: handleAction,
+      // Read lazily: feedAds is filled by the time the first page (which waits on it) is drawn.
+      interleave: (i) => (adCards ??= adInterleaver('FEED', feedAds)).at(i),
     });
 
     currentGridEl = el;
-    currentGridCleanup = cleanup;
+    currentGridCleanup = () => { cleanup(); adCards?.cleanup(); };
     gridColumn.append(el);
   }
 

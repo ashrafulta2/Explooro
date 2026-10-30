@@ -32,40 +32,68 @@
   width: fit-content;
   padding: 2px 8px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-strong);
-  background: var(--surface-0);
-  color: var(--text-secondary);
+  border: 1px solid var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning);
   font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 /* ── Card / feed variant ─────────────────────────────────────────────────────────────────── */
+/* WHY the amber (warning) role: it is the one hue no organic card uses, so a paid card is told apart
+   at a glance by its border and tag alone, while its size, image and type match a ProductCard so it
+   sits in the grid without breaking the rhythm. --warning-* flip with the theme. */
 .sponsored-product-card,
 .sponsored-banner-card {
   display: flex;
   flex-direction: column;
   height: 100%;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--warning-border);
   border-radius: var(--radius-md);
   background: var(--surface-0);
   overflow: hidden;
+  transition: border-color 150ms ease, transform 150ms ease;
 }
 
 .sponsored-slot:hover .sponsored-product-card,
 .sponsored-slot:hover .sponsored-banner-card {
-  border-color: var(--border-strong);
+  border-color: var(--warning);
 }
 
-.sponsored-card-header,
+.sponsored-slot:hover .sponsored-product-card { transform: translateY(-2px); }
+
+.sponsored-slot:focus-visible { outline: none; }
+.sponsored-slot:focus-visible .sponsored-product-card { outline: 2px solid var(--warning); outline-offset: 2px; }
+
 .sponsored-banner-badge {
   padding: var(--space-2) var(--space-3) 0;
 }
 
 .sponsored-card-image-wrap {
+  position: relative;
   aspect-ratio: 1 / 1;
-  margin-top: var(--space-2);
-  background: var(--surface-1);
+  background: var(--surface-2);
+}
+
+/* No image, or a dead one: a quiet surface with a bag mark instead of alt text in a white square. */
+.sponsored-card-image-wrap.is-empty::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 40%;
+  height: 40%;
+  background: var(--text-muted);
+  opacity: 0.35;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l1 13H5L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l1 13H5L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.sponsored-card-image-wrap .sponsored-tag {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
 }
 
 .sponsored-card-img {
@@ -75,18 +103,64 @@
   object-fit: cover;
 }
 
+.sponsored-why {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--surface-0);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.sponsored-why:hover,
+.sponsored-why[aria-expanded='true'] { color: var(--text-primary); }
+
 .sponsored-card-body {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
   padding: var(--space-3);
 }
 
 .sponsored-card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   margin: 0;
-  font-size: var(--text-base);
-  line-height: 1.3;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.35;
 }
+
+.sponsored-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
+
+.sponsored-card-shop {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sponsored-card-rating { white-space: nowrap; }
+.sponsored-card-rating > span[aria-hidden] { color: var(--warning); }
+.sponsored-card-reviews { color: var(--text-muted); }
 
 .sponsored-card-desc,
 .sponsored-banner-desc {
@@ -95,8 +169,50 @@
   font-size: var(--text-sm);
 }
 
+.sponsored-card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--text-xs);
+}
+
 .sponsored-card-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-base);
   font-weight: 700;
+}
+
+.sponsored-card-was {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+.sponsored-card-off {
+  color: var(--success);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.sponsored-why-note {
+  margin: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.sponsored-product-card .sponsored-cta-btn {
+  width: 100%;
+  margin-top: auto;
+  justify-content: center;
 }
 
 /* ── Banner variant ──────────────────────────────────────────────────────────────────────── */
