@@ -5799,8 +5799,6 @@
     }
   },
   "admin_catalog": {
-    "field_partner_profit_hint": "Goes to the monthly shop partner reward pool, not to one partner. Leave empty to use the platform default.",
-    "field_partner_profit": "Partner profit per sale (BDT)",
     "title": "Catalog & Products Governance",
     "subtitle": "Oversee platform inventory, audit commercial margins, manage live supplier listings, and register new sample products.",
     "export_csv": "Export CSV",
@@ -5885,7 +5883,10 @@
     "field_district": "District",
     "field_price": "Retail Price (BDT)",
     "field_stock": "Initial Stock Quantity",
-    "field_margin": "Margin above your cost %",
+    "field_margin": "Platform & partner share %",
+    "payout_label": "You receive per unit:",
+    "payout_hint": "{{price}} retail price minus {{margin}}% ({{share}}) for the platform and the shop partner pool.",
+    "payout_prompt": "Enter the retail price and the share % to see what you receive per unit.",
     "field_image_preset": "Product Image Presets",
     "field_image_url": "Image URL",
     "field_description_en": "Description (English)",

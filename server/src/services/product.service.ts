@@ -227,6 +227,16 @@ async function resolveNewPartnerProfit(db, { baseCost, wholesaleMargin, defaultR
     await assertPartnerProfitFits(db, { baseCost, wholesaleMargin, retailPrice: defaultRetailPrice, partnerProfit });
     return toBdtNumber(toPaisa(partnerProfit));
   }
+  return defaultPartnerProfit(db, { baseCost, wholesaleMargin, defaultRetailPrice });
+}
+
+/**
+ * The partner profit a price earns when nobody names one: `saler_split_pct` of the margin (the
+ * setting at /admin/finance/splits), capped at what the platform floor leaves.
+ * WHY this is the normal path: the supplier product form no longer asks for a partner profit
+ * (owner decision 2026-10-31) — the supplier sets price and margin, the admin sets the split.
+ */
+async function defaultPartnerProfit(db, { baseCost, wholesaleMargin, defaultRetailPrice }) {
   const maxAllowed = await assertPartnerProfitFits(db, { baseCost, wholesaleMargin, retailPrice: defaultRetailPrice, partnerProfit: 0 });
   const { salerSplitPct } = await resolvePlatformPricingConfig(db);
   const marginPaisa = toPaisa(defaultRetailPrice) - toPaisa(baseCost) - toPaisa(wholesaleMargin);
@@ -317,6 +327,13 @@ export async function updateProduct(db, idOrRef, supplierId, rawFields: Record<s
       'Retail price must cover base cost and wholesale margin.',
       'খুচরা মূল্য অবশ্যই বেস খরচ এবং পাইকারি মার্জিন কভার করতে হবে।'
     );
+  }
+
+  // A new price with no partner profit named re-derives it from the admin's split, so the pool's share
+  // follows the price instead of staying at whatever the old price gave (the form no longer sends one).
+  const movesPrice = ['base_cost', 'wholesale_margin', 'default_retail_price'].some((k) => fields[k] !== undefined);
+  if (movesPrice && fields.partner_profit === undefined) {
+    fields.partner_profit = await defaultPartnerProfit(db, { baseCost, wholesaleMargin, defaultRetailPrice });
   }
 
   // WHY only when a price field moves: a title edit must not start failing on an older product whose

@@ -5799,8 +5799,6 @@
     }
   },
   "admin_catalog": {
-    "field_partner_profit_hint": "এটি কোনো একজন partner পান না, মাসিক shop partner reward pool এ যায়। খালি রাখলে platform এর default ব্যবহার হবে।",
-    "field_partner_profit": "প্রতি বিক্রিতে partner profit (৳)",
     "title": "ক্যাটালগ ও পণ্য প্রশাসন",
     "subtitle": "প্ল্যাটফর্মের সামগ্রিক ইনভেন্টরি তদারকি, বাণিজ্যিক মার্জিন নিরীক্ষা, লাইভ সরবরাহকারী তালিকা পরিচালনা এবং নতুন পণ্য যুক্ত করুন।",
     "export_csv": "CSV এক্সপোর্ট",
@@ -5885,7 +5883,10 @@
     "field_district": "জেলা",
     "field_price": "খুচরা মূল্য (টাকা)",
     "field_stock": "প্রাথমিক স্টক সংখ্যা",
-    "field_margin": "আপনার খরচের উপর মার্জিন %",
+    "field_margin": "প্ল্যাটফর্ম ও পার্টনারের অংশ %",
+    "payout_label": "আপনি প্রতি পিসে পাবেন:",
+    "payout_hint": "খুচরা মূল্য {{price}} থেকে {{margin}}% ({{share}}) বাদ, যা প্ল্যাটফর্ম ও শপ পার্টনার pool এর অংশ।",
+    "payout_prompt": "প্রতি পিসে কত পাবেন দেখতে খুচরা মূল্য ও অংশের % লিখুন।",
     "field_image_preset": "পণ্য ছবির প্রিসেট",
     "field_image_url": "ছবির লিংক (URL)",
     "field_description_en": "বিবরণ (ইংরেজি)",

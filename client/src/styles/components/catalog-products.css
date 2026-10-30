@@ -94,6 +94,10 @@
 .catalog-form-input:focus, .catalog-form-select:focus, .catalog-form-textarea:focus { border-color: var(--brand); }
 .catalog-form-textarea { min-height: 11rem; line-height: 1.5; resize: vertical; }
 .catalog-form-hint { font-size: var(--text-xs); color: var(--text-secondary); margin-bottom: var(--space-1); }
+/* The supplier's per-unit payout under the price fields (CatalogProductsPage wireSupplierPayout). */
+.catalog-form-payout { margin: 0; padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md, 8px); background: var(--surface-2); font-size: var(--text-sm); color: var(--text-primary); display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-2); }
+.catalog-form-payout strong { font-size: var(--text-lg); color: var(--text-brand); }
+.catalog-form-payout .catalog-form-hint { flex-basis: 100%; margin: 0; }
 .catalog-form [aria-invalid="true"] { border-color: var(--danger); }
 
 /* Product Inspector Drawer — hero image + its onerror fallback */

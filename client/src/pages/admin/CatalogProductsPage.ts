@@ -59,6 +59,35 @@ function attachImageFallback(img, title, ref, placeholderClassName) {
   );
 }
 
+/**
+ * Shows the supplier what one unit pays them, live, under the price and margin fields: retail minus the
+ * margin %, the same base cost the form sends. WHY: the form no longer asks for a partner profit
+ * (owner decision 2026-10-31), so this line is how a supplier checks their own profit before listing.
+ * Returns a refresh function for when the fields are filled in code.
+ */
+function wireSupplierPayout(form: HTMLFormElement): () => void {
+  const out = form.querySelector<HTMLElement>('[data-slot="payout"]');
+  const read = (name: string) => parseFloat(form.querySelector<HTMLInputElement>(`[name="${name}"]`)?.value || '');
+  const refresh = () => {
+    if (!out) return;
+    const price = read('price');
+    const margin = read('margin_pct');
+    if (!(price > 0) || !(margin >= 0 && margin < 100)) {
+      out.textContent = t('admin_catalog.payout_prompt');
+      return;
+    }
+    const payout = Math.round(price * (1 - margin / 100) * 100) / 100;
+    out.innerHTML = `${t('admin_catalog.payout_label')} <strong>${formatCurrency(payout.toFixed(2))}</strong>
+      <span class="catalog-form-hint">${t('admin_catalog.payout_hint', { price: formatCurrency(price.toFixed(2)), margin: formatNumber(margin), share: formatCurrency((price - payout).toFixed(2)) })}</span>`;
+  };
+  form.addEventListener('input', (e) => {
+    const name = (e.target as HTMLInputElement)?.name;
+    if (name === 'price' || name === 'margin_pct') refresh();
+  });
+  refresh();
+  return refresh;
+}
+
 export default function CatalogProductsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
   const container = document.createElement('div');
@@ -919,12 +948,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           <label class="catalog-form-label">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
           <input type="number" name="margin_pct" class="catalog-form-input" aria-label="20" placeholder="20" value="20" required />
         </div>
-        <div class="catalog-form-group">
-          <label class="catalog-form-label" for="add-partner-profit">${t('admin_catalog.field_partner_profit')}</label>
-          <input type="number" step="0.01" min="0" id="add-partner-profit" name="partner_profit" class="catalog-form-input" placeholder="0.00" />
-          <span class="catalog-form-hint">${t('admin_catalog.field_partner_profit_hint')}</span>
-        </div>
       </div>
+      <p class="catalog-form-payout" data-slot="payout" aria-live="polite"></p>
 
       <div class="catalog-form-group" data-slot="images">
         <span class="catalog-form-label" id="add-images-label">${t('admin_catalog.field_images', 'Product Photos')} *</span>
@@ -952,6 +977,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     form.querySelector('[data-slot="images"]').append(uploader);
 
     fillCategoryOptions(form.querySelector('select[name="category_id"]'));
+    wireSupplierPayout(form);
 
     const modalFooter = document.createElement('div');
     modalFooter.style.display = 'flex';
@@ -1008,8 +1034,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           return;
         }
 
-        // WHY: the server takes cost fields, not a shop partner margin. The margin % is the share of the
-        // retail price the shop partner keeps, so the supplier's base cost is retail minus that share and
+        // WHY: the server takes cost fields. The margin % is the share of the retail price that goes to
+        // the platform and the partner pool, so the supplier's base cost is retail minus that share and
         // the wholesale margin is 0 (retail >= base + wholesale then holds by construction).
         const baseCost = Math.round(price * (1 - marginPct / 100) * 100) / 100;
         const titleBn = formData.get('title_bn')?.toString().trim() || titleEn;
@@ -1024,8 +1050,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           base_cost: baseCost,
           wholesale_margin: 0,
           default_retail_price: price,
-          // Empty = let the server start it at what the global split used to pay (product.service.ts).
-          partner_profit: formData.get('partner_profit')?.toString().trim() ? parseFloat(formData.get('partner_profit').toString()) : undefined,
+          // No partner profit is sent: the server derives it from the admin's split (product.service.ts).
           stock_qty: parseInt(formData.get('stock')?.toString() || '0', 10),
           media_ids: mediaIds,
         };
@@ -1113,12 +1138,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           <label class="catalog-form-label" for="edit-margin">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
           <input type="number" step="0.01" id="edit-margin" name="margin_pct" class="catalog-form-input" required />
         </div>
-        <div class="catalog-form-group">
-          <label class="catalog-form-label" for="edit-partner-profit">${t('admin_catalog.field_partner_profit')}</label>
-          <input type="number" step="0.01" min="0" id="edit-partner-profit" name="partner_profit" class="catalog-form-input" />
-          <span class="catalog-form-hint">${t('admin_catalog.field_partner_profit_hint')}</span>
-        </div>
       </div>
+      <p class="catalog-form-payout" data-slot="payout" aria-live="polite"></p>
 
       <div class="catalog-form-group" data-slot="images">
         <span class="catalog-form-label" id="edit-images-label">${t('admin_catalog.field_images', 'Product Photos')} *</span>
@@ -1157,11 +1178,11 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       field('price').value = retailOf(p) ? retailOf(p).toFixed(2) : '';
       field('stock').value = p.stock_qty ?? p.stock ?? 0;
       field('margin_pct').value = String(marginOf(p));
-      field('partner_profit').value = p.partner_profit != null ? Number(p.partner_profit).toFixed(2) : '';
       field('description_en').value = p.description_en || '';
       field('description_bn').value = p.description_bn || '';
     };
     fillFields(product);
+    const refreshPayout = wireSupplierPayout(form);
 
     // Uploader starts with the product's current photos. Only rows with a real media_id can be
     // sent back; a mock fixture's synthesized gallery falls back to its single listing image.
@@ -1199,7 +1220,10 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         const d = res.data?.product || res.product;
         if (!d) return;
         detail = { ...product, ...d };
-        if (!form.matches(':focus-within')) fillFields(detail);
+        if (!form.matches(':focus-within')) {
+          fillFields(detail);
+          refreshPayout();
+        }
         if (!photosTouched) uploader.setItems(toItems(detail));
         await categoriesReady;
         if (detail.category_id && !categorySelectEl.value) categorySelectEl.value = String(detail.category_id);
@@ -1282,17 +1306,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         // untouched product never nudges its stored base cost through a rounding round-trip.
         if (price !== retailOf(detail) || marginPct !== marginOf(detail)) {
           const wholesale = parseFloat(detail.wholesale_margin) || 0;
-          // Same rule as the create form: the margin % is the shop partner's share of retail, and the
-          // supplier's existing wholesale margin is kept rather than silently zeroed.
+          // Same rule as the create form: the margin % is the platform + partner pool share of retail, and
+          // the supplier's existing wholesale margin is kept rather than silently zeroed. The server then
+          // re-derives the partner profit from the new price.
           payload.base_cost = Math.max(0, Math.round((price * (1 - marginPct / 100) - wholesale) * 100) / 100);
           payload.wholesale_margin = wholesale;
           payload.default_retail_price = price;
-        }
-
-        // Sent only when it moved, for the same no-nudge reason as the cost fields above.
-        const partnerProfitRaw = str('partner_profit');
-        if (partnerProfitRaw !== '' && Number(partnerProfitRaw) !== Number(detail.partner_profit ?? NaN)) {
-          payload.partner_profit = parseFloat(partnerProfitRaw);
         }
 
         // A synthesized mock photo has no media id; if it's still the only photo, leave photos alone.
