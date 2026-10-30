@@ -44,7 +44,7 @@ export const RULE_LIMITS = Object.freeze({
 
 export const DEFAULT_RULES = Object.freeze({
   weights: Object.freeze({ sales: 40, social: 25, community: 20, activity: 15 }),
-  ad_revenue_share_pct: 20,
+  ad_revenue_share_pct: 55, // WHY 55: owner decision 2026-10-30 — partners get the larger part of ad revenue (pool 55, platform 45)
   community_points: Object.freeze({ post: 3, like: 1, comment: 2, save: 2 }),
   max_posts_per_day: 3,
   settle_lag_days: 7,

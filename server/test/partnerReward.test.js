@@ -115,7 +115,10 @@ describe('partner reward pool — rules', () => {
     const sql = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/086_partner_reward_runs.sql'), 'utf8');
     const json = JSON.parse(sql.match(/'(\{"weights"[\s\S]*?\})'::jsonb/)[1]);
     assert.deepEqual(json.weights, DEFAULT_RULES.weights);
-    assert.equal(json.ad_revenue_share_pct, DEFAULT_RULES.ad_revenue_share_pct);
+    // 091 moves the seeded ad share (20 -> 55), so the default must equal what 091 writes.
+    const m091 = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/091_partner_pool_ad_share_55.sql'), 'utf8');
+    assert.equal(json.ad_revenue_share_pct, Number(m091.match(/::numeric = (\d+(?:\.\d+)?);/)[1]));
+    assert.equal(Number(m091.match(/'\{ad_revenue_share_pct\}', '(\d+(?:\.\d+)?)'::jsonb/)[1]), DEFAULT_RULES.ad_revenue_share_pct);
     assert.deepEqual(json.community_points, DEFAULT_RULES.community_points);
     assert.equal(json.max_posts_per_day, DEFAULT_RULES.max_posts_per_day);
     assert.equal(json.settle_lag_days, DEFAULT_RULES.settle_lag_days);
