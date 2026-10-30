@@ -9,7 +9,7 @@ import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { vaultShortfallPaisa, payOrderFromVault, refundCancelledVaultOrder } from '../src/services/vaultCheckout.service.ts';
+import { vaultShortfallPaisa, payOrderFromVault, refundCancelledOrderToVault, isRefundableOnCancel } from '../src/services/vaultCheckout.service.ts';
 
 const read = (rel) => fs.readFileSync(path.resolve(import.meta.dirname, '..', rel), 'utf8');
 
@@ -55,20 +55,28 @@ describe('paying from the vault', () => {
   });
 });
 
-describe('refunding a cancelled vault order', () => {
+describe('refunding a cancelled paid order to the vault', () => {
   const paid = { id: 3, ref: 'ORD-3', customer_id: 7, total_amount: '250.00', payment_method: 'WALLET', payment_status: 'PAID' };
 
-  test('only a paid vault order is refunded', async () => {
-    for (const order of [{ ...paid, payment_method: 'COD' }, { ...paid, payment_method: 'BKASH' }, { ...paid, payment_status: 'PENDING' }, null]) {
+  test('every order paid up front is refundable; COD and unpaid orders are not', () => {
+    for (const m of ['WALLET', 'BKASH', 'NAGAD', 'ROCKET', 'CARD', 'bkash']) assert.equal(isRefundableOnCancel({ ...paid, payment_method: m }), true, m);
+    assert.equal(isRefundableOnCancel({ ...paid, payment_method: 'COD' }), false);
+    assert.equal(isRefundableOnCancel({ ...paid, payment_status: 'PENDING' }), false);
+    assert.equal(isRefundableOnCancel({ ...paid, payment_status: 'REFUNDED' }), false);
+    assert.equal(isRefundableOnCancel(null), false);
+  });
+
+  test('COD and unpaid orders move no money', async () => {
+    for (const order of [{ ...paid, payment_method: 'COD' }, { ...paid, payment_status: 'PENDING' }, null]) {
       const client = fakeClient();
-      assert.deepEqual(await refundCancelledVaultOrder(client, order), { refunded: false });
+      assert.deepEqual(await refundCancelledOrderToVault(client, order), { refunded: false });
       assert.equal(client.calls.length, 0);
     }
   });
 
   test('a refund already made is not made again', async () => {
     const client = fakeClient({ alreadyRefunded: true });
-    assert.deepEqual(await refundCancelledVaultOrder(client, paid), { refunded: false, reason: 'ALREADY_REFUNDED' });
+    assert.deepEqual(await refundCancelledOrderToVault(client, paid), { refunded: false, reason: 'ALREADY_REFUNDED' });
     assert.ok(!client.calls.some((c) => c.startsWith('UPDATE orders')));
   });
 });
@@ -82,7 +90,8 @@ describe('vault checkout wiring', () => {
 
   test('the route accepts WALLET and cancel refunds a paid vault order', () => {
     assert.ok(read('src/routes/order.routes.ts').includes("'COD', 'WALLET']"));
-    assert.ok(read('src/services/order.service.ts').includes('await refundCancelledVaultOrder(client, order'));
+    const cancel = read('src/services/order.service.ts');
+    assert.ok(cancel.includes('if (isRefundableOnCancel(order))') && cancel.includes('await refundCancelledOrderToVault(client, order'));
   });
 
   test('the shopper is charged and refunded the order total, through the clearing wallet, in their own categories', () => {
@@ -91,5 +100,16 @@ describe('vault checkout wiring', () => {
     assert.ok(src.includes('refundBuyerWalletId: clearingId') && src.includes('buyerWalletId: clearingId'));
     const sql = read('src/db/migrations/092_vault_checkout.sql');
     assert.ok(sql.includes("'VAULT_PAYMENT'") && sql.includes("'VAULT_REFUND'") && sql.includes("'WALLET_TOPUP'"));
+  });
+});
+
+describe('a payment that completes after the order was cancelled', () => {
+  test('confirms only PLACED parcels, and sends the money to the vault when none is left', () => {
+    const src = read('src/services/payment.service.ts');
+    assert.ok(src.includes("WHERE order_id = $1 AND status = 'PLACED';"), 'a cancelled parcel is never revived');
+    assert.ok(!src.includes("UPDATE sub_orders SET status = 'CONFIRMED', updated_at = now() WHERE order_id = $1;"));
+    const settle = src.slice(src.indexOf('async function settlePaidOrder'));
+    assert.ok(settle.indexOf('refundCancelledOrderToVault') < settle.indexOf('lockEscrowForPaidOrder(db, order)'));
+    assert.equal(src.split('await settlePaidOrder(db, ').length - 1, 2, 'both the first confirm and a replay settle');
   });
 });

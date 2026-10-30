@@ -19,6 +19,7 @@ import * as auditService from './audit.service.ts';
 import * as vaultService from './vault.service.ts';
 import { withTransaction } from '../config/db.ts';
 import { creditTopUp } from './walletTopup.service.ts';
+import { refundCancelledOrderToVault } from './vaultCheckout.service.ts';
 
 /**
  * Mask account or card numbers.
@@ -297,7 +298,7 @@ export async function executePayment(db, cache, {
     // A vault top-up has no order; its replay heals a missing credit instead (credited once only).
     if (txn.intent === 'TOPUP') await creditTopUp(db, txn.ref);
     const paidOrder = txn.order_id ? await orderRepo.findOrderById(db, txn.order_id) : null;
-    if (paidOrder) await lockEscrowForPaidOrder(db, paidOrder);
+    if (paidOrder) await settlePaidOrder(db, paidOrder);
     return {
       success: true,
       transactionRef: txn.ref,
@@ -345,13 +346,15 @@ export async function executePayment(db, cache, {
       [order.id]
     );
 
-    // Update child sub-orders to CONFIRMED
+    // Update child sub-orders to CONFIRMED. WHY only PLACED: a payment can complete after the shopper
+    // cancelled (started bKash, cancelled, then the gateway confirmed). Confirming every row revived the
+    // cancelled parcels after their stock had already gone back on sale.
     await db.query(
-      `UPDATE sub_orders SET status = 'CONFIRMED', updated_at = now() WHERE order_id = $1;`,
+      `UPDATE sub_orders SET status = 'CONFIRMED', updated_at = now() WHERE order_id = $1 AND status = 'PLACED';`,
       [order.id]
     );
 
-    await lockEscrowForPaidOrder(db, order);
+    await settlePaidOrder(db, order);
   }
 
   // 3. Write Audit Trail
@@ -373,6 +376,32 @@ export async function executePayment(db, cache, {
     status: 'PAID',
     paidAt: execResult.paidAt || new Date().toISOString(),
   };
+}
+
+/**
+ * What a confirmed payment's money does next. Normally it locks escrow. When every parcel was
+ * cancelled before the gateway confirmed, nothing will ship, so the money goes to the shopper's vault
+ * instead, exactly as a cancel after payment does (vaultCheckout.service.ts). Safe to repeat: the
+ * escrow lock and the refund are each keyed once, so webhook replays and the reconcile sweep heal a
+ * missed step without paying twice.
+ */
+async function settlePaidOrder(db, order) {
+  const { rows: [live] } = await db.query(
+    `SELECT COUNT(*)::int AS n FROM sub_orders WHERE order_id = $1 AND status NOT IN ('CANCELLED', 'RETURNED', 'REFUNDED')`,
+    [order.id]
+  );
+  if (live && live.n === 0) {
+    const run = (fn) => (typeof db.connect === 'function' ? withTransaction(db, fn) : fn(db));
+    try {
+      await run((client) => refundCancelledOrderToVault(client, { ...order, payment_status: 'PAID' }, { reason: 'Paid after the order was cancelled' }));
+    } catch (err) {
+      // WHY logged, not thrown: the gateway has the money either way; the next replay or sweep retries.
+      // eslint-disable-next-line no-console
+      console.error(`[payment] Vault refund failed for cancelled paid order #${order.id}: ${err.message}`);
+    }
+    return;
+  }
+  await lockEscrowForPaidOrder(db, order);
 }
 
 /**

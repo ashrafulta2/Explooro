@@ -202,8 +202,8 @@ const orderHandlers = [
         order.sub_orders.forEach((so) => {
           so.status = 'CANCELLED';
         });
-        // A vault order's money goes back to the vault, once (vaultCheckout.service.ts).
-        if (order.payment_method === 'WALLET' && order.payment_status === 'PAID') {
+        // Money paid up front (vault or gateway) goes back to the vault, once (vaultCheckout.service.ts).
+        if (order.payment_method !== 'COD' && order.payment_status === 'PAID') {
           refundMockVault(order.total_amount);
           order.payment_status = 'REFUNDED';
         }

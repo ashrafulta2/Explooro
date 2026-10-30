@@ -62,7 +62,11 @@ describe('1. paid gateway orders lock escrow', () => {
 
   test('an already-successful payment heals a missing escrow on retry', () => {
     const idempotentBranch = paymentSrc.slice(paymentSrc.indexOf("if (txn.status === 'SUCCESS') {"));
-    assert.match(idempotentBranch.slice(0, 400), /lockEscrowForPaidOrder\(db, paidOrder\)/);
+    // WHY through settlePaidOrder: it locks escrow, unless every parcel was cancelled first, in which
+    // case the money goes to the shopper's vault instead (vaultCheckout.test.js).
+    assert.match(idempotentBranch.slice(0, 400), /settlePaidOrder\(db, paidOrder\)/);
+    const settle = paymentSrc.slice(paymentSrc.indexOf('async function settlePaidOrder'));
+    assert.match(settle.slice(0, 1600), /await lockEscrowForPaidOrder\(db, order\)/);
   });
 });
 

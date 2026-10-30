@@ -326,10 +326,10 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
     }
 
     // Cancellation Action (if eligible)
-    // WHY a vault order too: it is paid at checkout so its parcels start CONFIRMED, and cancelling one
-    // refunds the vault (server vaultCheckout.service.ts). A paid gateway order has no refund path yet.
-    const paidFromVault = order.payment_method === 'WALLET' && order.payment_status === 'PAID';
-    const canCancel = subOrders.some((s) => s.status === 'PLACED' || (paidFromVault && s.status === 'CONFIRMED'));
+    // WHY a paid order too: one paid up front (vault, bKash, Nagad, Rocket, card) has CONFIRMED parcels,
+    // and cancelling it returns the money to the vault (server vaultCheckout.service.ts). COD pays at the door.
+    const paidUpFront = order.payment_status === 'PAID' && String(order.payment_method || '').toUpperCase() !== 'COD';
+    const canCancel = subOrders.some((s) => s.status === 'PLACED' || (paidUpFront && s.status === 'CONFIRMED'));
     if (canCancel) {
       const cancelWrap = document.createElement('div');
       cancelWrap.className = 'mt-6';
@@ -363,6 +363,9 @@ function showCancelModal(order, navigate, onRefresh) {
   modalContent.className = 'p-4';
   modalContent.innerHTML = `
     <p>${t('order_tracking.cancel_confirm_desc')}</p>
+    ${order.payment_status === 'PAID' && String(order.payment_method || '').toUpperCase() !== 'COD'
+      ? `<p class="mt-2"><strong>${t('order_tracking.cancel_refund_vault', { amount: formatCurrency(order.total_amount) })}</strong></p>`
+      : ''}
     <div class="form-group mt-4">
       <label class="form-label">${t('order_tracking.cancel_reason_label')}:</label>
       <input type="text" class="form-input" id="cancel-reason-input" placeholder="${t('order_tracking.cancel_reason_placeholder')}" />

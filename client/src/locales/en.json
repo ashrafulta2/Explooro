@@ -2839,6 +2839,7 @@
     "paying": "Processing payment…",
     "cancel_confirm_title": "Cancel this order?",
     "cancel_confirm_desc": "Are you sure you want to cancel this order? All allocated items will be released back to inventory.",
+    "cancel_refund_vault": "The {{amount}} you paid will go back to your Explooro vault at once. You can spend it on your next order.",
     "cancel_success": "Order cancelled successfully.",
     "my_orders_title": "My Orders History",
     "back_to_account": "Account",

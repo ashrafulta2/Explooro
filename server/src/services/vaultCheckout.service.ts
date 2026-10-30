@@ -8,8 +8,11 @@
  *   payOrderFromVault         at checkout: shopper AVAILABLE -> EXTERNAL_CLEARING (the order total),
  *                             then every sub-order's escrow is locked from the clearing wallet,
  *                             exactly as payment.service does for a confirmed bKash order
- *   refundCancelledVaultOrder on cancel: each sub-order's escrow goes back to the clearing wallet,
- *                             then EXTERNAL_CLEARING -> shopper AVAILABLE (the order total)
+ *   refundCancelledOrderToVault  on cancel of any order paid up front (vault, bKash, Nagad, Rocket,
+ *                             card): each sub-order's escrow goes back to the clearing wallet, then
+ *                             EXTERNAL_CLEARING -> shopper AVAILABLE (the order total). Owner decision
+ *                             2026-10-30: a cancelled online payment comes back to the vault, not to the
+ *                             gateway (no gateway driver can refund for real yet).
  *
  * Invariants:
  *   1. The shopper is charged exactly orders.total_amount (after any coupon) and refunded exactly that,
@@ -28,6 +31,14 @@ import * as vaultService from './vault.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 
 export const VAULT_METHOD = 'WALLET';
+
+/**
+ * Pure. True when cancelling this order must hand money back: it was paid up front. COD is paid at
+ * the door, so a COD order that can still be cancelled has taken nothing.
+ */
+export function isRefundableOnCancel(order) {
+  return Boolean(order) && order.payment_status === 'PAID' && String(order.payment_method || '').toUpperCase() !== 'COD';
+}
 
 const toPaisa = (v) => Math.round(Number(v) * 100);
 const fromPaisa = (p) => (p / 100).toFixed(2);
@@ -109,12 +120,14 @@ export async function payOrderFromVault(client, { orderId, orderRef, userId, tot
 }
 
 /**
- * Gives a cancelled vault order its money back. Runs inside the cancel transaction. Returns the
- * escrow of every not-yet-shipped sub-order to the clearing wallet, then credits the shopper the
- * order total. A no-op for any order not paid from the vault, and for one already refunded.
+ * Gives a cancelled, paid-up-front order its money back, into the shopper's vault. Runs inside the
+ * caller's transaction. Returns the escrow of every sub-order to the clearing wallet (a gateway order
+ * whose escrow never locked has none, and is refunded all the same: the gateway did take the money),
+ * then credits the shopper the order total. A no-op for COD, for an unpaid order and for one already
+ * refunded.
  */
-export async function refundCancelledVaultOrder(client, order, { actorId = null, reason = 'Order cancelled' } = {}) {
-  if (order?.payment_method !== VAULT_METHOD || order.payment_status !== 'PAID') return { refunded: false };
+export async function refundCancelledOrderToVault(client, order, { actorId = null, reason = 'Order cancelled' } = {}) {
+  if (!isRefundableOnCancel(order)) return { refunded: false };
   const key = `vault_refund:${order.id}`;
   if (await ledgerKeyUsed(client, `${key}:credit`)) return { refunded: false, reason: 'ALREADY_REFUNDED' };
 
@@ -145,7 +158,7 @@ export async function refundCancelledVaultOrder(client, order, { actorId = null,
       defaultCategory: 'VAULT_REFUND',
       defaultReferenceType: 'orders',
       defaultReferenceId: Number(order.id),
-      memo: `Order ${order.ref} cancelled, vault payment returned`,
+      memo: `Order ${order.ref} cancelled, ${order.payment_method} payment returned to the vault`,
       entries: [
         { walletId: clearingId, entryType: 'DEBIT', amount: fromPaisa(totalPaisa), balanceBucket: 'AVAILABLE', idempotencyKey: `${key}:debit` },
         { walletId: wallet.id, entryType: 'CREDIT', amount: fromPaisa(totalPaisa), balanceBucket: 'AVAILABLE', idempotencyKey: `${key}:credit` },
@@ -160,7 +173,7 @@ export async function refundCancelledVaultOrder(client, order, { actorId = null,
     targetType: 'orders',
     targetRef: order.ref,
     before: { payment_status: 'PAID' },
-    after: { payment_status: 'REFUNDED', amount: fromPaisa(totalPaisa), wallet_id: wallet.id },
+    after: { payment_status: 'REFUNDED', amount: fromPaisa(totalPaisa), wallet_id: wallet.id, paid_by: order.payment_method },
     riskTier: 'LOW',
   });
   return { refunded: true, amount: fromPaisa(totalPaisa) };
