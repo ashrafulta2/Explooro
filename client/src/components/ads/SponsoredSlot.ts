@@ -13,6 +13,8 @@ import { appStore } from '../../state/appStore.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { api } from '../../core/api.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { PLACEHOLDER_COLOURS, placeholderInitials } from '../product/ProductCard.ts';
 
 /** A winning ad, in the shape the auction and the reserved placements both produce. */
 export interface SponsoredAdData {
@@ -238,7 +240,8 @@ export class SponsoredSlot {
     const price = Number(product.special_price || product.default_retail_price || product.price || 0);
     const was = Number(product.compare_at_price || (product.special_price ? product.price : 0) || 0);
     const offPct = was > price && price > 0 ? Math.round(((was - price) / was) * 100) : 0;
-    const money = (n: number) => `৳${n.toLocaleString(getLanguage() === 'bn' ? 'bn-BD' : 'en-US')}`;
+    // WHY formatCurrency: the ad sits between organic cards, so its price must read exactly like theirs.
+    const money = (n: number) => formatCurrency(n);
 
     const shop = product.shop_name || product.store?.shop_name || '';
     const rating = Number(product.avg_rating ?? product.rating ?? 0);
@@ -252,11 +255,11 @@ export class SponsoredSlot {
 
     const media = imgUrl
       ? `<img src="${esc(imgUrl)}" alt="${esc(title)}" class="sponsored-card-img" loading="lazy" />`
-      : '';
+      : this._placeholderMarkup(title, product);
 
     return `
       <article class="sponsored-product-card">
-        <div class="sponsored-card-image-wrap${imgUrl ? '' : ' is-empty'}">
+        <div class="sponsored-card-image-wrap">
           ${media}
           <span class="sponsored-tag" aria-label="${esc(t('ads.slot.aria_label'))}">${esc(t('ads.sponsored'))}</span>
           <button type="button" class="sponsored-why" aria-expanded="false" aria-label="${esc(t('ads.slot.why_label'))}" title="${esc(t('ads.slot.why_label'))}">
@@ -278,6 +281,18 @@ export class SponsoredSlot {
     `;
   }
 
+  /**
+   * No image, or a dead one: the same coloured initials tile an organic card draws. WHY: a grey
+   * tile between coloured ones reads as a broken card, the opposite of what an ad is paid for.
+   */
+  _placeholderMarkup(title: string, product: Record<string, any>): string {
+    const seed = Number.isInteger(product.image_index)
+      ? product.image_index
+      : [...String(product.id ?? title)].reduce((n, ch) => n + ch.charCodeAt(0), 0);
+    const { bg, fg } = PLACEHOLDER_COLOURS[seed % PLACEHOLDER_COLOURS.length];
+    return `<div class="sponsored-card-placeholder" style="background:${bg};color:${fg}" aria-hidden="true">${this._escapeHtml(placeholderInitials(title))}</div>`;
+  }
+
   /** Card behaviour: the whole card is one link-like target, and a broken image falls back cleanly. */
   _wireCard(container: HTMLElement) {
     container.tabIndex = 0;
@@ -286,8 +301,7 @@ export class SponsoredSlot {
     const img = container.querySelector<HTMLImageElement>('.sponsored-card-img');
     img?.addEventListener('error', () => {
       // WHY: a dead image URL otherwise leaves a square of alt text, the "broken ad" look.
-      img.parentElement?.classList.add('is-empty');
-      img.remove();
+      img.outerHTML = this._placeholderMarkup(img.alt, {});
     }, { once: true });
 
     const why = container.querySelector<HTMLButtonElement>('.sponsored-why');

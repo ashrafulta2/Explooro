@@ -56,3 +56,10 @@ test('the ad card strings exist in both locales', () => {
   assert.deepEqual(Object.keys(bn.ads.slot).sort(), Object.keys(en.ads.slot).sort());
   for (const v of Object.values(bn.ads.slot)) assert.ok(String(v).trim());
 });
+
+test('a sponsored card reads like the organic cards around it: same price format, same no-image tile', () => {
+  const src = readFileSync(new URL('../src/components/ads/SponsoredSlot.ts', import.meta.url), 'utf8');
+  assert.match(src, /formatCurrency\(/, 'price goes through formatCurrency');
+  assert.doesNotMatch(src, /`৳\$\{/, 'no hand-built ৳ price');
+  assert.match(src, /PLACEHOLDER_COLOURS/, 'no-image tile uses the organic card colours');
+});

@@ -76,18 +76,15 @@
   background: var(--surface-2);
 }
 
-/* No image, or a dead one: a quiet surface with a bag mark instead of alt text in a white square. */
-.sponsored-card-image-wrap.is-empty::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 40%;
-  height: 40%;
-  background: var(--text-muted);
-  opacity: 0.35;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l1 13H5L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7h12l1 13H5L6 7z'/%3E%3Cpath d='M9 7a3 3 0 0 1 6 0'/%3E%3C/svg%3E") center / contain no-repeat;
+/* No image, or a dead one: the coloured initials tile organic cards use (see .product-card__image-placeholder). */
+.sponsored-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-2xl);
+  font-weight: 700;
 }
 
 .sponsored-card-image-wrap .sponsored-tag {
