@@ -13,7 +13,7 @@
 
 import { AppError } from '../plugins/errorHandler.ts';
 import { withTransaction } from '../config/db.ts';
-import { getReferralSettings } from './referral.service.ts';
+import { getReferralSettings, DEFAULT_MAX_TIER_DEPTH } from './referral.service.ts';
 import { updateModuleSettings } from './module.service.ts';
 import { settleReferralEarnings } from './referralEscrow.service.ts';
 import * as auditService from './audit.service.ts';
@@ -58,7 +58,7 @@ function num(v, fallback = 0) {
 /** Engine settings -> the shape the admin form edits (defaults mirror getReferralSettings). */
 export function toReferralRules(settings: Record<string, any> = {}) {
   return {
-    tier_depth: num(settings.max_tier_depth, 2),
+    tier_depth: num(settings.max_tier_depth, DEFAULT_MAX_TIER_DEPTH),
     tier_1_rate_pct: num(settings.tier_1_rate_pct, 5),
     tier_2_rate_pct: num(settings.tier_2_rate_pct, 2),
     holding_period_days: num(settings.holding_period_days, 7),

@@ -236,7 +236,8 @@ describe('Prompt 9.3: Multi-Tier Referral & Network Growth Engine', () => {
       const mockDb = {
         query: async (sql, params = []) => {
           if (sql.includes('FROM platform_modules')) {
-            return { rows: [{ key: 'referral_engine', is_enabled: true, default_enabled: true }] };
+            // WHY the depth is stated: one tier is the default since 2026-10-31; this test is about two.
+            return { rows: [{ key: 'referral_engine', is_enabled: true, default_enabled: true, settings_json: { tier_1_rate_pct: 5, tier_2_rate_pct: 2, max_tier_depth: 2, holding_period_days: 7 } }] };
           }
           if (sql.includes('FROM referrals') && sql.includes('referred_user_id = $1')) {
             return { rows: pendingReferrals };

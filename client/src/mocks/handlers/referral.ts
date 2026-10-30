@@ -32,7 +32,7 @@ let mockOverview = {
     qualifying_event: 'FIRST_ORDER',
     tier_1_rate_pct: 5,
     tier_2_rate_pct: 2,
-    max_tier_depth: 2,
+    max_tier_depth: 1,
     holding_period_days: 7,
     signup_bonus_bdt: 50,
     first_sale_bonus_bdt: 200,
@@ -363,7 +363,7 @@ export const referralHandlers = [
         total_commissions_paid: '482500.00',
         // Programme rules are configuration, never hardcoded numbers (CLAUDE.md §business numbers).
         rules: {
-          tier_depth: 2,
+          tier_depth: 1,
           tier_1_rate_pct: 5,
           tier_2_rate_pct: 2,
           holding_period_days: 7,

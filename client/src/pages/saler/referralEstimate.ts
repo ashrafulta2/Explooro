@@ -35,7 +35,7 @@ export const DEFAULT_PROGRAM: Readonly<ReferralProgram> = Object.freeze({
   qualifying_event: 'FIRST_ORDER',
   tier_1_rate_pct: 5,
   tier_2_rate_pct: 2,
-  max_tier_depth: 2,
+  max_tier_depth: 1,
   holding_period_days: 7,
   signup_bonus_bdt: 0,
   first_sale_bonus_bdt: 0,

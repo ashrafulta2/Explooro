@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { estimateEarnings, programOf, DEFAULT_PROGRAM } from '../src/pages/saler/referralEstimate.ts';
 
 test('a percentage programme scales with spend, tier 2 on a 1.5x network', () => {
-  const out = estimateEarnings({ tier_1_rate_pct: 5, tier_2_rate_pct: 2 }, 10, 4000);
+  const out = estimateEarnings({ tier_1_rate_pct: 5, tier_2_rate_pct: 2, max_tier_depth: 2 }, 10, 4000);
   assert.equal(out.direct, 2000);
   assert.equal(out.sub, 15 * 4000 * 0.02);
   assert.equal(out.total, 3200);
@@ -26,13 +26,18 @@ test('a rate of 0 is honoured, not replaced by a default', () => {
 });
 
 test('a fixed-bonus programme ignores spend and pays the configured taka per person', () => {
-  const out = estimateEarnings({ qualifying_event: 'SIGNUP', signup_bonus_bdt: 50, tier_1_rate_pct: 5, tier_2_rate_pct: 2 }, 10, 99999);
+  const out = estimateEarnings({ qualifying_event: 'SIGNUP', signup_bonus_bdt: 50, tier_1_rate_pct: 5, tier_2_rate_pct: 2, max_tier_depth: 2 }, 10, 99999);
   assert.equal(out.direct, 500);
   assert.equal(out.sub, 15 * 50 * (2 / 5));
 });
 
 test('a fixed-bonus event with no bonus set pays nothing', () => {
   assert.equal(estimateEarnings({ qualifying_event: 'KYC_VERIFIED' }, 10, 4000).total, 0);
+});
+
+test('one tier is the default (owner decision 2026-10-31)', () => {
+  assert.equal(DEFAULT_PROGRAM.max_tier_depth, 1);
+  assert.equal(estimateEarnings({ tier_1_rate_pct: 5, tier_2_rate_pct: 2 }, 10, 4000).sub, 0);
 });
 
 test('max_tier_depth 1 drops the second tier', () => {

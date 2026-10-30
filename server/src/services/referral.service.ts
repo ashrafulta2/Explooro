@@ -20,6 +20,10 @@ import * as ledgerService from './ledger.service.ts';
 import { isEnabled } from './module.service.ts';
 import { hashNid } from './kyc.service.ts';
 
+// WHY 1: owner decision 2026-10-31 — only the person who referred directly earns. The live value is
+// the referral_engine module's max_tier_depth (migration 093); this is only the fallback.
+export const DEFAULT_MAX_TIER_DEPTH = 1;
+
 export async function getReferralSettings(db) {
   try {
     const { rows } = await db.query(
@@ -28,7 +32,7 @@ export async function getReferralSettings(db) {
     return rows[0]?.settings_json || {
       tier_1_rate_pct: 5.0,
       tier_2_rate_pct: 2.0,
-      max_tier_depth: 2,
+      max_tier_depth: DEFAULT_MAX_TIER_DEPTH,
       holding_period_days: 7,
       qualifying_event: 'FIRST_ORDER',
       daily_velocity_limit: 20,
@@ -37,7 +41,7 @@ export async function getReferralSettings(db) {
     return {
       tier_1_rate_pct: 5.0,
       tier_2_rate_pct: 2.0,
-      max_tier_depth: 2,
+      max_tier_depth: DEFAULT_MAX_TIER_DEPTH,
       holding_period_days: 7,
       qualifying_event: 'FIRST_ORDER',
       daily_velocity_limit: 20,
@@ -79,7 +83,7 @@ export function publicProgramRules(settings: Record<string, any> = {}) {
     qualifying_event: settings.qualifying_event || 'FIRST_ORDER',
     tier_1_rate_pct: num(settings.tier_1_rate_pct, 5),
     tier_2_rate_pct: num(settings.tier_2_rate_pct, 2),
-    max_tier_depth: num(settings.max_tier_depth, 2),
+    max_tier_depth: num(settings.max_tier_depth, DEFAULT_MAX_TIER_DEPTH),
     holding_period_days: num(settings.holding_period_days, 7),
     signup_bonus_bdt: num(settings.signup_bonus_bdt, 0),
     first_sale_bonus_bdt: num(settings.first_sale_bonus_bdt, 0),
@@ -329,7 +333,7 @@ export async function recordReferralAttribution(db, cache, {
   const tier1Ref = generateReferralLinkRef();
   // WHY max_tier_depth is read here: the admin page writes it, but nothing enforced it, so depth 1
   // still minted tier-2 rows and paid them.
-  const maxTierDepth = Number(settings?.max_tier_depth ?? 2);
+  const maxTierDepth = Number(settings?.max_tier_depth ?? DEFAULT_MAX_TIER_DEPTH);
 
   const { rows: tier1Rows } = await db.query(
     `INSERT INTO referrals (
@@ -434,7 +438,7 @@ export async function evaluateQualifyingEvent(db, cache, {
 
   const earningsCreated = [];
 
-  const maxTierDepth = Number(settings?.max_tier_depth ?? 2);
+  const maxTierDepth = Number(settings?.max_tier_depth ?? DEFAULT_MAX_TIER_DEPTH);
 
   for (const ref of pendingReferrals) {
     // A tier-2 row minted earlier stops paying once the admin lowers the depth to 1.

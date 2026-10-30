@@ -46,7 +46,7 @@ export default function AdminReferralsPage(root: HTMLElement) {
   let stats = { total_referrals: 0, qualified_count: 0, fraud_flagged_count: 0, active_referrers_count: 0 };
   let commissionsPaid = 0;
   let rules = {
-    tier_depth: 2,
+    tier_depth: 1,
     tier_1_rate_pct: 5,
     tier_2_rate_pct: 2,
     holding_period_days: 7,

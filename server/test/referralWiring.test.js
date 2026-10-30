@@ -11,6 +11,8 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import Fastify from 'fastify';
 import * as referralService from '../src/services/referral.service.ts';
 import authRoutes from '../src/routes/auth.routes.ts';
@@ -128,5 +130,15 @@ describe('Referral wiring: sign-up', () => {
     assert.equal(body.properties.referral_code.type, 'string');
     assert.equal(body.additionalProperties, false);
     assert.ok(!(body.required || []).includes('referral_code'), 'referral_code stays optional');
+  });
+});
+
+describe('Referral wiring: one tier by default', () => {
+  test('the fallback depth is 1 and migration 093 moves a stored 2 to 1, leaving other choices alone', async () => {
+    const { DEFAULT_MAX_TIER_DEPTH } = await import('../src/services/referral.service.ts');
+    assert.equal(DEFAULT_MAX_TIER_DEPTH, 1);
+    const sql = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/093_referral_one_tier.sql'), 'utf8');
+    assert.ok(sql.includes("jsonb_build_object('max_tier_depth', 1)"));
+    assert.ok(sql.includes("COALESCE((settings_json->>'max_tier_depth')::int, 2) = 2"));
   });
 });
