@@ -58,6 +58,18 @@ export function toBdtNumber(paisa: number): number {
 }
 
 /**
+ * The share of the margin each side actually gets, as a percentage (2 decimals).
+ * WHY this is not saler_split_pct: since migration 085 a supplier's per-unit partner_profit decides
+ * the pool's side, so the configured split can say 40/60 while the money goes 67/33. Anything that
+ * prints a percentage next to the earnings must print these, or the two disagree on screen.
+ */
+function marginSharePcts(poolPaisa: number, marginPaisa: number): { pool_share_pct: number; platform_share_pct: number } {
+  if (marginPaisa <= 0) return { pool_share_pct: 0, platform_share_pct: 0 };
+  const pool = parseFloat(((poolPaisa / marginPaisa) * 100).toFixed(2));
+  return { pool_share_pct: pool, platform_share_pct: parseFloat((100 - pool).toFixed(2)) };
+}
+
+/**
  * Resolves the active commission split percentages for a product/category context.
  *
  * @param {object} db Database client
@@ -402,6 +414,7 @@ export function calculatePricingBreakdown({
       price_status: priceStatus,
       pricing_state: priceStatus === 'DISCOUNTED' ? 'discount' : (priceStatus === 'BOOSTED' ? 'boost' : 'standard'),
       saler_split_pct: salerSplitPct,
+      ...marginSharePcts(salerEarningPaisa, netRetailMarginPaisa),
       platform_split_pct: platformSplitPct,
       total_margin_pct: totalMarginPct,
       saler_margin_pct: salerMarginPct,
@@ -467,6 +480,7 @@ export function calculatePricingBreakdown({
     extra_markup_platform_pct: extraMarkupPlatformPct,
     price_status: 'DEFAULT',
     saler_split_pct: salerSplitPct,
+    ...marginSharePcts(salerEarningPaisa, netRetailMarginPaisa),
     platform_split_pct: platformSplitPct,
     total_margin_pct: totalMarginPct,
     saler_margin_pct: salerMarginPct,

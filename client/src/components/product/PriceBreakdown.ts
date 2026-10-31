@@ -33,6 +33,9 @@ export interface ProductPricing {
   platform_earning?: number | string;
   saler_split_pct?: number | string;
   platform_split_pct?: number | string;
+  /** The split the two earnings rows really add up to — the configured split is not, see pricing.service.ts marginSharePcts. */
+  pool_share_pct?: number | string;
+  platform_share_pct?: number | string;
 }
 
 export interface PriceBreakdownOptions {
@@ -89,9 +92,11 @@ export function PriceBreakdown({
 
     const splitNote = document.createElement('p');
     splitNote.className = 'price-breakdown__split-note';
+    // WHY the share pcts, not saler_split_pct: the supplier's partner_profit decides the pool's side,
+    // so the configured split can disagree with the two rows just above.
     splitNote.textContent = t('product_detail.price.split_note', {
-      saler_pct: pricing.saler_split_pct,
-      platform_pct: pricing.platform_split_pct,
+      pool_pct: pricing.pool_share_pct ?? pricing.saler_split_pct,
+      platform_pct: pricing.platform_share_pct ?? pricing.platform_split_pct,
     });
     details.append(splitNote);
   }

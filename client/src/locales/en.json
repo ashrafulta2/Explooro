@@ -2012,7 +2012,7 @@
       "net_retail_margin": "Net retail margin",
       "your_earning": "Goes to the partner reward pool",
       "platform_earning": "Platform earning",
-      "split_note": "Split: you {{saler_pct}}% · platform {{platform_pct}}%"
+      "split_note": "Split: reward pool {{pool_pct}}% · platform {{platform_pct}}%"
     },
     "stock": {
       "in_stock": "In Stock",

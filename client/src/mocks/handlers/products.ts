@@ -124,6 +124,13 @@ const MOCK_SCORECARDS = [
 ];
 const mockScorecardAt = (i) => MOCK_SCORECARDS[i % MOCK_SCORECARDS.length];
 
+/** Mirrors pricing.service.ts marginSharePcts: the split the earnings rows actually show. */
+function sharePcts(pool, margin) {
+  if (!(margin > 0)) return { pool_share_pct: 0, platform_share_pct: 0 };
+  const poolPct = Number(((pool / margin) * 100).toFixed(2));
+  return { pool_share_pct: poolPct, platform_share_pct: Number((100 - poolPct).toFixed(2)) };
+}
+
 export function synthesizeSupplier(product) {
   const store = stores.find((s) => s.ref === product.store_ref);
   const tier = product.supplier_tier || 'standard';
@@ -187,6 +194,7 @@ function synthesizePricing(product) {
     price_status: 'DEFAULT',
     saler_split_pct: 40,
     platform_split_pct: 60,
+    ...sharePcts(salerDefaultProfit, platformDefaultProfit + salerDefaultProfit),
     saler_margin_pct: Number(((salerDefaultProfit / retail) * 100).toFixed(1)),
     total_margin_pct: Number((((platformDefaultProfit + salerDefaultProfit) / retail) * 100).toFixed(1)),
   };
@@ -791,6 +799,7 @@ export default [
         price_status: priceStatus,
         saler_split_pct: 40,
         platform_split_pct: 60,
+        ...sharePcts(salerEarningPaisa, netRetailMarginPaisa),
         total_margin_pct: totalMarginPct,
         saler_margin_pct: salerMarginPct,
         rule_source: 'GLOBAL_COMMISSION_RULE',

@@ -2012,7 +2012,7 @@
       "net_retail_margin": "নেট খুচরা মার্জিন",
       "your_earning": "পার্টনার রিওয়ার্ড পুলে যায়",
       "platform_earning": "প্ল্যাটফর্মের আয়",
-      "split_note": "ভাগাভাগি: আপনি {{saler_pct}}% · প্ল্যাটফর্ম {{platform_pct}}%"
+      "split_note": "ভাগাভাগি: রিওয়ার্ড পুল {{pool_pct}}% · প্ল্যাটফর্ম {{platform_pct}}%"
     },
     "stock": {
       "in_stock": "স্টকে আছে",

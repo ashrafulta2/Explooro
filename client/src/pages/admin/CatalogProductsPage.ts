@@ -858,8 +858,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         splitEl.innerHTML =
           splitRow(t('admin_catalog.suggested_retail', 'Suggested Retail Price'), formatCurrency(retail), ' catalog-drawer__row--strong') +
           splitRow(t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost'), formatCurrency(pr.wholesale_cost)) +
-          splitRow(`💰 ${t('admin_catalog.saler_earning', { pct: formatNumber(pr.saler_split_pct) })}`, formatCurrency(pr.saler_earning), ' catalog-drawer__row--earn') +
-          splitRow(t('admin_catalog.platform_fee', { pct: formatNumber(pr.platform_split_pct) }), formatCurrency(pr.platform_earning), ' catalog-drawer__row--muted');
+          splitRow(`💰 ${t('admin_catalog.saler_earning', { pct: formatNumber(pr.pool_share_pct ?? pr.saler_split_pct) })}`, formatCurrency(pr.saler_earning), ' catalog-drawer__row--earn') +
+          splitRow(t('admin_catalog.platform_fee', { pct: formatNumber(pr.platform_share_pct ?? pr.platform_split_pct) }), formatCurrency(pr.platform_earning), ' catalog-drawer__row--muted');
       })
       .catch(() => {
         splitEl.innerHTML =
