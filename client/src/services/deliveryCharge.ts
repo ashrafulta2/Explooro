@@ -13,11 +13,15 @@
  */
 
 import { api } from '../core/api.ts';
+import { t } from './i18n.ts';
+import { formatNumber } from './format.ts';
 import type { ApiResponse } from '../core/api.ts';
 import { defaultZone, isDeliveryPolicy, resolveZone } from './deliveryZones.ts';
 import type { DeliveryPolicy, DeliveryZone } from './deliveryZones.ts';
 
-const STORAGE_KEY = 'explooro:delivery:policy';
+// WHY a versioned key: a policy stored before zones carried team charge and days fails the check and
+// is simply re-fetched.
+const STORAGE_KEY = 'explooro:delivery:policy:v2';
 
 function readStored(): DeliveryPolicy | null {
   try {
@@ -69,6 +73,14 @@ export function loadDeliveryPolicy(): Promise<DeliveryPolicy | null> {
       });
   }
   return pending;
+}
+
+/** "1–2 days" / "১–২ দিন", or "Same day" for a 0–0 zone; '' for no zone. */
+export function deliveryEtaText(zone: Pick<DeliveryZone, 'days_min' | 'days_max'> | null | undefined): string {
+  if (!zone || !Number.isInteger(zone.days_min) || !Number.isInteger(zone.days_max)) return '';
+  if (zone.days_max === 0) return t('delivery.eta_same_day');
+  if (zone.days_min === zone.days_max) return t('delivery.eta_days_one', { n: formatNumber(zone.days_max) });
+  return t('delivery.eta_days', { min: formatNumber(zone.days_min), max: formatNumber(zone.days_max) });
 }
 
 /** Loads the policy and answers with the default zone's charge (the cart estimate). */

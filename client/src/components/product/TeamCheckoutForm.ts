@@ -1,13 +1,16 @@
 /**
  * TeamCheckoutForm.ts — the form a shopper fills to start or join a team purchase.
  *
- * It asks for exactly two things, the recipient's name and their address, plus how to pay:
+ * It asks for the recipient's name, their division and district, and their address, plus how to pay:
  * Cash on Delivery or the Explooro wallet. Below them it shows what will be charged — the group
- * price, the shipping charge a super admin set, and the total — using the numbers the server sent
- * (GET /team-purchases/quote), never prices computed here.
+ * price, the delivery charge and the total — and how long delivery takes.
  *
- * The phone number on the order is the buyer's account phone, and the district is read from the
- * address on the server, so neither is asked for.
+ * WHY the district: since migration 099 each member pays the team-purchase charge of THEIR delivery
+ * zone (/admin/platform/delivery), so two members of one team can pay different delivery charges.
+ * The charge shown follows the picked district through services/deliveryZones.ts, the mirror of the
+ * server's resolver; the server re-resolves it on join and that is what is charged.
+ *
+ * The phone number on the order is the buyer's account phone, so it is not asked for.
  *
  * Cash on Delivery passes the same trust check as a normal checkout. When the server answers
  * COD_OTP_REQUIRED it has sent an SMS code to the account phone; the form then shows a code field
@@ -21,11 +24,16 @@
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { customerApi } from '../../services/customer.api.ts';
+import { BANGLADESH_DIVISIONS, getDistrictsByDivision, getDivisionById } from '../../data/bangladeshGeo.ts';
+import { knownZoneFor, loadDeliveryPolicy, deliveryEtaText } from '../../services/deliveryCharge.ts';
+import { zoneName } from '../../services/deliveryZones.ts';
 import '../../styles/components/team-checkout.css';
 
 /** What `onSubmit` receives; `otp_code` only follows a COD_OTP_REQUIRED answer. */
 export interface TeamCheckoutPayload {
   recipient_name: string;
+  division: string;
+  district: string;
   address_line: string;
   payment_method: 'COD' | 'WALLET';
   otp_code?: string;
@@ -33,6 +41,7 @@ export interface TeamCheckoutPayload {
 
 export interface TeamCheckoutFormOptions {
   itemPrice?: number | string;
+  /** Shown only until the zone policy has loaded; after that the picked district's zone decides. */
   shippingCharge?: number | string;
   /** Null when signed out. */
   walletBalance?: number | string | null;
@@ -50,6 +59,7 @@ interface SavedAddress {
   recipient_name?: string;
   address_line?: string;
   upazila?: string;
+  division?: string;
   district?: string;
   is_default?: boolean;
 }
@@ -62,9 +72,9 @@ interface OtpDetails {
 
 const toPaisa = (v: number | string | null | undefined) => Math.round(Number(v || 0) * 100);
 
-/** "House 4, Road 7" + "Dhanmondi" + "Dhaka" from a saved address, skipping blanks. */
+/** "House 4, Road 7" + "Dhanmondi" from a saved address, skipping blanks (the district has its own field). */
 function joinAddress(a: SavedAddress) {
-  return [a.address_line, a.upazila, a.district].filter((part) => part && String(part).trim()).join(', ');
+  return [a.address_line, a.upazila].filter((part) => part && String(part).trim()).join(', ');
 }
 
 export function TeamCheckoutForm({
@@ -88,6 +98,43 @@ export function TeamCheckoutForm({
   nameField.querySelector('.team-checkout__label')!.textContent = t('team_purchases.checkout.recipient_name');
   const nameInput = nameField.querySelector<HTMLInputElement>('input')!;
   nameInput.placeholder = t('team_purchases.checkout.recipient_name_placeholder');
+
+  // -- division / district: decide the delivery zone, so the delivery charge ---------------------------
+  const isBn = () => document.documentElement.lang === 'bn';
+  const placeRow = document.createElement('div');
+  placeRow.className = 'team-checkout__place';
+  const divisionField = document.createElement('label');
+  divisionField.className = 'team-checkout__field';
+  divisionField.innerHTML = `<span class="team-checkout__label"></span><select class="input input--sm" name="division" required></select>`;
+  divisionField.querySelector('.team-checkout__label')!.textContent = t('checkout.division');
+  const divisionSelect = divisionField.querySelector<HTMLSelectElement>('select')!;
+  for (const div of BANGLADESH_DIVISIONS) {
+    const opt = document.createElement('option');
+    opt.value = div.id;
+    opt.textContent = isBn() ? div.name_bn : div.name_en;
+    divisionSelect.append(opt);
+  }
+  divisionSelect.value = 'dhaka';
+  const districtField = document.createElement('label');
+  districtField.className = 'team-checkout__field';
+  districtField.innerHTML = `<span class="team-checkout__label"></span><select class="input input--sm" name="district" required></select>`;
+  districtField.querySelector('.team-checkout__label')!.textContent = t('checkout.district');
+  const districtSelect = districtField.querySelector<HTMLSelectElement>('select')!;
+  function fillDistricts(selected?: string) {
+    const list = getDistrictsByDivision(divisionSelect.value);
+    districtSelect.innerHTML = '';
+    for (const d of list) {
+      const opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = isBn() ? d.name_bn : d.name_en;
+      districtSelect.append(opt);
+    }
+    if (selected && list.some((d) => d.id === selected)) districtSelect.value = selected;
+  }
+  fillDistricts();
+  divisionSelect.addEventListener('change', () => { fillDistricts(); renderSummary(); });
+  districtSelect.addEventListener('change', () => renderSummary());
+  placeRow.append(divisionField, districtField);
 
   const addressField = document.createElement('label');
   addressField.className = 'team-checkout__field';
@@ -165,17 +212,27 @@ export function TeamCheckoutForm({
   submit.type = 'submit';
   submit.className = 'btn btn--primary btn--md w-full team-checkout__submit';
 
-  form.append(nameField, addressField, payment, otpField, summary, error, submit);
+  form.append(nameField, placeRow, addressField, payment, otpField, summary, error, submit);
+
+  /** The picked district's zone, once the policy is known; null before (the quote's figure stands in). */
+  const zone = () => knownZoneFor(districtSelect.value);
+  const shippingNow = () => {
+    const z = zone();
+    return z ? z.team_charge : Number(shippingCharge) || 0;
+  };
 
   function totalPaisa() {
-    return toPaisa(currentItemPrice) + toPaisa(shippingCharge);
+    return toPaisa(currentItemPrice) + toPaisa(shippingNow());
   }
 
   function renderSummary() {
     summary.innerHTML = '';
+    const z = zone();
+    const eta = deliveryEtaText(z);
     const rows = [
       [t('team_purchases.checkout.item_price'), formatCurrency(currentItemPrice)],
-      [t('team_purchases.checkout.shipping_charge'), formatCurrency(shippingCharge)],
+      [z ? t('team_purchases.checkout.shipping_zone', { zone: zoneName(z, isBn() ? 'bn' : 'en') }) : t('team_purchases.checkout.shipping_charge'), formatCurrency(shippingNow())],
+      ...(eta ? [[t('checkout.delivery_eta_label'), eta]] : []),
       [t('team_purchases.checkout.total'), formatCurrency(totalPaisa() / 100)],
     ];
     rows.forEach(([term, value], i) => {
@@ -237,6 +294,8 @@ export function TeamCheckoutForm({
     try {
       await onSubmit({
         recipient_name: recipientName,
+        division: divisionSelect.value,
+        district: districtSelect.value,
         address_line: addressLine,
         payment_method: payingCod ? 'COD' : 'WALLET',
         ...(payingCod && otpCode ? { otp_code: otpCode } : {}),
@@ -262,7 +321,16 @@ export function TeamCheckoutForm({
     if (!saved) return;
     if (!nameInput.value) nameInput.value = saved.recipient_name || '';
     if (!addressInput.value) addressInput.value = joinAddress(saved);
+    const div = getDivisionById(saved.division);
+    if (div) {
+      divisionSelect.value = div.id;
+      fillDistricts(saved.district);
+      renderSummary();
+    }
   }).catch(() => {});
+
+  // Once the zones are known, the charge follows the picked district.
+  loadDeliveryPolicy().then(() => renderSummary());
 
   return {
     el: form,

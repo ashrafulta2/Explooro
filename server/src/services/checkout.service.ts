@@ -347,6 +347,8 @@ export async function executeCheckout(pool, cache, {
       upazila,
       addressLine,
       deliveryZone: delivery.zone.key,
+      deliveryDaysMin: delivery.zone.days_min,
+      deliveryDaysMax: delivery.zone.days_max,
     });
 
     // 9. FEFO Batch Allocation, Stock Decrement & Sub-Orders Creation

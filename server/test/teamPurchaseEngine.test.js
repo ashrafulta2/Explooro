@@ -49,18 +49,19 @@ describe('Prompt 9.5: Social Group Buying (Team Purchase Engine)', () => {
   describe('1. Pure rules', () => {
     test('resolveSettings falls back field by field and reads the pre-068 single discount', () => {
       assert.deepEqual(resolveSettings(null), { ...DEFAULT_SETTINGS });
-      const legacy = resolveSettings({ discount_pct: 20, window_hours: 0, shipping_charge: 'x' });
+      const legacy = resolveSettings({ discount_pct: 20, window_hours: 0, shipping_charge: 75 });
       assert.equal(legacy.discount_pct_2, 20);
       assert.equal(legacy.discount_pct_3, 20);
       assert.equal(legacy.window_hours, DEFAULT_SETTINGS.window_hours);
-      assert.equal(legacy.shipping_charge, DEFAULT_SETTINGS.shipping_charge);
-      assert.equal(resolveSettings({ shipping_charge: 75.5 }).shipping_charge, 75.5);
+      // The delivery charge left the module in migration 099 (it is per zone now); a stale key is ignored.
+      assert.equal('shipping_charge' in legacy, false);
     });
 
     test('validateSettingsPatch is strict: out-of-range values are refused, not clamped', () => {
-      assert.deepEqual(validateSettingsPatch({ shipping_charge: 80 }), { shipping_charge: 80 });
-      assert.deepEqual(validateSettingsPatch({ shipping_charge: 0, discount_pct_3: 30 }), { shipping_charge: 0, discount_pct_3: 30 });
-      for (const bad of [{ shipping_charge: -1 }, { shipping_charge: 5001 }, { shipping_charge: '60' }, { shipping_charge: 10.555 },
+      assert.deepEqual(validateSettingsPatch({ discount_pct_3: 30, window_hours: 12 }), { discount_pct_3: 30, window_hours: 12 });
+      // The delivery charge is set per zone at /admin/platform/delivery now; sending it here is refused,
+      // never silently dropped.
+      for (const bad of [{ shipping_charge: 80 }, { shipping_charge: 0, discount_pct_3: 30 },
         { discount_pct_2: 91 }, { discount_pct_2: 10.5 }, { window_hours: 0 }, { default_team_size: 4 }, {}]) {
         assert.throws(() => validateSettingsPatch(bad), (err) => err.code === 'VALIDATION_FAILED', JSON.stringify(bad));
       }

@@ -12,8 +12,9 @@
  * only) enables Save. Every save needs a reason, is stale-checked, and writes an audit row (listed at
  * the bottom).
  *
- * Team purchase has its own charge at /admin/growth/group-buy, because each team keeps the charge
- * it started with. The page links there so nobody looks for it here.
+ * Since migration 099 each zone also holds the team-purchase charge (what a team member delivered to
+ * that zone pays; it used to be one number at /admin/growth/group-buy) and the delivery time in days,
+ * which checkout shows and the order records. Every area-based delivery number lives on this page.
  *
  * WHY the bounds and the district list come from the API (`limits`, `districts_by_division`): the
  * server refuses anything else, and the page must never offer a value it would refuse.
@@ -29,6 +30,7 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatRelativeTime } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { resolveZone, zoneName } from '../../services/deliveryZones.ts';
+import { deliveryEtaText } from '../../services/deliveryCharge.ts';
 import type { DeliveryPolicy, DeliveryZone } from '../../services/deliveryZones.ts';
 import { BANGLADESH_DIVISIONS } from '../../data/bangladeshGeo.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
@@ -37,12 +39,14 @@ import type { PageContext } from '../types.ts';
 
 const MIN_REASON_LENGTH = 10;
 
-interface Limits { min: number; max: number; minZones: number; maxZones: number; nameMaxLength: number }
+interface Limits { min: number; max: number; minZones: number; maxZones: number; nameMaxLength: number; days: { min: number; max: number } }
 
 const clonePolicy = (p: DeliveryPolicy): DeliveryPolicy => ({
   default_zone: p.default_zone,
   zones: p.zones.map((z) => ({ ...z, districts: [...z.districts] })),
 });
+
+const isDays = (n: number, limits: Limits) => Number.isInteger(n) && n >= limits.days.min && n <= limits.days.max;
 
 const isCharge = (n: number, limits: Limits) =>
   Number.isFinite(n) && n >= limits.min && n <= limits.max && Math.round(n * 100) === n * 100;
@@ -167,7 +171,44 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
       refreshTester();
     });
 
-    grid.append(nameEn, nameBn, charge);
+    // A money field per zone; `field` is which zone property it edits.
+    const moneyInput = (field: 'team_charge', label: string, hint: string) => {
+      const input = Input({
+        label, hint, type: 'number', name: `${field}_${zone.key}`, prefix: '৳',
+        value: String(zone[field]), inputmode: 'decimal', required: true,
+      });
+      input.input.min = String(limits.min);
+      input.input.max = String(limits.max);
+      input.input.step = '0.01';
+      input.input.disabled = !editable;
+      input.input.addEventListener('input', () => {
+        zone[field] = input.value === '' ? Number.NaN : Number(input.value);
+        refreshTester();
+      });
+      return input;
+    };
+    const teamCharge = moneyInput('team_charge', t('admin.delivery.team_charge'), t('admin.delivery.team_charge_hint'));
+
+    // Delivery time: whole days, "from" never above "to" (the server refuses it otherwise).
+    const dayInput = (field: 'days_min' | 'days_max', label: string) => {
+      const input = Input({
+        label, type: 'number', name: `${field}_${zone.key}`, value: String(zone[field]),
+        inputmode: 'numeric', required: true, suffix: t('admin.delivery.days_suffix'),
+      });
+      input.input.min = String(limits.days.min);
+      input.input.max = String(limits.days.max);
+      input.input.step = '1';
+      input.input.disabled = !editable;
+      input.input.addEventListener('input', () => {
+        zone[field] = input.value === '' ? Number.NaN : Number(input.value);
+        refreshTester();
+      });
+      return input;
+    };
+    const daysMin = dayInput('days_min', t('admin.delivery.days_min'));
+    const daysMax = dayInput('days_max', t('admin.delivery.days_max'));
+
+    grid.append(nameEn, nameBn, charge, teamCharge, daysMin, daysMax);
     card.append(grid);
 
     const defaultLabel = document.createElement('label');
@@ -273,9 +314,11 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
   function refreshTester() {
     if (!testerResult || !draft) return;
     const zone = resolveZone(draft, testerDistrict);
-    testerResult.textContent = Number.isFinite(zone.charge)
-      ? t('admin.delivery.tester_result', { zone: zoneName(zone, lang) || zone.key, charge: formatCurrency(zone.charge) })
-      : zoneName(zone, lang);
+    const parts = [zoneName(zone, lang) || zone.key];
+    if (Number.isFinite(zone.charge)) parts.push(t('admin.delivery.tester_charge', { charge: formatCurrency(zone.charge) }));
+    if (Number.isFinite(zone.team_charge)) parts.push(t('admin.delivery.tester_team', { charge: formatCurrency(zone.team_charge) }));
+    if (Number.isInteger(zone.days_min) && Number.isInteger(zone.days_max) && zone.days_min <= zone.days_max) parts.push(deliveryEtaText(zone));
+    testerResult.textContent = parts.join(' · ');
   }
 
   function renderZones() {
@@ -318,7 +361,10 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
           return;
         }
         const key = `zone_${Date.now().toString(36)}`;
-        draft.zones.push({ key, name_en: t('admin.delivery.new_zone_en'), name_bn: t('admin.delivery.new_zone_bn'), charge: limits.min, districts: [] });
+        draft.zones.push({
+          key, name_en: t('admin.delivery.new_zone_en'), name_bn: t('admin.delivery.new_zone_bn'),
+          charge: limits.min, team_charge: limits.min, days_min: limits.days.min, days_max: limits.days.min, districts: [],
+        });
         openZones.add(key);
         renderZones();
       },
@@ -377,8 +423,12 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
             toast.error(t('admin.delivery.name_required'));
             return;
           }
-          if (!isCharge(zone.charge, limits)) {
+          if (!isCharge(zone.charge, limits) || !isCharge(zone.team_charge, limits)) {
             toast.error(t('admin.delivery.per_parcel_hint', { min: limits.min, max: limits.max }));
+            return;
+          }
+          if (!isDays(zone.days_min, limits) || !isDays(zone.days_max, limits) || zone.days_min > zone.days_max) {
+            toast.error(t('admin.delivery.days_hint', { min: limits.days.min, max: limits.days.max }));
             return;
           }
         }
@@ -390,7 +440,10 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
         save.disabled = true;
         try {
           const res = await api.put('/admin/platform/delivery', {
-            zones: draft.zones.map((z) => ({ key: z.key, name_en: z.name_en.trim(), name_bn: z.name_bn.trim(), charge: z.charge, districts: z.districts })),
+            zones: draft.zones.map((z) => ({
+              key: z.key, name_en: z.name_en.trim(), name_bn: z.name_bn.trim(),
+              charge: z.charge, team_charge: z.team_charge, days_min: z.days_min, days_max: z.days_max, districts: z.districts,
+            })),
             default_zone: draft.default_zone,
             expected_updated_at: data.policy.updated_at ?? null,
             reason: reasonText.trim(),
@@ -422,10 +475,7 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
 
     const teamNote = document.createElement('p');
     teamNote.className = 'text-xs text-secondary mt-2';
-    const link = document.createElement('a');
-    link.href = '/admin/growth/group-buy';
-    link.textContent = t('admin.delivery.team_link');
-    teamNote.append(`${t('admin.delivery.team_note')} `, link);
+    teamNote.textContent = t('admin.delivery.team_note');
     panel.append(teamNote);
 
     renderZones();
@@ -470,7 +520,11 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
   function summarizeAudit(json): string {
     if (!json) return '—';
     if (Array.isArray(json.zones)) {
-      return json.zones.map((z) => `${zoneName(z, lang) || z.key} ${formatCurrency(z.charge)}`).join(' · ');
+      return json.zones.map((z) => {
+        const team = z.team_charge != null ? ` / ${t('admin.delivery.history_team', { charge: formatCurrency(z.team_charge) })}` : '';
+        const eta = deliveryEtaText(z);
+        return `${zoneName(z, lang) || z.key} ${formatCurrency(z.charge)}${team}${eta ? ` (${eta})` : ''}`;
+      }).join(' · ');
     }
     if (json.per_parcel_charge != null) return formatCurrency(json.per_parcel_charge);
     return '—';

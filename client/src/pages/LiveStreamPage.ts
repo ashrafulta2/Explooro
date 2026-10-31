@@ -12,7 +12,7 @@
  * 8. Complete bilingual localization (EN/BN) and WCAG accessibility with aria-live regions.
  */
 
-import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge } from '../services/deliveryCharge.ts';
+import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge, deliveryEtaText } from '../services/deliveryCharge.ts';
 import { zoneName } from '../services/deliveryZones.ts';
 import { BANGLADESH_DIVISIONS, getDistrictsByDivision } from '../data/bangladeshGeo.ts';
 import { escapeHtml } from '../services/html.ts';
@@ -1164,7 +1164,9 @@ function openInStreamCheckoutDrawer(product, streamId) {
   fillDistricts();
   const zoneEstimate = () => {
     const zone = knownZoneFor(distSelect.value);
-    zoneHint.textContent = zone ? t('checkout.delivery_zone_rate', { charge: formatBdt(zone.charge), count: 1 }) + ` · ${zoneName(zone, lang)}` : '';
+    zoneHint.textContent = zone
+      ? [t('checkout.delivery_zone_rate', { charge: formatBdt(zone.charge), count: 1 }), zoneName(zone, lang), deliveryEtaText(zone)].filter(Boolean).join(' · ')
+      : '';
     return zone ? zone.charge : (knownDeliveryCharge() ?? 0);
   };
   let shipEstimate = zoneEstimate();

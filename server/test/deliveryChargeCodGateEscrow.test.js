@@ -75,8 +75,8 @@ describe('2. delivery charge is a setting', () => {
   const zones = (inside, outside) => ({
     default_zone: 'outside_dhaka',
     zones: [
-      { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: inside, districts: ['dhaka_city'] },
-      { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: outside, districts: [] },
+      { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: inside, team_charge: 60, days_min: 1, days_max: 2, districts: ['dhaka_city'] },
+      { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: outside, team_charge: 60, days_min: 3, days_max: 5, districts: [] },
     ],
   });
 

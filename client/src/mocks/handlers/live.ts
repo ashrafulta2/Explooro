@@ -814,7 +814,7 @@ export function mockQuote(streamId, productId, quantity = 1, couponCode = '', di
     unit_price: unit,
     items_amount: unit * qty,
     shipping_amount: shipping,
-    delivery_zone: { key: zone.key, name_en: zone.name_en, name_bn: zone.name_bn },
+    delivery_zone: { key: zone.key, name_en: zone.name_en, name_bn: zone.name_bn, days_min: zone.days_min, days_max: zone.days_max },
     discount_amount: discount,
     total_amount: unit * qty + shipping - discount,
     coupon,

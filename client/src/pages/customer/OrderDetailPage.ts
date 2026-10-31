@@ -17,6 +17,8 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { goBack, renderBackLink } from '../../core/navBack.ts';
+import { expectedDeliveryWindow } from '../../services/deliveryZones.ts';
+import { escapeHtml } from '../../services/html.ts';
 import '../../styles/components/customer-orders.css';
 import type { PageContext } from '../types.ts';
 
@@ -256,6 +258,24 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
       </div>
     `;
     summaryCard.append(addrSection);
+
+    // Expected delivery: the zone's time promised at checkout (orders.delivery_days_min/max), counted
+    // from the day it was placed. Hidden once nothing is still on its way.
+    const deliveryWindow = expectedDeliveryWindow(order.placed_at || order.created_at, order.delivery_days_min, order.delivery_days_max);
+    const stillComing = subOrders.length === 0 || subOrders.some((so) => !['DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED'].includes(so.status));
+    if (deliveryWindow && stillComing) {
+      const [from, to] = deliveryWindow;
+      const range = from.getTime() === to.getTime()
+        ? formatDate(from)
+        : t('order_tracking.expected_range', { from: formatDate(from), to: formatDate(to) });
+      const etaSection = document.createElement('div');
+      etaSection.className = 'mb-6';
+      etaSection.dataset.expectedDelivery = '';
+      etaSection.innerHTML = `
+        <h3 class="checkout-summary__title" style="margin-bottom: 8px; font-size: 1.05rem;">${escapeHtml(t('order_tracking.expected_delivery'))}</h3>
+        <div style="font-size: 0.925rem; color: var(--text-primary); font-weight: 600;">${escapeHtml(range)}</div>`;
+      summaryCard.append(etaSection);
+    }
 
     // Divider
     const divider = document.createElement('div');

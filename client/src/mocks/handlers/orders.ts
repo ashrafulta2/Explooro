@@ -115,6 +115,8 @@ const orderHandlers = [
         items_amount: '700.00',
         shipping_amount: shipping,
         delivery_zone: zone.key,
+        delivery_days_min: zone.days_min,
+        delivery_days_max: zone.days_max,
         discount_amount: '0.00',
         currency: 'BDT',
         payment_method: b.payment_method || 'COD',

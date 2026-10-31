@@ -514,7 +514,13 @@ export async function quoteInStreamBuy(pool, cache, { streamId, productId, varia
     unit_price: toBdtNumber(toPaisa(unitPrice)),
     items_amount: toBdtNumber(itemsPaisa),
     shipping_amount: toBdtNumber(shippingPaisa),
-    delivery_zone: { key: delivery.zone.key, name_en: delivery.zone.name_en, name_bn: delivery.zone.name_bn },
+    delivery_zone: {
+      key: delivery.zone.key,
+      name_en: delivery.zone.name_en,
+      name_bn: delivery.zone.name_bn,
+      days_min: delivery.zone.days_min,
+      days_max: delivery.zone.days_max,
+    },
     discount_amount: toBdtNumber(discountPaisa),
     total_amount: toBdtNumber(itemsPaisa + shippingPaisa - discountPaisa),
     coupon,
@@ -755,6 +761,8 @@ export async function executeInStreamBuy(pool, cache, {
         addressLine: address,
         liveStreamId: sId,
         deliveryZone: delivery.zone.key,
+        deliveryDaysMin: delivery.zone.days_min,
+        deliveryDaysMax: delivery.zone.days_max,
       });
       const subOrder = await orderRepo.createSubOrder(client, {
         ref: `${orderRef}-1`,

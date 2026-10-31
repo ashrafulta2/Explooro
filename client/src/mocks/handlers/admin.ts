@@ -3046,7 +3046,7 @@ export const adminHandlers: MockRoute[] = [
         status: 200,
         body: {
           settings: { ...mockTeamSettings },
-          limits: { window_hours: { min: 1, max: 168 }, discount_pct: { min: 0, max: 90 }, shipping_charge: { min: 0, max: 5000 } },
+          limits: { window_hours: { min: 1, max: 168 }, discount_pct: { min: 0, max: 90 } },
           pricing: mockPricingContext(),
           stats: { total_teams: 4, active_pools: 2, completed_teams: 1, expired_teams: 1, gross_team_gmv_bdt: '3120.00', conversion_rate_pct: 50 },
           teams,
@@ -3058,6 +3058,10 @@ export const adminHandlers: MockRoute[] = [
     method: 'PUT',
     path: '/admin/growth/group-buy/settings',
     handler({ body }) {
+      // As the server: the team delivery charge lives in the delivery zones since migration 099.
+      if (body && body.shipping_charge !== undefined) {
+        return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message_en: 'The team-purchase delivery charge is set per area now, at /admin/platform/delivery.', message_bn: 'টিম পারচেজের ডেলিভারি চার্জ এখন এলাকা অনুযায়ী /admin/platform/delivery পেজে সেট হয়।' } } };
+      }
       Object.assign(mockTeamSettings, body || {});
       return { status: 200, body: { settings: { ...mockTeamSettings } } };
     },

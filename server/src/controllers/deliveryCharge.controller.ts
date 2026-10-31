@@ -11,7 +11,11 @@ const dbOf = (req) => req.db || req.server?.db;
 const cacheOf = (req) => req.cache || req.server?.cache;
 
 // WHY the bounds come from here: the page must never offer a value the server would refuse.
-const limits = () => ({ ...deliveryChargeService.CHARGE_LIMITS, ...deliveryChargeService.ZONE_LIMITS });
+const limits = () => ({
+  ...deliveryChargeService.CHARGE_LIMITS,
+  ...deliveryChargeService.ZONE_LIMITS,
+  days: { ...deliveryChargeService.DAYS_LIMITS },
+});
 
 /** Public: the cart, Quick Buy and checkout show the charge before sign-in. Never fails (default on error). */
 export async function getPublicPolicy(req, reply) {

@@ -13,6 +13,11 @@ export interface DeliveryZone {
   name_en: string;
   name_bn: string;
   charge: number;
+  /** Per-member delivery charge for a team purchase to this zone (migration 099). */
+  team_charge: number;
+  /** Delivery time in whole days; 0 is same-day. */
+  days_min: number;
+  days_max: number;
   districts: string[];
 }
 
@@ -51,7 +56,11 @@ export function isDeliveryPolicy(value: unknown): value is DeliveryPolicy {
     && typeof p.default_zone === 'string'
     && Array.isArray(p.zones)
     && p.zones.length > 0
-    && p.zones.every((z) => z && typeof z.key === 'string' && Number.isFinite(z.charge) && z.charge >= 0 && Array.isArray(z.districts));
+    && p.zones.every((z) => z && typeof z.key === 'string'
+      && Number.isFinite(z.charge) && z.charge >= 0
+      && Number.isFinite(z.team_charge) && z.team_charge >= 0
+      && Number.isInteger(z.days_min) && Number.isInteger(z.days_max) && z.days_min <= z.days_max
+      && Array.isArray(z.districts));
 }
 
 /** The zone that delivers to `district`: the zone listing it, else the default zone. */
@@ -67,6 +76,23 @@ export function resolveZone(policy: DeliveryPolicy, district: unknown): Delivery
 /** The zone a shopper is charged before they give an address (the cart estimate). */
 export function defaultZone(policy: DeliveryPolicy): DeliveryZone {
   return resolveZone(policy, null);
+}
+
+/**
+ * When an order should arrive: placed date + the zone's days, as two Dates (earliest, latest), or null
+ * when the order carries no promised time (placed before migration 099, or a team order of an old
+ * member). WHY calendar days: couriers here deliver on Fridays too, and a promise the shopper can
+ * check against a calendar is easier to trust than "business days".
+ */
+export function expectedDeliveryWindow(placedAt: unknown, daysMin: unknown, daysMax: unknown): [Date, Date] | null {
+  const start = new Date(placedAt as string);
+  const min = Number(daysMin);
+  const max = Number(daysMax);
+  if (Number.isNaN(start.getTime()) || daysMin == null || daysMax == null || !Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < min) {
+    return null;
+  }
+  const at = (days: number) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + days);
+  return [at(min), at(max)];
 }
 
 /** "Inside Dhaka" or "ঢাকার ভিতরে", by the page language. */

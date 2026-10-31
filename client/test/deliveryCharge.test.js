@@ -47,17 +47,38 @@ describe('Delivery charge', () => {
     const policy = {
       default_zone: 'outside_dhaka',
       zones: [
-        { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, districts: ['dhaka_city'] },
-        { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 120, districts: [] },
+        { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, team_charge: 50, days_min: 1, days_max: 2, districts: ['dhaka_city'] },
+        { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 120, team_charge: 100, days_min: 3, days_max: 5, districts: [] },
       ],
     };
     assert.equal(zones.defaultZone(policy).charge, 120);
     assert.equal(zones.resolveZone(policy, 'dhaka_city').charge, 60);
     assert.equal(zones.zoneName(policy.zones[0], 'bn'), 'ঢাকার ভিতরে');
     assert.ok(zones.isDeliveryPolicy(policy));
-    for (const bad of [null, 60, { per_parcel_charge: 60 }, { default_zone: 'x', zones: [] }, { default_zone: 'x', zones: [{ key: 'x', charge: -1, districts: [] }] }]) {
+    // A policy stored before migration 099 (no team charge, no days) is refused and re-fetched.
+    const preTeam = { default_zone: 'x', zones: [{ key: 'x', name_en: 'X', name_bn: 'X', charge: 60, districts: [] }] };
+    const backwards = { default_zone: 'x', zones: [{ key: 'x', charge: 60, team_charge: 60, days_min: 5, days_max: 2, districts: [] }] };
+    for (const bad of [null, 60, { per_parcel_charge: 60 }, { default_zone: 'x', zones: [] }, { default_zone: 'x', zones: [{ key: 'x', charge: -1, districts: [] }] }, preTeam, backwards]) {
       assert.equal(zones.isDeliveryPolicy(bad), false, JSON.stringify(bad));
     }
+  });
+
+  it('the delivery time window counts calendar days from the day the order was placed', async () => {
+    const { expectedDeliveryWindow } = await import('../src/services/deliveryZones.ts');
+    const [from, to] = expectedDeliveryWindow('2026-10-31T20:00:00', 3, 5);
+    assert.deepEqual([from.getMonth(), from.getDate(), to.getMonth(), to.getDate()], [10, 3, 10, 5]);
+    for (const [a, b] of [[null, null], [3, null], [5, 2], [-1, 2], [1.5, 2]]) {
+      assert.equal(expectedDeliveryWindow('2026-10-31', a, b), null, `${a}-${b}`);
+    }
+    assert.equal(expectedDeliveryWindow('not a date', 1, 2), null);
+  });
+
+  it('checkout no longer prints one delivery time for every address', () => {
+    // (A shop partner's canned chat reply may still say "2-3 business days"; that is their own words.)
+    for (const lang of ['en', 'bn']) {
+      assert.ok(!/2-3 business days|২-৩ কার্যদিবস/.test(JSON.stringify(JSON.parse(read(`locales/${lang}.json`)).checkout)), lang);
+    }
+    assert.match(read('pages/CheckoutPage.ts'), /deliveryEtaText\(knownZoneFor\(addressData\.district\)\)/);
   });
 
   it('the mock checkout charges the zone of the district, as the server does', async () => {
@@ -77,7 +98,10 @@ describe('Delivery charge', () => {
     const page = read('pages/admin/DeliveryChargePage.ts');
     const keys = [...new Set([...page.matchAll(/t\('(admin\.delivery\.[a-z_]+)'/g)].map((m) => m[1]))];
     assert.ok(keys.length > 10);
-    keys.push('checkout.delivery_charge', 'checkout.delivery_zone', 'checkout.delivery_zone_rate', 'live.chk_district');
+    keys.push('checkout.delivery_charge', 'checkout.delivery_zone', 'checkout.delivery_zone_rate', 'live.chk_district',
+      'delivery.eta_days', 'delivery.eta_days_one', 'delivery.eta_same_day', 'checkout.parcel_eta', 'checkout.delivery_eta_label',
+      'order_tracking.expected_delivery', 'order_tracking.expected_range', 'team_purchases.checkout.shipping_zone',
+      'admin.group_buy.delivery_note', 'admin.group_buy.delivery_link');
     for (const lang of ['en', 'bn']) {
       const dict = JSON.parse(read(`locales/${lang}.json`));
       for (const key of keys) {

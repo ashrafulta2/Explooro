@@ -13,8 +13,8 @@ import { BANGLADESH_DIVISIONS } from '../../data/bangladeshGeo.ts';
 import { defaultZone, isDeliveryPolicy, resolveZone } from '../../services/deliveryZones.ts';
 import type { DeliveryPolicy } from '../../services/deliveryZones.ts';
 
-const STORAGE_KEY = 'explooro:mock:delivery:zones';
-const LIMITS = { min: 0, max: 5000, minZones: 1, maxZones: 10, nameMaxLength: 60 };
+const STORAGE_KEY = 'explooro:mock:delivery:zones:v2';
+const LIMITS = { min: 0, max: 5000, minZones: 1, maxZones: 10, nameMaxLength: 60, days: { min: 0, max: 30 } };
 const KEY_PATTERN = /^[a-z][a-z0-9_]{1,39}$/;
 const DISTRICTS_BY_DIVISION = Object.fromEntries(BANGLADESH_DIVISIONS.map((d) => [d.id, d.districts.map((x) => x.id)]));
 const DISTRICT_IDS = new Set(Object.values(DISTRICTS_BY_DIVISION).flat());
@@ -24,8 +24,8 @@ type StoredPolicy = DeliveryPolicy & { updated_at: string | null; updated_by: nu
 const DEFAULT_POLICY: StoredPolicy = {
   default_zone: 'outside_dhaka',
   zones: [
-    { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, districts: ['dhaka_city'] },
-    { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 60, districts: [] },
+    { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, team_charge: 60, days_min: 1, days_max: 2, districts: ['dhaka_city'] },
+    { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 60, team_charge: 60, days_min: 3, days_max: 5, districts: [] },
   ],
   updated_at: null,
   updated_by: null,
@@ -65,7 +65,9 @@ const isCharge = (n) => typeof n === 'number' && Number.isFinite(n) && n >= LIMI
 
 const publicView = (p: DeliveryPolicy) => ({
   default_zone: p.default_zone,
-  zones: p.zones.map(({ key, name_en, name_bn, charge, districts }) => ({ key, name_en, name_bn, charge, districts: [...districts] })),
+  zones: p.zones.map(({ key, name_en, name_bn, charge, team_charge, days_min, days_max, districts }) => ({
+    key, name_en, name_bn, charge, team_charge, days_min, days_max, districts: [...districts],
+  })),
   per_parcel_charge: defaultZone(p).charge,
 });
 
@@ -84,7 +86,11 @@ function check(body): ReturnType<typeof bad> | null {
       const v = typeof z[f] === 'string' ? z[f].trim() : '';
       if (!v || v.length > LIMITS.nameMaxLength) return bad('Each zone needs a name in English and Bangla.', 'প্রতিটি এলাকার ইংরেজি ও বাংলা নাম লাগবে।');
     }
-    if (!isCharge(z.charge)) {
+    const isDays = (n) => Number.isInteger(n) && n >= LIMITS.days.min && n <= LIMITS.days.max;
+    if (!isDays(z.days_min) || !isDays(z.days_max) || z.days_min > z.days_max) {
+      return bad(`Delivery time must be whole days from ${LIMITS.days.min} to ${LIMITS.days.max}, and "from" cannot be more than "to".`, `ডেলিভারির সময় ${LIMITS.days.min} থেকে ${LIMITS.days.max} দিনের পূর্ণ সংখ্যা হতে হবে।`);
+    }
+    if (!isCharge(z.charge) || !isCharge(z.team_charge)) {
       return bad(`The delivery charge must be between ৳${LIMITS.min} and ৳${LIMITS.max}, in whole paisa.`, `ডেলিভারি চার্জ ৳${LIMITS.min} থেকে ৳${LIMITS.max} এর মধ্যে হতে হবে।`);
     }
     if (!Array.isArray(z.districts)) return bad('Each zone needs a list of districts.', 'প্রতিটি এলাকার জেলার তালিকা লাগবে।');
@@ -140,7 +146,10 @@ export const deliveryHandlers = [
       const before = publicView(mockPolicy);
       mockPolicy = {
         default_zone: body.default_zone,
-        zones: body.zones.map((z) => ({ key: z.key, name_en: z.name_en.trim(), name_bn: z.name_bn.trim(), charge: z.charge, districts: [...new Set<string>(z.districts)] })),
+        zones: body.zones.map((z) => ({
+          key: z.key, name_en: z.name_en.trim(), name_bn: z.name_bn.trim(), charge: z.charge,
+          team_charge: z.team_charge, days_min: z.days_min, days_max: z.days_max, districts: [...new Set<string>(z.districts)],
+        })),
         updated_at: new Date().toISOString(),
         updated_by: 1,
       };

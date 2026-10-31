@@ -18,8 +18,12 @@
  * written in one transaction, audited with before/after JSON, cached briefly because the cart reads it
  * on every request.
  *
- * Team purchase does not use this: each team snapshots its own shipping charge from the
- * group_buying module when it starts (teamPurchase.service.ts).
+ * Each zone also carries:
+ *  - `team_charge`: what a team-purchase member in that zone pays for their one parcel (migration 099;
+ *    it replaced the single shipping charge on /admin/growth/group-buy). teamPurchase.service.ts
+ *    snapshots it on the member row when they join, so a later edit never changes what they owe.
+ *  - `days_min` / `days_max`: how many days delivery takes, shown at checkout and recorded on the
+ *    order (`orders.delivery_days_min/max`) so the order page can say when to expect it.
  */
 
 import * as settingRepo from '../repositories/setting.repository.ts';
@@ -32,6 +36,8 @@ export const SETTING_KEY = 'delivery.zones';
 export const LEGACY_SETTING_KEY = 'delivery.per_parcel_charge';
 
 export const CHARGE_LIMITS = Object.freeze({ min: 0, max: 5000 });
+/** Delivery time in whole days. 0 means same-day. */
+export const DAYS_LIMITS = Object.freeze({ min: 0, max: 30 });
 export const ZONE_LIMITS = Object.freeze({ minZones: 1, maxZones: 10, nameMaxLength: 60 });
 const ZONE_KEY_PATTERN = /^[a-z][a-z0-9_]{1,39}$/;
 
@@ -40,6 +46,10 @@ export interface DeliveryZone {
   name_en: string;
   name_bn: string;
   charge: number;
+  /** Per-member delivery charge for a team purchase delivered to this zone. */
+  team_charge: number;
+  days_min: number;
+  days_max: number;
   districts: string[];
 }
 
@@ -56,10 +66,35 @@ export interface DeliveryPolicy {
 export const DEFAULT_POLICY: Readonly<DeliveryPolicy> = Object.freeze({
   default_zone: 'outside_dhaka',
   zones: [
-    { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, districts: ['dhaka_city'] },
-    { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 60, districts: [] },
+    { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, team_charge: 60, days_min: 1, days_max: 2, districts: ['dhaka_city'] },
+    { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 60, team_charge: 60, days_min: 3, days_max: 5, districts: [] },
   ],
 });
+
+/**
+ * WHY a forgiving upgrade before the strict check: a zones row written before migration 099 has no
+ * team charge or delivery days. Refusing it would throw away the admin's charges and fall back to the
+ * shipped default; filling the gaps keeps their numbers. Only MISSING fields are filled, never
+ * invalid ones, so a corrupt row is still refused.
+ */
+function upgradeZones(value: any) {
+  if (!value || !Array.isArray(value.zones)) return value;
+  return {
+    ...value,
+    zones: value.zones.map((z: any) => {
+      if (!z || typeof z !== 'object') return z;
+      const shipped = DEFAULT_POLICY.zones.find((d) => d.key === z.key) ?? DEFAULT_POLICY.zones[DEFAULT_POLICY.zones.length - 1];
+      return {
+        ...z,
+        team_charge: z.team_charge === undefined ? z.charge : z.team_charge,
+        days_min: z.days_min === undefined ? shipped.days_min : z.days_min,
+        days_max: z.days_max === undefined ? shipped.days_max : z.days_max,
+      };
+    }),
+  };
+}
+
+const isDays = (n: unknown) => Number.isInteger(n) && (n as number) >= DAYS_LIMITS.min && (n as number) <= DAYS_LIMITS.max;
 
 const SETTING_META = {
   valueType: 'OBJECT',
@@ -67,8 +102,8 @@ const SETTING_META = {
   labelBn: 'ডেলিভারি চার্জের এলাকা',
 };
 
-// WHY a new key: entries cached under the old key hold the single-number shape.
-const CACHE_KEY = 'delivery:policy:zones';
+// WHY a new key each time the shape grows: an entry cached under an older key lacks the new fields.
+const CACHE_KEY = 'delivery:policy:zones:v2';
 const CACHE_TTL_SECONDS = 300;
 
 function readJsonValue(raw) {
@@ -154,11 +189,20 @@ export function validatePolicy(input: any = {}): DeliveryPolicy {
       names[field] = name;
     }
 
-    if (!isCharge(z?.charge)) {
-      fail(`zones.${i}.charge`,
-        `The delivery charge must be between ৳${CHARGE_LIMITS.min} and ৳${CHARGE_LIMITS.max}, in whole paisa.`,
-        `ডেলিভারি চার্জ ৳${CHARGE_LIMITS.min} থেকে ৳${CHARGE_LIMITS.max} এর মধ্যে হতে হবে।`,
-        { min: CHARGE_LIMITS.min, max: CHARGE_LIMITS.max });
+    for (const field of ['charge', 'team_charge'] as const) {
+      if (!isCharge(z?.[field])) {
+        fail(`zones.${i}.${field}`,
+          `The delivery charge must be between ৳${CHARGE_LIMITS.min} and ৳${CHARGE_LIMITS.max}, in whole paisa.`,
+          `ডেলিভারি চার্জ ৳${CHARGE_LIMITS.min} থেকে ৳${CHARGE_LIMITS.max} এর মধ্যে হতে হবে।`,
+          { min: CHARGE_LIMITS.min, max: CHARGE_LIMITS.max });
+      }
+    }
+
+    if (!isDays(z?.days_min) || !isDays(z?.days_max) || z.days_min > z.days_max) {
+      fail(`zones.${i}.days`,
+        `Delivery time must be whole days from ${DAYS_LIMITS.min} to ${DAYS_LIMITS.max}, and "from" cannot be more than "to".`,
+        `ডেলিভারির সময় ${DAYS_LIMITS.min} থেকে ${DAYS_LIMITS.max} দিনের পূর্ণ সংখ্যা হতে হবে, আর "থেকে" কখনো "পর্যন্ত"-এর বেশি হবে না।`,
+        { min: DAYS_LIMITS.min, max: DAYS_LIMITS.max });
     }
 
     if (!Array.isArray(z?.districts)) {
@@ -180,7 +224,7 @@ export function validatePolicy(input: any = {}): DeliveryPolicy {
       districts.push(d);
     }
 
-    return { key, ...names, charge: z.charge, districts };
+    return { key, ...names, charge: z.charge, team_charge: z.team_charge, days_min: z.days_min, days_max: z.days_max, districts };
   });
 
   const defaultZone = typeof input?.default_zone === 'string' ? input.default_zone.trim() : '';
@@ -193,7 +237,7 @@ export function validatePolicy(input: any = {}): DeliveryPolicy {
 
 function tryPolicy(value: unknown): DeliveryPolicy | null {
   try {
-    return validatePolicy(value);
+    return validatePolicy(upgradeZones(value));
   } catch {
     return null;
   }
@@ -203,7 +247,7 @@ function tryPolicy(value: unknown): DeliveryPolicy | null {
 function policyFromSingleCharge(charge: number): DeliveryPolicy {
   return {
     default_zone: DEFAULT_POLICY.default_zone,
-    zones: DEFAULT_POLICY.zones.map((z) => ({ ...z, charge, districts: [...z.districts] })),
+    zones: DEFAULT_POLICY.zones.map((z) => ({ ...z, charge, team_charge: charge, districts: [...z.districts] })),
   };
 }
 
@@ -296,7 +340,9 @@ export async function perParcelCharge(db, cache, opts: { fresh?: boolean; distri
 export function publicView(policy: DeliveryPolicy) {
   return {
     default_zone: policy.default_zone,
-    zones: policy.zones.map(({ key, name_en, name_bn, charge, districts }) => ({ key, name_en, name_bn, charge, districts: [...districts] })),
+    zones: policy.zones.map(({ key, name_en, name_bn, charge, team_charge, days_min, days_max, districts }) => ({
+      key, name_en, name_bn, charge, team_charge, days_min, days_max, districts: [...districts],
+    })),
     // WHY kept: a client loaded before zones shipped reads this one number; it now means the default zone.
     per_parcel_charge: defaultZone(policy).charge,
   };

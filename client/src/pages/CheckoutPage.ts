@@ -22,7 +22,7 @@ import { appStore } from '../state/appStore.ts';
 import { formatCurrency } from '../services/format.ts';
 import { toast } from '../services/toast.ts';
 import { t, getLanguage } from '../services/i18n.ts';
-import { knownZoneFor, loadDeliveryPolicy } from '../services/deliveryCharge.ts';
+import { knownZoneFor, loadDeliveryPolicy, deliveryEtaText } from '../services/deliveryCharge.ts';
 import { zoneName } from '../services/deliveryZones.ts';
 import { escapeHtml } from '../services/html.ts';
 import { Button } from '../components/ui/Button.ts';
@@ -192,6 +192,7 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
         if ((knownZoneFor(addressData.district)?.key ?? null) !== zoneBefore || zoneBefore === null) {
           renderPayment();
           renderSummary();
+          renderParcels();
         }
       });
     } catch {
@@ -254,6 +255,7 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
         if (zoneAfter.zone?.key !== zoneBefore.zone?.key || zoneAfter.total !== zoneBefore.total) {
           renderPayment();
           renderSummary();
+          renderParcels();
         }
       },
     });
@@ -305,13 +307,16 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
       const parcelWrap = document.createElement('div');
       parcelWrap.className = 'checkout-page__parcels-wrap';
 
+      // Filled by renderParcels(): the time depends on the district's zone.
+      const parcelEta = '<span class="badge badge--success" data-delivery-eta hidden></span>';
+
       parcels.forEach((parcel, pIdx) => {
         const pCard = document.createElement('div');
         pCard.className = 'checkout-page__parcel-card card card--subtle';
         pCard.innerHTML = `
           <div class="checkout-page__parcel-card-header">
             <strong>${t('cart.parcel_number', { number: pIdx + 1 })}: ${parcel.supplier_name || t('product_detail.supplier.tier.verified')}</strong>
-            <span class="badge badge--success">${t('checkout.parcel_est_delivery')}</span>
+            ${parcelEta}
           </div>
           <div class="checkout-page__parcel-items">
             ${parcel.items.map((item) => `
@@ -328,7 +333,20 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
       itemsContent.append(parcelWrap);
       itemsCard.append(itemsContent);
       mainCol.append(itemsCard);
+      renderParcels();
     }
+  }
+
+  /**
+   * The delivery time on every parcel card, from the zone of the picked district. WHY from the zone:
+   * checkout used to print "2-3 business days" for every address, inside Dhaka or in Bandarban.
+   */
+  function renderParcels() {
+    const eta = deliveryEtaText(knownZoneFor(addressData.district));
+    mainCol.querySelectorAll<HTMLElement>('[data-delivery-eta]').forEach((badge) => {
+      badge.textContent = eta ? t('checkout.parcel_eta', { eta }) : '';
+      badge.hidden = !eta;
+    });
   }
 
   function renderSummary() {
@@ -346,7 +364,7 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
     const total = Math.max(0, subtotal + shipping - discount);
     const zoneLine = ship.zone
       ? `<div class="checkout-summary__row checkout-summary__row--zone text-xs text-secondary" data-delivery-zone="${ship.zone.key}">
-          <span>${escapeHtml(t('checkout.delivery_zone', { zone: zoneName(ship.zone, getLanguage()) }))}</span>
+          <span>${escapeHtml(t('checkout.delivery_zone', { zone: zoneName(ship.zone, getLanguage()) }))}${deliveryEtaText(ship.zone) ? ` · ${escapeHtml(deliveryEtaText(ship.zone))}` : ''}</span>
           <span>${escapeHtml(t('checkout.delivery_zone_rate', { charge: formatCurrency(ship.perParcel.toFixed(2)), count: ship.parcels }))}</span>
         </div>`
       : '';

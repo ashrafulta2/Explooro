@@ -12,7 +12,7 @@ import { AddressForm } from '../checkout/AddressForm.ts';
 import { PaymentSelector } from '../checkout/PaymentSelector.ts';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.ts';
 import { addToCart } from '../../services/cart.ts';
-import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge } from '../../services/deliveryCharge.ts';
+import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge, deliveryEtaText } from '../../services/deliveryCharge.ts';
 import { zoneName } from '../../services/deliveryZones.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { getCurrentUser } from '../../services/session.ts';
@@ -202,6 +202,10 @@ export function openQuickBuyModal({
           <span>${zone ? escapeHtml(t('checkout.delivery_zone', { zone: zoneName(zone, document.documentElement.lang) })) : t('cart.shipping_estimate', { count: 1 })}</span>
           <strong>${formatCurrency(shipping.toFixed(2))}</strong>
         </div>
+        ${zone && deliveryEtaText(zone) ? `<div class="quick-buy-modal__summary-row text-xs text-secondary" data-delivery-eta>
+          <span>${escapeHtml(t('checkout.delivery_eta_label'))}</span>
+          <span>${escapeHtml(deliveryEtaText(zone))}</span>
+        </div>` : ''}
         <div class="quick-buy-modal__summary-row quick-buy-modal__summary-row--total">
           <span>${t('cart.total')}</span>
           <span class="text-lg text-primary font-bold">${formatCurrency(totalAmount.toFixed(2))}</span>
