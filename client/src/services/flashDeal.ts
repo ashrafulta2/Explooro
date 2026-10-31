@@ -67,3 +67,50 @@ export function flashDealView(product: FlashDealSource | null | undefined): Flas
 
   return { price, wasPrice, pctOff: pctOff && pctOff > 0 ? pctOff : null, claimedPct };
 }
+
+/** A list row as the home flash strip receives it. */
+export interface FlashStripRow extends FlashDealSource {
+  isSponsored?: boolean;
+  /** The live deal's end (GET /products LEFT JOIN flash_sales, `fs.ends_at`). */
+  flash_ends_at?: string | number | Date | null;
+}
+
+/** `flash_ends_at` as epoch ms, or null when the row carries no usable end time. */
+export function flashEndsAtMs(row: FlashStripRow | null | undefined): number | null {
+  const raw = row?.flash_ends_at;
+  if (raw == null || raw === '') return null;
+  const ms = raw instanceof Date ? raw.getTime() : typeof raw === 'number' ? raw : Date.parse(String(raw));
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * The rows the home flash strip may show as deals: flagged by the server as a live flash sale and
+ * not already past their end. Nothing is ever promoted to a deal here — no flagged row, no strip.
+ *
+ * WHY: the strip used to fall back to the first ten ordinary products (and force `is_flash_sale`
+ * on each) when no deal was live, so shoppers saw a SALE tag on products nobody had discounted.
+ * A row without `flash_ends_at` is kept (the server already filtered to `now() BETWEEN starts_at
+ * AND ends_at`); it simply does not drive the countdown.
+ */
+export function liveFlashDeals<T extends FlashStripRow>(rows: readonly T[] | null | undefined, now: number = Date.now()): T[] {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((row) => {
+    if (!row || row.isSponsored || row.is_flash_sale !== true) return false;
+    const end = flashEndsAtMs(row);
+    return end == null || end > now;
+  });
+}
+
+/**
+ * When the strip's countdown ends: the earliest real `flash_ends_at` among the deals shown, so the
+ * timer never runs past a deal on screen. Null when no deal carries an end time — the caller then
+ * draws no countdown rather than inventing one.
+ */
+export function flashStripEndsAt(deals: readonly FlashStripRow[] | null | undefined, now: number = Date.now()): number | null {
+  let earliest: number | null = null;
+  for (const row of deals || []) {
+    const end = flashEndsAtMs(row);
+    if (end != null && end > now && (earliest == null || end < earliest)) earliest = end;
+  }
+  return earliest;
+}

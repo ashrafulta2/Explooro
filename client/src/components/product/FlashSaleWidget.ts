@@ -15,6 +15,12 @@
  *  - The countdown `setInterval` is cleared in cleanup() to avoid leaking timers.
  *  - The component is only mounted when modules.flash_sale is truthy — callers gate it.
  *  - Compact ProductCards are used in the scroll row (no action button, smaller footprint).
+ *  - Only rows the server flagged as a live deal are drawn as deals (`liveFlashDeals`); nothing is
+ *    ever promoted to a flash sale here. No live deal → the widget renders hidden and empty.
+ *  - The countdown runs to the earliest real `flash_ends_at` among the deals on screen
+ *    (`flashStripEndsAt`). With no end time there is no countdown. When it reaches zero the ended
+ *    deals are dropped and it moves on to the next; when none is left `onEnded` fires.
+ *  - Sponsored cards (`sponsored`) are drawn as they are, never flagged as a deal by the widget.
  */
 
 import { ProductCard } from './ProductCard.ts';
@@ -26,12 +32,20 @@ import type {
   ProductWidgetHandle,
 } from './ProductCard.ts';
 import { t } from '../../services/i18n.ts';
+import { liveFlashDeals, flashStripEndsAt, flashEndsAtMs } from '../../services/flashDeal.ts';
 
 export interface FlashSaleWidgetOptions {
-  /** Flash-sale products; when none is flagged, the first ten are shown as if they were. */
+  /** Candidate rows; only those the server flagged as a live flash sale are shown. */
   products?: ProductCardData[];
-  /** Unix time in ms when the sale ends; defaults to four hours from now. */
-  endsAt?: number;
+  /** Booked FLASH_STRIP ad units, drawn after the deals and labelled sponsored. Never shown alone. */
+  sponsored?: ProductCardData[];
+  /**
+   * Unix time in ms when the countdown ends. Leave it out: the widget uses the earliest real
+   * `flash_ends_at` among the deals it shows, and draws no countdown when there is none.
+   */
+  endsAt?: number | null;
+  /** Called once every deal on screen has ended (the widget is then hidden). */
+  onEnded?: (() => void) | null;
   role?: 'customer' | 'saler' | string;
   modules?: ProductModules;
   lang?: 'en' | 'bn' | string;
@@ -103,7 +117,9 @@ function makeSep(): HTMLSpanElement {
 
 export function FlashSaleWidget({
   products = [],
-  endsAt = Date.now() + 4 * 60 * 60 * 1000, // default 4 hours from now
+  sponsored = [],
+  endsAt = null,
+  onEnded = null,
   role = 'customer',
   modules = {},
   lang = 'en',
@@ -111,7 +127,13 @@ export function FlashSaleWidget({
   onAction = null,
   onViewAll = null,
 }: FlashSaleWidgetOptions = {}): ProductWidgetHandle {
+  // WHY no fallback: when no deal is live the strip used to show the first ten ordinary products with
+  // a forced SALE tag and a made-up 4-hour countdown. A flash-sale claim must come from data.
+  let deals = liveFlashDeals(products);
+  let countdownEnd = endsAt ?? flashStripEndsAt(deals);
+
   const root = document.createElement('section');
+  root.hidden = deals.length === 0;
   root.className = 'flash-sale-widget';
   root.setAttribute('aria-label', t('marketplace.flash_sale.title'));
 
@@ -141,7 +163,8 @@ export function FlashSaleWidget({
   const timerWrap = document.createElement('div');
   timerWrap.className = 'flash-sale-widget__timer';
 
-  const initial = secondsToHMS((endsAt - Date.now()) / 1000);
+  countdownWrap.hidden = countdownEnd == null;
+  const initial = secondsToHMS(((countdownEnd ?? Date.now()) - Date.now()) / 1000);
   const { wrap: hhWrap, num: hhNum } = makeTimeUnit(initial.hh, t('marketplace.flash_sale.h'));
   const { wrap: mmWrap, num: mmNum } = makeTimeUnit(initial.mm, t('marketplace.flash_sale.m'));
   const { wrap: ssWrap, num: ssNum } = makeTimeUnit(initial.ss, t('marketplace.flash_sale.s'));
@@ -188,23 +211,32 @@ export function FlashSaleWidget({
   const scroll = document.createElement('div');
   scroll.className = 'flash-sale-widget__scroll';
 
-  let flashProducts = products.filter((p) => p.is_flash_sale);
-  if (flashProducts.length === 0 && products.length > 0) {
-    flashProducts = products.slice(0, 10).map((p) => ({ ...p, is_flash_sale: true }));
-  }
+  // Each deal card remembers its row so an ended deal can be taken off the strip.
+  const dealCards = new Map<HTMLElement, ProductCardData>();
+  const cardFor = (product: ProductCardData): HTMLElement =>
+    ProductCard({
+      // The row is passed as the server sent it: the card's SALE tag, price row and Claimed bar
+      // all read the row's own flash fields (services/flashDeal.ts).
+      product,
+      role,
+      modules: { ...modules, flash_sale: true },
+      lang,
+      size: 'compact',
+      onNavigate,
+      onAction,
+    });
 
-  for (const product of flashProducts) {
-    scroll.append(
-      ProductCard({
-        product: { ...product, is_flash_sale: true },
-        role,
-        modules: { ...modules, flash_sale: true },
-        lang,
-        size: 'compact',
-        onNavigate,
-        onAction,
-      })
-    );
+  for (const product of deals) {
+    const card = cardFor(product);
+    dealCards.set(card, product);
+    scroll.append(card);
+  }
+  // Sponsored units only ever ride along with real deals — never a "flash sale" strip of ads alone.
+  if (deals.length > 0) {
+    for (const ad of sponsored) {
+      if (!ad?.isSponsored) continue;
+      scroll.append(cardFor(ad));
+    }
   }
 
   const updateArrows = () => {
@@ -232,13 +264,44 @@ export function FlashSaleWidget({
   root.append(scrollWrapper);
 
   // ── Countdown interval ───────────────────────────────────────────────────
+  let ended = false;
+  /** Drop the deals whose real end has passed and retarget the countdown at the next one. */
+  const dropEndedDeals = (now: number): void => {
+    for (const [card, row] of dealCards) {
+      const end = flashEndsAtMs(row as Parameters<typeof flashEndsAtMs>[0]);
+      if (end != null && end <= now) {
+        card.remove();
+        dealCards.delete(card);
+      }
+    }
+    deals = [...dealCards.values()];
+    countdownEnd = flashStripEndsAt(deals, now);
+    countdownWrap.hidden = countdownEnd == null;
+    if (deals.length === 0 && !ended) {
+      ended = true;
+      root.hidden = true;
+      clearInterval(interval);
+      if (typeof onEnded === 'function') onEnded();
+    }
+  };
+
   const interval = setInterval(() => {
-    const { hh, mm, ss } = secondsToHMS((endsAt - Date.now()) / 1000);
+    if (countdownEnd == null) return;
+    const now = Date.now();
+    const { hh, mm, ss } = secondsToHMS((countdownEnd - now) / 1000);
     hhNum.textContent = hh;
     mmNum.textContent = mm;
     ssNum.textContent = ss;
-    if (Date.now() >= endsAt) clearInterval(interval);
+    if (now >= countdownEnd) {
+      // A caller-pinned endsAt is a single sale: when it ends, the strip ends with it.
+      if (endsAt != null) {
+        for (const card of dealCards.keys()) card.remove();
+        dealCards.clear();
+      }
+      dropEndedDeals(now);
+    }
   }, 1000);
+  if (deals.length === 0) clearInterval(interval);
 
   function cleanup(): void {
     clearInterval(interval);
