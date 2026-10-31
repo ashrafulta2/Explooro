@@ -24,8 +24,13 @@ function generateFlashSaleRef() {
 
 /**
  * Creates and schedules a new Flash Sale deal.
+ *
+ * `fundedBy: 'SUPPLIER'` is a supplier's own deal (supplierFlashSale.service.ts has already checked
+ * ownership and the admin's limits): the supplier pays the discount at checkout, so the floor is
+ * "the supplier still gets something" (pricing.service calculateSupplierFundedBreakdown), not the
+ * supplier's full price.
  */
-export async function createFlashSale(db, creatorUser, saleData, reqMeta: Record<string, any> = {}) {
+export async function createFlashSale(db, creatorUser, saleData, reqMeta: Record<string, any> = {}, { fundedBy = 'PLATFORM' }: { fundedBy?: 'PLATFORM' | 'SUPPLIER' } = {}) {
   const productId = parseInt(saleData.product_id, 10);
   const variantId = saleData.variant_id ? parseInt(saleData.variant_id, 10) : null;
 
@@ -85,7 +90,7 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta: Record
   // WHY refused, not warned: checkout never sells under the supplier's price (pricing.service), so a
   // deal below it could not be bought by anyone. Same rule live streams apply to a special price.
   const supplierPrice = Number(product.supplier_price);
-  if (Math.round(discountPrice * 100) < Math.round(supplierPrice * 100)) {
+  if (fundedBy === 'PLATFORM' && Math.round(discountPrice * 100) < Math.round(supplierPrice * 100)) {
     throw invalid(
       'discount_price',
       `Discount price (৳${discountPrice}) cannot be below what the supplier is paid (৳${supplierPrice.toFixed(2)}).`,
@@ -124,9 +129,9 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta: Record
   const query = `
     INSERT INTO flash_sales (
       ref, title, product_id, variant_id, discount_price, original_price,
-      allocated_qty, per_user_limit, starts_at, ends_at, status, created_by
+      allocated_qty, per_user_limit, starts_at, ends_at, status, created_by, funded_by
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'SCHEDULED', $11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'SCHEDULED', $11, $12)
     RETURNING *
   `;
 
@@ -142,17 +147,18 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta: Record
     startsAt,
     endsAt,
     creatorUser.id,
+    fundedBy,
   ]);
 
   const createdDeal = rows[0];
 
   await writeAudit(db, {
-    userId: creatorUser.id,
-    action: 'growth.campaign.create_flash_sale',
-    resourceType: 'flash_sales',
-    resourceId: createdDeal.id,
+    actorId: creatorUser.id,
+    action: fundedBy === 'SUPPLIER' ? 'growth.flash_sale.create_own' : 'growth.campaign.create_flash_sale',
+    targetType: 'flash_sales',
+    targetRef: createdDeal.id,
     after: createdDeal,
-    ipAddress: reqMeta.ip || null,
+    ip: reqMeta.ip || null,
     userAgent: reqMeta.userAgent || null,
   });
 
@@ -378,12 +384,12 @@ export async function emergencyStop(db, adminUser, flashSaleId, reason = 'Emerge
   }
 
   await writeAudit(db, {
-    userId: adminUser.id,
+    actorId: adminUser.id,
     action: 'growth.campaign.emergency_stop',
-    resourceType: 'flash_sales',
-    resourceId: flashSaleId,
+    targetType: 'flash_sales',
+    targetRef: flashSaleId,
     after: { status: 'CANCELLED', reason, stoppedBy: adminUser.id },
-    ipAddress: reqMeta.ip || null,
+    ip: reqMeta.ip || null,
     userAgent: reqMeta.userAgent || null,
   });
 

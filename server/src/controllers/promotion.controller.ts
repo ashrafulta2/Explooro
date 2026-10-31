@@ -3,6 +3,7 @@
  */
 
 import * as couponService from '../services/coupon.service.ts';
+import * as supplierFlashSaleService from '../services/supplierFlashSale.service.ts';
 import * as flashSaleService from '../services/flashSale.service.ts';
 import { loadPricingContext } from '../services/retailMarkup.service.ts';
 
@@ -151,4 +152,36 @@ export async function listAllFlashSales(req, reply) {
   return reply.send({
     flash_sales: sales,
   });
+}
+
+// ── Supplier's own flash sales (migration 096) ───────────────────────────────
+
+const metaOf = (req) => ({ ip: req.ip, userAgent: req.headers['user-agent'] });
+
+export async function supplierFlashOverview(req, reply) {
+  return reply.send(await supplierFlashSaleService.getOverview(req.db || req.server?.db, req.user, req.query || {}));
+}
+
+export async function supplierFlashQuote(req, reply) {
+  return reply.send(await supplierFlashSaleService.quote(req.db || req.server?.db, req.user, req.query || {}));
+}
+
+export async function supplierFlashCreate(req, reply) {
+  const result = await supplierFlashSaleService.createOwnDeal(req.db || req.server?.db, req.user, req.body || {}, metaOf(req));
+  return reply.status(201).send(result);
+}
+
+export async function supplierFlashStop(req, reply) {
+  const deal = await supplierFlashSaleService.stopOwnDeal(req.db || req.server?.db, req.user, req.params.id, metaOf(req));
+  return reply.send({ flash_sale: deal });
+}
+
+export async function getSupplierFlashRules(req, reply) {
+  return reply.send({ rules: await supplierFlashSaleService.getRules(req.db || req.server?.db), limits: supplierFlashSaleService.RULE_LIMITS });
+}
+
+export async function updateSupplierFlashRules(req, reply) {
+  const { rules, reason, expected_updated_at: expectedUpdatedAt } = req.body || {};
+  const saved = await supplierFlashSaleService.updateRules(req.db || req.server?.db, { rules, reason, expectedUpdatedAt, user: req.user, reqMeta: metaOf(req) });
+  return reply.send({ rules: saved, limits: supplierFlashSaleService.RULE_LIMITS });
 }

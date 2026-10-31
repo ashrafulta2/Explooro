@@ -25,7 +25,7 @@ import * as trustScoreService from './trustScore.service.ts';
 import * as codGateService from './codGate.service.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedByProduct } from './teamStockReservation.service.ts';
-import { calculatePricingBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.ts';
+import { calculatePricingBreakdown, calculateSupplierFundedBreakdown, resolveSplitPercentages, toPaisa, toBdtNumber } from './pricing.service.ts';
 import { computeCheckoutCouponDiscount, allocateDiscountBySupplier } from './coupon.service.ts';
 import { pickParcelSaler } from './attribution.service.ts';
 import * as shortlinkService from './shortlink.service.ts';
@@ -198,8 +198,11 @@ export async function executeCheckout(pool, cache, {
       const dealId = Number(item.flash_sale_id);
       flashQtyByDeal.set(dealId, (flashQtyByDeal.get(dealId) || 0) + Number(item.qty));
     }
+    // The locked deal rows, so the split below knows who funds each deal (migration 096).
+    const dealsById = new Map();
     for (const dealId of [...flashQtyByDeal.keys()].sort((a, b) => a - b)) {
-      await reserveFlashSaleStock(client, { flashSaleId: dealId, requestedQty: flashQtyByDeal.get(dealId), userId });
+      const deal = await reserveFlashSaleStock(client, { flashSaleId: dealId, requestedQty: flashQtyByDeal.get(dealId), userId });
+      dealsById.set(dealId, deal);
     }
 
     // 5. Multi-Supplier Grouping & Shipping (before the coupon: a free-shipping coupon needs the charge)
@@ -400,17 +403,27 @@ export async function executeCheckout(pool, cache, {
           salerId: lineSalerId,
           cache,
         });
-        const pricing = calculatePricingBreakdown({
+        const splitArgs = {
           baseCost: prod.base_cost,
           wholesaleMargin: prod.wholesale_margin,
-          retailPrice: item.unit_price,
           salerSplitPct: split.salerSplitPct,
           platformSplitPct: split.platformSplitPct,
           ruleSource: split.ruleSource,
           // WHY: the supplier's per-unit partner profit (migration 085) sets the partner share; that share
           // is escrowed to the partner reward pool, not to this line's partner (vault.service.ts).
           partnerProfit: prod.partner_profit,
-        });
+        };
+        // WHY two paths: a supplier's own flash sale is paid for by the supplier, so the platform and
+        // partner pool keep their share of the regular price and the supplier's payout drops. An
+        // admin's deal (PLATFORM) still comes out of the margin, as before migration 096.
+        const deal = item.flash_sale_id != null ? dealsById.get(Number(item.flash_sale_id)) : null;
+        const pricing = deal?.funded_by === 'SUPPLIER'
+          ? calculateSupplierFundedBreakdown({
+            ...splitArgs,
+            regularRetailPrice: item.regular_unit_price,
+            dealPrice: item.unit_price,
+          })
+          : calculatePricingBreakdown({ ...splitArgs, retailPrice: item.unit_price });
 
         const lineTotalPaisa = toPaisa(item.unit_price) * itemQty;
         subOrderItemsAmountPaisa += lineTotalPaisa;

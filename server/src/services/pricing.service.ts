@@ -500,6 +500,78 @@ export function calculatePricingBreakdown({
 }
 
 /**
+ * The split of one unit sold in a SUPPLIER-funded flash sale (migration 096, owner decision 2026-10-31).
+ *
+ * The supplier pays the whole discount: the platform's and the partner pool's share are what they
+ * are at the regular retail price, and the supplier's payout (base cost + wholesale margin) drops by
+ * regular − deal. The discount comes off the supplier's wholesale margin first, then their base cost,
+ * so `net_retail_margin`, `saler_earning` and `platform_earning` are unchanged and the sub-order's
+ * `saler_commission + platform_margin = net_retail_margin` CHECK still holds.
+ *
+ * Refuses (VALIDATION_FAILED) a deal price that is not below the regular price, or that leaves the
+ * supplier nothing per unit.
+ *
+ * @returns The same shape as calculatePricingBreakdown, priced at the deal, plus `supplier_funded`
+ *          (the discount per unit) and `supplier_payout` / `regular_supplier_payout`.
+ */
+export function calculateSupplierFundedBreakdown({
+  regularRetailPrice,
+  dealPrice,
+  ...splitArgs
+}: { regularRetailPrice: number|string; dealPrice: number|string; baseCost: number|string; wholesaleMargin?: number|string; salerSplitPct?: number; platformSplitPct?: number; ruleSource?: string; partnerProfit?: number|string|null; }): any {
+  const regular = calculatePricingBreakdown({ ...splitArgs, retailPrice: regularRetailPrice, mode: 'split' });
+  const regularPaisa = regular.paisa.retail_price;
+  const dealPaisa = toPaisa(dealPrice);
+  const fundPaisa = regularPaisa - dealPaisa;
+  const regularPayoutPaisa = regular.paisa.wholesale_cost;
+  const payoutPaisa = regularPayoutPaisa - fundPaisa;
+
+  if (!(dealPaisa > 0) || fundPaisa <= 0) {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      `The flash price must be above zero and below the regular price (BDT ${(regularPaisa / 100).toFixed(2)}).`,
+      `ফ্ল্যাশ দাম শূন্যের বেশি এবং নিয়মিত দামের (৳${(regularPaisa / 100).toFixed(2)}) কম হতে হবে।`,
+      { field: 'discount_price' }
+    );
+  }
+  if (payoutPaisa <= 0) {
+    const minPaisa = regularPaisa - regularPayoutPaisa + 1;
+    throw new AppError(
+      'VALIDATION_FAILED',
+      `At this flash price you would receive nothing per unit. The lowest flash price is BDT ${(minPaisa / 100).toFixed(2)}.`,
+      `এই ফ্ল্যাশ দামে আপনি প্রতি ইউনিটে কিছুই পাবেন না। সর্বনিম্ন ফ্ল্যাশ দাম ৳${(minPaisa / 100).toFixed(2)}।`,
+      { field: 'discount_price', min_price: toBdtNumber(minPaisa) }
+    );
+  }
+
+  const fromMarginPaisa = Math.min(fundPaisa, regular.paisa.wholesale_margin);
+  const marginPaisa = regular.paisa.wholesale_margin - fromMarginPaisa;
+  const basePaisa = regular.paisa.base_cost - (fundPaisa - fromMarginPaisa);
+
+  return {
+    ...regular,
+    base_cost: toBdtNumber(basePaisa),
+    wholesale_margin: toBdtNumber(marginPaisa),
+    wholesale_cost: toBdtNumber(payoutPaisa),
+    retail_price: toBdtNumber(dealPaisa),
+    default_retail_price: toBdtNumber(regularPaisa),
+    supplier_funded: toBdtNumber(fundPaisa),
+    supplier_payout: toBdtNumber(payoutPaisa),
+    regular_supplier_payout: toBdtNumber(regularPayoutPaisa),
+    funded_by: 'SUPPLIER',
+    paisa: {
+      ...regular.paisa,
+      base_cost: basePaisa,
+      wholesale_margin: marginPaisa,
+      wholesale_cost: payoutPaisa,
+      retail_price: dealPaisa,
+      default_retail_price: regularPaisa,
+      supplier_funded: fundPaisa,
+    },
+  };
+}
+
+/**
  * Throws VALIDATION_FAILED unless a supplier's partner profit fits the product's price.
  *
  * The platform keeps at least `platform_default_profit_pct` of the wholesale cost per unit, so the most

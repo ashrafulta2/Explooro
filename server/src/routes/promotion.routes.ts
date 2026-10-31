@@ -3,6 +3,7 @@
  */
 
 import * as promotionController from '../controllers/promotion.controller.ts';
+import { requireRestriction } from '../middlewares/requireRestriction.ts';
 
 export default async function promotionRoutes(app) {
   const requireCouponsModule = app.requireModule('coupons');
@@ -58,7 +59,43 @@ export default async function promotionRoutes(app) {
     preHandler: [app.authenticate, requireFlashSaleModule, requireManageCampaigns],
   }, promotionController.createFlashSale);
 
+  // The limits a supplier's own flash sale must fit (supplierFlashSale.service.ts). Edited beside the
+  // deals they govern, behind the same permission. WHY skipMakerChecker on the read only:
+  // growth.campaign.manage is HIGH, so a non-super-admin's save goes for approval like any deal.
+  app.get('/admin/growth/campaigns/flash-sales/supplier-rules', {
+    preHandler: [app.authenticate, requireFlashSaleModule, app.requirePermission('growth.campaign.manage', { skipMakerChecker: true })],
+  }, promotionController.getSupplierFlashRules);
+
+  app.put('/admin/growth/campaigns/flash-sales/supplier-rules', {
+    preHandler: [app.authenticate, requireFlashSaleModule, app.requirePermission('growth.campaign.manage', { targetType: 'platform_settings', targetRef: 'flash_sale.supplier_rules' })],
+  }, promotionController.updateSupplierFlashRules);
+
   app.post('/admin/growth/campaigns/flash-sales/:id/emergency-stop', {
     preHandler: [app.authenticate, requireFlashSaleModule, requireEmergencyStop],
   }, promotionController.emergencyStopFlashSale);
+
+  // 4. A supplier's own flash sales: the supplier pays the discount (migration 096).
+  const requireOwnFlash = app.requirePermission('growth.flash_sale.manage_own');
+  const canSell = requireRestriction('can_sell');
+  const page = { page: '/supplier/flash-sales' };
+
+  app.get('/supplier/flash-sales', {
+    config: page,
+    preHandler: [app.authenticate, requireFlashSaleModule, requireOwnFlash],
+  }, promotionController.supplierFlashOverview);
+
+  app.get('/supplier/flash-sales/quote', {
+    config: page,
+    preHandler: [app.authenticate, requireFlashSaleModule, requireOwnFlash],
+  }, promotionController.supplierFlashQuote);
+
+  app.post('/supplier/flash-sales', {
+    config: page,
+    preHandler: [app.authenticate, requireFlashSaleModule, requireOwnFlash, canSell],
+  }, promotionController.supplierFlashCreate);
+
+  app.post('/supplier/flash-sales/:id/stop', {
+    config: page,
+    preHandler: [app.authenticate, requireFlashSaleModule, requireOwnFlash, canSell],
+  }, promotionController.supplierFlashStop);
 }
