@@ -5,7 +5,7 @@
  * live price change warnings, stock ceilings, and optimistic updates.
  */
 
-import { mockDeliveryCharge } from './delivery.ts';
+import { mockDeliveryCharge, mockDeliveryChargeFor } from './delivery.ts';
 import { findMockProductById } from './products.ts';
 import type { MockRoute } from '../types.ts';
 
@@ -125,7 +125,7 @@ function applyFlashDeal(item, usedByDeal: Map<string, number>) {
   });
 }
 
-function calculateCart() {
+function calculateCart(district = null) {
   const suppliersMap = new Map();
   const usedByDeal = new Map<string, number>();
   let subtotal = 0;
@@ -165,7 +165,9 @@ function calculateCart() {
     subtotal: p.subtotal.toFixed(2),
   }));
 
-  const estimatedShippingPerParcel = mockDeliveryCharge();
+  // The zone of the district the cart asked about (query ?district), else the default zone.
+  const zone = district ? mockDeliveryChargeFor(district) : null;
+  const estimatedShippingPerParcel = zone ? zone.charge : mockDeliveryCharge();
   const estimatedShipping = parcels.length * estimatedShippingPerParcel;
   const grandTotal = subtotal + estimatedShipping;
 
@@ -180,6 +182,7 @@ function calculateCart() {
     items_count: itemsCount,
     subtotal: subtotal.toFixed(2),
     estimated_shipping: estimatedShipping.toFixed(2),
+    estimated_shipping_district: district || null,
     grand_total: grandTotal.toFixed(2),
     has_warnings: hasWarnings,
     last_activity_at: new Date().toISOString(),
@@ -190,9 +193,9 @@ const handlers = [
   {
     method: 'GET',
     path: '/cart',
-    handler: () => ({
+    handler: ({ query } = {}) => ({
       status: 200,
-      body: { data: { cart: calculateCart() } },
+      body: { data: { cart: calculateCart(query?.district || null) } },
     }),
   },
   {

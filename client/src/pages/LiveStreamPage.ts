@@ -12,7 +12,10 @@
  * 8. Complete bilingual localization (EN/BN) and WCAG accessibility with aria-live regions.
  */
 
-import { knownDeliveryCharge, loadDeliveryCharge } from '../services/deliveryCharge.ts';
+import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge, deliveryEtaText } from '../services/deliveryCharge.ts';
+import { zoneName } from '../services/deliveryZones.ts';
+import { BANGLADESH_DIVISIONS, getDistrictsByDivision } from '../data/bangladeshGeo.ts';
+import { escapeHtml } from '../services/html.ts';
 import { getLiveStream, listLiveStreams, sendLiveReaction, inStreamBuy, getInStreamQuote, terminateLiveStream } from '../services/live.api.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { PinnedProductOverlay } from '../components/live/PinnedProductOverlay.ts';
@@ -1065,15 +1068,13 @@ function openInStreamCheckoutDrawer(product, streamId) {
       <div class="form-group">
         <label for="chk-division">${t('live.chk_division') || 'Delivery Division'}</label>
         <select id="chk-division" class="select">
-          <option value="Dhaka" selected>${t('live.division_dhaka') || 'Dhaka (৳60 delivery)'}</option>
-          <option value="Chittagong">${t('live.division_chittagong') || 'Chittagong (৳120 delivery)'}</option>
-          <option value="Rajshahi">${t('live.division_rajshahi') || 'Rajshahi (৳120 delivery)'}</option>
-          <option value="Khulna">${t('live.division_khulna') || 'Khulna (৳120 delivery)'}</option>
-          <option value="Barisal">${t('live.division_barisal') || 'Barisal (৳120 delivery)'}</option>
-          <option value="Sylhet">${t('live.division_sylhet') || 'Sylhet (৳120 delivery)'}</option>
-          <option value="Rangpur">${t('live.division_rangpur') || 'Rangpur (৳120 delivery)'}</option>
-          <option value="Mymensingh">${t('live.division_mymensingh') || 'Mymensingh (৳120 delivery)'}</option>
+          ${BANGLADESH_DIVISIONS.map((d) => `<option value="${d.id}"${d.id === 'dhaka' ? ' selected' : ''}>${escapeHtml(isBn ? d.name_bn : d.name_en)}</option>`).join('')}
         </select>
+      </div>
+      <div class="form-group">
+        <label for="chk-district">${t('live.chk_district')}</label>
+        <select id="chk-district" class="select"></select>
+        <span id="chk-zone" class="form-hint" style="font-size: 11px; color: var(--text-muted);"></span>
       </div>
       <div class="form-group">
         <label for="chk-address">${t('live.chk_address') || 'Full Delivery Address (House/Road/Area)'}</label>
@@ -1142,18 +1143,33 @@ function openInStreamCheckoutDrawer(product, streamId) {
   drawer.openDrawer();
 
   const form = drawerContent.querySelector('#in-stream-form');
-  const divSelect = drawerContent.querySelector<HTMLInputElement>('#chk-division');
+  const divSelect = drawerContent.querySelector<HTMLSelectElement>('#chk-division');
+  const distSelect = drawerContent.querySelector<HTMLSelectElement>('#chk-district');
+  const zoneHint = drawerContent.querySelector('#chk-zone');
   const phoneInput = drawerContent.querySelector<HTMLInputElement>('#chk-phone');
   const totalEl = drawerContent.querySelector('#chk-total');
   // WHY one key per open drawer: a double-tap or a retry after the OTP step replays the same order
   // instead of placing another.
   const idempotencyKey = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `idem-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-  // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
-  // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
+  // WHY by district: the server bills the per-parcel charge of the district's delivery zone (Inside
+  // Dhaka, Outside Dhaka, ...), so the estimate follows the same zone and the quote confirms it.
   let qty = 1;
   let maxQty = Infinity;
-  let shipEstimate = knownDeliveryCharge() ?? 0;
+  const fillDistricts = () => {
+    distSelect.innerHTML = getDistrictsByDivision(divSelect.value)
+      .map((d) => `<option value="${d.id}">${escapeHtml(isBn ? d.name_bn : d.name_en)}</option>`)
+      .join('');
+  };
+  fillDistricts();
+  const zoneEstimate = () => {
+    const zone = knownZoneFor(distSelect.value);
+    zoneHint.textContent = zone
+      ? [t('checkout.delivery_zone_rate', { charge: formatBdt(zone.charge), count: 1 }), zoneName(zone, lang), deliveryEtaText(zone)].filter(Boolean).join(' · ')
+      : '';
+    return zone ? zone.charge : (knownDeliveryCharge() ?? 0);
+  };
+  let shipEstimate = zoneEstimate();
   let quoteSeq = 0;
   let couponCode = '';
   const couponInput = drawerContent.querySelector<HTMLInputElement>('#chk-coupon');
@@ -1176,7 +1192,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
   // carries a sequence number so a slow answer for an earlier quantity cannot overwrite a later one.
   const refreshQuote = () => {
     const seq = ++quoteSeq;
-    getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: qty, couponCode }).then((res) => {
+    getInStreamQuote(streamId, { productId: product.product_id || product.id, quantity: qty, couponCode, district: distSelect.value }).then((res) => {
       if (seq !== quoteSeq) return;
       const quote = res?.data?.quote ?? res?.quote;
       if (!quote) return;
@@ -1230,11 +1246,18 @@ function openInStreamCheckoutDrawer(product, streamId) {
   });
   syncStepper();
 
-  // WHY one flat charge: the server bills the platform's per-parcel delivery charge for a live order,
-  // whatever the division, so the total follows that number instead of a guessed Dhaka/other split.
-  loadDeliveryCharge().then((ship) => {
-    if (ship === null) return;
-    shipEstimate = ship;
+  const onAreaChange = () => {
+    shipEstimate = zoneEstimate();
+    showEstimate();
+    refreshQuote();
+  };
+  divSelect.addEventListener('change', () => {
+    fillDistricts();
+    onAreaChange();
+  });
+  distSelect.addEventListener('change', onAreaChange);
+  loadDeliveryCharge().then(() => {
+    shipEstimate = zoneEstimate();
     showEstimate();
   });
   refreshQuote();
@@ -1262,7 +1285,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
         recipient_name: drawerContent.querySelector<HTMLInputElement>('#chk-name').value.trim(),
         recipient_phone: phoneVal,
         division: divSelect.value,
-        district: divSelect.value,
+        district: distSelect.value,
         address_line: drawerContent.querySelector<HTMLInputElement>('#chk-address').value.trim(),
         payment_method: drawerContent.querySelector<HTMLInputElement>('#chk-payment').value,
         otp_code: drawerContent.querySelector<HTMLInputElement>('#chk-otp').value.trim() || undefined,

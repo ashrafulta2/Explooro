@@ -138,6 +138,8 @@ export async function createCoupon(db, cache, creatorUser, couponData, reqMeta: 
  * @param {number} params.subtotal - Total cart qualifying amount
  * @param {number} [params.shippingPerParcel] - BDT delivery charge for one supplier parcel (FREE_SHIPPING);
  *   read from the delivery policy when omitted, so the preview frees the same parcels checkout does
+ * @param {string} [params.district] - delivery district; picks the delivery zone whose charge FREE_SHIPPING
+ *   frees (the default zone when omitted, as the cart estimates)
  * @param {Object} [params.cache] - cache for that delivery policy read
  * @param {boolean} [params.forUpdate=false] - Whether to lock the coupon row
  * @returns {Promise<{ valid: boolean, coupon?: Object, discountAmount?: number, discountPaisa?: number, reason?: string, attribution?: Object, [extra: string]: any }>}
@@ -148,9 +150,10 @@ export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClie
   items = [],
   subtotal = 0,
   shippingPerParcel = null,
+  district = null,
   cache = null,
   forUpdate = false,
-}: { code: string; userId?: number; items: Array<any>; subtotal: number; shippingPerParcel?: number; cache?: any; forUpdate?: boolean; }): Promise<{ valid: boolean; coupon?: any; discountAmount?: number; reason?: string; attribution?: any;[extra: string]: any; }> {
+}: { code: string; userId?: number; items: Array<any>; subtotal: number; shippingPerParcel?: number; district?: string | null; cache?: any; forUpdate?: boolean; }): Promise<{ valid: boolean; coupon?: any; discountAmount?: number; reason?: string; attribution?: any;[extra: string]: any; }> {
   if (!code) {
     return { valid: false, reason: 'NO_CODE_PROVIDED' };
   }
@@ -220,7 +223,7 @@ export async function validateCoupon(db: import('pg').Pool|import('pg').PoolClie
 
   let shippingPerParcelPaisa = 0;
   if (coupon.discount_type === 'FREE_SHIPPING') {
-    shippingPerParcelPaisa = toPaisa(shippingPerParcel != null ? shippingPerParcel : await perParcelCharge(db, cache));
+    shippingPerParcelPaisa = toPaisa(shippingPerParcel != null ? shippingPerParcel : await perParcelCharge(db, cache, { district }));
   }
 
   let discountPaisa;

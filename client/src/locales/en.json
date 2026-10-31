@@ -2727,7 +2727,9 @@
     "items_count": {
       "one": "{{count}} item",
       "other": "{{count}} items"
-    }
+    },
+    "deliver_to": "Deliver to",
+    "deliver_to_any": "Choose your area"
   },
   "wishlist": {
     "title": "Saved Items (Wishlist)",
@@ -2817,7 +2819,6 @@
     "resend_otp": "Resend Code",
     "order_summary": "Order Summary",
     "parcel_breakdown": "Parcel Breakdown ({{count}} Suppliers)",
-    "parcel_est_delivery": "Est. Delivery: 2-3 business days",
     "supplier_label": "Supplier",
     "items_count": "{{count}} items",
     "offline_banner_title": "You are currently offline",
@@ -2830,7 +2831,12 @@
     "validation_phone": "Please enter a valid 11-digit Bangladeshi mobile number (013-019).",
     "validation_division": "Please select a division.",
     "validation_district": "Please select a district.",
-    "validation_address": "Please enter full street address."
+    "validation_address": "Please enter full street address.",
+    "delivery_charge": "Delivery charge ({{count}} parcels)",
+    "delivery_zone": "Delivery area: {{zone}}",
+    "delivery_zone_rate": "{{charge}} per parcel × {{count}}",
+    "parcel_eta": "Delivery in {{eta}}",
+    "delivery_eta_label": "Delivery time"
   },
   "quick_buy": {
     "title": "Quick Buy (1-Click Order)",
@@ -2905,7 +2911,9 @@
     "cancel_reason_label": "Cancellation Reason (Optional)",
     "cancel_reason_placeholder": "e.g. Changed delivery address or ordered by mistake",
     "cancel_failed": "Failed to cancel order.",
-    "parcel_count_label": "{{count}} parcel(s)"
+    "parcel_count_label": "{{count}} parcel(s)",
+    "expected_delivery": "Expected delivery",
+    "expected_range": "{{from}} – {{to}}"
   },
   "payout": {
     "request_title": "Request Wallet Withdrawal",
@@ -3961,8 +3969,8 @@
       "recipient_name": "Recipient's name",
       "recipient_name_placeholder": "Who will receive the parcel",
       "address": "Delivery address",
-      "address_placeholder": "House, road, area, district",
-      "address_hint": "Write the district too, e.g. \"House 12, Road 4, Mirpur, Dhaka\". The order uses your account's phone number.",
+      "address_placeholder": "House, road, area",
+      "address_hint": "House, road and area, e.g. \"House 12, Road 4, Mirpur\". The order uses your account's phone number.",
       "payment_method": "Payment method",
       "pay_cod": "Cash on Delivery",
       "pay_cod_note": "Pay the courier when it arrives",
@@ -3982,7 +3990,8 @@
       "otp_placeholder": "6-digit code",
       "otp_sent": "Cash on Delivery for this order needs a confirmation. We sent a code by SMS to {{phone}}. Enter it and press the button again.",
       "otp_dev": "Development mode code: {{code}}",
-      "error_otp": "Enter the code we sent by SMS."
+      "error_otp": "Enter the code we sent by SMS.",
+      "shipping_zone": "Delivery ({{zone}})"
     }
   },
   "cart_recovery": {
@@ -4110,19 +4119,12 @@
     "chk_phone_placeholder": "e.g. 01712345678",
     "chk_phone_invalid": "Please enter a valid 11-digit Bangladeshi mobile number (e.g. 01712345678)",
     "chk_division": "Delivery Division",
+    "chk_district": "Delivery District",
     "chk_address": "Full Delivery Address (House/Road/Area)",
     "chk_payment_method": "Payment Method",
     "chk_total_payable": "Total Payable:",
     "chk_confirm_btn": "Confirm 1-Click Order",
     "chk_order_success": "Order placed successfully! Delivery tracking initiated.",
-    "division_dhaka": "Dhaka (৳60 delivery)",
-    "division_chittagong": "Chittagong (৳120 delivery)",
-    "division_rajshahi": "Rajshahi (৳120 delivery)",
-    "division_khulna": "Khulna (৳120 delivery)",
-    "division_barisal": "Barisal (৳120 delivery)",
-    "division_sylhet": "Sylhet (৳120 delivery)",
-    "division_rangpur": "Rangpur (৳120 delivery)",
-    "division_mymensingh": "Mymensingh (৳120 delivery)",
     "scheduled_premiere": "Upcoming Broadcast Premiere",
     "scheduled_for_label": "Scheduled to go live on",
     "remind_me": "⏰ Remind Me",
@@ -5692,8 +5694,6 @@
       "subtitle": "Set the shipping charge and team discounts, and watch every team as it fills.",
       "settings_title": "Team purchase settings",
       "settings_desc": "Every member of a team pays the team price plus this shipping charge.",
-      "shipping_charge": "Shipping charge per member",
-      "shipping_charge_hint": "৳{{min}} to ৳{{max}}. Use 0 for free delivery.",
       "discount_2": "Discount, 2-member team",
       "discount_3": "Discount, 3-member team",
       "discount_hint": "{{min}}% to {{max}}%. The price never goes below the supplier's wholesale price.",
@@ -5711,8 +5711,6 @@
       "kpi_conversion_hint": "{{completed}} filled, {{expired}} expired",
       "kpi_gmv": "Team order value",
       "kpi_gmv_hint": "Total of all team orders",
-      "kpi_shipping": "Shipping charge now",
-      "kpi_shipping_hint": "Per member, for new teams",
       "col_team": "Team",
       "col_product": "Product",
       "col_initiator": "Started by",
@@ -5720,13 +5718,15 @@
       "col_price": "Price",
       "col_time": "Time left",
       "col_status": "Status",
-      "shipping_short": "shipping",
+      "shipping_short": "starter's delivery",
       "hours_left": "{{hours}}h left",
       "status_active": "Open",
       "status_completed": "Filled",
       "status_expired": "Expired",
       "status_cancelled": "Cancelled",
-      "empty": "No team has been started yet."
+      "empty": "No team has been started yet.",
+      "delivery_note": "Each member's delivery charge depends on their area and is set with the other delivery charges:",
+      "delivery_link": "Delivery charge settings"
     },
     "escrow_page": {
       "title": "Escrow",
@@ -5822,20 +5822,38 @@
     },
     "delivery": {
       "title": "Delivery charge",
-      "subtitle": "What a normal checkout adds for each supplier parcel. The cart, Quick Buy and checkout all use this number.",
-      "card_title": "Delivery charge per parcel",
-      "card_desc": "An order with items from two suppliers ships as two parcels and pays this twice. A change applies to new carts and orders at once; orders already placed keep what they paid.",
+      "subtitle": "What a normal checkout adds for each supplier parcel, by delivery area. Checkout charges the zone of the district the shopper delivers to; the cart estimates with the default zone.",
+      "card_title": "Delivery zones",
+      "card_desc": "Each zone has its own charge per supplier parcel — for example one for Inside Dhaka and a higher one for Outside Dhaka. A shopper pays the zone of the district they pick at checkout; any district no zone lists pays the default zone. An order with items from two suppliers ships as two parcels and pays the charge twice. Changes apply to new carts and orders at once; orders already placed keep what they paid.",
+      "zone_label": "Zone {{n}}",
+      "name_en": "Name (English)",
+      "name_bn": "Name (Bangla)",
       "per_parcel": "Charge per parcel",
       "per_parcel_hint": "Between ৳{{min}} and ৳{{max}}.",
+      "default_zone": "Default zone",
+      "default_badge": "Default",
+      "default_hint": "Also charges every district no other zone lists.",
+      "districts_summary": "Districts in this zone ({{count}})",
+      "districts_none_default": "No districts picked: this zone covers every district the other zones don't.",
+      "select_all": "All of {{division}}",
+      "taken_by": "in {{zone}}",
+      "remove_zone": "Remove zone",
+      "add_zone": "Add zone",
+      "max_zones": "Up to {{max}} zones.",
+      "new_zone_en": "New zone",
+      "new_zone_bn": "নতুন এলাকা",
+      "tester_label": "Check a district:",
+      "tester_result": "{{zone}} · {{charge}} per parcel",
+      "name_required": "Every zone needs a name in English and Bangla.",
       "reason": "Reason for the change",
       "reason_hint": "At least {{min}} characters. It is saved in the audit log.",
-      "example": "One parcel: {{one}} · two parcels: {{two}}",
-      "saved": "Delivery charge saved.",
+      "saved": "Delivery charges saved.",
       "super_admin_only": "Only a super admin can change this.",
-      "team_note": "Team purchase has its own shipping charge:",
-      "team_link": "Team purchase settings",
-      "kpi_current": "Current charge",
-      "kpi_current_hint": "per supplier parcel",
+      "team_note": "Each zone's team purchase charge is what a team member delivered there pays; it is fixed for them when they join.",
+      "kpi_zones": "Delivery zones",
+      "kpi_zones_hint": "default: {{zone}}",
+      "kpi_range": "Charge per parcel",
+      "kpi_range_hint": "lowest – highest",
       "kpi_updated": "Last changed",
       "kpi_updated_hint": "from the audit log",
       "never_changed": "Not changed yet",
@@ -5844,7 +5862,19 @@
       "col_when": "When",
       "col_who": "Who",
       "col_change": "Change",
-      "col_reason": "Reason"
+      "col_reason": "Reason",
+      "team_charge": "Team purchase charge",
+      "team_charge_hint": "What one team-purchase member delivered here pays.",
+      "days_min": "Delivery time from",
+      "days_max": "Delivery time to",
+      "days_suffix": "days",
+      "days_hint": "Delivery time is whole days from {{min}} to {{max}}, and \"from\" cannot be more than \"to\".",
+      "tester_charge": "{{charge}} per parcel",
+      "tester_team": "team {{charge}}",
+      "history_team": "team {{charge}}",
+      "cutoff_label": "Order cut-off time",
+      "cutoff_none": "No cut-off",
+      "cutoff_hint": "Orders placed at or after this time (Bangladesh time) miss that day's courier hand-off, so delivery is counted from the next day."
     },
     "operations": {
       "title": "Manual operations",
@@ -8286,5 +8316,10 @@
     "save_failed": "Could not save the limits.",
     "load_failed": "Could not load the limits.",
     "supplier_funded_tag": "Supplier-funded"
+  },
+  "delivery": {
+    "eta_days": "{{min}}–{{max}} days",
+    "eta_days_one": "{{n}} days",
+    "eta_same_day": "Same day"
   }
 }

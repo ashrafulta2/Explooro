@@ -12,7 +12,7 @@
 
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
-import { perParcelCharge } from './deliveryCharge.service.ts';
+import { zoneForAddress } from './deliveryCharge.service.ts';
 import { withTransaction } from '../config/db.ts';
 import * as orderRepo from '../repositories/order.repository.ts';
 import { enforceCodGate } from './codGate.service.ts';
@@ -439,7 +439,7 @@ function validateLiveCoupon(db, { code, userId, prod, salerId, unitPrice, quanti
   });
 }
 
-export async function quoteInStreamBuy(pool, cache, { streamId, productId, variantId = null, qty = 1, couponCode = null, userId = null }) {
+export async function quoteInStreamBuy(pool, cache, { streamId, productId, variantId = null, qty = 1, couponCode = null, district = null, userId = null }) {
   const quantity = Number(qty);
   if (!Number.isInteger(quantity) || quantity < 1) {
     throw new AppError('VALIDATION_FAILED', 'Quantity must be a whole number of at least 1.', 'পরিমাণ কমপক্ষে ১ এর পূর্ণসংখ্যা হতে হবে।');
@@ -480,7 +480,9 @@ export async function quoteInStreamBuy(pool, cache, { streamId, productId, varia
   }
   available = Math.max(0, Math.min(available, Number(prod.stock_qty) - await getReservedForProduct(pool, prod.id)));
 
-  const shippingPaisa = toPaisa(await perParcelCharge(pool, cache));
+  // The delivery zone follows the district the drawer has; none yet means the default zone.
+  const delivery = await zoneForAddress(pool, cache, { district });
+  const shippingPaisa = toPaisa(delivery.charge);
   const itemsPaisa = toPaisa(unitPrice) * quantity;
 
   // WHY not thrown: a wrong code is something the drawer shows beside the field, not a failed quote.
@@ -512,6 +514,13 @@ export async function quoteInStreamBuy(pool, cache, { streamId, productId, varia
     unit_price: toBdtNumber(toPaisa(unitPrice)),
     items_amount: toBdtNumber(itemsPaisa),
     shipping_amount: toBdtNumber(shippingPaisa),
+    delivery_zone: {
+      key: delivery.zone.key,
+      name_en: delivery.zone.name_en,
+      name_bn: delivery.zone.name_bn,
+      days_min: delivery.zone.days_min,
+      days_max: delivery.zone.days_max,
+    },
     discount_amount: toBdtNumber(discountPaisa),
     total_amount: toBdtNumber(itemsPaisa + shippingPaisa - discountPaisa),
     coupon,
@@ -591,9 +600,10 @@ export async function executeInStreamBuy(pool, cache, {
     throw new AppError('PRODUCT_UNPRICED', 'This product has no price yet.', 'এই পণ্যের এখনও দাম নির্ধারণ হয়নি।');
   }
 
-  // WHY configuration: the per-parcel delivery charge is set at /admin/platform/delivery; a live order
-  // is one supplier parcel, so it pays the same charge as a normal checkout.
-  const shippingPaisa = toPaisa(await perParcelCharge(pool, cache, { fresh: true }));
+  // WHY configuration: the per-parcel delivery charge is set per zone at /admin/platform/delivery; a
+  // live order is one supplier parcel, so it pays what a normal checkout to this district pays.
+  const delivery = await zoneForAddress(pool, cache, { district }, { fresh: true });
+  const shippingPaisa = toPaisa(delivery.charge);
 
   let placed;
   try {
@@ -750,6 +760,9 @@ export async function executeInStreamBuy(pool, cache, {
         district,
         addressLine: address,
         liveStreamId: sId,
+        deliveryZone: delivery.zone.key,
+        deliveryDaysMin: delivery.zone.days_min,
+        deliveryDaysMax: delivery.zone.days_max,
       });
       const subOrder = await orderRepo.createSubOrder(client, {
         ref: `${orderRef}-1`,

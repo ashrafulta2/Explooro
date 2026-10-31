@@ -5,6 +5,7 @@
  */
 
 import { clearMockCart } from './cart.ts';
+import { mockDeliveryChargeFor } from './delivery.ts';
 import { executeMockTopUp, spendMockVault, refundMockVault } from './walletTopup.ts';
 import type { MockRoute } from '../types.ts';
 
@@ -102,14 +103,20 @@ const orderHandlers = [
     handler({ body }) {
       const b = body || {};
       const orderRef = `ORD-${Date.now().toString().slice(-6)}`;
+      // The delivery zone of the picked district, as checkout.service.ts resolves it (one parcel here).
+      const zone = mockDeliveryChargeFor(b.district);
+      const shipping = zone.charge.toFixed(2);
 
       const newOrder = {
         id: nextOrderId++,
         ref: orderRef,
         customer_id: 1,
-        total_amount: '820.00',
+        total_amount: (700 + zone.charge).toFixed(2),
         items_amount: '700.00',
-        shipping_amount: '120.00',
+        shipping_amount: shipping,
+        delivery_zone: zone.key,
+        delivery_days_min: zone.days_min,
+        delivery_days_max: zone.days_max,
         discount_amount: '0.00',
         currency: 'BDT',
         payment_method: b.payment_method || 'COD',
@@ -134,9 +141,9 @@ const orderHandlers = [
             net_retail_margin: '200.00',
             saler_commission: '80.00',
             platform_margin: '120.00',
-            shipping_amount: '60.00',
+            shipping_amount: shipping,
             discount_share: '0.00',
-            total_amount: '760.00',
+            total_amount: (700 + zone.charge).toFixed(2),
             status: 'PLACED',
             courier_partner: 'Steadfast Courier',
             tracking_number: `STF-${orderRef.slice(-4)}`,

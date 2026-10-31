@@ -11,6 +11,10 @@
 import { Button } from '../components/ui/Button.ts';
 import { EmptyState } from '../components/ui/EmptyState.ts';
 import { cartStore, fetchCart, updateItemQuantity, removeFromCart, toggleWishlist, isProductWishlisted } from '../services/cart.ts';
+import { getDeliveryDistrict, setDeliveryDistrict } from '../services/deliveryDistrict.ts';
+import { knownZoneFor, deliveryEtaText } from '../services/deliveryCharge.ts';
+import { zoneName } from '../services/deliveryZones.ts';
+import { BANGLADESH_DIVISIONS } from '../data/bangladeshGeo.ts';
 import { formatCurrency } from '../services/format.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { loadCartPageStyles } from '../styles/loadCartPageStyles.ts';
@@ -189,6 +193,48 @@ export default function CartPage(root: HTMLElement, { navigate }: PageContext = 
     return card;
   }
 
+  function deliverToField(cart) {
+    const wrap = el('div', 'cart-summary__deliver-to');
+    const selected = getDeliveryDistrict() || cart.estimated_shipping_district || '';
+    const select = el('select', 'cart-summary__district input input--sm');
+    select.id = 'cart-deliver-to';
+    const bn = getLanguage() === 'bn';
+    const first = document.createElement('option');
+    first.value = '';
+    first.textContent = t('cart.deliver_to_any');
+    select.append(first);
+    for (const div of BANGLADESH_DIVISIONS) {
+      const group = document.createElement('optgroup');
+      group.label = bn ? div.name_bn : div.name_en;
+      for (const d of div.districts) {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = bn ? d.name_bn : d.name_en;
+        if (d.id === selected) opt.selected = true;
+        group.append(opt);
+      }
+      select.append(group);
+    }
+    select.addEventListener('change', () => {
+      setDeliveryDistrict(select.value || null);
+      fetchCart();
+    });
+
+    const label = el('label', 'cart-summary__deliver-label');
+    label.htmlFor = 'cart-deliver-to';
+    label.textContent = t('cart.deliver_to');
+    wrap.append(label, select);
+
+    // The zone the chosen district falls in, and how long delivery takes there.
+    const zone = knownZoneFor(selected);
+    if (zone) {
+      const eta = deliveryEtaText(zone);
+      wrap.append(el('p', 'cart-summary__deliver-zone',
+        [zoneName(zone, getLanguage()), eta].filter(Boolean).join(' · ')));
+    }
+    return wrap;
+  }
+
   function renderSummary(cart, parcelCount, itemCount) {
     const box = el('aside', 'cart-summary');
     box.setAttribute('aria-label', t('cart.order_summary'));
@@ -204,6 +250,13 @@ export default function CartPage(root: HTMLElement, { navigate }: PageContext = 
     box.append(
       row(`${t('cart.subtotal')} (${t('cart.items_count', { count: itemCount })})`, formatCurrency(subtotal.toFixed(2))),
       row(t('cart.shipping_estimate', { count: parcelCount }), formatCurrency(shipping.toFixed(2))),
+    );
+
+    // "Deliver to" — the district the estimate is priced for. Seeded from the shopper's choice, else
+    // the district the server resolved from their default address. Changing it re-prices the cart.
+    box.append(deliverToField(cart));
+
+    box.append(
       row(t('cart.total'), formatCurrency((subtotal + shipping).toFixed(2)), 'cart-summary__row--total'),
     );
 

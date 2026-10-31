@@ -1,8 +1,9 @@
 /**
  * AdminGroupBuyPage.ts — Team Purchase settings and pools (/admin/growth/group-buy, Prompt 9.5).
  *
- * 1. Settings a super admin sets: the shipping charge every team member pays, the discount for a
- *    2- and a 3-member team, and how long a team stays open. Saved through
+ * 1. Settings a super admin sets: the discount for a 2- and a 3-member team, and how long a team
+ *    stays open. (The delivery charge each member pays is set per area at /admin/platform/delivery
+ *    since migration 099; the page links there.) Saved through
  *    PUT /admin/growth/group-buy/settings (growth.groupbuy.govern, HIGH: a super admin's save applies
  *    at once, anyone else's goes for approval and the page says so).
  * 2. Real counts and the latest teams from GET /admin/growth/group-buy.
@@ -66,20 +67,6 @@ export default function AdminGroupBuyPage(root: HTMLElement, { navigate }: PageC
     const grid = document.createElement('div');
     grid.className = 'group-buy-settings__grid';
 
-    const shipping = Input({
-      label: t('admin.group_buy.shipping_charge'),
-      hint: t('admin.group_buy.shipping_charge_hint', { min: limits.shipping_charge.min, max: limits.shipping_charge.max }),
-      type: 'number',
-      name: 'shipping_charge',
-      prefix: '৳',
-      value: String(settings.shipping_charge),
-      inputmode: 'decimal',
-      required: true,
-    });
-    shipping.input.min = String(limits.shipping_charge.min);
-    shipping.input.max = String(limits.shipping_charge.max);
-    shipping.input.step = '0.01';
-
     const pctInput = (name, label) => {
       const field = Input({
         label,
@@ -113,7 +100,16 @@ export default function AdminGroupBuyPage(root: HTMLElement, { navigate }: PageC
     windowHours.input.max = String(limits.window_hours.max);
     windowHours.input.step = '1';
 
-    grid.append(shipping, discount2, discount3, windowHours);
+    grid.append(discount2, discount3, windowHours);
+
+    // WHY a link, not a field: since migration 099 a member pays the team-purchase charge of their own
+    // delivery zone, set beside the normal charge at /admin/platform/delivery (CRITICAL, super admin).
+    const deliveryNote = document.createElement('p');
+    deliveryNote.className = 'text-xs text-secondary';
+    const deliveryLink = document.createElement('a');
+    deliveryLink.href = '/admin/platform/delivery';
+    deliveryLink.textContent = t('admin.group_buy.delivery_link');
+    deliveryNote.append(`${t('admin.group_buy.delivery_note')} `, deliveryLink);
 
     // A team discount can conflict with the markup and split set at /admin/finance/splits
     // (services/pricingConflicts.ts). The panel follows the unsaved discounts; a save that would add a
@@ -143,7 +139,6 @@ export default function AdminGroupBuyPage(root: HTMLElement, { navigate }: PageC
       size: 'sm',
       onClick: async () => {
         const payload = {
-          shipping_charge: Number(shipping.value),
           discount_pct_2: Number(discount2.value),
           discount_pct_3: Number(discount3.value),
           window_hours: Number(windowHours.value),
@@ -171,7 +166,7 @@ export default function AdminGroupBuyPage(root: HTMLElement, { navigate }: PageC
     actions.className = 'group-buy-settings__actions';
     actions.append(note, save);
 
-    panel.append(grid, conflicts, actions);
+    panel.append(grid, deliveryNote, conflicts, actions);
     return panel;
   }
 
@@ -190,7 +185,6 @@ export default function AdminGroupBuyPage(root: HTMLElement, { navigate }: PageC
       card(t('admin.group_buy.kpi_conversion'), s.conversion_rate_pct == null ? '—' : `${s.conversion_rate_pct}%`,
         t('admin.group_buy.kpi_conversion_hint', { completed: s.completed_teams, expired: s.expired_teams })),
       card(t('admin.group_buy.kpi_gmv'), formatCurrency(s.gross_team_gmv_bdt), t('admin.group_buy.kpi_gmv_hint')),
-      card(t('admin.group_buy.kpi_shipping'), formatCurrency(overview.settings.shipping_charge), t('admin.group_buy.kpi_shipping_hint')),
     ].join('');
     return grid;
   }

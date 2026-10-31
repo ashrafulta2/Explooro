@@ -22,9 +22,13 @@ function toInt(value) {
 
 export async function quote(req, reply) {
   const db = req.db || req.server?.db;
+  const district = typeof req.query?.district === 'string' ? req.query.district.slice(0, 64) : null;
   const result = await teamPurchaseService.getQuote(db, {
     productId: toInt(req.query?.product_id),
     userId: req.user?.id ?? null,
+    // The district picks the delivery zone whose team charge the member pays.
+    district,
+    cache: req.server?.cache ?? null,
   });
   return reply.send(result);
 }
@@ -45,7 +49,7 @@ export async function create(req, reply) {
   const user = req.user;
   // WHY group_price and window_hours are not read: the service computes both from settings. The
   // client used to send its own group_price, so a shopper could start a team at any price.
-  const { product_id, required_members, recipient_name, address_line, payment_method } = req.body || {};
+  const { product_id, required_members, recipient_name, address_line, division, district, payment_method } = req.body || {};
 
   const result = await teamPurchaseService.createTeamPurchase(db, cache, {
     userId: user.id,
@@ -53,6 +57,8 @@ export async function create(req, reply) {
     requiredMembers: required_members == null ? null : toInt(required_members),
     recipientName: recipient_name,
     addressLine: address_line,
+    division,
+    district,
     paymentMethod: payment_method || 'COD',
     cod: codContext(req),
   });
@@ -64,13 +70,15 @@ export async function join(req, reply) {
   const db = req.db || req.server?.db;
   const cache = req.server?.cache ?? null;
   const user = req.user;
-  const { recipient_name, address_line, payment_method } = req.body || {};
+  const { recipient_name, address_line, division, district, payment_method } = req.body || {};
 
   const result = await teamPurchaseService.joinTeamPurchase(db, cache, {
     userId: user.id,
     teamId: toInt(req.params.id),
     recipientName: recipient_name,
     addressLine: address_line,
+    division,
+    district,
     paymentMethod: payment_method || 'COD',
     cod: codContext(req),
   });

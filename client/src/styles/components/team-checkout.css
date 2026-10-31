@@ -27,3 +27,8 @@
 @media (max-width: 420px) {
   .team-checkout__payment { grid-template-columns: minmax(0, 1fr); }
 }
+/* Division and district side by side; they decide the member's delivery zone and charge. */
+.team-checkout__place { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-2); }
+@media (max-width: 420px) {
+  .team-checkout__place { grid-template-columns: minmax(0, 1fr); }
+}

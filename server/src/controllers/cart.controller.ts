@@ -27,7 +27,10 @@ export async function getCart(req, reply) {
   const { db, config } = req.server;
   const { userId, guestToken } = getIdentity(req);
 
-  const cart = await cartService.getCart(db, { userId, guestToken });
+  // The shopper may name a delivery district on the cart to price the estimate; otherwise the service
+  // falls back to their default saved address, then the default zone.
+  const district = typeof req.query?.district === 'string' ? req.query.district.slice(0, 64) : null;
+  const cart = await cartService.getCart(db, { userId, guestToken, district });
   if (!userId && cart.guest_token) {
     ensureCartCookie(reply, config, cart.guest_token);
   }

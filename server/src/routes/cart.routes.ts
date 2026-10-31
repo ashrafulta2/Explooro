@@ -9,6 +9,10 @@ export default async function cartRoutes(fastify) {
     '/cart',
     {
       preHandler: [fastify.authenticateOptional],
+      schema: {
+        // Optional: the district picks the delivery zone the estimate is priced for.
+        querystring: { type: 'object', properties: { district: { type: 'string', maxLength: 64 } } },
+      },
     },
     cartCtrl.getCart
   );

@@ -49,15 +49,17 @@ export async function createCoupon(req, reply) {
 
 export async function validateCoupon(req, reply) {
   const db = req.db || req.server?.db;
-  const { code, items, subtotal } = req.body || {};
+  const { code, items, subtotal, district } = req.body || {};
 
   // WHY no shipping figure from the client: FREE_SHIPPING is priced from the delivery policy, the
   // same per-parcel charge checkout uses, so the preview cannot be talked into a bigger discount.
+  // The client may name the district; the server turns it into a zone and a charge itself.
   const result = await couponService.validateCoupon(db, {
     code,
     userId: req.user?.id || null,
     items: items || [],
     subtotal: parseFloat(subtotal || 0),
+    district: typeof district === 'string' ? district.slice(0, 64) : null,
     cache: req.server?.cache || null,
   });
 

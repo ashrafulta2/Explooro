@@ -11,7 +11,8 @@ import { appStore } from '../state/appStore.ts';
 import { toast } from './toast.ts';
 import { t } from './i18n.ts';
 import { track } from './signals.ts';
-import { knownDeliveryCharge, loadDeliveryCharge } from './deliveryCharge.ts';
+import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge } from './deliveryCharge.ts';
+import { getDeliveryDistrict } from './deliveryDistrict.ts';
 import { currentTouch } from './attribution.ts';
 
 const GUEST_CART_STORAGE_KEY = 'explooro_guest_cart';
@@ -142,8 +143,11 @@ export function buildCartFromItems(items: CartItem[] = []): Cart {
   });
 
   const parcels = Array.from(suppliersMap.values());
-  // The super admin sets the charge (/admin/platform/delivery); the server cart replaces this estimate.
-  const estimatedShipping = (parcels.length * (knownDeliveryCharge() ?? 0)).toFixed(2);
+  // The super admin sets the charge per zone (/admin/platform/delivery). Estimate with the zone of the
+  // district the shopper chose on the cart; with none, the default zone. The server cart replaces this.
+  const estimateZone = knownZoneFor(getDeliveryDistrict());
+  const perParcel = estimateZone ? estimateZone.charge : (knownDeliveryCharge() ?? 0);
+  const estimatedShipping = (parcels.length * perParcel).toFixed(2);
   const grandTotal = (subtotal + Number(estimatedShipping)).toFixed(2);
 
   return {
@@ -216,7 +220,8 @@ export function openCart() {
 export async function fetchCart() {
   try {
     cartStore.update({ loading: true });
-    const res = await api.get('/cart', { skipAuthRedirect: true });
+    const district = getDeliveryDistrict();
+    const res = await api.get(district ? `/cart?district=${encodeURIComponent(district)}` : '/cart', { skipAuthRedirect: true });
     if (res?.data?.cart?.items?.length > 0) {
       updateCartState(res.data.cart);
     } else {
