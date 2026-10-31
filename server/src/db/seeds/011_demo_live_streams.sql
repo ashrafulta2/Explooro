@@ -73,28 +73,37 @@ ON CONFLICT (ref) DO UPDATE SET
   total_sales_amount = EXCLUDED.total_sales_amount;
 
 -- 2. Insert Featured Stream Products
+-- WHY each special price is a discount % of the product's retail and not a typed number: retail is
+-- derived from the supplier price (seed.ts re-prices products right after 005), so typed prices went
+-- stale and some ended up above retail. The deal is that much off today's retail, rounded down to ৳10,
+-- and never below base_cost + wholesale_margin: a live order under that floor is refused
+-- (pricing.service), so a cheaper "deal" could never be bought.
 INSERT INTO live_stream_products (
   id, live_stream_id, product_id, is_pinned, pinned_at, pin_order, special_price
-) VALUES
-  -- Stream 1 Products. WHY every special price sits above base_cost + wholesale_margin: a live order
-  -- under that floor is refused (pricing.service.js), so a cheaper "deal" could never be bought.
-  (1, 1, 5, true, now() - interval '20 minutes', 1, 4900.00),
-  (2, 1, 6, false, NULL, 2, 1150.00),
-  (3, 1, 7, false, NULL, 3, 1600.00),
+)
+SELECT d.id, d.live_stream_id, p.id, d.is_pinned, d.pinned_at, d.pin_order,
+       GREATEST(p.base_cost + p.wholesale_margin, floor(p.default_retail_price * (100 - d.pct) / 1000) * 10)
+FROM (VALUES
+  -- Stream 1 Products
+  (1, 1, 5, true, now() - interval '20 minutes', 1, 10),
+  (2, 1, 6, false, NULL::timestamptz, 2, 5),
+  (3, 1, 7, false, NULL::timestamptz, 3, 8),
 
   -- Stream 2 Products
-  (4, 2, 11, true, now() - interval '10 minutes', 1, 2600.00),
-  (5, 2, 12, false, NULL, 2, 1700.00),
+  (4, 2, 11, true, now() - interval '10 minutes', 1, 8),
+  (5, 2, 12, false, NULL::timestamptz, 2, 6),
 
   -- Stream 3 Products
-  (6, 3, 5, false, NULL, 1, 5000.00),
-  (7, 3, 7, false, NULL, 2, 1750.00),
+  (6, 3, 5, false, NULL::timestamptz, 1, 8),
+  (7, 3, 7, false, NULL::timestamptz, 2, 5),
 
   -- Stream 4 Products
-  (8, 4, 41, false, NULL, 1, 650.00),
+  (8, 4, 41, false, NULL::timestamptz, 1, 6),
 
   -- Stream 5 Products
-  (9, 5, 7, false, NULL, 1, 1600.00)
+  (9, 5, 7, false, NULL::timestamptz, 1, 8)
+) AS d(id, live_stream_id, product_id, is_pinned, pinned_at, pin_order, pct)
+JOIN products p ON p.id = d.product_id
 ON CONFLICT (live_stream_id, product_id) DO UPDATE SET
   is_pinned = EXCLUDED.is_pinned,
   special_price = EXCLUDED.special_price;

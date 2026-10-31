@@ -14,6 +14,7 @@ import '../config/loadEnvFile.ts';
 import { loadEnv } from '../config/env.ts';
 import { createDbPool, withTransaction } from '../config/db.ts';
 import { repriceProducts } from '../services/product.service.ts';
+import { computeGroupPrice, discountForSize, getTeamBuyingSettings } from '../services/teamPurchase.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SEEDS_DIR = path.join(__dirname, 'seeds');
@@ -35,6 +36,9 @@ async function run() {
       const sql = await readFile(path.join(SEEDS_DIR, name), 'utf8');
       await withTransaction(pool, (client) => client.query(sql));
       console.log(`Seeded ${name}`);
+      // WHY right after the file that inserts products: the deal seeds after it (live streams, flash
+      // sales) price themselves off today's retail, so it must be derived before they run.
+      if (/INSERT INTO products\s*\(/.test(sql)) await priceProducts(pool);
     }
 
     const resynced = await resyncIdSequences(pool);
@@ -44,21 +48,54 @@ async function run() {
         : 'All id sequences already in sync.'
     );
 
-    // WHY prices are derived here and not typed in 005_demo_catalog.sql: retail and partner profit
-    // follow today's markup and split (platform_settings), so the seed's numbers would go stale on the
-    // next policy change. The SQL holds only the supplier's price (base_cost + wholesale_margin);
-    // retail = that + the category's markup and the partner profit come from the same service the
-    // admin's re-price uses. Dev data only, so every product is rewritten, ARCHIVED ones included.
-    const priced = await repriceProducts(pool, {
-      reason: 'Seed: derive retail and partner profit from the supplier price',
-      actorId: null,
-      includeArchived: true,
-      refreshPartnerProfit: true,
-    });
-    console.log(`Priced products from the supplier price: ${priced.repriced} of ${priced.checked} changed.`);
+    await priceTeams(pool);
   } finally {
     await pool.end();
   }
+}
+
+/**
+ * WHY prices are derived here and not typed in 005_demo_catalog.sql: retail and partner profit follow
+ * today's markup and split (platform_settings), so the seed's numbers would go stale on the next
+ * policy change. The SQL holds only the supplier's price (base_cost + wholesale_margin); retail = that
+ * + the category's markup and the partner profit come from the same service the admin's re-price
+ * uses. Dev data only, so every product is rewritten, ARCHIVED ones included.
+ */
+async function priceProducts(pool) {
+  const priced = await repriceProducts(pool, {
+    reason: 'Seed: derive retail and partner profit from the supplier price',
+    actorId: null,
+    includeArchived: true,
+    refreshPartnerProfit: true,
+  });
+  console.log(`Priced products from the supplier price: ${priced.repriced} of ${priced.checked} changed.`);
+}
+
+/**
+ * Team purchases snapshot their price when they start, so the typed prices in
+ * 010_demo_team_purchases.sql are placeholders. Every team (dev data, like the products above) gets
+ * what teamPurchase.service would charge it today: the product's retail as the original price, and the
+ * group price from `computeGroupPrice` with the discount for its size.
+ */
+async function priceTeams(pool) {
+  const settings = await getTeamBuyingSettings(pool);
+  const { rows } = await pool.query(
+    `SELECT t.id, t.required_members, p.default_retail_price, p.base_cost, p.wholesale_margin
+     FROM team_purchases t JOIN products p ON p.id = t.product_id`
+  );
+  for (const t of rows) {
+    const { group_price: groupPrice } = computeGroupPrice({
+      retailPrice: t.default_retail_price,
+      baseCost: t.base_cost,
+      wholesaleMargin: t.wholesale_margin,
+      discountPct: discountForSize(settings, t.required_members),
+    });
+    await pool.query(
+      `UPDATE team_purchases SET group_price = $2, original_price = $3 WHERE id = $1`,
+      [t.id, groupPrice, t.default_retail_price]
+    );
+  }
+  console.log(`Priced ${rows.length} team purchases from today's retail.`);
 }
 
 /**

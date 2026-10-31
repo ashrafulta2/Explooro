@@ -2,7 +2,8 @@
 -- Seed realistic Bangladeshi demo data for Social Group Buying & Team Purchases:
 -- 2 Active teams, 1 Completed team (converted to orders), and 1 Expired & Refunded team.
 
--- 1. Insert Team Purchases
+-- 1. Insert Team Purchases. group_price / original_price are placeholders: seed.ts replaces them with
+--    what teamPurchase.service charges today (computeGroupPrice off the product's derived retail).
 INSERT INTO team_purchases (
   id, ref, product_id, initiator_user_id, required_members, current_members_count,
   group_price, original_price, status, starts_at, expires_at, completed_at
