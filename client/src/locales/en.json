@@ -227,6 +227,14 @@
     }
   },
   "common": {
+    "buy_now": "Buy now",
+    "all_categories": "All categories",
+    "submitting": "Submitting…",
+    "back_to_catalog": "Back to catalog",
+    "error_occurred": "Something went wrong. Please try again.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "publish": "Publish",
     "more_info": "More information",
     "back_to_marketplace": "Back to marketplace",
     "marketplace": "Marketplace",
@@ -664,6 +672,7 @@
       "store_status": "Physical Shop Status"
     },
     "admin": {
+      "warranty_claims": "Warranty claims",
       "partner_rewards": "Partner reward pool",
       "health": "System Health",
       "users_list": "Users",
@@ -2681,6 +2690,7 @@
     "friday": "Friday"
   },
   "cart": {
+    "empty_sub": "Add something to your cart to check out.",
     "title": "Shopping Cart",
     "empty_title": "Your cart is empty",
     "empty_description": "Explore verified Bangladeshi suppliers and start shopping today.",
@@ -2833,6 +2843,7 @@
     "success": "Quick order placed successfully!"
   },
   "order_tracking": {
+    "summary_title": "Order summary",
     "title": "Order Details & Tracking",
     "ref_label": "Order Ref",
     "placed_on": "Placed On",
@@ -4310,6 +4321,7 @@
     "action_error": "The decision could not be saved."
   },
   "warranty": {
+    "sort_label": "Sort by",
     "supplier_option_refund": "Propose a refund (an admin must approve it)",
     "refund_sent_for_approval": "Refund sent to an admin for approval.",
     "awaiting_admin": "Waiting for admin",
