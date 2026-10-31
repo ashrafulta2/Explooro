@@ -15,6 +15,7 @@ import { writeAudit } from '../lib/audit.ts';
 import { isEnabled } from './module.service.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 import { resolvePlatformPricingConfig } from './pricing.service.ts';
+import { liveFlashSaleSql, boughtAtDealSql } from '../repositories/flashSale.repository.ts';
 
 function generateFlashSaleRef() {
   const code = randomBytes(4).toString('hex').toUpperCase();
@@ -211,12 +212,89 @@ export async function getActiveAndUpcomingFlashSales(db, cache, { limit = 20 }: 
 }
 
 /**
+ * The live deal for one product (and variant), with what this customer has bought at its price.
+ * Used by add-to-cart; the cart read joins the same columns (cart.repository.ts).
+ */
+export async function findLiveFlashSale(db, { productId, variantId = null, userId = null }) {
+  const { rows } = await db.query(
+    `SELECT id, discount_price, variant_id, per_user_limit,
+            allocated_qty - sold_qty - reserved_qty AS remaining_qty
+       FROM flash_sales
+      WHERE product_id = $1 AND (variant_id IS NULL OR variant_id = $2)
+        AND ${liveFlashSaleSql()}
+      ORDER BY starts_at DESC
+      LIMIT 1`,
+    [productId, variantId]
+  );
+  if (!rows.length) return null;
+  const deal = rows[0];
+  let boughtQty = 0;
+  if (userId) {
+    const { rows: bought } = await db.query(boughtAtDealSql('$1', '$2'), [deal.id, userId]);
+    boughtQty = Number(bought[0]?.bought_qty || 0);
+  }
+  return { ...deal, bought_qty: boughtQty };
+}
+
+/**
+ * Prices one cart line against a live deal. Pure, so the cart and add-to-cart cannot disagree.
+ *
+ * The deal price is all or nothing per line: a line asking for more than the customer may still buy
+ * at the deal price (per_user_limit, minus earlier orders and earlier lines of the same deal in this
+ * cart, capped by the deal's remaining stock) is priced at retail and says how many would qualify.
+ * WHY not split the line: an order line has one retail price (order_items.retail_price).
+ *
+ * @param {Object} p
+ * @param {number} p.retailUnitPrice  the line's regular price, variant delta included
+ * @param {number} [p.variantDelta]   the variant's price delta; a product-wide deal keeps it
+ * @param {Object|null} p.deal        { id, discount_price, variant_id, per_user_limit, remaining_qty, bought_qty }
+ * @param {number} p.qty
+ * @param {number} [p.usedInCart]     units of this deal that earlier lines of the cart already take
+ */
+export function resolveFlashLine({ retailUnitPrice, variantDelta = 0, deal, qty, usedInCart = 0 }: {
+  retailUnitPrice: number|string; variantDelta?: number|string|null; deal: any; qty: number; usedInCart?: number;
+}) {
+  const regular = { unitPrice: Number(retailUnitPrice), flashSaleId: null, warning: null };
+  if (!deal || deal.id == null) return regular;
+
+  const dealPrice = Number(deal.discount_price) + (deal.variant_id == null ? Number(variantDelta || 0) : 0);
+  if (!(dealPrice > 0) || dealPrice >= Number(retailUnitPrice)) return regular;
+
+  const allowed = Math.max(0, Math.min(
+    Number(deal.remaining_qty) - usedInCart,
+    Number(deal.per_user_limit) - Number(deal.bought_qty || 0) - usedInCart
+  ));
+  if (qty <= allowed) return { unitPrice: dealPrice, flashSaleId: Number(deal.id), warning: null };
+
+  const price = `৳${dealPrice.toFixed(2)}`;
+  return {
+    ...regular,
+    warning: {
+      code: 'FLASH_DEAL_LIMIT',
+      deal_qty: allowed,
+      deal_price: dealPrice.toFixed(2),
+      message_en: allowed > 0
+        ? `Only ${allowed} can be bought at the flash price of ${price}. Lower the quantity to get it; this line is at the regular price.`
+        : 'You have already bought the most this flash deal allows, so this line is at the regular price.',
+      message_bn: allowed > 0
+        ? `ফ্ল্যাশ মূল্য ${price} এ মাত্র ${allowed}টি কেনা যাবে। পরিমাণ কমালে এই দাম পাবেন; এখন এই লাইনটি নিয়মিত দামে আছে।`
+        : 'এই ফ্ল্যাশ অফারে সর্বোচ্চ যতটি কেনা যায় তা আপনি কিনে ফেলেছেন, তাই এই লাইনটি নিয়মিত দামে আছে।',
+    },
+  };
+}
+
+/**
  * Atomically reserves flash sale stock inside a checkout transaction.
+ *
+ * Locks the deal row, then re-checks what the cart read promised: the deal is still live, has the
+ * units, and the customer stays within per_user_limit counting earlier orders. Any failure is a 409,
+ * so the shopper reloads the cart, which then shows the regular price. Checkout never charges a
+ * price the shopper was not shown.
  *
  * @param {import('pg').PoolClient} client - Transaction client
  * @param {Object} params
  * @param {number} params.flashSaleId
- * @param {number} params.requestedQty
+ * @param {number} params.requestedQty  every unit of this deal in the order, across lines
  * @param {number} [params.userId]
  * @returns {Promise<Object>} Updated deal details
  */
@@ -231,24 +309,32 @@ export async function reserveFlashSaleStock(client: import('pg').PoolClient, {
   );
 
   if (rows.length === 0) {
-    throw new AppError('FLASH_SALE_NOT_FOUND', 'Flash sale deal not found.');
+    throw new AppError('FLASH_SALE_NOT_FOUND', 'Flash sale deal not found.', 'ফ্ল্যাশ সেলটি পাওয়া যায়নি।');
   }
 
   const deal = rows[0];
   const now = new Date();
 
   if (deal.status === 'CANCELLED') {
-    throw new AppError('FLASH_SALE_CANCELLED', 'This flash sale deal has been cancelled.');
+    throw new AppError('FLASH_SALE_CANCELLED', 'This flash sale deal has been cancelled.', 'এই ফ্ল্যাশ সেলটি বাতিল করা হয়েছে।');
   }
 
-  if (now < new Date(deal.starts_at) || now > new Date(deal.ends_at)) {
-    throw new AppError('FLASH_SALE_EXPIRED', 'Flash sale deal is not currently active.');
+  // WHY PAUSED and COMPLETED too: only ACTIVE and SCHEDULED deals are live (flashSale.repository.ts liveFlashSaleSql).
+  if (!['ACTIVE', 'SCHEDULED'].includes(deal.status) || now < new Date(deal.starts_at) || now > new Date(deal.ends_at)) {
+    throw new AppError('FLASH_SALE_EXPIRED', 'Flash sale deal is not currently active.', 'ফ্ল্যাশ সেলটি এখন চালু নেই।');
   }
 
-  if (requestedQty > Number(deal.per_user_limit)) {
+  let boughtQty = 0;
+  if (userId) {
+    const { rows: bought } = await client.query(boughtAtDealSql('$1', '$2'), [flashSaleId, userId]);
+    boughtQty = Number(bought[0]?.bought_qty || 0);
+  }
+  if (boughtQty + requestedQty > Number(deal.per_user_limit)) {
     throw new AppError(
       'FLASH_SALE_LIMIT_EXCEEDED',
-      `You can purchase a maximum of ${deal.per_user_limit} units at flash sale price.`
+      `You can purchase a maximum of ${deal.per_user_limit} units at flash sale price.`,
+      `ফ্ল্যাশ সেল মূল্যে সর্বোচ্চ ${deal.per_user_limit}টি কেনা যায়।`,
+      { per_user_limit: Number(deal.per_user_limit), already_bought: boughtQty }
     );
   }
 
@@ -257,10 +343,9 @@ export async function reserveFlashSaleStock(client: import('pg').PoolClient, {
   const totalReserved = Number(deal.reserved_qty);
 
   if (totalSold + totalReserved + requestedQty > totalAllocated) {
-    throw new AppError('FLASH_SALE_OUT_OF_STOCK', 'Flash sale allocated stock has been fully claimed.');
+    throw new AppError('FLASH_SALE_OUT_OF_STOCK', 'Flash sale allocated stock has been fully claimed.', 'ফ্ল্যাশ সেলের বরাদ্দ স্টক শেষ হয়ে গেছে।');
   }
 
-  // Atomically increment sold quantity (or reserved quantity)
   const { rows: updatedRows } = await client.query(
     `UPDATE flash_sales
      SET sold_qty = sold_qty + $1,

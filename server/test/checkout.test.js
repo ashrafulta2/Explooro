@@ -18,6 +18,7 @@ import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import orderRoutes from '../src/routes/order.routes.ts';
 import { executeCheckout } from '../src/services/checkout.service.ts';
 import * as orderService from '../src/services/order.service.ts';
+import * as cartService from '../src/services/cart.service.ts';
 import * as trustScoreService from '../src/services/trustScore.service.ts';
 import { createMemoryCache } from '../src/config/cache-drivers/memory.ts';
 import fs from 'node:fs';
@@ -172,6 +173,25 @@ function createMockDb() {
   const subOrders = [];
   const orderItems = [];
   const otpCodes = [];
+  const flashSales = [];
+
+  // Mirrors flashSale.repository.ts: live inside its window, ACTIVE or SCHEDULED, units left.
+  const liveDealFor = (productId, variantId) => {
+    const now = Date.now();
+    return flashSales.find((f) => f.product_id === productId
+      && (f.variant_id == null || f.variant_id === variantId)
+      && ['ACTIVE', 'SCHEDULED'].includes(f.status)
+      && new Date(f.starts_at).getTime() <= now && now <= new Date(f.ends_at).getTime()
+      && f.sold_qty + f.reserved_qty < f.allocated_qty) || null;
+  };
+  const boughtAtDeal = (dealId, customerId) => orderItems
+    .filter((oi) => oi.flash_sale_id === dealId)
+    .filter((oi) => {
+      const so = subOrders.find((s) => s.id === oi.sub_order_id);
+      const o = so && orders.find((x) => x.id === so.order_id);
+      return o && o.customer_id === customerId && so.status !== 'CANCELLED';
+    })
+    .reduce((sum, oi) => sum + oi.qty, 0);
 
   // Database mock implementation supporting queries and transactions
   const db = {
@@ -189,6 +209,7 @@ function createMockDb() {
     subOrders,
     orderItems,
     otpCodes,
+    flashSales,
     teamReserved: {}, // productId -> units open teams hold
     linkConversions: [], // { shortLinkId, revenue } per UPDATE short_links
 
@@ -262,10 +283,19 @@ function createMockDb() {
 
       if (q.includes('FROM cart_items ci JOIN products p')) {
         const cartId = Number(params[0]);
+        const cartUserId = carts.find((c) => c.id === cartId)?.user_id ?? null;
         const items = cartItems.filter((ci) => ci.cart_id === cartId).map((ci) => {
           const p = products.find((x) => x.id === ci.product_id);
           const u = users.find((x) => x.id === p.supplier_id);
+          const deal = liveDealFor(ci.product_id, ci.variant_id);
           return {
+            flash_sale_id: deal?.id ?? null,
+            flash_discount_price: deal?.discount_price ?? null,
+            flash_variant_id: deal?.variant_id ?? null,
+            flash_per_user_limit: deal?.per_user_limit ?? null,
+            flash_remaining_qty: deal ? deal.allocated_qty - deal.sold_qty - deal.reserved_qty : null,
+            flash_bought_qty: deal && cartUserId ? boughtAtDeal(deal.id, cartUserId) : 0,
+            variant_price_delta: null,
             id: ci.id,
             cart_id: ci.cart_id,
             product_id: ci.product_id,
@@ -326,6 +356,25 @@ function createMockDb() {
       // Units held by open team purchases (teamStockReservation.service.ts)
       if (q.includes('FROM team_purchases') && q.includes('SUM(required_members)')) {
         return { rows: Object.entries(db.teamReserved).map(([product_id, reserved]) => ({ product_id, reserved })) };
+      }
+
+      // Flash sales (flashSale.service.ts reserveFlashSaleStock)
+      if (q.includes('FROM flash_sales WHERE id = $1 FOR UPDATE')) {
+        const f = flashSales.find((x) => x.id === Number(params[0]));
+        return { rows: f ? [{ ...f }] : [] };
+      }
+      if (q.includes('FROM order_items oi JOIN sub_orders so') && q.includes('oi.flash_sale_id = $1')) {
+        return { rows: [{ bought_qty: boughtAtDeal(Number(params[0]), Number(params[1])) }] };
+      }
+      if (q.includes('UPDATE flash_sales SET sold_qty = sold_qty + $1')) {
+        const f = flashSales.find((x) => x.id === Number(params[1]));
+        f.sold_qty += Number(params[0]);
+        return { rows: [{ ...f }] };
+      }
+      if (q.includes('UPDATE flash_sales SET sold_qty = GREATEST(0, sold_qty - $1)')) {
+        const f = flashSales.find((x) => x.id === Number(params[1]));
+        if (f) f.sold_qty = Math.max(0, f.sold_qty - Number(params[0]));
+        return { rows: [] };
       }
 
       // Products & Deterministic Locking
@@ -545,6 +594,7 @@ function createMockDb() {
           retail_price: String(params[8]),
           line_total: String(params[9]),
           saler_id: params[10] ? Number(params[10]) : null,
+          flash_sale_id: params[11] ? Number(params[11]) : null,
           created_at: new Date().toISOString(),
         };
         orderItems.push(newItem);
@@ -994,5 +1044,112 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
       (err) => err.code === 'INSUFFICIENT_STOCK'
     );
     assert.equal(fresh.orders.length, 0);
+  });
+});
+
+describe('Flash sales are charged at checkout', () => {
+  // Product 1: supplier price ৳500, retail ৳700. A deal at ৳600, 5 units, 2 per customer.
+  const checkoutAs = (db, key, extra = {}) => executeCheckout(db, createMemoryCache(), {
+    userId: 1,
+    idempotencyKey: key,
+    recipientName: 'Karim Ahmed',
+    recipientPhone: '+8801711111111',
+    division: 'Dhaka',
+    district: 'Dhaka',
+    addressLine: 'House 12, Road 4, Dhanmondi',
+    paymentMethod: 'BKASH',
+    ...extra,
+  });
+
+  function dbWithDeal(cartQty, deal = {}) {
+    const db = createMockDb();
+    db.cartItems.splice(0, db.cartItems.length,
+      { id: 1, cart_id: 1, product_id: 1, variant_id: null, saler_id: 201, bundle_id: null, qty: cartQty, price_at_add: '600.00', added_at: new Date() });
+    db.flashSales.push({
+      id: 7, product_id: 1, variant_id: null, discount_price: '600.00', original_price: '700.00',
+      allocated_qty: 5, sold_qty: 0, reserved_qty: 0, per_user_limit: 2,
+      starts_at: new Date(Date.now() - 3600000), ends_at: new Date(Date.now() + 3600000), status: 'SCHEDULED',
+      ...deal,
+    });
+    return db;
+  }
+
+  // Puts a fresh cart back for customer 1 after a checkout converted the old one.
+  function refillCart(db, qty) {
+    db.carts.find((c) => c.id === 1).status = 'ACTIVE';
+    db.cartItems.push({ id: 50 + db.cartItems.length, cart_id: 1, product_id: 1, variant_id: null, saler_id: 201, bundle_id: null, qty, price_at_add: '600.00', added_at: new Date() });
+  }
+
+  test('a live deal line is charged the deal price and takes the deal\'s stock', async () => {
+    const db = dbWithDeal(2);
+    const result = await checkoutAs(db, 'flash-001');
+
+    assert.equal(Number(result.order.items_amount), 1200, '2 x ৳600, not 2 x ৳700');
+    assert.equal(db.flashSales[0].sold_qty, 2, 'sold_qty counts the units');
+    assert.equal(db.orderItems[0].flash_sale_id, 7, 'the order line records its deal');
+    assert.equal(Number(db.orderItems[0].retail_price), 600);
+    // The deal comes out of the margin above the supplier: the supplier is still paid ৳500 a unit.
+    const sub = db.subOrders[0];
+    assert.equal(Number(sub.subtotal_base), 1000);
+    assert.equal(Number(sub.net_retail_margin), 200);
+    assert.equal(Number(sub.saler_commission) + Number(sub.platform_margin), 200);
+  });
+
+  test('per_user_limit: a line over the limit is at retail with a warning, and earlier orders count', async () => {
+    const over = dbWithDeal(3);
+    const cart = await cartService.getCart(over, { userId: 1 });
+    assert.equal(cart.items[0].unit_price, '700.00');
+    assert.equal(cart.items[0].flash_sale_id, null);
+    assert.equal(cart.items[0].warnings[0].code, 'FLASH_DEAL_LIMIT');
+    assert.equal(cart.items[0].warnings[0].deal_qty, 2);
+    const result = await checkoutAs(over, 'flash-002');
+    assert.equal(Number(result.order.items_amount), 2100, '3 x ৳700');
+    assert.equal(over.flashSales[0].sold_qty, 0, 'no deal stock taken for a retail line');
+
+    // Two at the deal price, then one more in a later order: the allowance is used up.
+    const db = dbWithDeal(2);
+    await checkoutAs(db, 'flash-003');
+    refillCart(db, 1);
+    const later = await cartService.getCart(db, { userId: 1 });
+    assert.equal(later.items[0].unit_price, '700.00');
+    assert.equal(later.items[0].warnings[0].deal_qty, 0);
+    const second = await checkoutAs(db, 'flash-004');
+    assert.equal(Number(second.order.items_amount), 700);
+    assert.equal(db.flashSales[0].sold_qty, 2);
+  });
+
+  test('checkout re-checks the limit and the deal stock under the deal lock', async () => {
+    const line = {
+      product_id: 1, variant_id: null, supplier_id: 101, saler_id: null, short_link_id: null,
+      attribution_source: null, bundle_id: null, unit_price: 600, flash_sale_id: 7,
+      product_title_en: 'Handloom Cotton Saree', product_title_bn: 'হ্যান্ডলুম সুতি শাড়ি',
+    };
+    const overLimit = dbWithDeal(1);
+    await assert.rejects(checkoutAs(overLimit, 'flash-005', { lines: [{ ...line, qty: 3 }] }), { code: 'FLASH_SALE_LIMIT_EXCEEDED' });
+    assert.equal(overLimit.orders.length, 0);
+
+    const soldOut = dbWithDeal(1, { sold_qty: 5 });
+    await assert.rejects(checkoutAs(soldOut, 'flash-006', { lines: [{ ...line, qty: 1 }] }), { code: 'FLASH_SALE_OUT_OF_STOCK' });
+    assert.equal(soldOut.orders.length, 0);
+  });
+
+  test('an ended, sold-out or stopped deal falls back to retail', async () => {
+    for (const deal of [
+      { ends_at: new Date(Date.now() - 1000), starts_at: new Date(Date.now() - 7200000) },
+      { sold_qty: 5 },
+      { status: 'CANCELLED' },
+    ]) {
+      const db = dbWithDeal(1, deal);
+      const result = await checkoutAs(db, `flash-fallback-${JSON.stringify(deal)}`);
+      assert.equal(Number(result.order.items_amount), 700);
+      assert.equal(db.orderItems[0].flash_sale_id, null);
+    }
+  });
+
+  test('cancelling the order gives the units back to the deal', async () => {
+    const db = dbWithDeal(2);
+    const result = await checkoutAs(db, 'flash-007');
+    await orderService.cancelOrder(db, result.order.id, { userId: 1, roles: ['customer'], permissions: [] });
+    assert.equal(db.flashSales[0].sold_qty, 0);
   });
 });

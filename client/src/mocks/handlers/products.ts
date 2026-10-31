@@ -255,6 +255,8 @@ export function setMockProductFlashSale(productId, deal) {
   p.flash_sale_id = deal?.id ?? null;
   p.flash_discount_price = deal?.discount_price ?? null;
   p.flash_ends_at = deal?.ends_at ?? null;
+  // Not on the live list row; the mock cart reads it to price a deal line (cart.ts).
+  p.flash_per_user_limit = deal?.per_user_limit ?? null;
 }
 
 export function findMockProductByFlashSaleId(flashSaleId) {

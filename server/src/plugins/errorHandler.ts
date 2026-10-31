@@ -44,6 +44,13 @@ const ERROR_STATUS = {
   RATE_LIMITED: 429,
   // 3.4 Commerce & finance — 409 / 422
   INSUFFICIENT_STOCK: 409,
+  // Checkout reserves flash sale stock (flashSale.service.ts reserveFlashSaleStock); a deal that ended
+  // or sold out after the cart was read is a 409 so the shopper reloads the cart at the regular price.
+  FLASH_SALE_NOT_FOUND: 409,
+  FLASH_SALE_CANCELLED: 409,
+  FLASH_SALE_EXPIRED: 409,
+  FLASH_SALE_OUT_OF_STOCK: 409,
+  FLASH_SALE_LIMIT_EXCEEDED: 409,
   // Migration 085: the supplier sets every price; a shop partner sending one is refused, never ignored.
   PRICE_LOCKED: 422,
   // Migration 088: a vault top-up over the 24-hour limit.

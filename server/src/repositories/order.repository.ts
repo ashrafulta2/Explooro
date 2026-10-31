@@ -180,13 +180,14 @@ export async function createOrderItem(db, {
   retailPrice,
   lineTotal,
   salerId = null,
+  flashSaleId = null,
 }) {
   const query = `
     INSERT INTO order_items (
       sub_order_id, product_id, variant_id, batch_id, bundle_id,
-      title_snapshot, qty, base_price, retail_price, line_total, saler_id, created_at
+      title_snapshot, qty, base_price, retail_price, line_total, saler_id, flash_sale_id, created_at
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now())
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, now())
     RETURNING *
   `;
   const { rows } = await db.query(query, [
@@ -201,6 +202,7 @@ export async function createOrderItem(db, {
     retailPrice,
     lineTotal,
     salerId,
+    flashSaleId,
   ]);
   return rows[0];
 }
@@ -331,6 +333,17 @@ export async function restoreStock(client, orderItems) {
          SET qty = qty + $1, updated_at = now()
          WHERE id = $2`,
         [qty, item.batch_id]
+      );
+    }
+
+    // A flash line's units go back to its deal (checkout counted them in sold_qty), so the deal can
+    // sell them again; the cancelled parcel also stops counting toward per_user_limit.
+    if (item.flash_sale_id) {
+      await client.query(
+        `UPDATE flash_sales
+         SET sold_qty = GREATEST(0, sold_qty - $1), updated_at = now()
+         WHERE id = $2`,
+        [qty, item.flash_sale_id]
       );
     }
   }

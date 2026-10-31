@@ -16,6 +16,7 @@ import { getStorageDriver } from '../integrations/storage/index.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
 import * as attributionService from './attribution.service.ts';
+import { findLiveFlashSale, resolveFlashLine } from './flashSale.service.ts';
 
 export function generateGuestToken() {
   return `gst_${randomUUID().replace(/-/g, '')}`;
@@ -60,12 +61,31 @@ export async function getCart(db, { userId = null, guestToken = null }) {
   let hasWarnings = false;
 
   const suppliersMap = new Map();
+  // Units of each flash deal earlier lines already take, so two lines cannot both use one allowance.
+  const flashUsed = new Map();
 
   const validatedItems = rawItems.map((raw) => {
     const qty = Number(raw.qty);
     totalItemsCount += qty;
 
-    const currentPrice = Number(raw.variant_price_override ?? raw.current_product_retail_price);
+    const regularPrice = Number(raw.variant_price_override ?? raw.current_product_retail_price);
+    const flash = resolveFlashLine({
+      retailUnitPrice: regularPrice,
+      variantDelta: raw.variant_price_delta,
+      deal: raw.flash_sale_id == null ? null : {
+        id: raw.flash_sale_id,
+        discount_price: raw.flash_discount_price,
+        variant_id: raw.flash_variant_id,
+        per_user_limit: raw.flash_per_user_limit,
+        remaining_qty: raw.flash_remaining_qty,
+        bought_qty: raw.flash_bought_qty,
+      },
+      qty,
+      usedInCart: flashUsed.get(Number(raw.flash_sale_id)) || 0,
+    });
+    if (flash.flashSaleId != null) flashUsed.set(flash.flashSaleId, (flashUsed.get(flash.flashSaleId) || 0) + qty);
+
+    const currentPrice = flash.unitPrice;
     const priceAtAdd = Number(raw.price_at_add);
     const lineTotal = (currentPrice * qty);
     subtotal += lineTotal;
@@ -75,6 +95,10 @@ export async function getCart(db, { userId = null, guestToken = null }) {
 
     // Line warnings
     const warnings = [];
+    if (flash.warning) {
+      warnings.push(flash.warning);
+      hasWarnings = true;
+    }
 
     if (!isProductActive) {
       warnings.push({
@@ -130,6 +154,9 @@ export async function getCart(db, { userId = null, guestToken = null }) {
       stock_ceiling: currentStock,
       price_at_add: priceAtAdd.toFixed(2),
       unit_price: currentPrice.toFixed(2),
+      // Set while the line is charged a flash deal's price; checkout reserves that deal's stock.
+      flash_sale_id: flash.flashSaleId,
+      regular_unit_price: regularPrice.toFixed(2),
       line_total: lineTotal.toFixed(2),
       image_url: raw.primary_image_url ? driver.getPublicUrl(raw.primary_image_url) : '/placeholder-product.svg',
       supplier_id: Number(raw.supplier_id),
@@ -225,6 +252,7 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
     if (itemRows[0]?.custom_retail_price != null) basePrice = Number(itemRows[0].custom_retail_price);
   }
   let unitPrice = basePrice;
+  let variantDelta = 0;
   let availableStock = Number(prodRows[0].stock_qty);
 
   if (variantId) {
@@ -236,9 +264,13 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
       throw new AppError('NOT_FOUND', 'Selected variant is not available.', 'নির্বাচিত ভ্যারিয়েন্টটি উপলব্ধ নেই।');
     }
     // price_delta is signed and relative to the product price, not a replacement for it.
-    unitPrice += Number(varRows[0].price_delta ?? 0);
+    variantDelta = Number(varRows[0].price_delta ?? 0);
+    unitPrice += variantDelta;
     availableStock = Number(varRows[0].stock_qty);
   }
+  // A live flash deal prices the line the way getCart will (same resolver), so no PRICE_CHANGED.
+  const deal = await findLiveFlashSale(db, { productId, variantId, userId });
+  unitPrice = resolveFlashLine({ retailUnitPrice: unitPrice, variantDelta, deal, qty }).unitPrice;
   // Advisory only (checkout re-checks under a lock): don't let a shopper add what open teams hold.
   availableStock = Math.min(availableStock, Number(prodRows[0].stock_qty) - await getReservedForProduct(db, productId));
 

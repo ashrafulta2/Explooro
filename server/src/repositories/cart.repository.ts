@@ -4,6 +4,8 @@
  * Enforces raw SQL layered architecture (docs/architecture-map.md §1).
  */
 
+import { liveFlashSaleSql, boughtAtDealSql } from './flashSale.repository.ts';
+
 export async function findActiveCartByUser(db, userId) {
   const { rows } = await db.query(
     `SELECT * FROM carts WHERE user_id = $1 AND status = 'ACTIVE' ORDER BY last_activity_at DESC LIMIT 1`,
@@ -71,8 +73,17 @@ export async function getCartItemsWithDetails(db, cartId) {
       pv.sku AS variant_sku,
       CASE WHEN pv.id IS NULL THEN NULL
            ELSE COALESCE(ssi.custom_retail_price, p.default_retail_price) + pv.price_delta END AS variant_price_override,
+      pv.price_delta AS variant_price_delta,
       pv.stock_qty AS variant_stock_qty,
       pv.is_active AS variant_is_active,
+      -- The live flash sale for the line, if any; cart.service prices it through
+      -- flashSale.service resolveFlashLine, and checkout reserves its stock.
+      fs.id AS flash_sale_id,
+      fs.discount_price AS flash_discount_price,
+      fs.variant_id AS flash_variant_id,
+      fs.per_user_limit AS flash_per_user_limit,
+      fs.remaining_qty AS flash_remaining_qty,
+      CASE WHEN fs.id IS NULL OR c.user_id IS NULL THEN 0 ELSE (${boughtAtDealSql('fs.id', 'c.user_id')}) END AS flash_bought_qty,
       (
         SELECT m.storage_key
         FROM product_images pi2
@@ -93,6 +104,17 @@ export async function getCartItemsWithDetails(db, cartId) {
       ORDER BY i.added_at DESC
       LIMIT 1
     ) ssi ON ci.saler_id IS NOT NULL
+    JOIN carts c ON c.id = ci.cart_id
+    LEFT JOIN LATERAL (
+      SELECT f.id, f.discount_price, f.variant_id, f.per_user_limit,
+             f.allocated_qty - f.sold_qty - f.reserved_qty AS remaining_qty
+      FROM flash_sales f
+      WHERE f.product_id = ci.product_id
+        AND (f.variant_id IS NULL OR f.variant_id = ci.variant_id)
+        AND ${liveFlashSaleSql('f')}
+      ORDER BY f.starts_at DESC
+      LIMIT 1
+    ) fs ON true
     WHERE ci.cart_id = $1
     ORDER BY ci.added_at ASC
   `;

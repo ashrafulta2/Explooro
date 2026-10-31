@@ -34,6 +34,9 @@ export interface CartItem {
   price?: number | string;
   price_at_add?: string;
   unit_price?: number | string;
+  /** Set while the line is charged a flash deal's price (server cart.service). */
+  flash_sale_id?: number | string | null;
+  regular_unit_price?: string;
   line_total?: number | string;
   image_url?: string;
   supplier_id?: number | string;

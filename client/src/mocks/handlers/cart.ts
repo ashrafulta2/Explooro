@@ -6,9 +6,10 @@
  */
 
 import { mockDeliveryCharge } from './delivery.ts';
+import { findMockProductById } from './products.ts';
 import type { MockRoute } from '../types.ts';
 
-export let mockCartItems = [
+export let mockCartItems: Record<string, any>[] = [
   {
     id: 101,
     product_id: 1,
@@ -84,8 +85,48 @@ let mockWishlist = [
   },
 ];
 
+/**
+ * Prices a line against its product's live flash deal, as server/src/services/flashSale.service.ts
+ * resolveFlashLine does: the deal price for the whole line while it fits per_user_limit (minus
+ * earlier lines of the same deal), otherwise the regular price and a FLASH_DEAL_LIMIT warning.
+ * Only deals made through the campaign mock carry a price; fixture flash flags have none.
+ */
+function applyFlashDeal(item, usedByDeal: Map<string, number>) {
+  item.regular_unit_price ??= item.unit_price;
+  item.warnings = (item.warnings || []).filter((w) => w.code !== 'FLASH_DEAL_LIMIT');
+  item.flash_sale_id = null;
+  item.unit_price = item.regular_unit_price;
+
+  const product = findMockProductById(item.product_id);
+  const dealPrice = Number(product?.flash_discount_price);
+  if (!product?.flash_sale_id || !(dealPrice > 0) || dealPrice >= Number(item.regular_unit_price)) return;
+
+  const key = String(product.flash_sale_id);
+  const used = usedByDeal.get(key) || 0;
+  const allowed = Math.max(0, Number(product.flash_per_user_limit || 1) - used);
+  if (item.qty <= allowed) {
+    item.unit_price = dealPrice.toFixed(2);
+    item.flash_sale_id = product.flash_sale_id;
+    usedByDeal.set(key, used + item.qty);
+    return;
+  }
+  const price = `৳${dealPrice.toFixed(2)}`;
+  item.warnings.push({
+    code: 'FLASH_DEAL_LIMIT',
+    deal_qty: allowed,
+    deal_price: dealPrice.toFixed(2),
+    message_en: allowed > 0
+      ? `Only ${allowed} can be bought at the flash price of ${price}. Lower the quantity to get it; this line is at the regular price.`
+      : 'You have already bought the most this flash deal allows, so this line is at the regular price.',
+    message_bn: allowed > 0
+      ? `ফ্ল্যাশ মূল্য ${price} এ মাত্র ${allowed}টি কেনা যাবে। পরিমাণ কমালে এই দাম পাবেন; এখন এই লাইনটি নিয়মিত দামে আছে।`
+      : 'এই ফ্ল্যাশ অফারে সর্বোচ্চ যতটি কেনা যায় তা আপনি কিনে ফেলেছেন, তাই এই লাইনটি নিয়মিত দামে আছে।',
+  });
+}
+
 function calculateCart() {
   const suppliersMap = new Map();
+  const usedByDeal = new Map<string, number>();
   let subtotal = 0;
   let itemsCount = 0;
   let hasWarnings = false;
@@ -93,6 +134,7 @@ function calculateCart() {
   mockCartItems.forEach((item) => {
     const qty = Number(item.qty);
     itemsCount += qty;
+    applyFlashDeal(item, usedByDeal);
     const unitPrice = Number(item.unit_price);
     const lineTotal = unitPrice * qty;
     item.line_total = lineTotal.toFixed(2);

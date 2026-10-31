@@ -30,6 +30,7 @@ import { computeCheckoutCouponDiscount, allocateDiscountBySupplier } from './cou
 import { pickParcelSaler } from './attribution.service.ts';
 import * as shortlinkService from './shortlink.service.ts';
 import { payOrderFromVault, VAULT_METHOD } from './vaultCheckout.service.ts';
+import { reserveFlashSaleStock } from './flashSale.service.ts';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -184,6 +185,21 @@ export async function executeCheckout(pool, cache, {
 
       const unitPricePaisa = toPaisa(item.unit_price);
       itemsAmountPaisa += (unitPricePaisa * item.qty);
+    }
+
+    // 4b. Flash deals: a line the cart priced at a deal's price claims that deal's stock here, under
+    //     the deal's row lock, all units of one deal at once so per_user_limit sees the whole order.
+    //     A deal that ended, sold out or was stopped since the cart was read refuses the checkout
+    //     (409) instead of charging a price the shopper was not shown. Deals lock in id order, after
+    //     the products, so two checkouts cannot deadlock.
+    const flashQtyByDeal = new Map();
+    for (const item of cart.items) {
+      if (item.flash_sale_id == null) continue;
+      const dealId = Number(item.flash_sale_id);
+      flashQtyByDeal.set(dealId, (flashQtyByDeal.get(dealId) || 0) + Number(item.qty));
+    }
+    for (const dealId of [...flashQtyByDeal.keys()].sort((a, b) => a - b)) {
+      await reserveFlashSaleStock(client, { flashSaleId: dealId, requestedQty: flashQtyByDeal.get(dealId), userId });
     }
 
     // 5. Multi-Supplier Grouping & Shipping (before the coupon: a free-shipping coupon needs the charge)
@@ -425,6 +441,7 @@ export async function executeCheckout(pool, cache, {
           basePrice: pricing.base_cost,
           retailPrice: pricing.retail_price,
           lineTotal: toBdtNumber(lineTotalPaisa),
+          flashSaleId: item.flash_sale_id ?? null,
         });
       }
 
@@ -469,6 +486,7 @@ export async function executeCheckout(pool, cache, {
           basePrice: pItem.basePrice,
           retailPrice: pItem.retailPrice,
           lineTotal: pItem.lineTotal,
+          flashSaleId: pItem.flashSaleId,
         });
       }
     }

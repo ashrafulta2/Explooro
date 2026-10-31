@@ -168,7 +168,7 @@ export default function CartPage(root: HTMLElement, { navigate }: PageContext = 
     row.append(actions);
 
     (item.warnings || []).forEach((w) => {
-      const kind = w.code === 'PRICE_CHANGED' ? 'price' : 'stock';
+      const kind = w.code === 'PRICE_CHANGED' || w.code === 'FLASH_DEAL_LIMIT' ? 'price' : 'stock';
       const msg = getLanguage() === 'bn' && w.message_bn ? w.message_bn : w.message_en;
       row.append(el('div', `cart-item__warning cart-item__warning--${kind}`, `⚠️ ${msg}`));
     });
