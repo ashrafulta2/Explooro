@@ -338,6 +338,16 @@ export async function stopOwnDeal(db, user, flashSaleId, reqMeta: Record<string,
   return after;
 }
 
+/**
+ * What the supplier should read for a deal. WHY not the stored status: a deal is inserted SCHEDULED
+ * and nothing flips it, so the stored value says neither "live now" nor "ended"; the window does.
+ */
+export function displayStatus(deal, now = Date.now()) {
+  if (!['ACTIVE', 'SCHEDULED'].includes(deal.status)) return deal.status;
+  if (new Date(deal.ends_at).getTime() <= now) return 'COMPLETED';
+  return new Date(deal.starts_at).getTime() <= now ? 'ACTIVE' : 'SCHEDULED';
+}
+
 function pageArgs(query: Record<string, any> = {}) {
   const limit = Math.min(Math.max(parseInt(query.limit, 10) || 20, 1), 50);
   const offset = Math.max(parseInt(query.offset, 10) || 0, 0);
@@ -379,11 +389,7 @@ export async function getOverview(db, user, query: Record<string, any> = {}) {
       const from = eligibleFrom(p.retail_price_since, rules.min_listing_days);
       return { ...p, eligible_from: from.toISOString(), eligible: from.getTime() <= now && p.live_flash_sale_id == null };
     }),
-    deals: deals.rows.map((d) => ({
-      ...d,
-      // A deal past its end still reads ACTIVE/SCHEDULED in the table; the supplier sees it as ended.
-      status: ['ACTIVE', 'SCHEDULED'].includes(d.status) && new Date(d.ends_at).getTime() <= now ? 'COMPLETED' : d.status,
-    })),
+    deals: deals.rows.map((d) => ({ ...d, status: displayStatus(d, now) })),
     meta: { limit, offset, total: Number(productCount.rows[0]?.n || 0) },
   };
 }

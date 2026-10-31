@@ -271,6 +271,11 @@ let activeProducts: Record<string, any>[] = products.map((p, i) => ({
   ...(p.is_flash_sale && !p.flash_sale_id ? fixtureFlashDeal(p, i) : {}),
 }));
 
+/** Every mock catalog product (live array: edits made through the setters show up). */
+export function listMockProducts() {
+  return activeProducts;
+}
+
 export function findMockProductById(id) {
   return activeProducts.find((p) => String(p.id) === String(id)) || null;
 }

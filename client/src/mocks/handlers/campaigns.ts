@@ -2,6 +2,7 @@
  * campaigns.ts — Mock API handlers for Campaign & Promotion Manager (Prompt 9.2).
  */
 
+import { listSupplierFundedMockDeals } from './supplierFlashSale.ts';
 import { findMockProductById, findMockProductByFlashSaleId, setMockProductFlashSale, mockMarkup } from './products.ts';
 import { mockPricingContext } from './admin.ts';
 import { markupForCategory } from '../../services/retailMarkup.ts';
@@ -165,9 +166,9 @@ export const campaignHandlers = [
         status: 200,
         body: {
           data: {
-            flash_sales: mockFlashSales,
+            flash_sales: [...listSupplierFundedMockDeals(), ...mockFlashSales],
           },
-          flash_sales: mockFlashSales,
+          flash_sales: [...listSupplierFundedMockDeals(), ...mockFlashSales],
         },
       };
     },

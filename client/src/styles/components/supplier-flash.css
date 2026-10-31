@@ -1,0 +1,17 @@
+/*
+ * supplier-flash.css — /supplier/flash-sales only (loaded by its route, so nothing reaches the entry
+ * bundle). Rows instead of a table: on a phone a three-column table hid the "Start" button behind a
+ * sideways scroll. Shares the card / field / status shell from incentive.css.
+ */
+.supplier-flash-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.supplier-flash-row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: var(--space-2) var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-subtle);
+}
+.supplier-flash-row:last-child { border-bottom: 0; }
+.supplier-flash-row__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 200px; }
+.supplier-flash-row__title { font-weight: 600; color: var(--text-primary); overflow-wrap: anywhere; }
+.supplier-flash-row__meta { font-size: var(--text-xs); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.supplier-flash-row__side { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); }
+.supplier-flash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: var(--space-3); }
+.supplier-flash-grid .incentive-input { min-width: 0; }

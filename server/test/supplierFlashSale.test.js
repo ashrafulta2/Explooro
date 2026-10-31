@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { calculatePricingBreakdown, calculateSupplierFundedBreakdown } from '../src/services/pricing.service.ts';
 import {
-  DEFAULT_RULES, RULE_LIMITS, assertDealFitsRules, eligibleFrom, sanitizeRules, validateRules,
+  DEFAULT_RULES, RULE_LIMITS, assertDealFitsRules, displayStatus, eligibleFrom, sanitizeRules, validateRules,
 } from '../src/services/supplierFlashSale.service.ts';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -107,6 +107,15 @@ describe('assertDealFitsRules', () => {
   test('switched off means no supplier deal at all', () => {
     assert.throws(() => ok({ rules: { ...rules, enabled: false } }), { code: 'FORBIDDEN' });
   });
+});
+
+test('a deal reads Live inside its window, Ended after it, whatever the stored status', () => {
+  const NOW = Date.parse('2026-10-31T12:00:00Z');
+  const deal = (h0, h1, status = 'SCHEDULED') => ({ status, starts_at: new Date(NOW + h0 * 3600_000), ends_at: new Date(NOW + h1 * 3600_000) });
+  assert.equal(displayStatus(deal(-1, 2), NOW), 'ACTIVE');
+  assert.equal(displayStatus(deal(1, 2), NOW), 'SCHEDULED');
+  assert.equal(displayStatus(deal(-3, -1), NOW), 'COMPLETED');
+  assert.equal(displayStatus(deal(-1, 2, 'CANCELLED'), NOW), 'CANCELLED');
 });
 
 describe('wiring', () => {

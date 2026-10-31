@@ -51,6 +51,7 @@ import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colo
 import { CategoryPills } from '../../components/product/CategoryPills.ts';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.ts';
 import { PricingConflicts } from '../../components/admin/PricingConflicts.ts';
+import { SupplierFlashRulesCard } from '../../components/admin/SupplierFlashRulesCard.ts';
 import { findPricingConflicts, findDealPriceConflicts, findCouponConflicts } from '../../services/pricingConflicts.ts';
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.ts';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.ts';
@@ -1441,6 +1442,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'empty-state', label: 'EmptyState', group: 'Surfaces & Feedback', render: renderEmptyState },
     // Price and discount settings that work against each other (/admin/finance/splits, /admin/growth/group-buy)
     { id: 'pricing-conflicts', label: 'PricingConflicts', group: 'Surfaces & Feedback', render: renderPricingConflictsSpecimen },
+    { id: 'supplier-flash-rules', label: 'SupplierFlashRulesCard', group: 'Surfaces & Feedback', render: renderSupplierFlashRulesSpecimen },
 
     // ── Data & Navigation ────────────────────────────────────────────────────
     { id: 'table', label: 'Table', group: 'Data & Navigation', render: renderTable },
@@ -3147,6 +3149,26 @@ function renderGrowthAssistantSpecimen() {
 
   const assistant = GrowthAssistant({ recommendations: sampleRecs });
   wrap.append(specimen('Live Advice Cards with Directly Executable 1-Click Triggers', assistant.element));
+  return wrap;
+}
+
+/**
+ * SupplierFlashRulesCard — the admin's limits for suppliers' own flash sales (migration 096). Rendered
+ * from `initial` so the specimen makes no API call; the bounds are the server's RULE_LIMITS.
+ */
+function renderSupplierFlashRulesSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Limits a supplier-funded flash sale must fit'));
+  const limits = {
+    max_discount_pct: { min: 1, max: 90 },
+    max_duration_hours: { min: 1, max: 720 },
+    max_live_deals: { min: 1, max: 100 },
+    min_listing_days: { min: 0, max: 90 },
+  };
+  wrap.append(specimen('Shipped defaults', SupplierFlashRulesCard({
+    initial: { rules: { enabled: true, max_discount_pct: 50, max_duration_hours: 72, max_live_deals: 5, min_listing_days: 7, updated_at: null }, limits },
+  })));
   return wrap;
 }
 

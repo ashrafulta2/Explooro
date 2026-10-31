@@ -21,6 +21,7 @@ import { b2bEscrowHandlers } from './handlers/b2bEscrow.ts';
 import { developerHandlers } from './handlers/developer.ts';
 import { contentHandlers } from './handlers/content.ts';
 import supplierHandlers from './handlers/supplier.ts';
+import supplierFlashSaleHandlers from './handlers/supplierFlashSale.ts';
 import sampleKitHandlers from './handlers/sampleKit.ts';
 import payoutProtectionHandlers from './handlers/payoutProtection.ts';
 import salerHandlers from './handlers/saler.ts';
@@ -75,6 +76,7 @@ const handlers: (Omit<MockRoute, 'method'> & { method: string })[] = [
   ...developerHandlers,
   ...contentHandlers,
   ...supplierHandlers,
+  ...supplierFlashSaleHandlers,
   ...sampleKitHandlers,
   ...payoutProtectionHandlers,
   ...salerHandlers,
