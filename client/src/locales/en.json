@@ -705,7 +705,8 @@
       "genie": "Popup effect",
       "recommendations": "Personalized feed",
       "delivery": "Delivery charge",
-      "variant_options": "Variant Options"
+      "variant_options": "Variant Options",
+      "operations": "Manual operations"
     },
     "moderator": {
       "queue": "Product Moderation",
@@ -2988,7 +2989,18 @@
     "col_fee": "Disbursement Fee",
     "risk_level_low": "Low Risk (Verified)",
     "copied_ref_toast": "Reference copied to clipboard!",
-    "export_success": "Exported {{count}} payouts to CSV."
+    "export_success": "Exported {{count}} payouts to CSV.",
+    "manual": {
+      "banner_title": "Payouts are manual",
+      "banner_desc": "Send each withdrawal from your own bKash or Nagad, then press \"Mark as paid\" and enter the TrxID. The money leaves the partner's vault only then. Change this at Platform → Manual operations.",
+      "btn_mark_paid": "Mark as paid",
+      "btn_confirm": "I have sent it, mark as paid",
+      "send_instruction": "Send {{amount}} by {{method}} to {{account}} ({{name}}), then enter the TrxID from your confirmation SMS.",
+      "trx_label": "TrxID",
+      "trx_hint": "The transaction ID from bKash or Nagad, at least 4 letters or digits.",
+      "note_label": "Note (optional)",
+      "success": "Payout {{ref}} is marked as paid."
+    }
   },
   "cod": {
     "page_title": "COD 3-Way Reconciliation & Settlements",
@@ -5821,6 +5833,39 @@
       "col_who": "Who",
       "col_change": "Change",
       "col_reason": "Reason"
+    },
+    "operations": {
+      "title": "Manual operations",
+      "subtitle": "Run withdrawals and deliveries by hand until a payment gateway and a courier API are live.",
+      "card_title": "Payout and courier mode",
+      "card_desc": "Manual: you send each withdrawal from your own bKash or Nagad and record the TrxID, and suppliers hand parcels to your courier and mark them delivered. Automatic: the bKash gateway pays and the courier API books and reports. Escrow and the profit split work the same either way.",
+      "payout_label": "Withdrawals (payouts)",
+      "payout_hint": "Manual: the payout queue shows \"Mark as paid\" instead of Approve.",
+      "courier_label": "Deliveries (courier)",
+      "courier_hint": "Manual: suppliers see \"Sent by hand\" instead of 1-click courier booking.",
+      "reason": "Reason for the change",
+      "reason_hint": "At least {{min}} characters. It is saved in the audit log.",
+      "saved": "Operations mode saved.",
+      "super_admin_only": "Only a super admin can change this.",
+      "kpi_updated": "Last changed",
+      "never_changed": "Never changed (shipped default)",
+      "history_title": "Change history",
+      "history_empty": "No changes yet.",
+      "col_when": "When",
+      "col_who": "Who",
+      "col_change": "Payout / courier",
+      "col_reason": "Reason",
+      "mode": {
+        "manual": "Manual",
+        "gateway": "Automatic (bKash gateway)",
+        "integrated": "Automatic (courier API)"
+      },
+      "effect": {
+        "payout_manual": "You send the money and record the TrxID",
+        "payout_gateway": "Approve sends it through the bKash gateway",
+        "courier_manual": "Suppliers record the courier and mark delivery",
+        "courier_integrated": "Booked and tracked through the courier API"
+      }
     }
   },
   "admin_catalog": {
@@ -7566,8 +7611,8 @@
     "whatsapp_btn": "Chat on WhatsApp Concierge",
     "ticket_btn": "Open Priority Support Ticket",
     "academy_btn": "Explore Shop Partner Academy Courses",
-    "shipments_title": "Courier Shipments & Consignment Logs",
-    "shipments_subtitle": "Track real-time 3PL parcel transit, Steadfast and Pathao deliveries, and consignment waybills.",
+    "shipments_title": "Shipments",
+    "shipments_subtitle": "Every parcel you have sent, and whether it has been delivered.",
     "inquiries_title": "Wholesale Quotation Requests & Inquiries",
     "inquiries_subtitle": "Negotiate custom bulk pricing, minimum order quantities (MOQ), and chat with Shop Partners.",
     "store_status_title": "Physical Factory & Showroom Status",
@@ -7618,7 +7663,47 @@
     "recall_success": "Batch #{{batch}} recalled and isolated.",
     "recalled_batches": "Recalled / Frozen",
     "shipments_load_failed": "Failed to load shipment logs.",
-    "stock": "Stock Levels"
+    "stock": "Stock Levels",
+    "manual_ship": {
+      "mode_label": "Courier",
+      "mode_value": "Sent by hand",
+      "mode_hint": "Give the parcel to your courier, then record its tracking number here.",
+      "btn": "Sent by hand",
+      "title": "Record a hand-sent parcel",
+      "desc": "Enter the courier you gave this parcel to and the tracking number they gave you. When it arrives, mark it delivered on the Shipments page.",
+      "cod_collect": "The courier collects {{amount}} in cash.",
+      "courier_label": "Courier name",
+      "courier_placeholder": "e.g. Sundarban Courier",
+      "tracking_label": "Tracking number",
+      "note_label": "Note (optional)",
+      "required": "Enter the courier name and the tracking number.",
+      "confirm": "Save as sent",
+      "success": "Order {{ref}} is marked as sent."
+    },
+    "shipments": {
+      "kpi_open": "On the way",
+      "kpi_awaiting": "Waiting for you to mark",
+      "kpi_awaiting_hint": "Hand-sent parcels not yet marked delivered or returned",
+      "kpi_delivered": "Delivered",
+      "kpi_returned": "Returned",
+      "search": "Search by tracking number, order, recipient or district",
+      "filter_all": "All",
+      "filter_open": "On the way",
+      "filter_delivered": "Delivered",
+      "filter_returned": "Returned",
+      "mark_delivered": "Delivered",
+      "mark_returned": "Returned",
+      "delivered_desc": "Mark this only when the customer has received the parcel. The profit split starts now and is paid after the return window. Collect the {{amount}} COD cash from your courier.",
+      "returned_desc": "The parcel came back without being delivered. Its stock goes back to your inventory and no profit is paid.",
+      "delivered_success": "Order {{ref}} is marked delivered.",
+      "returned_success": "Order {{ref}} is marked returned.",
+      "empty_title": "No shipments yet",
+      "empty_desc": "Parcels appear here once you send them from the fulfilment queue.",
+      "order": "Order",
+      "recipient": "Recipient",
+      "prepaid": "Prepaid",
+      "load_more": "Load more"
+    }
   },
   "mod_access": {
     "title": "My Access",

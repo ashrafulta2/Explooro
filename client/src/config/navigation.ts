@@ -178,6 +178,7 @@ export const navItems: NavItemDef[] = [
   { key: 'admin.platform.language', label_i18n_key: 'nav.admin.language', icon: null, path: '/admin/platform/language', group: 'admin.platform', permission: 'platform.localization.view', module: 'core', roles: ['super_admin', 'admin'], order: 7 },
   { key: 'admin.platform.genie', label_i18n_key: 'nav.admin.genie', icon: null, path: '/admin/platform/genie', group: 'admin.platform', permission: 'platform.genie.view', module: 'core', roles: ['super_admin', 'admin'], order: 8 },
   { key: 'admin.platform.delivery', label_i18n_key: 'nav.admin.delivery', icon: null, path: '/admin/platform/delivery', group: 'admin.platform', permission: 'platform.delivery.view', module: 'core', roles: ['super_admin', 'admin'], order: 9 },
+  { key: 'admin.platform.operations', label_i18n_key: 'nav.admin.operations', icon: null, path: '/admin/platform/operations', group: 'admin.platform', permission: 'platform.operations.view', module: 'core', roles: ['super_admin', 'admin'], order: 9.5 },
   { key: 'admin.platform.recommendations', label_i18n_key: 'nav.admin.recommendations', icon: null, path: '/admin/platform/recommendations', group: 'admin.platform', permission: 'platform.recommendation.view', module: 'core', roles: ['super_admin', 'admin'], order: 10 },
 
   { key: 'admin.security.audit', label_i18n_key: 'nav.admin.audit', icon: null, path: '/admin/security/audit', group: 'admin.security', permission: 'security.audit.view', module: 'core', roles: ['super_admin', 'admin'], order: 1 },

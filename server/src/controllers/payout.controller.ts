@@ -3,6 +3,7 @@
  */
 
 import * as payoutService from '../services/payout.service.ts';
+import { assertGatewayPayoutsAllowed, getModes } from '../services/manualOperations.service.ts';
 
 export async function requestWithdrawal(req, reply) {
   const idempotencyKey = req.headers['idempotency-key'] || null;
@@ -62,6 +63,8 @@ export async function listPayoutQueue(req, reply) {
     limit,
     cursor,
   });
+  // The queue offers Approve (gateway) or Mark as paid (manual) by this (migration 097).
+  const { payout_mode } = await getModes(req.server.db, req.server.cache);
 
   return reply.send({
     data: {
@@ -69,6 +72,7 @@ export async function listPayoutQueue(req, reply) {
       next_cursor: result.nextCursor,
       count: result.count,
     },
+    meta: { payout_mode },
   });
 }
 
@@ -80,6 +84,9 @@ export async function payoutScopeFacts(req) {
 export async function approvePayout(req, reply) {
   const payoutId = parseInt(req.params.id, 10);
   const approverNote = req.body?.note || 'Approved for disbursement';
+  // WHY: approving sends the money through the B2C gateway. While payouts are manual it would mark
+  // the partner paid with no money sent (manualOperations.service.ts).
+  await assertGatewayPayoutsAllowed(req.server.db, req.server.cache);
 
   const result = await payoutService.approvePayout(req.server.db, {
     payoutId,
@@ -133,6 +140,7 @@ export async function batchDisburse(req, reply) {
     });
   }
 
+  await assertGatewayPayoutsAllowed(req.server.db, req.server.cache);
   const result = await payoutService.batchDisbursePayouts(req.server.db, {
     payoutIds,
     executedBy: req.user.id,

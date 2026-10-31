@@ -20,6 +20,7 @@ import Fastify from 'fastify';
 import * as walletRepo from '../src/repositories/wallet.repository.ts';
 import * as ledgerService from '../src/services/ledger.service.ts';
 import * as payoutService from '../src/services/payout.service.ts';
+import * as manualOps from '../src/services/manualOperations.service.ts';
 import financeRoutes from '../src/routes/finance.routes.ts';
 import requestContextPlugin from '../src/plugins/requestContext.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
@@ -286,6 +287,12 @@ function createMockDb() {
         };
         payoutRequests.push(row);
         return { rows: [{ ...row }] };
+      }
+
+      // A TrxID already recorded on another payout (manualOperations.service completePayoutManually)
+      if (q.includes('FROM payout_requests WHERE gateway_ref = $1 AND id <> $2')) {
+        const p = payoutRequests.find((x) => x.gateway_ref === params[0] && x.id !== params[1]);
+        return { rows: p ? [{ ref: p.ref }] : [] };
       }
 
       // SELECT payout_requests FOR UPDATE
@@ -670,5 +677,111 @@ describe('Prompt 6.3 — Payout Engine with Maker-Checker Authorization', () => 
       url: '/api/v1/vault/payouts/me',
     });
     assert.equal(myPayoutsRes.statusCode, 200);
+  });
+});
+
+describe('Manual payouts (migration 097): the owner sends the money and records the TrxID', () => {
+  let db;
+  let payout;
+
+  before(async () => {
+    db = createMockDb();
+    const res = await payoutService.requestPayout(db, {
+      userId: 101,
+      method: 'BKASH',
+      accountNumber: '+8801712345678',
+      accountName: 'Supplier Aarong',
+      amount: 2500.00,
+    });
+    payout = res.payout;
+  });
+
+  test('a TrxID that is not letters and digits is refused before anything moves', async () => {
+    await assert.rejects(
+      () => manualOps.completePayoutManually(db, { payoutId: payout.id, trxId: 'ab', executedBy: 1 }),
+      (err) => err.code === 'VALIDATION_FAILED'
+    );
+    await assert.rejects(
+      () => manualOps.completePayoutManually(db, { payoutId: payout.id, trxId: 'TRX 12/34', executedBy: 1 }),
+      (err) => err.code === 'VALIDATION_FAILED'
+    );
+    const wallet = await walletRepo.getWalletByUserId(db, 101);
+    assert.equal(wallet.held_balance, '2500.00', 'nothing left the held bucket');
+  });
+
+  test('mark as paid books it exactly like a gateway payout: HELD cleared, COMPLETED, TrxID kept, ledger balanced', async () => {
+    const result = await manualOps.completePayoutManually(db, {
+      payoutId: payout.id,
+      trxId: '  9fk3la7xq ',
+      note: 'Sent from owner bKash',
+      executedBy: 1,
+    });
+
+    assert.equal(result.success, true);
+    assert.equal(result.payout.status, 'COMPLETED');
+    assert.equal(result.payout.gateway_ref, '9FK3LA7XQ', 'trimmed and uppercased');
+    assert.equal(JSON.parse(result.payout.gateway_receipt).mode, 'MANUAL');
+
+    const wallet = await walletRepo.getWalletByUserId(db, 101);
+    assert.equal(wallet.held_balance, '0.00');
+    assert.equal(wallet.available_balance, '7500.00', 'the rest of the vault is untouched');
+    assert.equal(wallet.lifetime_withdrawn, '2500.00');
+
+    const integrity = await walletRepo.checkLedgerIntegrity(db);
+    assert.equal(integrity.drift_count, 0);
+  });
+
+  test('a repeat with the same TrxID is a no-op, never a second debit', async () => {
+    const again = await manualOps.completePayoutManually(db, { payoutId: payout.id, trxId: '9FK3LA7XQ', executedBy: 1 });
+    assert.equal(again.alreadyCompleted, true);
+    const wallet = await walletRepo.getWalletByUserId(db, 101);
+    assert.equal(wallet.lifetime_withdrawn, '2500.00');
+  });
+
+  test('a different TrxID on a paid payout, or a TrxID already used on another payout, is refused', async () => {
+    await assert.rejects(
+      () => manualOps.completePayoutManually(db, { payoutId: payout.id, trxId: 'OTHER123', executedBy: 1 }),
+      (err) => err.code === 'PAYOUT_NOT_OPEN'
+    );
+
+    const second = await payoutService.requestPayout(db, {
+      userId: 101,
+      method: 'NAGAD',
+      accountNumber: '+8801712345678',
+      accountName: 'Supplier Aarong',
+      amount: 500.00,
+    });
+    await assert.rejects(
+      () => manualOps.completePayoutManually(db, { payoutId: second.payout.id, trxId: '9fk3la7xq', executedBy: 1 }),
+      (err) => err.code === 'TRX_ID_TAKEN'
+    );
+    const wallet = await walletRepo.getWalletByUserId(db, 101);
+    assert.equal(wallet.held_balance, '500.00', 'the second payout is still held, not paid');
+  });
+
+  test('while payouts are manual, Approve and batch-disburse answer 409 instead of calling the gateway', async () => {
+    const app = Fastify();
+    app.decorate('db', db);
+    app.decorate('cache', null);
+    app.decorate('authenticate', async (req) => {
+      req.user = { id: 1, role: 'super_admin' };
+    });
+    app.decorate('requirePermission', () => async () => {});
+    await app.register(requestContextPlugin);
+    await app.register(errorHandlerPlugin);
+    await app.register(financeRoutes, { prefix: '/api/v1' });
+
+    const open = db.getRawData().payoutRequests.find((p) => p.status === 'REQUESTED');
+    // No operations.modes row in this fake db, so the shipped default (MANUAL) applies.
+    const approve = await app.inject({ method: 'POST', url: `/api/v1/admin/finance/payouts/${open.id}/approve`, payload: {} });
+    assert.equal(approve.statusCode, 409);
+    assert.equal(approve.json().error.code, 'MANUAL_PAYOUT_MODE');
+
+    const batch = await app.inject({ method: 'POST', url: '/api/v1/admin/finance/payouts/batch-disburse', payload: { payout_ids: [open.id] } });
+    assert.equal(batch.statusCode, 409);
+    assert.equal(db.getRawData().payoutRequests.find((p) => p.id === open.id).status, 'REQUESTED', 'nothing was paid');
+
+    const queue = await app.inject({ method: 'GET', url: '/api/v1/admin/finance/payouts' });
+    assert.equal(queue.json().meta.payout_mode, 'MANUAL', 'the queue tells the page which button to show');
   });
 });

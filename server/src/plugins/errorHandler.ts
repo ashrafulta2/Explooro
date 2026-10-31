@@ -68,6 +68,14 @@ const ERROR_STATUS = {
   TITLE_REQUIRED: 400,
   INSUFFICIENT_BALANCE: 422,
   PAYOUT_BELOW_MINIMUM: 422,
+  // Manual operations (097): the request is valid but the platform is in the other mode, or the
+  // parcel / payout has already moved on.
+  MANUAL_PAYOUT_MODE: 409,
+  PAYOUT_NOT_OPEN: 409,
+  TRX_ID_TAKEN: 409,
+  ALREADY_SHIPPED: 409,
+  TRACKING_NUMBER_TAKEN: 409,
+  SHIPMENT_CLOSED: 409,
   COD_OTP_REQUIRED: 422,
   COUPON_INVALID: 422,
   COUPON_BUDGET_EXHAUSTED: 409,

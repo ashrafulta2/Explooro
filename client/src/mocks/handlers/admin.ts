@@ -13,6 +13,7 @@ import { mockTeamSettings } from './teamPurchase.ts';
 import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.ts';
 import { mockMarkup } from './products.ts';
 import { markupForCategory } from '../../services/retailMarkup.ts';
+import { mockOperationsModes } from './operations.ts';
 import permissionCatalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
 
 function traceId() {
@@ -436,6 +437,18 @@ function mockUserPermissionPayload(base) {
     roles: [base.role_key],
   };
 }
+
+/** The server's MANUAL_PAYOUT_MODE refusal (manualOperations.service assertGatewayPayoutsAllowed). */
+const manualPayoutRefusal = () => ({
+  status: 409,
+  body: {
+    error: {
+      code: 'MANUAL_PAYOUT_MODE',
+      message_en: 'Payouts are manual. Send the money yourself, then record it with "Mark as paid" and the TrxID.',
+      message_bn: 'পেআউট এখন ম্যানুয়াল। নিজে টাকা পাঠিয়ে "পরিশোধিত হিসেবে চিহ্নিত করুন" দিয়ে TrxID লিখুন।',
+    },
+  },
+});
 
 const mockPayoutsStore = [
   {
@@ -2306,8 +2319,35 @@ export const adminHandlers: MockRoute[] = [
           data: { payouts: filtered, total: filtered.length },
           payouts: filtered,
           total: filtered.length,
+          meta: { payout_mode: mockOperationsModes().payout_mode },
         },
       };
+    },
+  },
+
+  // Mark a hand-sent payout paid (migration 097). Mirrors manualOperations.service completePayoutManually.
+  {
+    method: 'POST',
+    path: '/admin/finance/payouts/:id/mark-paid',
+    handler({ params, body }) {
+      const item = mockPayoutsStore.find((p) => p.id === parseInt(params?.id, 10));
+      const trxId = String(body?.trx_id || '').trim().toUpperCase();
+      if (!item) {
+        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Payout not found.', message_bn: 'পেআউট পাওয়া যায়নি।' } } };
+      }
+      if (!/^[A-Z0-9-]{4,40}$/.test(trxId)) {
+        return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message_en: 'The TrxID must be 4–40 letters, digits or hyphens.', message_bn: 'TrxID ৪–৪০টি অক্ষর, সংখ্যা বা হাইফেন হতে হবে।' } } };
+      }
+      const taken = mockPayoutsStore.find((p) => p.id !== item.id && p.gateway_ref === trxId);
+      if (taken) {
+        return { status: 409, body: { error: { code: 'TRX_ID_TAKEN', message_en: `TrxID ${trxId} is already recorded on payout ${taken.ref}.`, message_bn: `TrxID ${trxId} আগেই পেআউট ${taken.ref} এ লেখা আছে।` } } };
+      }
+      if (!['REQUESTED', 'HELD', 'APPROVED'].includes(item.status)) {
+        return { status: 409, body: { error: { code: 'PAYOUT_NOT_OPEN', message_en: `Payout ${item.ref} is ${item.status}.`, message_bn: `পেআউট ${item.ref} এর অবস্থা ${item.status}।` } } };
+      }
+      item.status = 'COMPLETED';
+      item.gateway_ref = trxId;
+      return { status: 200, body: { data: { success: true, payout: item } } };
     },
   },
 
@@ -2316,6 +2356,7 @@ export const adminHandlers: MockRoute[] = [
     method: 'POST',
     path: '/admin/finance/payouts/:id/approve',
     handler({ params }) {
+      if (mockOperationsModes().payout_mode === 'MANUAL') return manualPayoutRefusal();
       const id = parseInt(params?.id, 10);
       const item = mockPayoutsStore.find((p) => p.id === id);
       const flags = typeof item?.risk_flags_json === 'string' ? JSON.parse(item.risk_flags_json) : (item?.risk_flags_json || []);
@@ -2347,6 +2388,7 @@ export const adminHandlers: MockRoute[] = [
     method: 'POST',
     path: '/admin/finance/payouts/batch-disburse',
     handler({ body }) {
+      if (mockOperationsModes().payout_mode === 'MANUAL') return manualPayoutRefusal();
       const ids = body?.payout_ids || [];
       ids.forEach((rawId) => {
         const item = mockPayoutsStore.find((p) => p.id === parseInt(rawId, 10));

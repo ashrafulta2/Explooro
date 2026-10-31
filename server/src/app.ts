@@ -38,6 +38,7 @@ import themeRoutes from './routes/theme.routes.ts';
 import localizationRoutes from './routes/localization.routes.ts';
 import genieRoutes from './routes/genie.routes.ts';
 import deliveryChargeRoutes from './routes/deliveryCharge.routes.ts';
+import manualOperationsRoutes from './routes/manualOperations.routes.ts';
 import attributionAdminRoutes from './routes/attributionAdmin.routes.ts';
 import variantOptionsRoutes from './routes/variantOptions.routes.ts';
 import partnerRewardRoutes from './routes/partnerReward.routes.ts';
@@ -223,6 +224,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(genieRoutes, { prefix: '/api/v1' });
   await app.register(deliveryChargeRoutes, { prefix: '/api/v1' });
+  await app.register(manualOperationsRoutes, { prefix: '/api/v1' });
   await app.register(attributionAdminRoutes, { prefix: '/api/v1' });
   await app.register(variantOptionsRoutes, { prefix: '/api/v1' });
   await app.register(partnerRewardRoutes, { prefix: '/api/v1' });

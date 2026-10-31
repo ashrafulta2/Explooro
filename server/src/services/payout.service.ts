@@ -418,82 +418,18 @@ export async function disbursePayout(db: import('pg').Pool, {
     });
 
     if (gatewayResult.success) {
-      // 3. SUCCESS: Deduct from HELD bucket and increment lifetime_withdrawn
-      // DEBIT: HELD bucket (reduces held_balance, increases lifetime_withdrawn)
-      // Offsetting CREDIT: the external clearing wallet. The money left through the B2C gateway,
-      // the mirror of a gateway payment entering (vault.service.ts resolveClearingWalletId).
-      // WHY not the treasury (as before): it made the platform's profit balance swing with every
-      // payout, so it could not be read as profit.
-      const clearingWalletId = await vaultService.resolveClearingWalletId(txClient);
-
-      const txnGroupId = randomUUID();
-      const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [
-        {
-          walletId: wallet.id,
-          entryType: 'DEBIT',
-          amount: payout.amount,
-          balanceBucket: 'HELD',
-          category: 'PAYOUT',
-          referenceType: 'PAYOUT_REQUEST',
-          referenceId: payout.id,
-          memo: `Disbursement completed for payout #${payout.ref} (${gatewayResult.trxId})`,
-          createdBy: executedBy,
-        },
-        {
-          walletId: clearingWalletId,
-          entryType: 'CREDIT',
-          amount: payout.amount,
-          balanceBucket: 'AVAILABLE',
-          category: 'PAYOUT',
-          referenceType: 'PAYOUT_REQUEST',
-          referenceId: payout.id,
-          memo: `Settlement balance for payout #${payout.ref} (${gatewayResult.trxId})`,
-          createdBy: executedBy,
-        },
-      ];
-
-      await ledgerService.recordTransactionGroup(txClient, {
-        txnGroupId,
-        entries: ledgerEntries,
-        defaultCategory: 'PAYOUT',
-        defaultReferenceType: 'PAYOUT_REQUEST',
-        defaultReferenceId: payout.id,
-        createdBy: executedBy,
+      const updated = await settleDisbursedPayout(txClient, {
+        payout,
+        walletId: wallet.id,
+        trxId: gatewayResult.trxId,
+        receipt: gatewayResult.receipt,
+        executedBy,
+        auditAction: 'finance.payout.disburse_success',
       });
-
-      // Update payout status to COMPLETED
-      const { rows: updatedRows } = await txClient.query(
-        `UPDATE payout_requests
-         SET status = 'COMPLETED',
-             gateway_ref = $2,
-             gateway_receipt = $3,
-             approved_by = $4,
-             approved_at = now(),
-             processed_at = now(),
-             updated_at = now()
-         WHERE id = $1
-         RETURNING *`,
-        [
-          payout.id,
-          gatewayResult.trxId,
-          JSON.stringify(gatewayResult.receipt),
-          executedBy,
-        ]
-      );
-
-      await writeAudit(txClient, {
-        actorId: executedBy,
-        actorRole: 'super_admin',
-        action: 'finance.payout.disburse_success',
-        targetType: 'payout_request',
-        targetRef: payout.ref,
-        afterJson: { gateway_ref: gatewayResult.trxId, net_amount: payout.net_amount },
-        riskTier: 'CRITICAL',
-      }).catch(() => {});
 
       return {
         success: true,
-        payout: updatedRows[0],
+        payout: updated,
         gatewayResult,
       };
     } else {
@@ -564,6 +500,100 @@ export async function disbursePayout(db: import('pg').Pool, {
   };
 
   return client ? runner(client) : withTransaction(db, runner);
+}
+
+/**
+ * Books a payout whose money has left: HELD → external clearing wallet, status COMPLETED, audited.
+ * The one place both the B2C gateway (disbursePayout) and a hand-sent payout
+ * (manualOperations.service.ts completePayoutManually) settle, so the two can never book it
+ * differently. The caller holds the payout and wallet rows FOR UPDATE and has checked the held balance.
+ *
+ * WHY the external clearing wallet and not the treasury: the money left to the outside world, the
+ * mirror of a gateway payment entering (vault.service.ts resolveClearingWalletId). Crediting the
+ * treasury made the platform's profit balance swing with every payout, so it could not be read as profit.
+ */
+export async function settleDisbursedPayout(txClient, {
+  payout,
+  walletId,
+  trxId,
+  receipt,
+  executedBy = null,
+  actorRole = 'super_admin',
+  auditAction,
+  auditExtra = {},
+}: {
+  payout: Record<string, any>;
+  walletId: number|string;
+  trxId: string;
+  receipt: unknown;
+  executedBy?: number|string|null;
+  actorRole?: string;
+  auditAction: string;
+  auditExtra?: Record<string, unknown>;
+}) {
+  const clearingWalletId = await vaultService.resolveClearingWalletId(txClient);
+
+  // DEBIT the HELD bucket (reduces held_balance, increases lifetime_withdrawn); CREDIT clearing.
+  const ledgerEntries: import('./ledger.service.ts').LedgerEntryInput[] = [
+    {
+      walletId,
+      entryType: 'DEBIT',
+      amount: payout.amount,
+      balanceBucket: 'HELD',
+      category: 'PAYOUT',
+      referenceType: 'PAYOUT_REQUEST',
+      referenceId: payout.id,
+      memo: `Disbursement completed for payout #${payout.ref} (${trxId})`,
+      createdBy: executedBy,
+    },
+    {
+      walletId: clearingWalletId,
+      entryType: 'CREDIT',
+      amount: payout.amount,
+      balanceBucket: 'AVAILABLE',
+      category: 'PAYOUT',
+      referenceType: 'PAYOUT_REQUEST',
+      referenceId: payout.id,
+      memo: `Settlement balance for payout #${payout.ref} (${trxId})`,
+      createdBy: executedBy,
+    },
+  ];
+
+  await ledgerService.recordTransactionGroup(txClient, {
+    txnGroupId: randomUUID(),
+    entries: ledgerEntries,
+    defaultCategory: 'PAYOUT',
+    defaultReferenceType: 'PAYOUT_REQUEST',
+    defaultReferenceId: payout.id,
+    createdBy: executedBy,
+  });
+
+  const { rows: updatedRows } = await txClient.query(
+    `UPDATE payout_requests
+     SET status = 'COMPLETED',
+         gateway_ref = $2,
+         gateway_receipt = $3,
+         approved_by = $4,
+         approved_at = now(),
+         processed_at = now(),
+         updated_at = now()
+     WHERE id = $1
+     RETURNING *`,
+    [payout.id, trxId, JSON.stringify(receipt ?? null), executedBy]
+  );
+
+  await writeAudit(txClient, {
+    actorId: executedBy,
+    actorRole,
+    action: auditAction,
+    targetType: 'payout_request',
+    targetRef: payout.ref,
+    beforeJson: { status: payout.status },
+    afterJson: { status: 'COMPLETED', gateway_ref: trxId, net_amount: payout.net_amount, ...auditExtra },
+    riskTier: 'CRITICAL',
+  }).catch(() => {});
+
+  return updatedRows[0];
 }
 
 /**

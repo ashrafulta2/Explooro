@@ -80,6 +80,21 @@ export const supplierApi = {
     return api.post('/supplier/fulfilment/consign', payload);
   },
 
+  /** A parcel handed to a courier by hand (migration 097): { sub_order_id, courier_name, tracking_number, note? }. */
+  shipManually(payload: Params) {
+    return api.post('/supplier/fulfilment/manual-ship', payload);
+  },
+
+  getShipments(params: Params = {}) {
+    const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v != null && v !== '').map(([k, v]) => [k, String(v)]));
+    return api.get(`/supplier/shipments${qs.toString() ? `?${qs}` : ''}`);
+  },
+
+  /** Mark a hand-sent parcel DELIVERED or RETURNED. */
+  setShipmentStatus(shipmentId: number, payload: Params) {
+    return api.post(`/supplier/shipments/${shipmentId}/status`, payload);
+  },
+
   getSalerInsights() {
     return api.get('/supplier/salers');
   },

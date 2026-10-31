@@ -1,74 +1,70 @@
 /**
- * SupplierShipmentsPage.ts — Supplier 3PL Courier Parcel Shipments & Tracking Hub (Prompt 11.1).
+ * SupplierShipmentsPage.ts — the supplier's parcels and their delivery status (Prompt 11.1).
  *
  * Route: /supplier/shipments
- * Implements:
- * 1. Active courier consignments overview (Steadfast, Pathao, RedX).
- * 2. Visual multi-step shipment tracking pipeline.
- * 3. Search by Consignment Number, Order Ref, Customer Name, or Phone.
- * 4. Filter chips by transit status.
+ * 1. Every parcel the supplier has sent, from GET /supplier/shipments (newest first, paginated).
+ * 2. Search by tracking number, order ref, recipient or district; filter chips by status.
+ * 3. A parcel sent by hand (carrier MANUAL, migration 097) has "Delivered" and "Returned" buttons.
+ *    DELIVERED starts escrow and the profit split exactly as a courier's webhook would; RETURNED
+ *    puts the stock back. A courier-booked parcel is moved by its courier, so it has no buttons.
+ *
+ * WHY rewritten (2026-10-31): the page built its list from the packing queue, gave parcels without
+ * a tracking number a random one, and showed fixed figures (14 delivered, 98.4% success). Every
+ * number here is now counted from the parcels the API returned.
  */
 
 import { supplierApi } from '../../services/supplier.api.ts';
 import { t } from '../../services/i18n.ts';
-import { formatCurrency } from '../../services/format.ts';
+import { formatCurrency, formatDate } from '../../services/format.ts';
+import { escapeHtml } from '../../services/html.ts';
 import { toast } from '../../services/toast.ts';
-import { Badge } from '../../components/ui/Badge.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import { supplierModal } from './supplierModal.ts';
+
+const CLOSED = ['DELIVERED', 'RETURNED', 'CANCELLED'];
 
 export default function SupplierShipmentsPage(root: HTMLElement) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
 
   let shipments = [];
+  let nextCursor = null;
   let loading = true;
-  let filterStatus = 'all'; // 'all' | 'IN_TRANSIT' | 'DELIVERED' | 'RETURN'
+  let filterStatus = 'all'; // 'all' | 'OPEN' | 'DELIVERED' | 'RETURNED'
   let searchQuery = '';
 
-  async function loadShipments() {
-    loading = true;
-    render();
+  async function loadShipments({ append = false } = {}) {
+    loading = !append;
+    if (!append) render();
     try {
-      const res = await supplierApi.getFulfilmentQueue();
-      const raw = res.data || res || [];
-      // Build shipments list from orders that have tracking numbers or are in transit
-      shipments = raw.map((o) => ({
-        id: o.id,
-        order_ref: o.ref,
-        tracking_number: o.tracking_number || `STF-${Math.floor(10000000 + Math.random() * 89999999)}`,
-        carrier: o.carrier || (o.district === 'Dhaka' ? 'PATHAO' : 'STEADFAST'),
-        recipient_name: o.recipient_name,
-        recipient_phone: o.recipient_phone,
-        district: o.district,
-        status: o.status === 'PROCESSING' || o.status === 'PENDING' ? 'IN_TRANSIT' : o.status,
-        payment_method: o.payment_method || 'COD',
-        total_amount: o.total_amount || 1450.0,
-        dispatched_at: '2026-08-31 14:30',
-        current_hub: o.district === 'Dhaka' ? 'Tejgaon Central Hub' : `${o.district} Regional Hub`,
-      }));
+      const res = await supplierApi.getShipments({ limit: 50, cursor: append ? nextCursor : null });
+      const page = res.data || [];
+      shipments = append ? shipments.concat(page) : page;
+      nextCursor = res.next_cursor ?? null;
     } catch (err) {
       console.error('Failed to load shipments:', err);
       toast.error(t('supplier.shipments_load_failed', 'Failed to load shipment logs.'));
-      shipments = [];
+      if (!append) shipments = [];
     } finally {
       loading = false;
       render();
     }
   }
 
+  const district = (s) => s.delivery_address_json?.district || '';
+  const courierOf = (s) => (s.carrier === 'MANUAL' ? (s.courier_name || t('supplier.manual_ship.mode_value')) : s.carrier);
+
   function getFilteredShipments() {
     return shipments.filter((s) => {
-      if (filterStatus === 'IN_TRANSIT' && s.status !== 'IN_TRANSIT' && s.status !== 'PROCESSING') return false;
+      if (filterStatus === 'OPEN' && CLOSED.includes(s.status)) return false;
       if (filterStatus === 'DELIVERED' && s.status !== 'DELIVERED') return false;
-      if (filterStatus === 'RETURN' && s.status !== 'RETURN') return false;
+      if (filterStatus === 'RETURNED' && s.status !== 'RETURNED') return false;
 
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        const trk = (s.tracking_number || '').toLowerCase().includes(q);
-        const ord = (s.order_ref || '').toLowerCase().includes(q);
-        const rec = (s.recipient_name || '').toLowerCase().includes(q);
-        const dist = (s.district || '').toLowerCase().includes(q);
-        if (!trk && !ord && !rec && !dist) return false;
+        const hay = [s.tracking_number, s.sub_order_ref, s.recipient_name, district(s), s.courier_name]
+          .map((v) => String(v || '').toLowerCase());
+        if (!hay.some((v) => v.includes(q))) return false;
       }
       return true;
     });
@@ -77,7 +73,6 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
   function render() {
     container.innerHTML = '';
 
-    // 1. Header
     const header = document.createElement('header');
     header.className = 'supplier-header';
     header.innerHTML = `
@@ -85,14 +80,12 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
         <div class="supplier-header__badge-row">
           <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">&lt; ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
           <span class="text-muted">/</span>
-          <span class="text-xs text-muted font-mono">Shipments & Tracking</span>
+          <span class="text-xs text-muted font-mono">${t('supplier.shipments_title')}</span>
         </div>
         <h1 class="supplier-header__title">
-          <span>🚚</span> ${t('supplier.shipments_title', 'Courier Shipments & Consignment Logs')}
+          <span>🚚</span> ${t('supplier.shipments_title')}
         </h1>
-        <p class="supplier-header__subtitle">
-          ${t('supplier.shipments_subtitle', 'Track real-time 3PL parcel transit, Steadfast and Pathao deliveries, and consignment waybills.')}
-        </p>
+        <p class="supplier-header__subtitle">${t('supplier.shipments_subtitle')}</p>
       </div>
       <div class="supplier-header__actions">
         <button class="btn btn--sm btn--secondary" id="refresh-shipments-btn">
@@ -100,44 +93,37 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
         </button>
       </div>
     `;
-
-    header.querySelector<HTMLElement>('#refresh-shipments-btn').onclick = loadShipments;
+    header.querySelector<HTMLElement>('#refresh-shipments-btn').onclick = () => loadShipments();
     container.appendChild(header);
 
-    // 2. Summary KPI Strip
-    const inTransitCount = shipments.filter((s) => s.status === 'IN_TRANSIT' || s.status === 'PROCESSING').length;
+    const openCount = shipments.filter((s) => !CLOSED.includes(s.status)).length;
     const deliveredCount = shipments.filter((s) => s.status === 'DELIVERED').length;
+    const returnedCount = shipments.filter((s) => s.status === 'RETURNED').length;
+    const awaitingMark = shipments.filter((s) => s.carrier === 'MANUAL' && !CLOSED.includes(s.status)).length;
 
     const summaryStrip = document.createElement('div');
     summaryStrip.className = 'supplier-kpi-grid';
     summaryStrip.innerHTML = `
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">Active in Transit</span>
-        <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${inTransitCount}</div>
-        <span class="text-xs text-muted">Out for delivery across districts</span>
+        <span class="supplier-kpi-card__label">${t('supplier.shipments.kpi_open')}</span>
+        <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${openCount}</div>
       </div>
-
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">Delivered This Week</span>
-        <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">${deliveredCount || 14}</div>
-        <span class="text-xs text-muted">Escrow scheduled for release</span>
+        <span class="supplier-kpi-card__label">${t('supplier.shipments.kpi_awaiting')}</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${awaitingMark}</div>
+        <span class="text-xs text-muted">${t('supplier.shipments.kpi_awaiting_hint')}</span>
       </div>
-
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">Delivery Success Rate</span>
-        <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">98.4%</div>
-        <span class="text-xs text-muted">Low return-to-origin (RTO) rate</span>
+        <span class="supplier-kpi-card__label">${t('supplier.shipments.kpi_delivered')}</span>
+        <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">${deliveredCount}</div>
       </div>
-
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">Avg Transit Time</span>
-        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">24-48 Hours</div>
-        <span class="text-xs text-muted">Same-day pickup active</span>
+        <span class="supplier-kpi-card__label">${t('supplier.shipments.kpi_returned')}</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${returnedCount}</div>
       </div>
     `;
     container.appendChild(summaryStrip);
 
-    // 3. Search & Filter Toolbar
     const toolbar = document.createElement('div');
     toolbar.className = 'supplier-toolbar';
     toolbar.innerHTML = `
@@ -147,20 +133,23 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
           id="shipment-search-input"
           class="input input--sm"
           style="width: 100%;"
-          aria-label="Search by tracking number, Order Ref, or recipient name"
-          placeholder="Search by Tracking # (e.g. STF-88), Order Ref, or recipient name..."
-          value="${searchQuery}"
+          aria-label="${t('supplier.shipments.search')}"
+          placeholder="${t('supplier.shipments.search')}"
+          value="${escapeHtml(searchQuery)}"
         />
       </div>
       <div class="supplier-toolbar__filters">
         <button class="supplier-chip ${filterStatus === 'all' ? 'supplier-chip--active' : ''}" data-status="all">
-          ${t('common.all', 'All Shipments')} (${shipments.length})
+          ${t('supplier.shipments.filter_all')} (${shipments.length})
         </button>
-        <button class="supplier-chip ${filterStatus === 'IN_TRANSIT' ? 'supplier-chip--active' : ''}" data-status="IN_TRANSIT">
-          🚚 In Transit (${inTransitCount})
+        <button class="supplier-chip ${filterStatus === 'OPEN' ? 'supplier-chip--active' : ''}" data-status="OPEN">
+          🚚 ${t('supplier.shipments.filter_open')} (${openCount})
         </button>
         <button class="supplier-chip ${filterStatus === 'DELIVERED' ? 'supplier-chip--active' : ''}" data-status="DELIVERED">
-          ✅ Delivered
+          ✅ ${t('supplier.shipments.filter_delivered')} (${deliveredCount})
+        </button>
+        <button class="supplier-chip ${filterStatus === 'RETURNED' ? 'supplier-chip--active' : ''}" data-status="RETURNED">
+          ↩ ${t('supplier.shipments.filter_returned')} (${returnedCount})
         </button>
       </div>
     `;
@@ -181,15 +170,55 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
         render();
       };
     });
-
     container.appendChild(toolbar);
 
-    // 4. Shipments Container
     const listWrap = document.createElement('div');
     listWrap.id = 'shipments-list-wrap';
     container.appendChild(listWrap);
 
     renderShipmentsList();
+  }
+
+  function openStatusModal(s, status) {
+    const isDelivered = status === 'DELIVERED';
+    const modal = supplierModal({
+      title: `${isDelivered ? '✅' : '↩'} ${t(isDelivered ? 'supplier.shipments.mark_delivered' : 'supplier.shipments.mark_returned')}: ${escapeHtml(s.tracking_number)}`,
+      size: 'md',
+      danger: !isDelivered,
+      body: `
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
+          <p class="text-sm">${t(isDelivered ? 'supplier.shipments.delivered_desc' : 'supplier.shipments.returned_desc', {
+            amount: formatCurrency(s.cod_amount || 0),
+          })}</p>
+          <div class="form-field">
+            <label class="form-label" for="shipment-status-note">${t('supplier.manual_ship.note_label')}</label>
+            <input id="shipment-status-note" class="form-input" type="text" maxlength="300" />
+          </div>
+        </div>
+      `,
+      footer: `
+        <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel')}</button>
+        <button class="btn btn--sm ${isDelivered ? 'btn--primary' : 'btn--danger'} shipment-status-confirm">
+          ${t(isDelivered ? 'supplier.shipments.mark_delivered' : 'supplier.shipments.mark_returned')}
+        </button>
+      `,
+    });
+
+    const confirmBtn = modal.querySelector<HTMLButtonElement>('.shipment-status-confirm');
+    confirmBtn.onclick = async () => {
+      const note = modal.querySelector<HTMLInputElement>('#shipment-status-note').value.trim();
+      confirmBtn.disabled = true;
+      try {
+        await supplierApi.setShipmentStatus(s.id, { status, ...(note ? { note } : {}) });
+        toast.success(t(isDelivered ? 'supplier.shipments.delivered_success' : 'supplier.shipments.returned_success', { ref: s.sub_order_ref }));
+        modal.close(false);
+        loadShipments();
+      } catch (err) {
+        toast.error(err?.message || t('common.error_generic'));
+        confirmBtn.disabled = false;
+      }
+    };
+    modal.open(document.activeElement);
   }
 
   function renderShipmentsList() {
@@ -208,13 +237,12 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
     }
 
     const filtered = getFilteredShipments();
-
     if (filtered.length === 0) {
       wrap.appendChild(
         EmptyState({
           icon: '🚚',
-          title: 'No active shipments found',
-          description: 'Shipments will appear here once parcels are consigned and handed to courier riders.',
+          title: t('supplier.shipments.empty_title'),
+          description: t('supplier.shipments.empty_desc'),
         })
       );
       return;
@@ -226,71 +254,57 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
     cardsContainer.style.gap = 'var(--space-4, 16px)';
 
     filtered.forEach((s) => {
+      const isManualOpen = s.carrier === 'MANUAL' && !CLOSED.includes(s.status);
       const card = document.createElement('div');
       card.className = 'supplier-shipment-card';
 
       card.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span class="supplier-order-card__ref font-bold" style="font-size: 13px;">${s.tracking_number}</span>
-            <span class="badge badge--primary text-xs font-bold uppercase">${s.carrier}</span>
-            <span class="badge ${s.status === 'DELIVERED' ? 'badge--success' : 'badge--info'} text-xs font-mono">
-              ${s.status}
+            <span class="supplier-order-card__ref font-bold" style="font-size: 13px;">${escapeHtml(s.tracking_number)}</span>
+            <span class="badge badge--primary text-xs font-bold">${escapeHtml(courierOf(s))}</span>
+            <span class="badge ${s.status === 'DELIVERED' ? 'badge--success' : s.status === 'RETURNED' ? 'badge--danger' : 'badge--info'} text-xs font-mono">
+              ${escapeHtml(s.status)}
             </span>
           </div>
           <div style="font-size: var(--text-xs); color: var(--text-secondary);">
-            Order: <strong class="font-mono">${s.order_ref}</strong> · Dispatched: ${s.dispatched_at}
+            ${t('supplier.shipments.order')}: <strong class="font-mono">${escapeHtml(s.sub_order_ref)}</strong> · ${escapeHtml(formatDate(s.created_at))}
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs);">
-            <div>
-              <span>Recipient: <strong>${s.recipient_name}</strong> (${s.recipient_phone})</span> ·
-              <span>Destination: 📍 <strong>${s.district}</strong></span>
-            </div>
-            <div style="font-family: var(--font-mono); font-weight: 700;">
-              ${s.payment_method === 'COD' ? `COD Collect: ${formatCurrency(s.total_amount)}` : 'Prepaid (৳0)'}
-            </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: var(--text-xs); padding-top: 8px;">
+          <div>
+            <span>${t('supplier.shipments.recipient')}: <strong>${escapeHtml(s.recipient_name)}</strong> (${escapeHtml(s.recipient_phone)})</span> ·
+            <span>📍 <strong>${escapeHtml(district(s))}</strong></span>
           </div>
-
-          <!-- Multi-Step Transit Stepper -->
-          <div class="supplier-timeline-stepper">
-            <div class="supplier-timeline-step supplier-timeline-step--active">
-              <div class="supplier-timeline-step__dot"></div>
-              <span>Picked Up</span>
-            </div>
-            <div class="supplier-timeline-step supplier-timeline-step--active">
-              <div class="supplier-timeline-step__dot"></div>
-              <span>Hub Sorting</span>
-            </div>
-            <div class="supplier-timeline-step supplier-timeline-step--active">
-              <div class="supplier-timeline-step__dot"></div>
-              <span>Out for Delivery</span>
-            </div>
-            <div class="supplier-timeline-step ${s.status === 'DELIVERED' ? 'supplier-timeline-step--active' : ''}">
-              <div class="supplier-timeline-step__dot"></div>
-              <span>Delivered</span>
-            </div>
+          <div style="font-family: var(--font-mono); font-weight: 700;">
+            ${s.payment_method === 'COD' ? `COD: ${formatCurrency(s.cod_amount || 0)}` : t('supplier.shipments.prepaid')}
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); padding-top: 6px;">
-          <span class="text-muted">Current Node: <strong>${s.current_hub}</strong></span>
-          <button class="btn btn--xs btn--outline track-btn" data-track="${s.tracking_number}">
-            🌐 Track with Courier API
-          </button>
-        </div>
+        ${isManualOpen ? `
+          <div style="display: flex; justify-content: flex-end; gap: var(--space-2, 8px); padding-top: 8px;">
+            <button class="btn btn--xs btn--secondary returned-btn">↩ ${t('supplier.shipments.mark_returned')}</button>
+            <button class="btn btn--xs btn--primary delivered-btn">✅ ${t('supplier.shipments.mark_delivered')}</button>
+          </div>
+        ` : ''}
       `;
 
-      card.querySelector<HTMLElement>('.track-btn').onclick = () => {
-        toast.info(`Fetching live GPS telemetry from ${s.carrier} network for ${s.tracking_number}...`);
-      };
-
+      card.querySelector<HTMLElement>('.delivered-btn')?.addEventListener('click', () => openStatusModal(s, 'DELIVERED'));
+      card.querySelector<HTMLElement>('.returned-btn')?.addEventListener('click', () => openStatusModal(s, 'RETURNED'));
       cardsContainer.appendChild(card);
     });
 
     wrap.appendChild(cardsContainer);
+
+    if (nextCursor) {
+      const more = document.createElement('button');
+      more.className = 'btn btn--sm btn--secondary';
+      more.style.marginTop = 'var(--space-4, 16px)';
+      more.textContent = t('supplier.shipments.load_more');
+      more.onclick = () => loadShipments({ append: true });
+      wrap.appendChild(more);
+    }
   }
 
   loadShipments();

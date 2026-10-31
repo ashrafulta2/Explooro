@@ -4,6 +4,7 @@
 
 
 import type { MockRoute } from '../types.ts';
+import { mockOperationsModes } from './operations.ts';
 
 const SEEDED_PRODUCTS = [
   {
@@ -171,6 +172,9 @@ const SEEDED_WAREHOUSES = [
     is_active: true,
   },
 ];
+
+/** Parcels the mock supplier has sent by hand, newest first (GET /supplier/shipments). */
+const MOCK_SHIPMENTS: Record<string, any>[] = [];
 
 const SEEDED_FULFILMENT_QUEUE = [
   {
@@ -423,7 +427,11 @@ export const supplierHandlers = [
   {
     method: 'GET',
     path: '/supplier/fulfilment',
-    handler: () => ({ status: 200, body: { data: SEEDED_FULFILMENT_QUEUE, meta: { total: SEEDED_FULFILMENT_QUEUE.length } } }),
+    handler: () => {
+      // Like the server, a parcel that has left (SHIPPED) is no longer in the packing queue.
+      const queue = SEEDED_FULFILMENT_QUEUE.filter((o) => o.status !== 'SHIPPED');
+      return { status: 200, body: { data: queue, meta: { total: queue.length, courier_mode: mockOperationsModes().courier_mode } } };
+    },
   },
   {
     method: 'GET',
@@ -434,6 +442,9 @@ export const supplierHandlers = [
     method: 'POST',
     path: '/supplier/fulfilment/consign',
     handler: ({ body }) => {
+      if (mockOperationsModes().courier_mode === 'MANUAL') {
+        return { status: 409, body: { error: { code: 'CONFLICT', message_en: 'Couriers are manual. Use "Sent by hand" and type the courier\'s tracking number.', message_bn: 'কুরিয়ার এখন ম্যানুয়াল। "হাতে পাঠিয়েছি" দিয়ে কুরিয়ারের ট্র্যাকিং নম্বর লিখুন।' } } };
+      }
       const order = SEEDED_FULFILMENT_QUEUE.find((o) => String(o.id) === String(body?.subOrderId || body?.orderId || body?.id));
       if (order) {
         order.tracking_number = `${(body?.carrier || 'STEADFAST').slice(0, 3)}-${Math.floor(10000000 + Math.random() * 89999999)}`;
@@ -441,6 +452,71 @@ export const supplierHandlers = [
         order.status = 'PACKED';
       }
       return { status: 200, body: { data: { message: 'Consignment booked successfully.', order } } };
+    },
+  },
+  // Hand-sent parcels (migration 097). Mirrors manualOperations.routes.ts.
+  {
+    method: 'POST',
+    path: '/supplier/fulfilment/manual-ship',
+    handler: ({ body }) => {
+      const order = SEEDED_FULFILMENT_QUEUE.find((o) => String(o.id) === String(body?.sub_order_id));
+      const courierName = String(body?.courier_name || '').trim();
+      const trackingNumber = String(body?.tracking_number || '').trim();
+      if (!order) {
+        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Order not found.', message_bn: 'অর্ডার পাওয়া যায়নি।' } } };
+      }
+      if (courierName.length < 2 || trackingNumber.length < 3) {
+        return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message_en: 'Enter the courier name and the tracking number.', message_bn: 'কুরিয়ারের নাম ও ট্র্যাকিং নম্বর লিখুন।' } } };
+      }
+      if (order.status === 'SHIPPED' || MOCK_SHIPMENTS.some((s) => s.sub_order_id === order.id)) {
+        return { status: 409, body: { error: { code: 'ALREADY_SHIPPED', message_en: `Order ${order.ref} has already been sent.`, message_bn: `অর্ডার ${order.ref} আগেই পাঠানো হয়েছে।` } } };
+      }
+      if (MOCK_SHIPMENTS.some((s) => s.tracking_number === trackingNumber)) {
+        return { status: 409, body: { error: { code: 'TRACKING_NUMBER_TAKEN', message_en: `Tracking number ${trackingNumber} is already used by another parcel.`, message_bn: `ট্র্যাকিং নম্বর ${trackingNumber} অন্য একটি পার্সেলে ব্যবহার হয়েছে।` } } };
+      }
+      order.status = 'SHIPPED';
+      const shipment = {
+        id: 9000 + MOCK_SHIPMENTS.length + 1,
+        ref: `SHP-MOCK-${MOCK_SHIPMENTS.length + 1}`,
+        sub_order_id: order.id,
+        sub_order_ref: order.ref,
+        carrier: 'MANUAL',
+        courier_name: courierName,
+        tracking_number: trackingNumber,
+        status: 'IN_TRANSIT',
+        recipient_name: order.recipient_name,
+        recipient_phone: order.recipient_phone,
+        delivery_address_json: { district: order.district, address_line: order.address_line },
+        cod_amount: order.payment_method === 'COD' ? order.total_amount : 0,
+        total_amount: order.total_amount,
+        payment_method: order.payment_method,
+        created_at: new Date().toISOString(),
+      };
+      MOCK_SHIPMENTS.unshift(shipment);
+      return { status: 201, body: { data: { success: true, shipment } } };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/supplier/shipments',
+    handler: () => ({ status: 200, body: { data: MOCK_SHIPMENTS, next_cursor: null, meta: { courier_mode: mockOperationsModes().courier_mode } } }),
+  },
+  {
+    method: 'POST',
+    path: '/supplier/shipments/:id/status',
+    handler: ({ params, body }) => {
+      const shipment = MOCK_SHIPMENTS.find((s) => String(s.id) === String(params?.id));
+      if (!shipment) {
+        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Shipment not found.', message_bn: 'শিপমেন্ট পাওয়া যায়নি।' } } };
+      }
+      if (!['DELIVERED', 'RETURNED'].includes(body?.status)) {
+        return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message_en: 'Status must be one of DELIVERED, RETURNED.', message_bn: 'অবস্থা DELIVERED, RETURNED এর একটি হতে হবে।' } } };
+      }
+      if (shipment.carrier !== 'MANUAL' || ['DELIVERED', 'RETURNED', 'CANCELLED'].includes(shipment.status)) {
+        return { status: 409, body: { error: { code: 'SHIPMENT_CLOSED', message_en: `This parcel is already ${shipment.status}.`, message_bn: `এই পার্সেল আগেই ${shipment.status}।` } } };
+      }
+      shipment.status = body.status;
+      return { status: 200, body: { data: { success: true, shipmentId: shipment.id, status: body.status } } };
     },
   },
   {

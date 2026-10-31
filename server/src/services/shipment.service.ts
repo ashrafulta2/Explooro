@@ -242,123 +242,12 @@ export async function handleCourierWebhook(db, cache, {
     }
 
     const shipment = shipmentRows[0];
-
-    // 5. Insert history event
-    await txClient.query(
-      `INSERT INTO shipment_events (
-         shipment_id, event_id, carrier_status, normalized_status, location, note, latitude, longitude, raw_payload_json
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [
-        shipment.id,
-        normalized.eventId,
-        normalized.carrierStatus,
-        normalized.normalizedStatus,
-        normalized.location,
-        normalized.note,
-        normalized.latitude,
-        normalized.longitude,
-        JSON.stringify(normalized.rawPayload),
-      ]
-    );
-
-    // 6. Update shipment status and coordinates
-    const isDelivered = normalized.normalizedStatus === 'DELIVERED';
-    const isReturned = normalized.normalizedStatus === 'RETURNED' || normalized.normalizedStatus === 'CANCELLED';
-
-    await txClient.query(
-      `UPDATE shipments
-       SET status = $2,
-           current_latitude = COALESCE($3, current_latitude),
-           current_longitude = COALESCE($4, current_longitude),
-           delivered_at = CASE WHEN $2 = 'DELIVERED' AND delivered_at IS NULL THEN now() ELSE delivered_at END,
-           returned_at = CASE WHEN $2 IN ('RETURNED','CANCELLED') AND returned_at IS NULL THEN now() ELSE returned_at END,
-           updated_at = now()
-       WHERE id = $1`,
-      [
-        shipment.id,
-        normalized.normalizedStatus,
-        normalized.latitude,
-        normalized.longitude,
-      ]
-    );
-
-    // 7. LIFECYCLE HOOK: On DELIVERED -> Set sub_orders status and trigger Escrow deposit exactly once
-    if (isDelivered) {
-      await txClient.query(
-        `UPDATE sub_orders
-         SET status = 'DELIVERED', updated_at = now()
-         WHERE id = $1`,
-        [shipment.sub_order_id]
-      );
-
-      // Start escrow hold (idempotent). A paid or wallet order already locked its escrow, so in
-      // practice this is a COD order: the courier collected the cash, so the external clearing
-      // wallet funds the deposit. WHY not the default (the buyer's wallet): that drove every COD
-      // customer's wallet below zero by the order total on delivery. WHY not the treasury: see
-      // vault.service.ts resolveClearingWalletId.
-      try {
-        await vaultService.depositToEscrow(txClient, {
-          subOrderId: shipment.sub_order_id,
-          buyerWalletId: await vaultService.resolveClearingWalletId(txClient),
-          idempotencyKey: `escrow_deposit_delivered:${shipment.sub_order_id}`,
-          client: txClient,
-        });
-      } catch (err) {
-        // Safe if already deposited
-        if (!err.message?.includes('already') && !err.message?.includes('duplicate')) {
-          console.warn(`[CourierWebhook] Escrow deposit notice for sub-order #${shipment.sub_order_id}: ${err.message}`);
-        }
-      }
-
-      // Auto-issue digital warranty cards for eligible items (Prompt 10.4)
-      try {
-        await warrantyService.issueWarrantiesForSubOrder(txClient, {
-          subOrderId: shipment.sub_order_id,
-          client: txClient,
-        });
-      } catch (err) {
-        console.warn(`[CourierWebhook] Warranty issuance notice for sub-order #${shipment.sub_order_id}: ${err.message}`);
-      }
+    // WHY: a parcel handed to a courier by hand has a tracking number the owner typed in, which a
+    // real carrier's numbering could collide with. Only the supplier's manual status update moves it.
+    if (shipment.carrier === 'MANUAL') {
+      return { success: false, unmatched: true, message: 'Manual shipments are not updated by courier webhooks.', event: normalized };
     }
-
-    // 8. LIFECYCLE HOOK: On RETURNED / CANCELLED -> Set sub_orders status, restore stock & trigger clawback
-    if (isReturned) {
-      await txClient.query(
-        `UPDATE sub_orders
-         SET status = 'RETURNED', updated_at = now()
-         WHERE id = $1`,
-        [shipment.sub_order_id]
-      );
-
-      // Restore inventory items
-      const { rows: items } = await txClient.query(
-        `SELECT product_id, qty AS quantity FROM order_items WHERE sub_order_id = $1`,
-        [shipment.sub_order_id]
-      );
-
-      for (const item of items) {
-        await txClient.query(
-          `UPDATE products SET stock_qty = stock_qty + $2, updated_at = now() WHERE id = $1`,
-          [item.product_id, item.quantity]
-        );
-      }
-
-      // Execute clawback if escrow was partially/fully processed
-      try {
-        await clawbackService.executeClawback(txClient, {
-          subOrderId: shipment.sub_order_id,
-          reason: `Consignment returned by carrier (${normalized.note || 'Returned to origin'})`,
-          client: txClient,
-        });
-      } catch (err) {
-        // WHY only ESCROW_NOT_FOUND is ignored: a COD parcel that never reached the customer has no
-        // escrow yet (it is deposited on delivery), so there is nothing to refund. Any other failure
-        // used to be swallowed too, leaving a prepaid customer unrefunded with the order marked
-        // RETURNED. Rethrowing rolls the webhook back, so the courier's retry tries again.
-        if (!String(err?.message ?? '').startsWith('ESCROW_NOT_FOUND')) throw err;
-      }
-    }
+    const { isDelivered, isReturned } = await applyShipmentEvent(txClient, shipment, normalized);
 
     return {
       success: true,
@@ -383,6 +272,136 @@ export async function handleCourierWebhook(db, cache, {
 }
 
 /**
+ * Records one status event on a shipment and runs its lifecycle hooks: on DELIVERED the sub-order is
+ * delivered, escrow is deposited and warranties are issued; on RETURNED/CANCELLED stock comes back
+ * and any escrow is clawed back.
+ *
+ * WHY one function: a courier's webhook and a parcel the supplier sent by hand
+ * (manualOperations.service.ts) must start escrow the same way. Two copies would let one path pay a
+ * partner the other never would. The caller holds the shipment row FOR UPDATE inside its transaction.
+ */
+export async function applyShipmentEvent(txClient, shipment, normalized) {
+  // 5. Insert history event
+  await txClient.query(
+    `INSERT INTO shipment_events (
+       shipment_id, event_id, carrier_status, normalized_status, location, note, latitude, longitude, raw_payload_json
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      shipment.id,
+      normalized.eventId,
+      normalized.carrierStatus,
+      normalized.normalizedStatus,
+      normalized.location,
+      normalized.note,
+      normalized.latitude,
+      normalized.longitude,
+      JSON.stringify(normalized.rawPayload),
+    ]
+  );
+
+  // 6. Update shipment status and coordinates
+  const isDelivered = normalized.normalizedStatus === 'DELIVERED';
+  const isReturned = normalized.normalizedStatus === 'RETURNED' || normalized.normalizedStatus === 'CANCELLED';
+
+  await txClient.query(
+    `UPDATE shipments
+     SET status = $2,
+         current_latitude = COALESCE($3, current_latitude),
+         current_longitude = COALESCE($4, current_longitude),
+         delivered_at = CASE WHEN $2 = 'DELIVERED' AND delivered_at IS NULL THEN now() ELSE delivered_at END,
+         returned_at = CASE WHEN $2 IN ('RETURNED','CANCELLED') AND returned_at IS NULL THEN now() ELSE returned_at END,
+         updated_at = now()
+     WHERE id = $1`,
+    [
+      shipment.id,
+      normalized.normalizedStatus,
+      normalized.latitude,
+      normalized.longitude,
+    ]
+  );
+
+  // 7. LIFECYCLE HOOK: On DELIVERED -> Set sub_orders status and trigger Escrow deposit exactly once
+  if (isDelivered) {
+    await txClient.query(
+      `UPDATE sub_orders
+       SET status = 'DELIVERED', updated_at = now()
+       WHERE id = $1`,
+      [shipment.sub_order_id]
+    );
+
+    // Start escrow hold (idempotent). A paid or wallet order already locked its escrow, so in
+    // practice this is a COD order: the courier collected the cash, so the external clearing
+    // wallet funds the deposit. WHY not the default (the buyer's wallet): that drove every COD
+    // customer's wallet below zero by the order total on delivery. WHY not the treasury: see
+    // vault.service.ts resolveClearingWalletId.
+    try {
+      await vaultService.depositToEscrow(txClient, {
+        subOrderId: shipment.sub_order_id,
+        buyerWalletId: await vaultService.resolveClearingWalletId(txClient),
+        idempotencyKey: `escrow_deposit_delivered:${shipment.sub_order_id}`,
+        client: txClient,
+      });
+    } catch (err) {
+      // Safe if already deposited
+      if (!err.message?.includes('already') && !err.message?.includes('duplicate')) {
+        console.warn(`[CourierWebhook] Escrow deposit notice for sub-order #${shipment.sub_order_id}: ${err.message}`);
+      }
+    }
+
+    // Auto-issue digital warranty cards for eligible items (Prompt 10.4)
+    try {
+      await warrantyService.issueWarrantiesForSubOrder(txClient, {
+        subOrderId: shipment.sub_order_id,
+        client: txClient,
+      });
+    } catch (err) {
+      console.warn(`[CourierWebhook] Warranty issuance notice for sub-order #${shipment.sub_order_id}: ${err.message}`);
+    }
+  }
+
+  // 8. LIFECYCLE HOOK: On RETURNED / CANCELLED -> Set sub_orders status, restore stock & trigger clawback
+  if (isReturned) {
+    await txClient.query(
+      `UPDATE sub_orders
+       SET status = 'RETURNED', updated_at = now()
+       WHERE id = $1`,
+      [shipment.sub_order_id]
+    );
+
+    // Restore inventory items
+    const { rows: items } = await txClient.query(
+      `SELECT product_id, qty AS quantity FROM order_items WHERE sub_order_id = $1`,
+      [shipment.sub_order_id]
+    );
+
+    for (const item of items) {
+      await txClient.query(
+        `UPDATE products SET stock_qty = stock_qty + $2, updated_at = now() WHERE id = $1`,
+        [item.product_id, item.quantity]
+      );
+    }
+
+    // Execute clawback if escrow was partially/fully processed
+    try {
+      await clawbackService.executeClawback(txClient, {
+        subOrderId: shipment.sub_order_id,
+        reason: `Consignment returned by carrier (${normalized.note || 'Returned to origin'})`,
+        client: txClient,
+      });
+    } catch (err) {
+      // WHY only ESCROW_NOT_FOUND is ignored: a COD parcel that never reached the customer has no
+      // escrow yet (it is deposited on delivery), so there is nothing to refund. Any other failure
+      // used to be swallowed too, leaving a prepaid customer unrefunded with the order marked
+      // RETURNED. Rethrowing rolls the webhook back, so the courier's retry tries again.
+      if (!String(err?.message ?? '').startsWith('ESCROW_NOT_FOUND')) throw err;
+    }
+  }
+
+  return { isDelivered, isReturned };
+}
+
+/**
  * Pays the referral commission for the buyer's first delivered order.
  * WHY after the webhook transaction and not inside it: evaluateQualifyingEvent opens its own
  * transaction per earning, which cannot nest in the webhook's. WHY on DELIVERED and not on
@@ -391,7 +410,7 @@ export async function handleCourierWebhook(db, cache, {
  * referral problem must not turn that acknowledgement into a failed webhook the carrier retries.
  * The base is the sub-order total less its delivery charge, i.e. what was spent on goods.
  */
-async function creditReferralOnDelivery(db, cache, subOrderId) {
+export async function creditReferralOnDelivery(db, cache, subOrderId) {
   try {
     const { rows } = await db.query(
       `SELECT o.customer_id, o.id AS order_id, so.total_amount, so.shipping_amount,

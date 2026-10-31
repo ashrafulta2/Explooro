@@ -12,6 +12,7 @@
  * 6. Language & Default Locale (/admin/platform/language)
  * 7. Popup Genie Effect (/admin/platform/genie)
  * 7b. Delivery Charge (/admin/platform/delivery)
+ * 7c. Manual Operations (/admin/platform/operations)
  * 8. Personalized Feed (/admin/platform/recommendations)
  */
 
@@ -32,6 +33,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null }: 
     { key: 'language', label: isBn ? 'ভাষা' : 'Language', href: '/admin/platform/language', icon: '🌐' },
     { key: 'genie', label: isBn ? 'পপআপ ইফেক্ট' : 'Popup Effect', href: '/admin/platform/genie', icon: '✨' },
     { key: 'delivery', label: isBn ? 'ডেলিভারি চার্জ' : 'Delivery Charge', href: '/admin/platform/delivery', icon: '🚚' },
+    { key: 'operations', label: isBn ? 'ম্যানুয়াল অপারেশন' : 'Manual Operations', href: '/admin/platform/operations', icon: '🧾' },
     { key: 'recommendations', label: isBn ? 'পার্সোনালাইজড ফিড' : 'Personalized Feed', href: '/admin/platform/recommendations', icon: '🎯' },
   ];
 

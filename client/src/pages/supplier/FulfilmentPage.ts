@@ -6,12 +6,16 @@
  * - 1-Click Courier Consignment booking (Steadfast, Pathao, RedX).
  * - Printable Packing Slips with FEFO lot/batch number directives.
  * - Printable Thermal Shipping Labels with courier barcodes.
+ * - Manual courier mode (migration 097): while couriers are MANUAL there is no 1-click booking. The
+ *   supplier hands the parcel to their courier and records it with "Sent by hand" (courier name +
+ *   the courier's tracking number), then marks it delivered on /supplier/shipments.
  */
 
 import { supplierApi } from '../../services/supplier.api.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
+import { escapeHtml } from '../../services/html.ts';
 import { toast } from '../../services/toast.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';
@@ -24,6 +28,8 @@ export default function FulfilmentPage(root: HTMLElement) {
 
   let orders = [];
   let loading = true;
+  // From the queue response. MANUAL until it says otherwise: the server refuses 1-click booking then.
+  let courierMode = 'MANUAL';
 
   async function loadQueue() {
     loading = true;
@@ -31,6 +37,7 @@ export default function FulfilmentPage(root: HTMLElement) {
     try {
       const res = await supplierApi.getFulfilmentQueue();
       orders = res.data || res || [];
+      courierMode = res.meta?.courier_mode || 'MANUAL';
     } catch (err) {
       console.error('Failed to load fulfilment queue:', err);
       toast.error(t('supplier.fulfilment_load_failed', 'Failed to load fulfilment queue.'));
@@ -96,7 +103,13 @@ export default function FulfilmentPage(root: HTMLElement) {
         <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${bookedCount}</div>
         <span class="text-xs text-muted">Thermal label & barcode generated</span>
       </div>
-
+      ${courierMode === 'MANUAL' ? `
+      <div class="supplier-kpi-card" style="padding: 16px;">
+        <span class="supplier-kpi-card__label">${t('supplier.manual_ship.mode_label')}</span>
+        <div class="supplier-kpi-card__value" style="font-size: 1.1rem; margin: 4px 0;">${t('supplier.manual_ship.mode_value')}</div>
+        <span class="text-xs text-muted">${t('supplier.manual_ship.mode_hint')}</span>
+      </div>
+      ` : `
       <div class="supplier-kpi-card" style="padding: 16px;">
         <span class="supplier-kpi-card__label">Dhaka Delivery</span>
         <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">Pathao Express</div>
@@ -108,6 +121,7 @@ export default function FulfilmentPage(root: HTMLElement) {
         <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">Steadfast 3PL</div>
         <span class="text-xs text-muted">64 districts door-to-door</span>
       </div>
+      `}
     `;
     container.appendChild(summaryStrip);
 
@@ -213,7 +227,11 @@ export default function FulfilmentPage(root: HTMLElement) {
             <button class="btn btn--xs btn--secondary print-label-btn" ${!hasConsignment ? 'disabled title="Book consignment first"' : ''}>
               🏷️ ${t('supplier.print_shipping_label', 'Print Label')}
             </button>
-            ${!hasConsignment ? `
+            ${!hasConsignment && courierMode === 'MANUAL' ? `
+              <button class="btn btn--xs btn--primary manual-ship-btn" data-id="${order.id}">
+                📦 ${t('supplier.manual_ship.btn')}
+              </button>
+            ` : !hasConsignment ? `
               <button class="btn btn--xs btn--primary consign-btn" data-id="${order.id}">
                 🚚 1-Click Book (${order.district === 'Dhaka' ? 'Pathao' : 'Steadfast'})
               </button>
@@ -239,6 +257,11 @@ export default function FulfilmentPage(root: HTMLElement) {
         };
       }
 
+      const manualShipBtn = card.querySelector<HTMLElement>('.manual-ship-btn');
+      if (manualShipBtn) {
+        manualShipBtn.onclick = () => openManualShipModal(order);
+      }
+
       // Print Packing Slip Dialog
       card.querySelector<HTMLElement>('.print-slip-btn').onclick = () => {
         openPrintSlipModal(order);
@@ -256,6 +279,69 @@ export default function FulfilmentPage(root: HTMLElement) {
     });
 
     container.appendChild(orderList);
+  }
+
+  /** Records a parcel handed to the supplier's own courier: courier name + its tracking number. */
+  function openManualShipModal(order) {
+    const modal = supplierModal({
+      title: `📦 ${t('supplier.manual_ship.title')}: ${escapeHtml(order.ref)}`,
+      size: 'md',
+      body: `
+        <div style="display: flex; flex-direction: column; gap: var(--space-3, 12px);">
+          <p class="text-sm text-secondary">${t('supplier.manual_ship.desc')}</p>
+          ${order.payment_method === 'COD' ? `
+            <p class="text-sm"><strong>${t('supplier.manual_ship.cod_collect', { amount: formatCurrency(order.total_amount) })}</strong></p>
+          ` : ''}
+          <div class="form-field">
+            <label class="form-label" for="manual-ship-courier">${t('supplier.manual_ship.courier_label')}</label>
+            <input id="manual-ship-courier" class="form-input" type="text" maxlength="60" required
+              placeholder="${t('supplier.manual_ship.courier_placeholder')}" />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="manual-ship-tracking">${t('supplier.manual_ship.tracking_label')}</label>
+            <input id="manual-ship-tracking" class="form-input font-mono" type="text" maxlength="60" required />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="manual-ship-note">${t('supplier.manual_ship.note_label')}</label>
+            <input id="manual-ship-note" class="form-input" type="text" maxlength="300" />
+          </div>
+        </div>
+      `,
+      footer: `
+        <button class="btn btn--sm btn--secondary close-modal-btn">${t('common.cancel')}</button>
+        <button class="btn btn--sm btn--primary manual-ship-confirm">${t('supplier.manual_ship.confirm')}</button>
+      `,
+    });
+
+    const field = (id) => modal.querySelector<HTMLInputElement>(`#${id}`);
+    const confirmBtn = modal.querySelector<HTMLButtonElement>('.manual-ship-confirm');
+    confirmBtn.onclick = async () => {
+      const courierName = field('manual-ship-courier').value.trim();
+      const trackingNumber = field('manual-ship-tracking').value.trim();
+      const note = field('manual-ship-note').value.trim();
+      if (courierName.length < 2 || trackingNumber.length < 3) {
+        toast.error(t('supplier.manual_ship.required'));
+        (courierName.length < 2 ? field('manual-ship-courier') : field('manual-ship-tracking')).focus();
+        return;
+      }
+      confirmBtn.disabled = true;
+      try {
+        await supplierApi.shipManually({
+          sub_order_id: Number(order.id),
+          courier_name: courierName,
+          tracking_number: trackingNumber,
+          ...(note ? { note } : {}),
+        });
+        toast.success(t('supplier.manual_ship.success', { ref: order.ref }));
+        modal.close(false);
+        loadQueue();
+      } catch (err) {
+        toast.error(err?.message || t('supplier.consignment_failed', 'Failed to book courier consignment.'));
+        confirmBtn.disabled = false;
+      }
+    };
+
+    modal.open(document.activeElement);
   }
 
   function openPrintSlipModal(order) {

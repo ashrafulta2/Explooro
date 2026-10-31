@@ -11,6 +11,9 @@
  * - Accessible rejection dialog with mandatory audit reason via confirmDialogWithReason
  * - Detailed Payout Inspection Modal with financial breakdown & fraud signals
  * - 1-Click CSV Export for finance reconciliation
+ * - Manual mode (migration 097): while payouts are MANUAL the owner sends the money from their own
+ *   bKash/Nagad and records it with "Mark as paid" + TrxID. Approve and batch-disburse, which call
+ *   the B2C gateway, are not offered; the server refuses them too (MANUAL_PAYOUT_MODE).
  * - One-click Reference clipboard copy with instant feedback
  */
 
@@ -21,6 +24,9 @@ import { t } from '../../services/i18n.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Button } from '../../components/ui/Button.ts';
+import { Input } from '../../components/ui/Input.ts';
+import { can } from '../../services/permissions.ts';
+import { escapeHtml } from '../../services/html.ts';
 import { FinanceSubnav } from '../../components/admin/FinanceSubnav.ts';
 import type { PageContext } from '../types.ts';
 
@@ -35,6 +41,8 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
   let riskFilter = 'ALL';
   let searchQuery = '';
   let isLoading = true;
+  // From the queue response. MANUAL until it says otherwise, the safe reading (migration 097).
+  let payoutMode = 'MANUAL';
 
   async function loadData() {
     isLoading = true;
@@ -48,6 +56,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
 
       const res = await api.get(`/admin/finance/payouts?${params.toString()}`);
       payouts = res.data?.payouts || res.payouts || [];
+      payoutMode = res.meta?.payout_mode || 'MANUAL';
     } catch (err) {
       toast.error(err.message || 'Failed to load payout queue');
       payouts = [];
@@ -134,6 +143,85 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
     } catch (err) {
       toast.error(err.message || 'Approval failed');
     }
+  }
+
+  function openMarkPaidModal(payout) {
+    const net = payout.net_amount ? parseFloat(payout.net_amount) : parseFloat(payout.amount);
+    const content = document.createElement('div');
+    content.className = 'payout-details-modal';
+
+    const steps = document.createElement('p');
+    steps.className = 'text-sm';
+    steps.innerHTML = t('payout.manual.send_instruction', {
+      amount: `<strong class="font-mono">${escapeHtml(formatCurrency(net))}</strong>`,
+      method: escapeHtml(payout.method || ''),
+      account: `<strong class="font-mono">${escapeHtml(payout.account_number || '')}</strong>`,
+      name: escapeHtml(payout.account_name || ''),
+    });
+
+    const trx = Input({
+      label: t('payout.manual.trx_label'),
+      hint: t('payout.manual.trx_hint'),
+      type: 'text',
+      name: 'trx_id',
+      maxLength: 40,
+      required: true,
+    });
+    const note = Input({
+      label: t('payout.manual.note_label'),
+      type: 'text',
+      name: 'note',
+      maxLength: 300,
+    });
+    content.append(steps, trx, note);
+
+    const footer = document.createDocumentFragment();
+    const cancel = Button({ label: t('common.cancel'), variant: 'secondary', onClick: () => modal.closeModal() });
+    const confirm = Button({
+      label: t('payout.manual.btn_confirm'),
+      variant: 'primary',
+      onClick: async () => {
+        const trxId = trx.value.trim();
+        if (trxId.length < 4) {
+          toast.error(t('payout.manual.trx_hint'));
+          trx.input.focus();
+          return;
+        }
+        confirm.disabled = true;
+        try {
+          await api.post(`/admin/finance/payouts/${payout.id}/mark-paid`, {
+            trx_id: trxId,
+            ...(note.value.trim() ? { note: note.value.trim() } : {}),
+          });
+          toast.success(t('payout.manual.success', { ref: payout.ref }));
+          modal.closeModal();
+          await loadData();
+        } catch (err) {
+          toast.error(err.message || t('common.error_generic'));
+        } finally {
+          confirm.disabled = false;
+        }
+      },
+    });
+    footer.append(cancel, confirm);
+
+    const modal = Modal({
+      title: `${t('payout.manual.btn_mark_paid')}: ${payout.ref}`,
+      description: payout.user_full_name || payout.account_name || '',
+      content,
+      footer,
+      size: 'md',
+      important: true,
+      onClose: () => setTimeout(() => modal.remove(), 400),
+    });
+    document.body.append(modal);
+    modal.openModal();
+  }
+
+  /** Approve through the gateway, or Mark as paid by hand, whichever the payout mode allows. */
+  function handlePay(payout) {
+    if (payoutMode === 'MANUAL') openMarkPaidModal(payout);
+    else handleApprove(payout);
   }
 
   async function handleReject(payout) {
@@ -378,11 +466,14 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
       });
 
       const approveBtn = Button({
-        label: payout.status === 'HELD' ? '⚡ Super Admin Sign-off' : `✓ ${t('payout.btn_approve')}`,
+        label: payoutMode === 'MANUAL'
+          ? `💵 ${t('payout.manual.btn_mark_paid')}`
+          : payout.status === 'HELD' ? '⚡ Super Admin Sign-off' : `✓ ${t('payout.btn_approve')}`,
         variant: 'primary',
+        disabled: payoutMode === 'MANUAL' && !can('finance.payout.complete_manual'),
         onClick: async () => {
           modal.closeModal();
-          await handleApprove(payout);
+          handlePay(payout);
         },
       });
 
@@ -473,7 +564,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
           <button type="button" class="btn btn--secondary btn--sm payout-queue-page__export-btn">
             📥 ${t('payout.btn_export_csv')}
           </button>
-          ${selectedIds.size > 0 ? `
+          ${selectedIds.size > 0 && payoutMode !== 'MANUAL' ? `
             <button type="button" class="btn btn--primary btn--sm payout-queue-page__batch-btn">
               ⚡ ${t('payout.batch_disburse_btn')} (${selectedIds.size})
             </button>
@@ -482,6 +573,13 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
       </div>
 
       <div class="finance-subnav-mount"></div>
+
+      ${payoutMode === 'MANUAL' ? `
+        <div class="admin-panel text-sm" role="note">
+          <strong>💵 ${t('payout.manual.banner_title')}</strong>
+          <p class="text-secondary">${t('payout.manual.banner_desc')}</p>
+        </div>
+      ` : ''}
 
       <!-- KPI Metrics Strip -->
       <div class="admin-kpi-grid">
@@ -562,7 +660,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
       </div>
 
       <!-- Selection Banner -->
-      ${selectedIds.size > 0 ? `
+      ${selectedIds.size > 0 && payoutMode !== 'MANUAL' ? `
         <div class="payout-selection-bar">
           <div class="payout-selection-bar__text">
             ${t('payout.selected_bar.text', { count: selectedIds.size, total: formatCurrency(selectedTotal) })}
@@ -671,9 +769,10 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
                             type="button"
                             class="btn btn--primary btn--sm payout-queue-page__approve-btn"
                             data-id="${p.id}"
-                            title="${p.status === 'HELD' ? 'Super Admin Maker-Checker Sign-off' : 'Approve and trigger automated gateway payout'}"
+                            title="${payoutMode === 'MANUAL' ? t('payout.manual.btn_mark_paid') : p.status === 'HELD' ? 'Super Admin Maker-Checker Sign-off' : 'Approve and trigger automated gateway payout'}"
+                            ${payoutMode === 'MANUAL' && !can('finance.payout.complete_manual') ? 'disabled' : ''}
                           >
-                            ${p.status === 'HELD' ? '⚡ Sign-off' : `✓ ${t('payout.btn_approve')}`}
+                            ${payoutMode === 'MANUAL' ? `💵 ${t('payout.manual.btn_mark_paid')}` : p.status === 'HELD' ? '⚡ Sign-off' : `✓ ${t('payout.btn_approve')}`}
                           </button>
                           <button
                             type="button"
@@ -796,7 +895,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
         e.stopPropagation();
         const id = parseInt(btn.dataset.id, 10);
         const payout = payouts.find((p) => p.id === id);
-        if (payout) handleApprove(payout);
+        if (payout) handlePay(payout);
       });
     });
 

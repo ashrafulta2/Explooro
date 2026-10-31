@@ -23,6 +23,7 @@ import crypto from 'node:crypto';
 import enDict from '../src/locales/en.json' with { type: 'json' };
 import bnDict from '../src/locales/bn.json' with { type: 'json' };
 import { supplierHandlers } from '../src/mocks/handlers/supplier.ts';
+import { operationsHandlers } from '../src/mocks/handlers/operations.ts';
 import { warrantyHandlers } from '../src/mocks/handlers/warranty.ts';
 import { navItems } from '../src/config/navigation.ts';
 
@@ -125,14 +126,49 @@ test('4. FEFO Batches, Clearance Sale, and Recall Actions', async (t) => {
 });
 
 test('5. 1-Click Courier Consignment Booking & Labels', async (t) => {
+  const consign = () => supplierHandlers.find((h) => h.method === 'POST' && h.path === '/supplier/fulfilment/consign');
+  const setModes = (body) => operationsHandlers.find((h) => h.method === 'PUT' && h.path === '/admin/platform/operations')
+    .handler({ body: { ...body, reason: 'switching modes for the test' } });
+
+  await t.test('while couriers are manual (the default), 1-click booking is refused like the server does', () => {
+    setModes({ payout_mode: 'MANUAL', courier_mode: 'MANUAL' });
+    const res = consign().handler({ body: { subOrderId: 501, carrier: 'STEADFAST' } });
+    assert.equal(res.status, 409);
+  });
+
   await t.test('Consignment booking assigns 3PL tracking number and updates status to PACKED', () => {
-    const handler = supplierHandlers.find((h) => h.method === 'POST' && h.path === '/supplier/fulfilment/consign');
+    setModes({ payout_mode: 'MANUAL', courier_mode: 'INTEGRATED' });
+    const handler = consign();
     assert.ok(handler, 'Consignment handler exists');
     const res = handler.handler({ body: { subOrderId: 501, carrier: 'STEADFAST' } });
     assert.equal(res.status, 200);
     assert.ok(res.body.data.order.tracking_number.startsWith('STE-'));
     assert.equal(res.body.data.order.status, 'PACKED');
     assert.equal(res.body.data.order.carrier, 'STEADFAST');
+    setModes({ payout_mode: 'MANUAL', courier_mode: 'MANUAL' });
+  });
+
+  await t.test('a hand-sent parcel leaves the packing queue, then is marked delivered once', () => {
+    const find = (method, path) => supplierHandlers.find((h) => h.method === method && h.path === path);
+    const ship = find('POST', '/supplier/fulfilment/manual-ship').handler({
+      body: { sub_order_id: 502, courier_name: 'Sundarban Courier', tracking_number: 'SB-778899' },
+    });
+    assert.equal(ship.status, 201);
+    assert.equal(ship.body.data.shipment.carrier, 'MANUAL');
+
+    const queue = find('GET', '/supplier/fulfilment').handler();
+    assert.ok(!queue.body.data.some((o) => o.id === 502), 'a sent parcel is no longer in the packing queue');
+    assert.equal(queue.body.meta.courier_mode, 'MANUAL');
+
+    const again = find('POST', '/supplier/fulfilment/manual-ship').handler({
+      body: { sub_order_id: 502, courier_name: 'Sundarban Courier', tracking_number: 'SB-000' },
+    });
+    assert.equal(again.status, 409);
+
+    const id = ship.body.data.shipment.id;
+    const mark = find('POST', '/supplier/shipments/:id/status');
+    assert.equal(mark.handler({ params: { id: String(id) }, body: { status: 'DELIVERED' } }).status, 200);
+    assert.equal(mark.handler({ params: { id: String(id) }, body: { status: 'RETURNED' } }).status, 409, 'a delivered parcel is closed');
   });
 });
 

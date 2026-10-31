@@ -433,6 +433,15 @@ async function bootRouterDemo() {
         module: 'core',
         load: () => import('./pages/admin/DeliveryChargePage.ts'),
       },
+      // Manual payouts and hand-sent parcels (migration 097)
+      {
+        path: '/admin/platform/operations',
+        title: 'Manual Operations — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.operations.view',
+        module: 'core',
+        load: () => import('./pages/admin/OperationsModePage.ts'),
+      },
       // Personalized home feed governance (Phase G): weights, rails, diversity, co-visitation, cache and
       // the per-surface funnel. `core` for the same reason as Genie: the weights also govern the
       // non-personal signals an opted-out shopper gets, so it must stay reachable when the

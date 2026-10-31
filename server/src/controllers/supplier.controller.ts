@@ -16,6 +16,8 @@ import * as warehouseRoutingService from '../services/warehouseRouting.service.t
 import { getOwnScorecard } from '../services/supplierScorecard.service.ts';
 import { getSupplierView as getIncentiveView, saveProgram as saveIncentiveProgram } from '../services/volumeIncentive.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
+import { getModes } from '../services/manualOperations.service.ts';
+import { createShipmentForSubOrder } from '../services/shipment.service.ts';
 import { toPaisa, toBdtNumber } from '../services/pricing.service.ts';
 
 /**
@@ -360,7 +362,9 @@ export async function getFulfilmentQueue(req, reply) {
     items: itemsBySubOrder.get(so.id) || [],
   }));
 
-  return reply.send({ success: true, data: queue });
+  // The page offers 1-click courier booking or "Sent by hand" depending on this (migration 097).
+  const { courier_mode } = await getModes(db, req.server.cache);
+  return reply.send({ success: true, data: queue, meta: { courier_mode } });
 }
 
 /**
@@ -387,35 +391,31 @@ export async function bookConsignment(req, reply) {
     throw new AppError('NOT_FOUND', 'Sub-order not found.', 'সাব-অর্ডার পাওয়া যায়নি।');
   }
 
-  const so = subOrderRows[0];
-  const trackingNumber = `TRK-${carrier.slice(0, 3)}-${Date.now().toString(36).toUpperCase()}`;
+  // WHY refused while couriers are manual: the courier driver is the mock one until a courier API is
+  // signed, so this would invent a tracking number no courier ever issued. The supplier records the
+  // real one with "Sent by hand" instead (manualOperations.service.ts bookManualShipment).
+  const { courier_mode: courierMode } = await getModes(db, req.server.cache);
+  if (courierMode === 'MANUAL') {
+    throw new AppError('CONFLICT', 'Couriers are manual. Use "Sent by hand" and type the courier\'s tracking number.',
+      'কুরিয়ার এখন ম্যানুয়াল। "হাতে পাঠিয়েছি" দিয়ে কুরিয়ারের ট্র্যাকিং নম্বর লিখুন।');
+  }
 
-  // Create shipment record
-  const { rows: shipRows } = await db.query(
-    `INSERT INTO shipments (
-       sub_order_id, carrier, tracking_number, status, cod_amount, created_at
-     ) VALUES (
-       $1, $2, $3, 'MANIFESTED', $4, now()
-     )
-     ON CONFLICT (sub_order_id)
-     DO UPDATE SET carrier = $2, tracking_number = $3, status = 'MANIFESTED', updated_at = now()
-     RETURNING *`,
-    [so.id, carrier, trackingNumber, so.payment_method === 'COD' ? so.total_amount : 0]
-  );
-
-  // Advance sub-order status to PROCESSING
-  await db.query(
-    `UPDATE sub_orders SET status = 'PROCESSING', updated_at = now() WHERE id = $1`,
-    [subOrderId]
-  );
+  // WHY through shipment.service: the old inline INSERT wrote a status ('MANIFESTED' / 'PROCESSING')
+  // that the shipments and sub_orders CHECKs reject and left out NOT NULL columns, so it failed
+  // against a real database. createShipmentForSubOrder books with the carrier's adapter.
+  const result = await createShipmentForSubOrder(db, {
+    subOrderId: subOrderRows[0].id,
+    carrierOverride: carrier,
+    requestedBy: supplierId,
+  });
 
   return reply.send({
     success: true,
     data: {
-      shipment: shipRows[0],
-      trackingNumber,
-      carrier,
-      message: `Consignment successfully booked with ${carrier}.`,
+      shipment: result.shipment,
+      trackingNumber: result.trackingNumber,
+      carrier: result.carrier,
+      message: `Consignment successfully booked with ${result.carrier}.`,
     },
   });
 }
