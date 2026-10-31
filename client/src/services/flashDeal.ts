@@ -68,42 +68,49 @@ export function flashDealView(product: FlashDealSource | null | undefined): Flas
   return { price, wasPrice, pctOff: pctOff && pctOff > 0 ? pctOff : null, claimedPct };
 }
 
-/** A list row as the home flash strip reads it. */
-export interface FlashStripSource extends FlashDealSource {
+/** A list row as the home flash strip receives it. */
+export interface FlashStripRow extends FlashDealSource {
   isSponsored?: boolean;
-  /** When the live deal ends (ISO string from GET /products). */
-  flash_ends_at?: string | number | null;
+  /** The live deal's end (GET /products LEFT JOIN flash_sales, `fs.ends_at`). */
+  flash_ends_at?: string | number | Date | null;
 }
 
-function endsAtMs(value: unknown): number | null {
-  if (value === null || value === undefined || value === '') return null;
-  const ms = typeof value === 'number' ? value : Date.parse(String(value));
+/** `flash_ends_at` as epoch ms, or null when the row carries no usable end time. */
+export function flashEndsAtMs(row: FlashStripRow | null | undefined): number | null {
+  const raw = row?.flash_ends_at;
+  if (raw == null || raw === '') return null;
+  const ms = raw instanceof Date ? raw.getTime() : typeof raw === 'number' ? raw : Date.parse(String(raw));
   return Number.isFinite(ms) ? ms : null;
 }
 
 /**
- * The products the home flash strip may show: ones with a live flash sale that has not ended.
- * WHY: the strip used to fill itself with the first ten ordinary products, tagged SALE, whenever no
- * deal was running. A product whose deal has no known end is kept (the server only lists live
- * deals); one whose end has passed is dropped, since a loaded page outlives its deals.
+ * The rows the home flash strip may show as deals: flagged by the server as a live flash sale and
+ * not already past their end. Nothing is ever promoted to a deal here — no flagged row, no strip.
+ *
+ * WHY: the strip used to fall back to the first ten ordinary products (and force `is_flash_sale`
+ * on each) when no deal was live, so shoppers saw a SALE tag on products nobody had discounted.
+ * A row without `flash_ends_at` is kept (the server already filtered to `now() BETWEEN starts_at
+ * AND ends_at`); it simply does not drive the countdown.
  */
-export function liveFlashDeals<T extends FlashStripSource>(products: T[] | null | undefined, now: number = Date.now()): T[] {
-  return (products || []).filter((p) => {
-    if (!p || p.isSponsored || !p.is_flash_sale) return false;
-    const end = endsAtMs(p.flash_ends_at);
-    return end === null || end > now;
+export function liveFlashDeals<T extends FlashStripRow>(rows: readonly T[] | null | undefined, now: number = Date.now()): T[] {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((row) => {
+    if (!row || row.isSponsored || row.is_flash_sale !== true) return false;
+    const end = flashEndsAtMs(row);
+    return end == null || end > now;
   });
 }
 
 /**
- * When the strip's countdown reaches zero: the earliest end among the deals it shows, or null when
- * none carries an end time (then no countdown is drawn). WHY: it used to be a fixed now + 4 hours.
+ * When the strip's countdown ends: the earliest real `flash_ends_at` among the deals shown, so the
+ * timer never runs past a deal on screen. Null when no deal carries an end time — the caller then
+ * draws no countdown rather than inventing one.
  */
-export function flashStripEndsAt(products: FlashStripSource[] | null | undefined, now: number = Date.now()): number | null {
+export function flashStripEndsAt(deals: readonly FlashStripRow[] | null | undefined, now: number = Date.now()): number | null {
   let earliest: number | null = null;
-  for (const p of liveFlashDeals(products, now)) {
-    const end = endsAtMs(p.flash_ends_at);
-    if (end !== null && (earliest === null || end < earliest)) earliest = end;
+  for (const row of deals || []) {
+    const end = flashEndsAtMs(row);
+    if (end != null && end > now && (earliest == null || end < earliest)) earliest = end;
   }
   return earliest;
 }

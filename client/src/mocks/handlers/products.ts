@@ -252,6 +252,10 @@ const FIXTURE_FLASH_ID_FLOOR = 800_000;
 // They also get a whole demo deal (price, allocation, sold) so the card shows what a live deal row
 // shows — the card never invents a struck price or a "Claimed" share, so a flag alone draws neither.
 const FIXTURE_DEAL_PCT_OFF = [10, 15, 20, 25];
+// And a real end time, as the live row's `fs.ends_at`: the home strip counts down to the earliest
+// one and hides a deal once it has ended, so a deal without one would never show a countdown.
+const FIXTURE_DEAL_HOURS_LEFT = [3, 5, 8, 12];
+const FIXTURE_DEAL_CLOCK = Date.now();
 function fixtureFlashDeal(p: Record<string, any>, i: number) {
   const regular = Number(p.price) || 0;
   const pctOff = FIXTURE_DEAL_PCT_OFF[i % FIXTURE_DEAL_PCT_OFF.length];
@@ -261,8 +265,7 @@ function fixtureFlashDeal(p: Record<string, any>, i: number) {
     flash_discount_price: (Math.round(regular * (100 - pctOff)) / 100).toFixed(2),
     flash_allocated_qty: allocated,
     flash_sold_qty: Math.round(allocated * (0.3 + (i % 5) * 0.12)),
-    // Staggered ends (2h, 3h, ... from page load) so the strip's countdown runs to a real deal end.
-    flash_ends_at: new Date(Date.now() + (2 + (i % 6)) * 60 * 60 * 1000).toISOString(),
+    flash_ends_at: new Date(FIXTURE_DEAL_CLOCK + FIXTURE_DEAL_HOURS_LEFT[i % FIXTURE_DEAL_HOURS_LEFT.length] * 3_600_000).toISOString(),
   };
 }
 let activeProducts: Record<string, any>[] = products.map((p, i) => ({

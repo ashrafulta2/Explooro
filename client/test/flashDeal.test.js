@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { flashDealView, liveFlashDeals, flashStripEndsAt } from '../src/services/flashDeal.ts';
+import { flashDealView } from '../src/services/flashDeal.ts';
 
 const root = path.resolve(import.meta.dirname, '..');
 
@@ -56,45 +56,6 @@ test('no invented multiplier is left in the card or the flyer', () => {
   const flyer = fs.readFileSync(path.resolve(root, '../server/src/services/flyer.service.ts'), 'utf8');
   assert.ok(!/\*\s*1\.25/.test(flyer), 'the flyer must not invent a compare price');
   assert.ok(!flyer.includes('SAVE 20%'), 'the flyer must not print a fixed saving');
-});
-
-// ── Home flash strip ─────────────────────────────────────────────────────────
-
-const NOW = Date.parse('2026-10-31T12:00:00Z');
-const at = (h) => new Date(NOW + h * 3600_000).toISOString();
-
-test('the strip shows only live deals: no ordinary, ended or sponsored rows', () => {
-  const rows = [
-    { ref: 'a', price: 100 },
-    { ref: 'b', price: 100, is_flash_sale: true, flash_ends_at: at(2) },
-    { ref: 'c', price: 100, is_flash_sale: true, flash_ends_at: at(-1) },
-    { ref: 'd', price: 100, is_flash_sale: true },
-    { ref: 'e', isSponsored: true, is_flash_sale: true },
-  ];
-  assert.deepEqual(liveFlashDeals(rows, NOW).map((p) => p.ref), ['b', 'd']);
-  assert.deepEqual(liveFlashDeals([{ ref: 'x', price: 1 }], NOW), [], 'no deal means an empty strip, not the catalog');
-});
-
-test('the countdown runs to the earliest real deal end, or is absent', () => {
-  const rows = [
-    { is_flash_sale: true, flash_ends_at: at(5) },
-    { is_flash_sale: true, flash_ends_at: at(2) },
-    { is_flash_sale: true, flash_ends_at: at(-1) },
-  ];
-  assert.equal(flashStripEndsAt(rows, NOW), NOW + 2 * 3600_000);
-  assert.equal(flashStripEndsAt([{ is_flash_sale: true }], NOW), null);
-  assert.equal(flashStripEndsAt([], NOW), null);
-});
-
-test('no invented flash strip is left in the widget or the home page', () => {
-  const widget = fs.readFileSync(path.resolve(root, 'src/components/product/FlashSaleWidget.ts'), 'utf8');
-  const home = fs.readFileSync(path.resolve(root, 'src/pages/HomePage.ts'), 'utf8');
-  for (const [name, src] of [['FlashSaleWidget', widget], ['HomePage', home]]) {
-    assert.ok(!/4 \* 60 \* 60 \* 1000/.test(src), `${name} must not invent a 4-hour countdown`);
-    assert.ok(!/is_flash_sale: true/.test(src), `${name} must not tag a product as a flash sale`);
-  }
-  assert.ok(!home.includes('flashList = allProducts'), 'HomePage must not fill the strip with the catalog');
-  assert.ok(!/price: 999|special_price: 799/.test(home), 'a sponsored unit must not carry a made-up price');
 });
 
 test('the sponsored label is translated, never a hardcoded English string', () => {

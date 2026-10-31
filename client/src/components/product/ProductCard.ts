@@ -72,8 +72,8 @@ export interface ProductCardData extends ProductImageSource {
   flash_discount_price?: number | string | null;
   flash_allocated_qty?: number | string | null;
   flash_sold_qty?: number | string | null;
-  /** When the live deal ends (ISO); the home flash strip counts down to the earliest one. */
-  flash_ends_at?: string | null;
+  /** When that deal ends (`fs.ends_at`); the home flash strip counts down to the earliest. */
+  flash_ends_at?: string | number | null;
   is_verified_supplier?: boolean;
   /** Only drawn when the `physical_shop_status` module is on. */
   store_open?: boolean;
@@ -612,15 +612,17 @@ export function ProductCard({
   const flashOn = modules?.flash_sale !== false;
   const deal = flashDealView(flashOn ? product : { ...product, is_flash_sale: false });
 
-  const priceEl = document.createElement('span');
-  priceEl.className = 'product-card__price';
-  priceEl.textContent = formatCurrency(deal.price, { lang });
-  // WHY: a sponsored ad unit (FLASH_STRIP slot) has no price of its own; printing ৳0 or a made-up
-  // figure would be a price claim nobody made.
-  const hasPrice = !(product.isSponsored && (product.price === undefined || product.price === null || product.price === ''));
-  if (hasPrice) priceRow.append(priceEl);
+  // WHY: a booked ad unit with no product row behind it has no price. Printing ৳0 (or a made-up
+  // figure, as the home flash strip once did with ৳999 → ৳799) would be a price claim from nowhere.
+  const hasPrice = product.price != null && product.price !== '';
+  if (hasPrice) {
+    const priceEl = document.createElement('span');
+    priceEl.className = 'product-card__price';
+    priceEl.textContent = formatCurrency(deal.price, { lang });
+    priceRow.append(priceEl);
+  }
 
-  if (deal.wasPrice) {
+  if (hasPrice && deal.wasPrice) {
     const origEl = document.createElement('span');
     origEl.className = 'product-card__original-price';
     origEl.textContent = formatCurrency(deal.wasPrice, { lang });
@@ -643,7 +645,7 @@ export function ProductCard({
     priceRow.append(marginBadge);
   }
 
-  body.append(priceRow);
+  if (priceRow.childElementCount > 0) body.append(priceRow);
 
   // Rating
   const ratingWrap = document.createElement('div');

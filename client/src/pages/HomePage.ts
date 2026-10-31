@@ -22,20 +22,19 @@
 import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { adsApi } from '../services/ads.api.ts';
-import type { ReservedPlacement } from '../services/ads.api.ts';
-import type { ProductCardData } from '../components/product/ProductCard.ts';
-import { liveFlashDeals } from '../services/flashDeal.ts';
 import { AD_DENSITY, adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.ts';
 import { isFeatureEnabled } from '../services/featureFlags.ts';
 import { HomeTop } from '../components/home/HomeTop.ts';
 import { ProductGrid } from '../components/product/ProductGrid.ts';
 import { resolveProductImage } from '../components/product/ProductCard.ts';
+import type { ProductCardData } from '../components/product/ProductCard.ts';
 import { addToCart } from '../services/cart.ts';
 import { openQuickBuyModal } from '../components/cart/QuickBuyModal.ts';
 import { CategoryPills } from '../components/product/CategoryPills.ts';
 import { PersonalizedRails } from '../components/product/PersonalizedRails.ts';
 import { FlashSaleWidget } from '../components/product/FlashSaleWidget.ts';
+import { liveFlashDeals } from '../services/flashDeal.ts';
 import { FilterPanel, countActiveFilters } from '../components/product/FilterPanel.ts';
 import { updateHead, buildWebsiteJsonLd } from '../services/seo.ts';
 import type { PageContext } from './types.ts';
@@ -166,74 +165,81 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   });
   page.append(pillsEl);
 
-  // A bought reserved slot (FLASH_STRIP, CATEGORY_BANNER) drawn as a card. WHY no price: the slot
-  // is a link to the advertiser's target and the placement API sends no price, so the card shows it
-  // labelled Sponsored and states none. It used to print a made-up ৳999 (which also widened the
-  // price filter's range) and, in the flash strip, a SALE tag.
-  function reservedAdCard(ad: ReservedPlacement): ProductCardData {
-    return {
-      id: `ad_${ad.campaign_id}`,
-      ref: ad.creative?.target_url?.split('/').pop() || '',
-      title_en: ad.campaign_name || '',
-      title_bn: ad.campaign_name || '',
-      image_url: ad.creative?.image_url || '',
-      isSponsored: true,
-    };
-  }
-
   // ── Flash sale widget (module-gated) ────────────────────────────────────
   let flashWidgetCleanup = null;
   let flashSection = null;
   let flashMounting = false; // synchronous guard: set before the first await, closes the race gap
+  // WHY remembered: every first-page grid load calls mountFlashWidget. With no live deal the answer
+  // is "no strip" for this visit, so later rebuilds do not refetch deals and ads to learn it again.
+  let flashNoDeals = false;
+
+  /**
+   * A booked FLASH_STRIP ad as a product card. It is labelled sponsored by the card. Its price and
+   * deal fields come only from the real product row it points at (when this page has that row);
+   * otherwise it carries no price at all. It is never flagged as a flash sale on its own.
+   */
+  function flashAdCard(ad, knownRows) {
+    const ref = ad.productId != null ? String(ad.productId) : (ad.creative?.target_url?.split('/').pop() || '');
+    const row = ref ? knownRows.find((p) => String(p.id) === ref || String(p.ref) === ref || String(p.slug) === ref) : null;
+    const isLiveDeal = Boolean(row) && liveFlashDeals([row]).length === 1;
+    return {
+      ...(row || {}),
+      ...(row && !isLiveDeal ? { is_flash_sale: false, flash_discount_price: null, flash_allocated_qty: null, flash_sold_qty: null } : {}),
+      id: `ad_${ad.campaign_id}`,
+      // The real product behind the ad, for Quick Buy (the card keeps `ad_<n>` to count the click).
+      product_id: row?.id,
+      ref: row?.ref || ref,
+      title_en: ad.headline || row?.title_en || t('ads.sponsored'),
+      title_bn: ad.headline || row?.title_bn || t('ads.sponsored'),
+      main_image: ad.bannerImageUrl || row?.main_image || '',
+      isSponsored: true,
+    };
+  }
 
   async function mountFlashWidget(allProducts) {
     if (!isFeatureEnabled('flash_sale')) return;
-    if (flashSection || flashMounting) return; // already mounted or mid-mount
+    if (flashSection || flashMounting || flashNoDeals) return; // mounted, mid-mount, or known empty
     flashMounting = true;
 
-    // WHY no fallbacks: a strip titled "Flash Sale" with a countdown claims these deals are real and
-    // ending. With no live deal it used to show the catalog tagged SALE under an invented 4h timer;
-    // now it stays unmounted. Sponsored FLASH_STRIP units ride along only beside real deals.
-    let flashList: ProductCardData[] = liveFlashDeals<ProductCardData>(allProducts);
-    let adProducts: ProductCardData[] = [];
+    // Only rows the server flagged as a live deal. WHY no fallback to allProducts: that put a SALE
+    // tag and a countdown on ordinary products when no deal was running.
+    let deals: ProductCardData[] = liveFlashDeals<ProductCardData>(allProducts);
+    let reservedAds = [];
     try {
       const [flashRes, adsRes] = await Promise.all([
-        flashList.length === 0 ? listProducts({ flash_sale: '1', limit: 12 }).catch(() => null) : Promise.resolve(null),
-        adsApi.listReservedPlacements('FLASH_STRIP').catch(() => ({ data: [] }))
+        deals.length === 0 ? listProducts({ flash_sale: '1', limit: 12 }).catch(() => null) : Promise.resolve(null),
+        adsApi.listReservedPlacements('FLASH_STRIP').catch(() => ({ data: [] })),
       ]);
-
-      if (flashRes?.products?.length > 0) {
-        flashList = liveFlashDeals<ProductCardData>(flashRes.products);
-      }
-
-      adProducts = (adsRes?.data || []).map(reservedAdCard);
+      if (deals.length === 0) deals = liveFlashDeals<ProductCardData>(flashRes?.products);
+      reservedAds = adsRes?.data || [];
     } catch {
-      // Network failure: show whatever live deals the grid already had.
+      // A failed request leaves whatever deals the grid already had; it never invents any.
     }
 
-    if (flashList.length === 0) {
+    if (deals.length === 0) {
+      // No live deal: no strip — and no strip of sponsored cards dressed up as a flash sale either.
+      flashNoDeals = true;
       flashMounting = false;
       return;
     }
-    flashList = [...adProducts, ...flashList];
+
+    const knownRows = [...deals, ...(allProducts || [])];
+    const sponsored = reservedAds.map((ad) => flashAdCard(ad, knownRows));
 
     const sec = document.createElement('div');
     sec.className = 'home-section';
     sec.setAttribute('data-module', 'flash_sale');
 
-    // The countdown is the earliest real `flash_ends_at` among the deals (FlashSaleWidget default).
-    // When it runs out, reload the strip so the ended deal leaves and the next one's clock shows.
+    // The countdown is the earliest real flash_ends_at among the deals shown (the widget derives it).
     const { el, cleanup } = FlashSaleWidget({
-      products: flashList,
-      onExpired: () => {
-        unmountFlashWidget();
-        mountFlashWidget(allProducts);
-      },
+      products: deals,
+      sponsored,
       role,
       modules,
       lang: getLanguage(),
       onNavigate: navigate,
       onAction: handleAction,
+      onEnded: () => unmountFlashWidget(),
       onViewAll: () => {
         if (activeFeed !== 'flash') {
           syncFeed('flash');
@@ -261,6 +267,7 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
     flashSection && flashSection.remove();
     flashSection = null;
     flashMounting = false;
+    flashNoDeals = false;
   }
 
   // ── Personalized rails (Phase C) ─────────────────────────────────────────
@@ -432,7 +439,17 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
           const adsRes = await adsApi.listReservedPlacements('CATEGORY_BANNER', activeCategory);
           const reservedAds = adsRes?.data || [];
           if (reservedAds.length > 0 && result?.products) {
-            const adProducts = reservedAds.map(reservedAdCard);
+            const adProducts = reservedAds.map(ad => ({
+              id: `ad_${ad.campaign_id}`,
+              ref: ad.creative?.target_url?.split('/').pop() || '',
+              title_en: ad.campaign_name || 'Sponsored Category Ad',
+              title_bn: ad.campaign_name || 'Sponsored Category Ad',
+              price: 999.00,
+              special_price: 799.00,
+              main_image: ad.creative?.image_url || 'https://placehold.co/400x400?text=Category+AD',
+              isSponsored: true,
+              store: { shop_name: 'Sponsored Store' }
+            }));
             result.products = [...adProducts, ...result.products];
           }
         } catch (err) {
@@ -491,6 +508,16 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   }
 
   function handleAction(product, actionType) {
+    // A sponsored ad unit's `id` is `ad_<campaign>`, not a product: buy the real product behind it,
+    // or open its page when this page never had that product's row (no price to buy at).
+    if (product?.isSponsored && String(product.id).startsWith('ad_')) {
+      if (actionType === 'quick_buy' && product.product_id != null) {
+        openQuickBuyModal({ product: { ...product, id: product.product_id }, initialQty: 1, navigate });
+      } else if (product.ref) {
+        navigate(`/product/${product.ref}`);
+      }
+      return;
+    }
     if (actionType === 'quick_buy') {
       openQuickBuyModal({
         product,
