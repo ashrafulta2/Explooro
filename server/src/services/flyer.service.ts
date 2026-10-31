@@ -130,8 +130,16 @@ export function generateFlyerSvg({
   const productNameEn = escapeXml(product?.name_en || 'Handcrafted Artisan Saree');
   const productNameBn = escapeXml(product?.name_bn || 'ঐতিহ্যবাহী সুতি জামদানি শাড়ি');
   const shopName = escapeXml(store?.shop_name || 'Dhaka Craft House');
-  const price = Number(product?.base_price || 2450).toFixed(2);
-  const comparePrice = Number(product?.original_price || Number(price) * 1.25).toFixed(2);
+  // WHY default_retail_price: renderFlyer passes a raw `products` row, which has no base_price, so
+  // every real product's flyer printed the 2450 demo price.
+  const priceNum = Number(product?.base_price ?? product?.default_retail_price ?? 2450);
+  const price = priceNum.toFixed(2);
+  // WHY no fallback: a struck price is a claim to the shopper. It is drawn only when the caller
+  // passes a real higher price; it used to be invented as price × 1.25 with a fixed 20% saving badge.
+  const originalNum = Number(product?.original_price);
+  const hasCompare = Number.isFinite(originalNum) && originalNum > priceNum && priceNum > 0;
+  const comparePrice = hasCompare ? originalNum.toFixed(2) : '';
+  const savePct = hasCompare ? Math.round(((originalNum - priceNum) / originalNum) * 100) : 0;
   const qrSize = format === 'STORY' ? 220 : 180;
   const qrSvg = generateLocalQrSvg(shortUrl, qrSize, '#000000', '#ffffff');
 
@@ -205,9 +213,10 @@ export function generateFlyerSvg({
     <!-- Price Section -->
     <g transform="translate(40, ${format === 'STORY' ? 1020 : format === 'A4_PRINT' ? 920 : 620})">
       <text x="0" y="36" font-size="44" font-weight="900" fill="${priceColor}" class="font-brand">৳${price}</text>
+${hasCompare ? `
       <text x="210" y="32" font-size="22" font-weight="600" text-decoration="line-through" fill="${mutedColor}" class="font-brand">৳${comparePrice}</text>
       <rect x="330" y="6" width="120" height="34" rx="8" fill="#22c55e" fill-opacity="0.2" />
-      <text x="390" y="28" font-size="14" font-weight="800" fill="#22c55e" text-anchor="middle" class="font-brand">SAVE 20%</text>
+      <text x="390" y="28" font-size="14" font-weight="800" fill="#22c55e" text-anchor="middle" class="font-brand">SAVE ${savePct}%</text>` : ''}
     </g>
   </g>
 

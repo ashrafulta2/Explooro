@@ -89,7 +89,8 @@ let mockWishlist = [
  * Prices a line against its product's live flash deal, as server/src/services/flashSale.service.ts
  * resolveFlashLine does: the deal price for the whole line while it fits per_user_limit (minus
  * earlier lines of the same deal), otherwise the regular price and a FLASH_DEAL_LIMIT warning.
- * Only deals made through the campaign mock carry a price; fixture flash flags have none.
+ * Fixture flash rows carry a demo deal (products.ts fixtureFlashDeal), so the cart charges what the
+ * card shows.
  */
 function applyFlashDeal(item, usedByDeal: Map<string, number>) {
   item.regular_unit_price ??= item.unit_price;

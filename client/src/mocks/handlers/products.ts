@@ -249,10 +249,24 @@ function toPaisa(amount) {
 // takes as product_id; fixture rows only had `ref`. Fixtures already flagged is_flash_sale get a
 // synthetic flash_sale_id (the live list's fs.id) so "End flash sale" has a deal to stop.
 const FIXTURE_FLASH_ID_FLOOR = 800_000;
+// They also get a whole demo deal (price, allocation, sold) so the card shows what a live deal row
+// shows — the card never invents a struck price or a "Claimed" share, so a flag alone draws neither.
+const FIXTURE_DEAL_PCT_OFF = [10, 15, 20, 25];
+function fixtureFlashDeal(p: Record<string, any>, i: number) {
+  const regular = Number(p.price) || 0;
+  const pctOff = FIXTURE_DEAL_PCT_OFF[i % FIXTURE_DEAL_PCT_OFF.length];
+  const allocated = Math.max(10, (Number(p.stock) || 0) * 2);
+  return {
+    flash_sale_id: FIXTURE_FLASH_ID_FLOOR + i + 1,
+    flash_discount_price: (Math.round(regular * (100 - pctOff)) / 100).toFixed(2),
+    flash_allocated_qty: allocated,
+    flash_sold_qty: Math.round(allocated * (0.3 + (i % 5) * 0.12)),
+  };
+}
 let activeProducts: Record<string, any>[] = products.map((p, i) => ({
   id: i + 1,
   ...p,
-  ...(p.is_flash_sale && !p.flash_sale_id ? { flash_sale_id: FIXTURE_FLASH_ID_FLOOR + i + 1 } : {}),
+  ...(p.is_flash_sale && !p.flash_sale_id ? fixtureFlashDeal(p, i) : {}),
 }));
 
 export function findMockProductById(id) {
@@ -266,6 +280,8 @@ export function setMockProductFlashSale(productId, deal) {
   p.is_flash_sale = Boolean(deal);
   p.flash_sale_id = deal?.id ?? null;
   p.flash_discount_price = deal?.discount_price ?? null;
+  p.flash_allocated_qty = deal?.allocated_qty ?? null;
+  p.flash_sold_qty = deal ? Number(deal.sold_qty || 0) : null;
   p.flash_ends_at = deal?.ends_at ?? null;
   // Not on the live list row; the mock cart reads it to price a deal line (cart.ts).
   p.flash_per_user_limit = deal?.per_user_limit ?? null;

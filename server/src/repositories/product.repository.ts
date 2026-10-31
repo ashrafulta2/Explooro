@@ -541,6 +541,9 @@ export async function listProducts(db, filters: Record<string, any> = {}) {
             CASE WHEN fs.id IS NOT NULL THEN true ELSE false END as is_flash_sale,
             fs.id as flash_sale_id,
             fs.discount_price as flash_discount_price,
+            -- The card's "Claimed" bar is sold / allocated of this deal; without them it draws nothing.
+            fs.allocated_qty as flash_allocated_qty,
+            fs.sold_qty as flash_sold_qty,
             fs.ends_at as flash_ends_at,
             (SELECT m.storage_key FROM product_images pi
                JOIN media_assets m ON m.id = pi.media_id
