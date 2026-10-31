@@ -730,6 +730,15 @@ async function bootRouterDemo() {
         module: 'chat',
         load: () => import('./pages/supplier/SupplierInquiriesPage.ts'),
       },
+      // A supplier's own flash sales; the supplier pays the discount (migration 096).
+      {
+        path: '/supplier/flash-sales',
+        title: 'Flash Sales — Explooro',
+        requiresAuth: true,
+        permission: 'growth.flash_sale.manage_own',
+        module: 'flash_sale',
+        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/supplier-flash.css'), import('./pages/supplier/SupplierFlashSalesPage.ts')]).then(([, , page]) => page),
+      },
       {
         path: '/supplier/store-status',
         title: 'Physical Factory & Showroom Status — Explooro',

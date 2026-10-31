@@ -14,11 +14,13 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { formatCurrency, formatNumber, formatDate } from '../../services/format.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { PricingConflicts, confirmNewConflicts, conflictText } from '../../components/admin/PricingConflicts.ts';
+import { SupplierFlashRulesCard } from '../../components/admin/SupplierFlashRulesCard.ts';
 import { findCouponConflicts, findDealPriceConflicts, type PricingConflict, type PricingPolicyInput } from '../../services/pricingConflicts.ts';
 
 export class CampaignManagerPage {
   activeTab: 'flash_sales' | 'coupons';
   flashSales: any[] = [];
+  supplierRulesCard: HTMLElement | null = null;
   coupons: any[] = [];
   /** Markups, partner share and platform minimum, for the coupon form's warnings. Null if not sent. */
   couponPricing: PricingPolicyInput | null = null;
@@ -255,6 +257,9 @@ export class CampaignManagerPage {
         </div>
       </div>
 
+      <!-- Limits for suppliers' own flash sales (SupplierFlashRulesCard, mounted in _attachEvents) -->
+      <div data-slot="supplier-flash-rules"></div>
+
       <!-- Flash Sales Table Card -->
       <div style="
         background: var(--surface-1, #ffffff);
@@ -312,6 +317,7 @@ export class CampaignManagerPage {
         <td style="padding: 14px 16px;">
           <div style="font-weight: 700; color: var(--text-primary, #0f172a);">${this._escapeHtml(fs.title || productTitle || 'Flash Deal')}</div>
           <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-brand, #4f46e5); margin-top: 2px;">${fs.ref}</div>
+          ${fs.funded_by === 'SUPPLIER' ? `<span class="badge badge--neutral badge--sm" style="margin-top: 4px;">${this._escapeHtml(t('admin_flash_rules.supplier_funded_tag'))}</span>` : ''}
         </td>
         <td style="padding: 14px 16px;">
           <div style="font-weight: 500; color: var(--text-primary, #0f172a);">${this._escapeHtml(productTitle || `Product #${fs.product_id}`)}</div>
@@ -506,6 +512,14 @@ export class CampaignManagerPage {
   }
 
   _attachEvents() {
+    // WHY one cached card: render() rebuilds the page from a string, and a fresh card would refetch
+    // the rules and throw away whatever the admin had typed on every countdown or tab redraw.
+    const rulesSlot = this.rootEl.querySelector('[data-slot="supplier-flash-rules"]');
+    if (rulesSlot) {
+      this.supplierRulesCard ??= SupplierFlashRulesCard();
+      rulesSlot.replaceWith(this.supplierRulesCard);
+    }
+
     this.rootEl.querySelectorAll<HTMLElement>('.tab-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         this.activeTab = btn.dataset.tab as typeof this.activeTab;

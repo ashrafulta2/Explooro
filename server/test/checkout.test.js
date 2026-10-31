@@ -1095,6 +1095,24 @@ describe('Flash sales are charged at checkout', () => {
     assert.equal(Number(sub.saler_commission) + Number(sub.platform_margin), 200);
   });
 
+  test('a supplier-funded deal: the supplier pays the discount, platform and partner shares are unchanged', async () => {
+    // Migration 096: the supplier's own deal. Regular ৳700 splits ৳500 supplier / ৳200 margin; at ৳600
+    // the margin stays ৳200 a unit and the supplier gets ৳400.
+    const db = dbWithDeal(2, { funded_by: 'SUPPLIER' });
+    const result = await checkoutAs(db, 'flash-sup-001');
+
+    assert.equal(Number(result.order.items_amount), 1200, 'the shopper still pays 2 x ৳600');
+    const sub = db.subOrders[0];
+    assert.equal(Number(sub.net_retail_margin), 400, 'margin is the regular ৳200 a unit');
+    assert.equal(Number(sub.saler_commission) + Number(sub.platform_margin), 400);
+    assert.equal(Number(sub.subtotal_base) + Number(sub.wholesale_margin), 800, 'supplier is paid ৳400 a unit');
+    assert.equal(
+      Number(sub.subtotal_base) + Number(sub.wholesale_margin) + Number(sub.net_retail_margin),
+      1200,
+      'every taka the shopper paid for the items is split'
+    );
+  });
+
   test('per_user_limit: a line over the limit is at retail with a warning, and earlier orders count', async () => {
     const over = dbWithDeal(3);
     const cart = await cartService.getCart(over, { userId: 1 });

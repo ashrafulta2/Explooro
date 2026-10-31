@@ -736,7 +736,8 @@
       "warranty_claims": "Warranty Claims",
       "vault": "Earnings Vault",
       "inquiries": "Wholesale Inquiries",
-      "live_studio": "Live Host Panel"
+      "live_studio": "Live Host Panel",
+      "flash_sales": "Flash Sales"
     },
     "saler": {
       "analytics": "Analytics",
@@ -8100,5 +8101,93 @@
     "price_title": "Check this price: {{count}} issue(s)",
     "price_intro": "This price works against the platform's pricing settings. Check before saving.",
     "price_none": "This price and the pricing settings agree."
+  },
+  "supplier_flash": {
+    "title": "Flash sales",
+    "subtitle": "Put a time-limited price on your own products.",
+    "how_title": "How a flash sale is paid for",
+    "how_body": "You pay the discount. The platform and the shop partners keep the same share of each unit as at the regular price, so every taka off the price comes off what you are paid. The figures below are worked out by the same rule checkout uses.",
+    "rule": {
+      "max_discount": "Most you can take off",
+      "max_duration": "Longest a sale can run",
+      "max_live": "Sales you can have live or scheduled at once",
+      "min_listing": "Days a product must sell at its current price first"
+    },
+    "hours": "{{n}} hours",
+    "days": "{{n}} days",
+    "closed": "Flash sales by suppliers are switched off right now.",
+    "products_title": "Your products",
+    "products_empty": "You have no live products yet.",
+    "col": {
+      "product": "Product",
+      "price": "Regular price",
+      "flash": "Flash sale",
+      "flash_price": "Flash price",
+      "sold": "Sold",
+      "ends": "Ends",
+      "status": "Status",
+      "action": "Action"
+    },
+    "on_sale": "On flash sale",
+    "available_from": "Available from {{date}}",
+    "start": "Start flash sale",
+    "prev": "Previous",
+    "next": "Next",
+    "form_title": "Flash sale: {{name}}",
+    "field": {
+      "price": "Flash price (regular {{regular}})",
+      "qty": "Units for the sale (in stock: {{stock}})",
+      "per_user": "Most one shopper can buy",
+      "starts": "Starts",
+      "ends": "Ends"
+    },
+    "enter_price": "Enter a flash price to see what you will receive.",
+    "q": {
+      "shopper_pays": "Shopper pays",
+      "you_receive": "You receive per unit",
+      "instead_of": "{{now}} instead of {{before}}",
+      "you_fund": "You pay per unit",
+      "others_keep": "Platform and shop partners keep, per unit"
+    },
+    "quote_failed": "Could not work out the payout for this price.",
+    "submit": "Start flash sale",
+    "cancel": "Cancel",
+    "created": "Flash sale started.",
+    "create_failed": "Could not start the flash sale.",
+    "deals_title": "Your flash sales",
+    "deals_empty": "You have not run a flash sale yet.",
+    "status": {
+      "ACTIVE": "Live",
+      "SCHEDULED": "Scheduled",
+      "COMPLETED": "Ended",
+      "CANCELLED": "Stopped",
+      "PAUSED": "Paused"
+    },
+    "stop": "Stop sale",
+    "stop_confirm": "Stop this flash sale now? Units already sold stay sold at the flash price.",
+    "stopped": "Flash sale stopped.",
+    "stop_failed": "Could not stop the flash sale.",
+    "load_failed": "Could not load your flash sales."
+  },
+  "admin_flash_rules": {
+    "title": "Limits for suppliers' own flash sales",
+    "intro": "Suppliers can start a flash sale on their own products. They pay the discount; the platform and the shop partner pool keep their regular share. A sale inside these limits goes live at once.",
+    "loading": "Loading limits…",
+    "enabled": "Let suppliers start flash sales",
+    "field": {
+      "max_discount_pct": "Largest discount (%)",
+      "max_duration_hours": "Longest sale (hours)",
+      "max_live_deals": "Live or scheduled sales per supplier",
+      "min_listing_days": "Days at the current price before a sale"
+    },
+    "range": "From {{min}} to {{max}}",
+    "reason": "Reason for the change",
+    "reason_placeholder": "At least 10 characters",
+    "save": "Save limits",
+    "saved": "Limits saved.",
+    "deferred": "Sent for approval.",
+    "save_failed": "Could not save the limits.",
+    "load_failed": "Could not load the limits.",
+    "supplier_funded_tag": "Supplier-funded"
   }
 }

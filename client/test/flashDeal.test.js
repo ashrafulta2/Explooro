@@ -57,3 +57,15 @@ test('no invented multiplier is left in the card or the flyer', () => {
   assert.ok(!/\*\s*1\.25/.test(flyer), 'the flyer must not invent a compare price');
   assert.ok(!flyer.includes('SAVE 20%'), 'the flyer must not print a fixed saving');
 });
+
+test('the sponsored label is translated, never a hardcoded English string', () => {
+  const en = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/en.json'), 'utf8'));
+  const bn = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/bn.json'), 'utf8'));
+  assert.equal(en.ads.sponsored, 'Sponsored');
+  assert.equal(bn.ads.sponsored, 'স্পন্সর্ড');
+  for (const file of ['src/components/product/ProductCard.ts', 'src/pages/customer/FollowingFeedPage.ts']) {
+    const src = fs.readFileSync(path.resolve(root, file), 'utf8');
+    assert.ok(!src.includes("textContent = 'Sponsored'"), `${file} must use t('ads.sponsored')`);
+    assert.ok(src.includes("t('ads.sponsored')"), `${file} must use t('ads.sponsored')`);
+  }
+});

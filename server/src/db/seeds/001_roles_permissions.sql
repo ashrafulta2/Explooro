@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (211 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (212 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -161,6 +161,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('growth.ad.manage_own', 'growth', 'Manage own ad campaigns', 'নিজের বিজ্ঞাপন ক্যাম্পেইন', NULL, NULL, 'LOW', true, 'approve_before'),
   ('growth.ad.review', 'growth', 'Review ad creatives', 'বিজ্ঞাপন পর্যালোচনা', 'approve or reject shop partner advertisements before they run', 'শপ পার্টনারর বিজ্ঞাপন চালুর আগে অনুমোদন বা বাতিল করতে', 'MEDIUM', true, 'approve_before'),
   ('growth.ad.govern', 'growth', 'Govern the ads engine', 'বিজ্ঞাপন ইঞ্জিন নিয়ন্ত্রণ', 'set ad density caps, blocked keywords and auction rules', 'বিজ্ঞাপনের সীমা, নিষিদ্ধ শব্দ ও নিলামের নিয়ম নির্ধারণ করতে', 'HIGH', true, 'approve_before'),
+  ('growth.flash_sale.manage_own', 'growth', 'Run flash sales on own products', 'নিজের পণ্যে ফ্ল্যাশ সেল চালানো', NULL, NULL, 'LOW', true, 'approve_before'),
   ('growth.coupon.create_own', 'growth', 'Create own coupons', 'নিজের কুপন তৈরি', NULL, NULL, 'LOW', true, 'approve_before'),
   ('growth.coupon.manage', 'growth', 'Manage coupons', 'কুপন ব্যবস্থাপনা', 'view and edit coupons created by shop partners', 'শপ পার্টনারদের তৈরি কুপন দেখা ও সম্পাদনা করতে', 'MEDIUM', true, 'approve_before'),
   ('growth.coupon.platform_wide', 'growth', 'Create platform-wide coupons', 'প্ল্যাটফর্ম-ব্যাপী কুপন তৈরি', 'create a discount funded by the platform and valid everywhere', 'প্ল্যাটফর্মের খরচে সব জায়গায় চলবে এমন ছাড় তৈরি করতে', 'HIGH', true, 'approve_before'),
@@ -516,6 +517,7 @@ FROM (VALUES
   ('super_admin', 'growth.ad.review'),
   ('admin', 'growth.ad.govern'),
   ('super_admin', 'growth.ad.govern'),
+  ('supplier', 'growth.flash_sale.manage_own'),
   ('saler', 'growth.coupon.create_own'),
   ('supplier', 'growth.coupon.create_own'),
   ('admin', 'growth.coupon.manage'),
