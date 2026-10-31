@@ -25,6 +25,7 @@ import { formatNumber, formatCurrency } from '../../services/format.ts';
 import { markupForCategory, retailFromSupplierPrice, type MarkupPolicy } from '../../services/retailMarkup.ts';
 import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.ts';
 import { ImageUploader } from '../../components/media/ImageUploader.ts';
+import { VariantEditor, type VariantEditorElement } from '../../components/catalog/VariantEditor.ts';
 import { can } from '../../services/permissions.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import type { PageContext } from '../types.ts';
@@ -112,6 +113,30 @@ function wireRetailQuote(form: HTMLFormElement): () => void {
     });
   refresh();
   return refresh;
+}
+
+/**
+ * Mounts the size/colour editor into a product form's `[data-slot="variants"]` and ties the stock
+ * field to it: with any variant the stock is their total, read-only, because the server writes the
+ * sum (productVariant.service.ts) and a typed number would be overwritten on save.
+ */
+function wireVariants(form: HTMLFormElement, { pending = false }: { pending?: boolean } = {}): VariantEditorElement {
+  const stock = form.querySelector<HTMLInputElement>('[name="stock"]');
+  const sync = () => {
+    const rows = editor.getVariants();
+    if (!stock) return;
+    stock.readOnly = rows.length > 0;
+    if (rows.length > 0) stock.value = String(editor.totalStock());
+  };
+  const editor = VariantEditor({ pending, onChange: sync });
+  form.querySelector('[data-slot="variants"]')?.append(editor);
+  const setVariants = editor.setVariants;
+  editor.setVariants = (list) => {
+    setVariants(list);
+    sync();
+  };
+  sync();
+  return editor;
 }
 
 export default function CatalogProductsPage(root: HTMLElement, { navigate }: PageContext = {}) {
@@ -972,6 +997,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         </div>
       </div>
       <p class="catalog-form-payout" data-slot="payout" aria-live="polite"></p>
+      <div data-slot="variants"></div>
 
       <div class="catalog-form-group" data-slot="images">
         <span class="catalog-form-label" id="add-images-label">${t('admin_catalog.field_images', 'Product Photos')} *</span>
@@ -1000,6 +1026,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
 
     const refreshQuote = wireRetailQuote(form);
     fillCategoryOptions(form.querySelector('select[name="category_id"]')).then(refreshQuote, refreshQuote);
+    const variantEditor = wireVariants(form);
 
     const modalFooter = document.createElement('div');
     modalFooter.style.display = 'flex';
@@ -1039,6 +1066,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           toast.error(t('admin_catalog.validation_error', 'Please fill in required fields.'));
           return;
         }
+        const variantError = variantEditor.validate();
+        if (variantError) {
+          toast.error(variantError);
+          return;
+        }
+        const variants = variantEditor.getVariants();
 
         const photos = uploader.getItems();
         if (photos.some((p) => p.isUploading)) {
@@ -1071,7 +1104,17 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
 
         try {
           submitBtn.setLoading(true);
-          await api.post('/products', payload);
+          const res = await api.post('/products', payload);
+          const ref = res.data?.product?.ref || res.product?.ref;
+          // WHY a second call, not a field on POST: variants have their own endpoint with its own
+          // rules, and a product saved without them is still a valid listing if this one fails.
+          if (variants.length && ref) {
+            try {
+              await api.put(`/products/${encodeURIComponent(ref)}/variants`, { variants });
+            } catch (err) {
+              toast.error(t('admin_catalog.variants.save_failed', { message: err.message || '' }));
+            }
+          }
           toast.success(t('admin_catalog.product_created_success', 'Product registered in catalog!'));
           modal.close();
           await loadData();
@@ -1150,6 +1193,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         </div>
       </div>
       <p class="catalog-form-payout" data-slot="payout" aria-live="polite"></p>
+      <div data-slot="variants"></div>
 
       <div class="catalog-form-group" data-slot="images">
         <span class="catalog-form-label" id="edit-images-label">${t('admin_catalog.field_images', 'Product Photos')} *</span>
@@ -1192,6 +1236,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     };
     fillFields(product);
     const refreshPayout = wireRetailQuote(form);
+    // Pending until the detail arrives: the list row never carries variants (see the fetch below).
+    const variantEditor = wireVariants(form, { pending: true });
 
     // Uploader starts with the product's current photos. Only rows with a real media_id can be
     // sent back; a mock fixture's synthesized gallery falls back to its single listing image.
@@ -1236,6 +1282,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           refreshPayout();
         }
         if (!photosTouched) uploader.setItems(toItems(detail));
+        variantEditor.setVariants(detail.variants || []);
         await categoriesReady;
         if (detail.category_id && !categorySelectEl.value) categorySelectEl.value = String(detail.category_id);
         refreshPayout();
@@ -1285,6 +1332,11 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           toast.error(t('admin_catalog.validation_error', 'Please fill in required fields.'));
           return;
         }
+        const variantError = variantEditor.validate();
+        if (variantError) {
+          toast.error(variantError);
+          return;
+        }
 
         const photos = uploader.getItems();
         if (photos.some((p) => p.isUploading)) {
@@ -1326,6 +1378,10 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         try {
           saveBtn.setLoading(true);
           await api.patch(`/products/${encodeURIComponent(product.ref)}`, payload);
+          // After the PATCH, so the variants' stock total is the last word on stock_qty.
+          if (variantEditor.isTouched()) {
+            await api.put(`/products/${encodeURIComponent(product.ref)}/variants`, { variants: variantEditor.getVariants() });
+          }
           toast.success(t('admin_catalog.product_updated_success', 'Product updated successfully!'));
           modal.close();
           await loadData();

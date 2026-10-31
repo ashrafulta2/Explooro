@@ -5,6 +5,7 @@
 import * as productService from '../services/product.service.ts';
 import * as pricingService from '../services/pricing.service.ts';
 import { loadMarkupPolicy } from '../services/retailMarkup.service.ts';
+import { saveVariants as saveProductVariants } from '../services/productVariant.service.ts';
 
 export async function createProduct(req, reply) {
   const db = req.db || req.server?.db;
@@ -100,6 +101,12 @@ export async function restockProduct(req, reply) {
   const { id } = req.params;
   const product = await productService.restockProduct(db, id, req.user?.id, req.body?.quantity, isStaffUser(req.user));
   return reply.send({ data: { product }, product });
+}
+
+export async function saveVariants(req, reply) {
+  const db = req.db || req.server?.db;
+  const result = await saveProductVariants(db, req.params.id, req.user?.id, req.body?.variants, isStaffUser(req.user));
+  return reply.send({ data: result });
 }
 
 export async function deleteProduct(req, reply) {

@@ -1,0 +1,16 @@
+/*
+ * variant-editor.css — the supplier's size / colour rows (components/catalog/VariantEditor.ts).
+ * WHY its own file, imported by the component: main.css lands in the entry bundle, which sits at
+ * the 70KB gzip budget; this way it ships only with the product form's route chunk.
+ */
+.variant-editor { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.variant-editor__head { display: flex; flex-direction: column; gap: 2px; }
+.variant-editor__list { display: flex; flex-direction: column; gap: var(--space-2); }
+/* WHY flex, not grid: an auto-fit repeat() cannot sit beside an `auto` track, so that grid rule was dropped whole. */
+.variant-editor__row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: flex-end; padding-bottom: var(--space-2); border-bottom: 1px solid var(--border-subtle); }
+.variant-editor__field { flex: 1 1 6.5rem; display: flex; flex-direction: column; gap: 2px; font-size: var(--text-xs); color: var(--text-secondary); min-width: 0; }
+.variant-editor__remove { flex: none; min-height: 2.25rem; }
+.variant-editor__empty, .variant-editor__total { margin: 0; font-size: var(--text-xs); color: var(--text-secondary); }
+.variant-editor__add { align-self: flex-start; }
+/* The stock field next to it turns read-only while variants set the total (CatalogProductsPage wireVariants). */
+.catalog-form input[readonly] { background: var(--surface-2); color: var(--text-secondary); }

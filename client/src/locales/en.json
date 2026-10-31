@@ -5958,7 +5958,27 @@
     "retail_hint_exact": "You receive {{price}} per unit. The platform adds {{markup}}% for this category.",
     "retail_prompt": "Enter your price per unit to see the retail price customers will see.",
     "retail_loading": "Working out the retail price…",
-    "retail_unavailable": "The retail price could not be worked out right now. It is set when you save."
+    "retail_unavailable": "The retail price could not be worked out right now. It is set when you save.",
+    "variants": {
+      "title": "Sizes and colours (optional)",
+      "hint": "Add one row per size and colour you sell. The shopper picks one on the product page. Leave empty if the product has only one kind.",
+      "empty": "No sizes or colours yet.",
+      "add": "Add size / colour",
+      "remove": "Remove this size / colour",
+      "size": "Size",
+      "color": "Colour",
+      "price_delta": "Extra price (Tk)",
+      "stock": "Stock",
+      "sku": "SKU (optional)",
+      "total": "Total stock: {{count}} (the sum of the rows above)",
+      "need_size_or_color": "Give each row a size or a colour.",
+      "duplicate": "This size and colour is already in the list.",
+      "bad_stock": "Stock must be a whole number, 0 or more.",
+      "bad_price": "The extra price must be 0 or more.",
+      "bad_sku": "The SKU may use only letters, digits, - and _.",
+      "save_failed": "The product was saved, but its sizes and colours were not: {{message}} Open it with Edit to try again.",
+      "mixed_shape": "Fill the same fields in every row: size, colour, or both."
+    }
   },
   "customer_returns": {
     "page_title": "My Returns & Refunds",

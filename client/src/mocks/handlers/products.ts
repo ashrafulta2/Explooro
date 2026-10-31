@@ -202,15 +202,17 @@ function synthesizePricing(product) {
 
 /** Attaches everything ProductDetailPage needs beyond the flat catalog-listing shape. */
 function toDetailShape(product) {
+  // A list the supplier saved (PUT /products/:id/variants) wins over the synthesized demo set.
+  const variants = product.saved_variants ?? synthesizeVariants(product);
   return {
     ...product,
     ...synthesizeDescription(product),
-    variants: synthesizeVariants(product),
+    variants,
     // Uploaded photos (media_id set) win over the synthesized gallery, as product_images does live.
     images: product.images?.length ? product.images : synthesizeImages(product),
     supplier: synthesizeSupplier(product),
     pricing: synthesizePricing(product),
-    has_variants: synthesizeVariants(product).length > 0,
+    has_variants: variants.length > 0,
   };
 }
 
@@ -629,6 +631,37 @@ export default [
       p.stock = (Number(p.stock) || 0) + qty;
       const product = { id: p.id, ref: p.ref, stock_qty: p.stock };
       return { status: 200, body: { data: { product }, product } };
+    },
+  },
+  {
+    // Mirrors PUT /products/:id/variants (productVariant.service.ts saveVariants): the whole list in
+    // one call, product stock becomes the variants' total. The real rules live on the server.
+    method: 'PUT',
+    path: '/products/:id/variants',
+    handler({ params, body }) {
+      const idParam = decodeURIComponent(String(params?.id || ''));
+      const p = activeProducts.find((x) => x.ref === idParam || String(x.id) === idParam);
+      if (!p) return notFound(`Product "${idParam}" not found.`, `"${idParam}" পণ্যটি পাওয়া যায়নি।`);
+      const rows = Array.isArray(body?.variants) ? body.variants : null;
+      const shapeOf = (v) => ['size', 'color'].filter((k) => v?.attributes?.[k]).join('+');
+      const bad = !rows || new Set(rows.map(shapeOf)).size > 1 || rows.some((v) =>!(v?.attributes?.size || v?.attributes?.color) || Number(v.price_delta) < 0 || !Number.isInteger(Number(v.stock_qty)) || Number(v.stock_qty) < 0);
+      if (bad) {
+        return {
+          status: 400,
+          body: { error: { code: 'VALIDATION_FAILED', message_en: 'Check the sizes and colours.', message_bn: 'সাইজ ও রং যাচাই করুন।' } },
+        };
+      }
+      p.saved_variants = rows.map((v, i) => ({
+        id: `${p.ref}-SV${i}`,
+        sku: v.sku || `${p.ref}-${[v.attributes.size, v.attributes.color].filter(Boolean).join('-').toUpperCase()}`,
+        attributes: { ...(v.attributes.size && { size: v.attributes.size }), ...(v.attributes.color && { color: v.attributes.color }) },
+        price_delta: Number(v.price_delta) || 0,
+        stock_qty: Number(v.stock_qty),
+        image_index: p.image_index,
+      }));
+      if (rows.length) p.stock = p.saved_variants.reduce((s, v) => s + v.stock_qty, 0);
+      const data = { product_ref: p.ref, variants: p.saved_variants, stock_qty: p.stock, has_variants: rows.length > 0 };
+      return { status: 200, body: { data } };
     },
   },
   {

@@ -59,6 +59,7 @@ import { HomeTop } from '../../components/home/HomeTop.ts';
 import { ProductRail, ProductRailSkeleton } from '../../components/product/ProductRail.ts';
 import { ImageGallery } from '../../components/product/ImageGallery.ts';
 import { VariantSelector } from '../../components/product/VariantSelector.ts';
+import { VariantEditor } from '../../components/catalog/VariantEditor.ts';
 import { PriceBreakdown } from '../../components/product/PriceBreakdown.ts';
 import { ReviewList } from '../../components/product/ReviewList.ts';
 import { QnASection } from '../../components/product/QnASection.ts';
@@ -939,6 +940,14 @@ function renderVariantSelector() {
   return wrap;
 }
 
+function renderVariantEditor() {
+  const wrap = document.createDocumentFragment();
+  wrap.append(subgroup('VariantEditor — the supplier side of VariantSelector (product form, /supplier/products)'));
+  wrap.append(specimen('three rows, the last with an extra price', VariantEditor({ initial: DEMO_VARIANTS })));
+  wrap.append(specimen('empty (a product with one kind only)', VariantEditor()));
+  return wrap;
+}
+
 function renderPriceBreakdown() {
   const wrap = document.createDocumentFragment();
   wrap.append(subgroup('PriceBreakdown — customer view (retail price only)'));
@@ -1453,6 +1462,7 @@ export function buildGalleryEntries(detachedNodes) {
     // Prompt 4.6
     { id: 'image-gallery', label: 'ImageGallery', group: 'Product Detail', render: renderImageGallery },
     { id: 'variant-selector', label: 'VariantSelector', group: 'Product Detail', render: renderVariantSelector },
+    { id: 'variant-editor', label: 'VariantEditor', group: 'Product Detail', render: renderVariantEditor },
     { id: 'price-breakdown', label: 'PriceBreakdown', group: 'Product Detail', render: renderPriceBreakdown },
     { id: 'review-list', label: 'ReviewList', group: 'Product Detail', render: renderReviewList },
     { id: 'qna-section', label: 'QnASection', group: 'Product Detail', render: renderQnASection },

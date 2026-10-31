@@ -712,3 +712,73 @@ export async function getCatalogCategoryBreakdown(db, { status = 'ACTIVE' }: Rec
 
   return rows;
 }
+
+/**
+ * Every variant of a product, inactive ones too, after locking the product row.
+ * WHY the product lock: checkout locks products before variants, so taking the same order here means
+ * a variant save and a checkout of the same product queue instead of deadlocking.
+ */
+export async function lockVariantsForProduct(db, productId) {
+  await db.query(`SELECT id FROM products WHERE id = $1 FOR UPDATE`, [productId]);
+  const { rows } = await db.query(
+    `SELECT id, sku, attributes_json, price_delta, stock_qty, is_active
+     FROM product_variants
+     WHERE product_id = $1
+     ORDER BY id ASC
+     FOR UPDATE`,
+    [productId]
+  );
+  return rows;
+}
+
+export async function insertVariant(db, productId, { sku, attributes, priceDelta, stockQty }) {
+  const { rows } = await db.query(
+    `INSERT INTO product_variants (product_id, sku, attributes_json, price_delta, stock_qty, is_active)
+     VALUES ($1, $2, $3::jsonb, $4, $5, true)
+     RETURNING id, sku, attributes_json, price_delta, stock_qty, is_active`,
+    [productId, sku, JSON.stringify(attributes), priceDelta, stockQty]
+  );
+  return rows[0];
+}
+
+/** Rewrites one variant and switches it back on (a combination removed earlier can come back). */
+export async function updateVariant(db, variantId, { sku, priceDelta, stockQty }) {
+  const { rows } = await db.query(
+    `UPDATE product_variants
+     SET sku = $2, price_delta = $3, stock_qty = $4, is_active = true, updated_at = now()
+     WHERE id = $1
+     RETURNING id, sku, attributes_json, price_delta, stock_qty, is_active`,
+    [variantId, sku, priceDelta, stockQty]
+  );
+  return rows[0];
+}
+
+/** Switches variants off. Never a DELETE: order and batch rows reference them with ON DELETE RESTRICT. */
+export async function deactivateVariants(db, variantIds) {
+  if (variantIds.length === 0) return;
+  await db.query(
+    `UPDATE product_variants SET is_active = false, updated_at = now() WHERE id = ANY($1::bigint[])`,
+    [variantIds]
+  );
+}
+
+/**
+ * Makes the product row agree with its active variants: has_variants, and stock_qty as their sum.
+ * WHY the sum: checkout sells min(variant stock, product stock) and decrements both, so a product
+ * stock that differs from the variants' total either blocks sales or offers units that do not exist.
+ * With no active variant left the product keeps the stock it had.
+ */
+export async function syncProductWithVariants(db, productId) {
+  const { rows } = await db.query(
+    `UPDATE products p
+     SET has_variants = v.n > 0,
+         stock_qty = CASE WHEN v.n > 0 THEN v.total ELSE p.stock_qty END,
+         updated_at = now()
+     FROM (SELECT COUNT(*)::int AS n, COALESCE(SUM(stock_qty), 0)::int AS total
+           FROM product_variants WHERE product_id = $1 AND is_active = true) v
+     WHERE p.id = $1
+     RETURNING p.stock_qty, p.has_variants`,
+    [productId]
+  );
+  return rows[0];
+}

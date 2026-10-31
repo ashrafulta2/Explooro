@@ -57,6 +57,13 @@ export default async function productRoutes(app) {
   // was silently falling through as unauthenticated, so the ownership check always failed.
   app.patch('/products/:id', { preHandler: [authenticate] }, productController.updateProduct);
   app.post('/products/:id/restock', { preHandler: [authenticate] }, productController.restockProduct);
+  // A supplier's size/colour variants, saved as one list. Ownership (or staff) is checked in the
+  // service like PATCH above; the restriction is the same one that stops a supplier listing products.
+  app.put(
+    '/products/:id/variants',
+    { preHandler: [authenticate, requireRestr('can_list_products')] },
+    productController.saveVariants
+  );
   app.delete('/products/:id', { preHandler: [authenticate] }, productController.deleteProduct);
 
   // Shop Partner Sourcing & Virtual Storefront
