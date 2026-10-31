@@ -1019,7 +1019,13 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     // WHY a real uploader instead of the old stock-photo presets + URL box: POST /products only
     // links media_assets rows (product_images.media_id), so a pasted URL or an Unsplash preset was
     // silently dropped and every product was listed without a photo of the actual item.
-    const uploader = ImageUploader({ purpose: 'PRODUCT', maxFiles: MAX_PRODUCT_PHOTOS, showAspectControls: false });
+    // Each upload refreshes the photo choices in the variant rows (declared below; fires on user action only).
+    const uploader = ImageUploader({
+      purpose: 'PRODUCT',
+      maxFiles: MAX_PRODUCT_PHOTOS,
+      showAspectControls: false,
+      onChange: (items) => variantEditor.setPhotos(items),
+    });
     uploader.setAttribute('role', 'group');
     uploader.setAttribute('aria-labelledby', 'add-images-label');
     form.querySelector('[data-slot="images"]').append(uploader);
@@ -1252,8 +1258,9 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       maxFiles: MAX_PRODUCT_PHOTOS,
       showAspectControls: false,
       initialImages: toItems(product),
-      onChange: () => {
+      onChange: (items) => {
         photosTouched = true;
+        variantEditor.setPhotos(items);
       },
     });
     uploader.setAttribute('role', 'group');
@@ -1282,6 +1289,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           refreshPayout();
         }
         if (!photosTouched) uploader.setItems(toItems(detail));
+        // Photos first: a stored variant's photo can only be shown once its option exists.
+        variantEditor.setPhotos(uploader.getItems());
         variantEditor.setVariants(detail.variants || []);
         await categoriesReady;
         if (detail.category_id && !categorySelectEl.value) categorySelectEl.value = String(detail.category_id);

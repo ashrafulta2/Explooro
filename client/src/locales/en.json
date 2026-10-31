@@ -2003,7 +2003,17 @@
     },
     "variant": {
       "out_of_stock_reason": "This combination is currently out of stock",
-      "unavailable_reason": "This combination is not available"
+      "unavailable_reason": "This combination is not available",
+      "attribute": {
+        "size": "Size",
+        "color": "Colour",
+        "material": "Material",
+        "style": "Style",
+        "weight": "Weight",
+        "volume": "Volume",
+        "capacity": "Capacity",
+        "pack_size": "Pack size"
+      }
     },
     "price": {
       "saler_breakdown_heading": "Price breakdown",
@@ -5960,24 +5970,37 @@
     "retail_loading": "Working out the retail price…",
     "retail_unavailable": "The retail price could not be worked out right now. It is set when you save.",
     "variants": {
-      "title": "Sizes and colours (optional)",
-      "hint": "Add one row per size and colour you sell. The shopper picks one on the product page. Leave empty if the product has only one kind.",
-      "empty": "No sizes or colours yet.",
-      "add": "Add size / colour",
-      "remove": "Remove this size / colour",
+      "title": "Options the shopper chooses (optional)",
+      "hint": "Use this when one product comes in several kinds, e.g. sizes, colours or pack sizes. Each row is one kind the shopper can pick, with its own stock. Leave empty if the product has only one kind.",
+      "empty": "No kinds yet.",
+      "add": "Add a kind",
+      "remove": "Remove this kind",
       "size": "Size",
       "color": "Colour",
       "price_delta": "Extra price (Tk)",
       "stock": "Stock",
       "sku": "SKU (optional)",
       "total": "Total stock: {{count}} (the sum of the rows above)",
-      "need_size_or_color": "Give each row a size or a colour.",
-      "duplicate": "This size and colour is already in the list.",
+      "duplicate": "This combination is already in the list.",
       "bad_stock": "Stock must be a whole number, 0 or more.",
       "bad_price": "The extra price must be 0 or more.",
       "bad_sku": "The SKU may use only letters, digits, - and _.",
-      "save_failed": "The product was saved, but its sizes and colours were not: {{message}} Open it with Edit to try again.",
-      "mixed_shape": "Fill the same fields in every row: size, colour, or both."
+      "save_failed": "The product was saved, but its options were not: {{message}} Open it with Edit to try again.",
+      "dims_legend": "What changes between the kinds? Pick up to {{max}}.",
+      "fill_every_option": "Fill every option box in this row.",
+      "photo": "Photo",
+      "photo_none": "Product photo",
+      "photo_n": "Photo {{n}}",
+      "example": {
+        "size": "M, XL, 42",
+        "color": "Red",
+        "material": "Cotton",
+        "style": "Round neck",
+        "weight": "500 g",
+        "volume": "1 L",
+        "capacity": "128 GB",
+        "pack_size": "Pack of 3"
+      }
     }
   },
   "customer_returns": {

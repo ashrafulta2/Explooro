@@ -721,7 +721,7 @@ export async function getCatalogCategoryBreakdown(db, { status = 'ACTIVE' }: Rec
 export async function lockVariantsForProduct(db, productId) {
   await db.query(`SELECT id FROM products WHERE id = $1 FOR UPDATE`, [productId]);
   const { rows } = await db.query(
-    `SELECT id, sku, attributes_json, price_delta, stock_qty, is_active
+    `SELECT id, sku, attributes_json, price_delta, stock_qty, image_id, is_active
      FROM product_variants
      WHERE product_id = $1
      ORDER BY id ASC
@@ -731,24 +731,24 @@ export async function lockVariantsForProduct(db, productId) {
   return rows;
 }
 
-export async function insertVariant(db, productId, { sku, attributes, priceDelta, stockQty }) {
+export async function insertVariant(db, productId, { sku, attributes, priceDelta, stockQty, imageId = null }) {
   const { rows } = await db.query(
-    `INSERT INTO product_variants (product_id, sku, attributes_json, price_delta, stock_qty, is_active)
-     VALUES ($1, $2, $3::jsonb, $4, $5, true)
-     RETURNING id, sku, attributes_json, price_delta, stock_qty, is_active`,
-    [productId, sku, JSON.stringify(attributes), priceDelta, stockQty]
+    `INSERT INTO product_variants (product_id, sku, attributes_json, price_delta, stock_qty, image_id, is_active)
+     VALUES ($1, $2, $3::jsonb, $4, $5, $6, true)
+     RETURNING id, sku, attributes_json, price_delta, stock_qty, image_id, is_active`,
+    [productId, sku, JSON.stringify(attributes), priceDelta, stockQty, imageId]
   );
   return rows[0];
 }
 
 /** Rewrites one variant and switches it back on (a combination removed earlier can come back). */
-export async function updateVariant(db, variantId, { sku, priceDelta, stockQty }) {
+export async function updateVariant(db, variantId, { sku, priceDelta, stockQty, imageId = null }) {
   const { rows } = await db.query(
     `UPDATE product_variants
-     SET sku = $2, price_delta = $3, stock_qty = $4, is_active = true, updated_at = now()
+     SET sku = $2, price_delta = $3, stock_qty = $4, image_id = $5, is_active = true, updated_at = now()
      WHERE id = $1
-     RETURNING id, sku, attributes_json, price_delta, stock_qty, is_active`,
-    [variantId, sku, priceDelta, stockQty]
+     RETURNING id, sku, attributes_json, price_delta, stock_qty, image_id, is_active`,
+    [variantId, sku, priceDelta, stockQty, imageId]
   );
   return rows[0];
 }
@@ -781,4 +781,17 @@ export async function syncProductWithVariants(db, productId) {
     [productId]
   );
   return rows[0];
+}
+
+/**
+ * Unlinks variant photos that are no longer among the product's photos.
+ * WHY: a photo edit replaces product_images, and a variant still pointing at a removed photo would
+ * show the shopper an image that is nowhere in the gallery.
+ */
+export async function clearVariantPhotosNotIn(db, productId, mediaIds) {
+  await db.query(
+    `UPDATE product_variants SET image_id = NULL, updated_at = now()
+     WHERE product_id = $1 AND image_id IS NOT NULL AND NOT (image_id = ANY($2::bigint[]))`,
+    [productId, mediaIds]
+  );
 }

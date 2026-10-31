@@ -8,11 +8,63 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  VARIANT_ATTRIBUTE_KEYS,
+  VARIANT_LIMITS,
+  assertVariantPhotos,
   comboKey,
   defaultSku,
   normalizeVariantInput,
   planVariantChanges,
 } from '../src/services/productVariant.service.ts';
+import { VARIANT_DIMENSIONS, MAX_VARIANT_DIMENSIONS } from '../../client/src/config/variantDimensions.ts';
+
+describe('the client and server agree on what a variant may differ by', () => {
+  test('same dimension list, same order', () => {
+    assert.deepEqual([...VARIANT_ATTRIBUTE_KEYS], [...VARIANT_DIMENSIONS]);
+  });
+  test('same maximum per product', () => {
+    assert.equal(VARIANT_LIMITS.maxDimensions, MAX_VARIANT_DIMENSIONS);
+  });
+});
+
+describe('more than size and colour', () => {
+  test('accepts material, weight, capacity and the rest', () => {
+    const rows = normalizeVariantInput([
+      { attributes: { weight: '500 g' }, stock_qty: 3 },
+      { attributes: { weight: '1 kg' }, stock_qty: 2 },
+    ]);
+    assert.deepEqual(rows.map((r) => r.attributes.weight), ['500 g', '1 kg']);
+  });
+
+  test('refuses a key that is not on the list', () => {
+    assert.throws(() => normalizeVariantInput([{ attributes: { flavour: 'Mango' } }]), /not an option/);
+  });
+
+  test('refuses more than three dimensions at once', () => {
+    assert.throws(
+      () => normalizeVariantInput([{ attributes: { size: 'M', color: 'Red', material: 'Silk', style: 'Slim' } }]),
+      /at most 3/
+    );
+  });
+});
+
+describe('a variant photo', () => {
+  test('is kept as a number and checked against the product photos', () => {
+    const rows = normalizeVariantInput([{ attributes: { color: 'Red' }, image_media_id: '41' }]);
+    assert.equal(rows[0].image_media_id, 41);
+    assert.doesNotThrow(() => assertVariantPhotos(rows, [40, 41]));
+    assert.throws(() => assertVariantPhotos(rows, [40]), /not one of this product/);
+  });
+
+  test('blank means no photo of its own', () => {
+    const rows = normalizeVariantInput([{ attributes: { color: 'Red' }, image_media_id: '' }]);
+    assert.equal(rows[0].image_media_id, null);
+  });
+
+  test('refuses something that is not an id', () => {
+    assert.throws(() => normalizeVariantInput([{ attributes: { color: 'Red' }, image_media_id: 'abc' }]), /product photos/);
+  });
+});
 
 describe('normalizeVariantInput', () => {
   test('trims values and drops empty dimensions', () => {

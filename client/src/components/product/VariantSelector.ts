@@ -140,9 +140,8 @@ export function VariantSelector({
 
     const label = document.createElement('span');
     label.className = 'variant-selector__group-label';
-    // No locale entry exists per attribute name (size/color/strap/switch/...) since the set is
-    // open-ended, data-driven category vocabulary, not fixed UI copy — i18n.ts's own missing-key
-    // fallback already humanizes the raw key ("size" -> "Size") in both languages.
+    // The dimensions a supplier can enter (config/variantDimensions.ts) have labels in both locales;
+    // an older seeded key outside that list falls back to i18n.ts's humanized key ("strap" -> "Strap").
     label.textContent = t(`product_detail.variant.attribute.${key}`);
     group.append(label);
 

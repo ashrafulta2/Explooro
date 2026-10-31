@@ -1,11 +1,11 @@
 /**
- * productVariant.service.ts — the supplier's size/colour variants of one product.
+ * productVariant.service.ts — the supplier's variants of one product (size, colour, material, ...).
  *
  * The product page, cart, checkout and live stream already read `product_variants`; until this file
  * nothing could write it, so only seeded demo products ever had variants. One call saves the whole
  * list (PUT semantics), which keeps a retried request harmless without an idempotency table.
  *
- * Identity: a variant IS its combination of attributes (size + colour). Saving "M / Red" again
+ * Identity: a variant IS its combination of attributes (e.g. size + colour). Saving "M / Red" again
  * updates that row instead of inserting a second one, and a combination left out of the list is
  * switched off, never deleted (orders reference it).
  */
@@ -15,13 +15,17 @@ import { AppError } from '../plugins/errorHandler.ts';
 import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.ts';
 
-/** The dimensions a supplier can vary. VariantSelector draws one button row per key it finds. */
-export const VARIANT_ATTRIBUTE_KEYS = ['size', 'color'] as const;
+/**
+ * What variants may differ by. VariantSelector draws one button row per key it finds.
+ * Must equal client/src/config/variantDimensions.ts (server/test/productVariant.test.js checks).
+ */
+export const VARIANT_ATTRIBUTE_KEYS = ['size', 'color', 'material', 'style', 'weight', 'volume', 'capacity', 'pack_size'] as const;
 
 // WHY these bounds are constants, not settings: they are input-shape limits (one form row per
-// variant, a label that fits a button), not business numbers anyone would tune.
+// variant, a label that fits a button, a picker a shopper can answer), not business numbers.
 export const VARIANT_LIMITS = {
   maxVariants: 100,
+  maxDimensions: 3,
   maxValueLength: 40,
   maxSkuLength: 64,
   // The INTEGER column's ceiling and a ceiling that keeps retail + delta inside NUMERIC(14,2).
@@ -36,6 +40,8 @@ export interface VariantInput {
   sku: string | null;
   price_delta: number;
   stock_qty: number;
+  /** A media_assets id among the product's own photos, shown when this variant is picked. */
+  image_media_id: number | null;
 }
 
 function invalid(index: number, field: string, en: string, bn: string): never {
@@ -50,6 +56,7 @@ export function comboKey(attributes: Record<string, unknown> | null | undefined)
 /**
  * Validates and normalises the list a supplier sent. Pure, so the rules are testable without a DB.
  * Throws VALIDATION_FAILED naming the row; returns the clean list otherwise.
+ * Whether a photo belongs to the product needs the DB, so saveVariants checks that.
  */
 export function normalizeVariantInput(raw: unknown): VariantInput[] {
   if (!Array.isArray(raw)) {
@@ -64,32 +71,48 @@ export function normalizeVariantInput(raw: unknown): VariantInput[] {
     );
   }
 
+  const known = new Set<string>(VARIANT_ATTRIBUTE_KEYS);
   const seen = new Set<string>();
   const seenSku = new Set<string>();
   let shape: string | null = null;
   return raw.map((row: any, i) => {
+    const sent = row?.attributes && typeof row.attributes === 'object' ? row.attributes : {};
+    for (const key of Object.keys(sent)) {
+      if (!known.has(key) && String(sent[key] ?? '').trim()) {
+        invalid(i, 'attributes', `"${key}" is not an option a variant can have.`, `"${key}" ভ্যারিয়েন্টের কোনো অপশন নয়।`);
+      }
+    }
     const attributes: Record<string, string> = {};
     for (const key of VARIANT_ATTRIBUTE_KEYS) {
-      const value = String(row?.attributes?.[key] ?? '').trim();
+      const value = String(sent[key] ?? '').trim();
       if (value.length > VARIANT_LIMITS.maxValueLength) {
         invalid(i, key, `${key} is too long.`, `${key} অনেক লম্বা।`);
       }
       if (value) attributes[key] = value;
     }
-    if (Object.keys(attributes).length === 0) {
-      invalid(i, 'attributes', 'give it a size or a colour.', 'একটি সাইজ বা রং দিন।');
+    const keys = Object.keys(attributes);
+    if (keys.length === 0) {
+      invalid(i, 'attributes', 'give it at least one option, such as a size or a colour.', 'অন্তত একটি অপশন দিন, যেমন সাইজ বা রং।');
+    }
+    if (keys.length > VARIANT_LIMITS.maxDimensions) {
+      invalid(
+        i,
+        'attributes',
+        `a variant can differ in at most ${VARIANT_LIMITS.maxDimensions} ways.`,
+        `একটি ভ্যারিয়েন্ট সর্বোচ্চ ${VARIANT_LIMITS.maxDimensions}টি দিকে আলাদা হতে পারে।`
+      );
     }
     // WHY one shape for every row: VariantSelector draws a button row per dimension and asks the
     // shopper for each, so "M" next to "XXL / Red" leaves no colour to pick for M and XXL unreachable.
-    const rowShape = Object.keys(attributes).join('+');
+    const rowShape = keys.join('+');
     if (shape !== null && rowShape !== shape) {
-      invalid(i, 'attributes', 'fill the same fields as the first row (size, colour, or both).', 'প্রথম সারির মতো একই ঘর পূরণ করুন (সাইজ, রং, বা দুটোই)।');
+      invalid(i, 'attributes', 'fill the same fields as the first row.', 'প্রথম সারির মতো একই ঘরগুলো পূরণ করুন।');
     }
     shape = rowShape;
 
     const key = comboKey(attributes);
     if (seen.has(key)) {
-      invalid(i, 'attributes', 'this size and colour is already in the list.', 'এই সাইজ ও রং তালিকায় আগেই আছে।');
+      invalid(i, 'attributes', 'this combination is already in the list.', 'এই কম্বিনেশন তালিকায় আগেই আছে।');
     }
     seen.add(key);
 
@@ -115,7 +138,36 @@ export function normalizeVariantInput(raw: unknown): VariantInput[] {
       invalid(i, 'price_delta', 'the extra price must be 0 or more.', 'অতিরিক্ত দাম অবশ্যই ০ বা তার বেশি হতে হবে।');
     }
 
-    return { attributes, sku: skuRaw || null, price_delta: Math.round(delta * 100) / 100, stock_qty: stock };
+    const rawImage = row?.image_media_id;
+    let imageMediaId: number | null = null;
+    if (rawImage !== undefined && rawImage !== null && rawImage !== '') {
+      imageMediaId = Number(rawImage);
+      if (!Number.isSafeInteger(imageMediaId) || imageMediaId < 1) {
+        invalid(i, 'image_media_id', 'pick one of the product photos.', 'প্রোডাক্টের ছবিগুলোর একটি বেছে নিন।');
+      }
+    }
+
+    return {
+      attributes,
+      sku: skuRaw || null,
+      price_delta: Math.round(delta * 100) / 100,
+      stock_qty: stock,
+      image_media_id: imageMediaId,
+    };
+  });
+}
+
+/**
+ * Throws unless every chosen photo is one of the product's own (product_images).
+ * WHY not "any photo the supplier uploaded": a photo that is not on the product never appears in
+ * its gallery, so picking the variant would show an image the shopper cannot find again.
+ */
+export function assertVariantPhotos(wanted: VariantInput[], productMediaIds: number[]): void {
+  const own = new Set(productMediaIds.map(Number));
+  wanted.forEach((v, i) => {
+    if (v.image_media_id != null && !own.has(v.image_media_id)) {
+      invalid(i, 'image_media_id', 'that photo is not one of this product\'s photos.', 'এই ছবিটি এই প্রোডাক্টের ছবিগুলোর একটি নয়।');
+    }
   });
 }
 
@@ -160,6 +212,7 @@ const view = (row) => ({
   attributes: row.attributes_json,
   price_delta: Number(row.price_delta),
   stock_qty: Number(row.stock_qty),
+  image_media_id: row.image_id == null ? null : Number(row.image_id),
 });
 
 function inTransaction(db, fn) {
@@ -186,6 +239,9 @@ export async function saveVariants(db, idOrRef, userId, rawVariants, isStaff = f
   try {
     const result = await inTransaction(db, async (tx) => {
       const existing = await productRepo.lockVariantsForProduct(tx, productId);
+      if (wanted.some((v) => v.image_media_id != null)) {
+        assertVariantPhotos(wanted, await productRepo.getProductMediaIds(tx, productId));
+      }
       const before = existing.filter((r) => r.is_active).map(view);
       const { updates, inserts, deactivate } = planVariantChanges(existing, wanted);
 
@@ -197,6 +253,7 @@ export async function saveVariants(db, idOrRef, userId, rawVariants, isStaff = f
           sku: input.sku || current.sku,
           priceDelta: input.price_delta,
           stockQty: input.stock_qty,
+          imageId: input.image_media_id,
         }));
       }
       for (const input of inserts) {
@@ -205,6 +262,7 @@ export async function saveVariants(db, idOrRef, userId, rawVariants, isStaff = f
           attributes: input.attributes,
           priceDelta: input.price_delta,
           stockQty: input.stock_qty,
+          imageId: input.image_media_id,
         }));
       }
       const totals = await productRepo.syncProductWithVariants(tx, productId);

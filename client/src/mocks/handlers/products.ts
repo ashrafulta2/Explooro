@@ -5,6 +5,7 @@ import productFixtures from '../fixtures/products.json' with { type: 'json' };
 import stores from '../fixtures/stores.json' with { type: 'json' };
 import { resolveMockMediaUrl } from './media.ts';
 import { markupForCategory, retailFromSupplierPrice } from '../../services/retailMarkup.ts';
+import { VARIANT_DIMENSIONS } from '../../config/variantDimensions.ts';
 
 /**
  * The markup policy (live: pricing.markup + category_markups, retailMarkup.service.ts). Exported so the
@@ -643,22 +644,29 @@ export default [
       const p = activeProducts.find((x) => x.ref === idParam || String(x.id) === idParam);
       if (!p) return notFound(`Product "${idParam}" not found.`, `"${idParam}" পণ্যটি পাওয়া যায়নি।`);
       const rows = Array.isArray(body?.variants) ? body.variants : null;
-      const shapeOf = (v) => ['size', 'color'].filter((k) => v?.attributes?.[k]).join('+');
-      const bad = !rows || new Set(rows.map(shapeOf)).size > 1 || rows.some((v) =>!(v?.attributes?.size || v?.attributes?.color) || Number(v.price_delta) < 0 || !Number.isInteger(Number(v.stock_qty)) || Number(v.stock_qty) < 0);
+      const shapeOf = (v) => VARIANT_DIMENSIONS.filter((k) => v?.attributes?.[k]).join('+');
+      const bad = !rows || new Set(rows.map(shapeOf)).size > 1 || rows.some((v) => !shapeOf(v) ||Number(v.price_delta) < 0 || !Number.isInteger(Number(v.stock_qty)) || Number(v.stock_qty) < 0);
       if (bad) {
         return {
           status: 400,
           body: { error: { code: 'VALIDATION_FAILED', message_en: 'Check the sizes and colours.', message_bn: 'সাইজ ও রং যাচাই করুন।' } },
         };
       }
-      p.saved_variants = rows.map((v, i) => ({
-        id: `${p.ref}-SV${i}`,
-        sku: v.sku || `${p.ref}-${[v.attributes.size, v.attributes.color].filter(Boolean).join('-').toUpperCase()}`,
-        attributes: { ...(v.attributes.size && { size: v.attributes.size }), ...(v.attributes.color && { color: v.attributes.color }) },
-        price_delta: Number(v.price_delta) || 0,
-        stock_qty: Number(v.stock_qty),
-        image_index: p.image_index,
-      }));
+      p.saved_variants = rows.map((v, i) => {
+        const attributes = Object.fromEntries(VARIANT_DIMENSIONS.filter((k) => v.attributes[k]).map((k) => [k, v.attributes[k]]));
+        // A variant photo is one of the product's uploaded photos, as product_images is live.
+        const photo = (p.images || []).find((img) => v.image_media_id != null && String(img.media_id) === String(v.image_media_id));
+        return {
+          id: `${p.ref}-SV${i}`,
+          sku: v.sku || `${p.ref}-${Object.values(attributes).join('-').toUpperCase()}`,
+          attributes,
+          price_delta: Number(v.price_delta) || 0,
+          stock_qty: Number(v.stock_qty),
+          image_media_id: photo ? Number(photo.media_id) : null,
+          image_url: photo?.url ?? null,
+          image_index: p.image_index,
+        };
+      });
       if (rows.length) p.stock = p.saved_variants.reduce((s, v) => s + v.stock_qty, 0);
       const data = { product_ref: p.ref, variants: p.saved_variants, stock_qty: p.stock, has_variants: rows.length > 0 };
       return { status: 200, body: { data } };

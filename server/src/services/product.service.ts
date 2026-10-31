@@ -443,6 +443,7 @@ export async function updateProduct(db, idOrRef, supplierId, rawFields: Record<s
     if (imageIds) {
       await productRepo.deleteProductImages(tx, id);
       images = await productRepo.insertProductImages(tx, id, imageIds);
+      await productRepo.clearVariantPhotosNotIn(tx, id, imageIds);
     }
 
     await writeAudit(tx, {
