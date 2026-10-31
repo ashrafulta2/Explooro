@@ -167,3 +167,14 @@
 .delivery-zones__tester-result {
   font-weight: 600;
 }
+
+.delivery-zones__cutoff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.delivery-zones__cutoff > label { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+.delivery-zones__cutoff select { max-width: 260px; }

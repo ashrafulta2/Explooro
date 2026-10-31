@@ -18,6 +18,7 @@ import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { goBack, renderBackLink } from '../../core/navBack.ts';
 import { expectedDeliveryWindow } from '../../services/deliveryZones.ts';
+import { knownDeliveryPolicy, loadDeliveryPolicy } from '../../services/deliveryCharge.ts';
 import { escapeHtml } from '../../services/html.ts';
 import '../../styles/components/customer-orders.css';
 import type { PageContext } from '../types.ts';
@@ -126,7 +127,8 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
   }
 
   try {
-    const order = await getOrderById(orderIdOrRef);
+    // The delivery policy carries the cut-off hour the expected-delivery window needs; load it alongside.
+    const [order] = await Promise.all([getOrderById(orderIdOrRef), loadDeliveryPolicy()]);
     container.querySelector('.order-detail-page__loading')?.remove();
 
     if (!order) {
@@ -261,7 +263,7 @@ async function renderOrderDetail(container, orderIdOrRef, navigate) {
 
     // Expected delivery: the zone's time promised at checkout (orders.delivery_days_min/max), counted
     // from the day it was placed. Hidden once nothing is still on its way.
-    const deliveryWindow = expectedDeliveryWindow(order.placed_at || order.created_at, order.delivery_days_min, order.delivery_days_max);
+    const deliveryWindow = expectedDeliveryWindow(order.placed_at || order.created_at, order.delivery_days_min, order.delivery_days_max, { cutoffHour: knownDeliveryPolicy()?.cutoff_hour ?? null });
     const stillComing = subOrders.length === 0 || subOrders.some((so) => !['DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED'].includes(so.status));
     if (deliveryWindow && stillComing) {
       const [from, to] = deliveryWindow;

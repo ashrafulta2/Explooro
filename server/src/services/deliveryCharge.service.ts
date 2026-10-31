@@ -38,6 +38,8 @@ export const LEGACY_SETTING_KEY = 'delivery.per_parcel_charge';
 export const CHARGE_LIMITS = Object.freeze({ min: 0, max: 5000 });
 /** Delivery time in whole days. 0 means same-day. */
 export const DAYS_LIMITS = Object.freeze({ min: 0, max: 30 });
+/** The daily courier hand-off cut-off, as an hour of day in Asia/Dhaka. null = no cut-off. */
+export const CUTOFF_LIMITS = Object.freeze({ min: 0, max: 23 });
 export const ZONE_LIMITS = Object.freeze({ minZones: 1, maxZones: 10, nameMaxLength: 60 });
 const ZONE_KEY_PATTERN = /^[a-z][a-z0-9_]{1,39}$/;
 
@@ -56,6 +58,11 @@ export interface DeliveryZone {
 export interface DeliveryPolicy {
   default_zone: string;
   zones: DeliveryZone[];
+  /**
+   * Orders placed at or after this hour (Asia/Dhaka) miss today's courier hand-off, so their delivery
+   * time is counted from the next day. null means no cut-off (counted from the day of the order).
+   */
+  cutoff_hour: number | null;
 }
 
 /**
@@ -65,6 +72,9 @@ export interface DeliveryPolicy {
  */
 export const DEFAULT_POLICY: Readonly<DeliveryPolicy> = Object.freeze({
   default_zone: 'outside_dhaka',
+  // WHY null: before this field existed the time was counted from the order's day; keep that until the
+  // super admin sets a cut-off, so nobody's promised date moves on deploy.
+  cutoff_hour: null,
   zones: [
     { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, team_charge: 60, days_min: 1, days_max: 2, districts: ['dhaka_city'] },
     { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 60, team_charge: 60, days_min: 3, days_max: 5, districts: [] },
@@ -81,6 +91,7 @@ function upgradeZones(value: any) {
   if (!value || !Array.isArray(value.zones)) return value;
   return {
     ...value,
+    cutoff_hour: value.cutoff_hour === undefined ? null : value.cutoff_hour,
     zones: value.zones.map((z: any) => {
       if (!z || typeof z !== 'object') return z;
       const shipped = DEFAULT_POLICY.zones.find((d) => d.key === z.key) ?? DEFAULT_POLICY.zones[DEFAULT_POLICY.zones.length - 1];
@@ -95,6 +106,7 @@ function upgradeZones(value: any) {
 }
 
 const isDays = (n: unknown) => Number.isInteger(n) && (n as number) >= DAYS_LIMITS.min && (n as number) <= DAYS_LIMITS.max;
+const isCutoff = (n: unknown) => n === null || (Number.isInteger(n) && (n as number) >= CUTOFF_LIMITS.min && (n as number) <= CUTOFF_LIMITS.max);
 
 const SETTING_META = {
   valueType: 'OBJECT',
@@ -232,7 +244,15 @@ export function validatePolicy(input: any = {}): DeliveryPolicy {
     fail('default_zone', 'Pick which zone charges every district no zone lists.', 'কোনো এলাকায় নেই এমন জেলার জন্য কোন এলাকার চার্জ হবে, তা বেছে নিন।');
   }
 
-  return { default_zone: defaultZone, zones };
+  const cutoffHour = input?.cutoff_hour === undefined || input?.cutoff_hour === '' ? null : input.cutoff_hour;
+  if (!isCutoff(cutoffHour)) {
+    fail('cutoff_hour',
+      `The order cut-off must be an hour from ${CUTOFF_LIMITS.min} to ${CUTOFF_LIMITS.max}, or none.`,
+      `অর্ডারের কাট-অফ ${CUTOFF_LIMITS.min} থেকে ${CUTOFF_LIMITS.max}টার মধ্যে একটি ঘণ্টা হতে হবে, নয়তো কিছু নয়।`,
+      { min: CUTOFF_LIMITS.min, max: CUTOFF_LIMITS.max });
+  }
+
+  return { default_zone: defaultZone, zones, cutoff_hour: cutoffHour };
 }
 
 function tryPolicy(value: unknown): DeliveryPolicy | null {
@@ -247,12 +267,17 @@ function tryPolicy(value: unknown): DeliveryPolicy | null {
 function policyFromSingleCharge(charge: number): DeliveryPolicy {
   return {
     default_zone: DEFAULT_POLICY.default_zone,
+    cutoff_hour: DEFAULT_POLICY.cutoff_hour,
     zones: DEFAULT_POLICY.zones.map((z) => ({ ...z, charge, team_charge: charge, districts: [...z.districts] })),
   };
 }
 
 function freshDefault(): DeliveryPolicy {
-  return { default_zone: DEFAULT_POLICY.default_zone, zones: DEFAULT_POLICY.zones.map((z) => ({ ...z, districts: [...z.districts] })) };
+  return {
+    default_zone: DEFAULT_POLICY.default_zone,
+    cutoff_hour: DEFAULT_POLICY.cutoff_hour,
+    zones: DEFAULT_POLICY.zones.map((z) => ({ ...z, districts: [...z.districts] })),
+  };
 }
 
 /** The zone that delivers to `district`: the zone listing it, else the default zone. Pure. */
@@ -340,6 +365,7 @@ export async function perParcelCharge(db, cache, opts: { fresh?: boolean; distri
 export function publicView(policy: DeliveryPolicy) {
   return {
     default_zone: policy.default_zone,
+    cutoff_hour: policy.cutoff_hour ?? null,
     zones: policy.zones.map(({ key, name_en, name_bn, charge, team_charge, days_min, days_max, districts }) => ({
       key, name_en, name_bn, charge, team_charge, days_min, days_max, districts: [...districts],
     })),
@@ -357,7 +383,7 @@ async function invalidate(cache) {
   }
 }
 
-const auditShape = (p: DeliveryPolicy) => ({ default_zone: p.default_zone, zones: p.zones });
+const auditShape = (p: DeliveryPolicy) => ({ default_zone: p.default_zone, cutoff_hour: p.cutoff_hour ?? null, zones: p.zones });
 
 export async function updatePolicy(
   db,

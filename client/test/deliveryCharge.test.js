@@ -63,14 +63,32 @@ describe('Delivery charge', () => {
     }
   });
 
-  it('the delivery time window counts calendar days from the day the order was placed', async () => {
+  it('the delivery time window counts calendar days (Asia/Dhaka) from the order\'s day', async () => {
     const { expectedDeliveryWindow } = await import('../src/services/deliveryZones.ts');
-    const [from, to] = expectedDeliveryWindow('2026-10-31T20:00:00', 3, 5);
+    // 10:00Z is 16:00 in Dhaka on Oct 31; +3..+5 days = Nov 3..Nov 5.
+    const [from, to] = expectedDeliveryWindow('2026-10-31T10:00:00Z', 3, 5);
     assert.deepEqual([from.getMonth(), from.getDate(), to.getMonth(), to.getDate()], [10, 3, 10, 5]);
     for (const [a, b] of [[null, null], [3, null], [5, 2], [-1, 2], [1.5, 2]]) {
-      assert.equal(expectedDeliveryWindow('2026-10-31', a, b), null, `${a}-${b}`);
+      assert.equal(expectedDeliveryWindow('2026-10-31T10:00:00Z', a, b), null, `${a}-${b}`);
     }
     assert.equal(expectedDeliveryWindow('not a date', 1, 2), null);
+  });
+
+  it('a cut-off hour pushes an order placed after it to the next day, in Dhaka time', async () => {
+    const { expectedDeliveryWindow } = await import('../src/services/deliveryZones.ts');
+    // Placed Oct 31 16:00 Dhaka (10:00Z), delivery "in 1 day". A missed cut-off adds one day to the
+    // whole window, so arrival moves from Nov 1 to Nov 2. (Month is 0-based: 10 = November.)
+    const after = expectedDeliveryWindow('2026-10-31T10:00:00Z', 1, 1, { cutoffHour: 14 });
+    assert.deepEqual([after[0].getMonth(), after[0].getDate()], [10, 2]);
+    // A 18:00 cut-off does not catch a 16:00 order: arrival stays Nov 1.
+    const before = expectedDeliveryWindow('2026-10-31T10:00:00Z', 1, 1, { cutoffHour: 18 });
+    assert.deepEqual([before[0].getMonth(), before[0].getDate()], [10, 1]);
+    // 06:00Z = 12:00 Dhaka: a 14:00 cut-off does not catch it either -> Nov 1.
+    const noon = expectedDeliveryWindow('2026-10-31T06:00:00Z', 1, 1, { cutoffHour: 14 });
+    assert.deepEqual([noon[0].getMonth(), noon[0].getDate()], [10, 1]);
+    // 20:00Z is already Nov 1 (02:00) in Dhaka; with no cut-off, arrival is Nov 2.
+    const none = expectedDeliveryWindow('2026-10-31T20:00:00Z', 1, 1, { cutoffHour: null });
+    assert.deepEqual([none[0].getMonth(), none[0].getDate()], [10, 2]);
   });
 
   it('checkout no longer prints one delivery time for every address', () => {

@@ -15,6 +15,7 @@ const limits = () => ({
   ...deliveryChargeService.CHARGE_LIMITS,
   ...deliveryChargeService.ZONE_LIMITS,
   days: { ...deliveryChargeService.DAYS_LIMITS },
+  cutoff: { ...deliveryChargeService.CUTOFF_LIMITS },
 });
 
 /** Public: the cart, Quick Buy and checkout show the charge before sign-in. Never fails (default on error). */
@@ -48,7 +49,7 @@ export async function getAdminPolicy(req, reply) {
 export async function updateAdminPolicy(req, reply) {
   const body = req.body || {};
   const policy = await deliveryChargeService.updatePolicy(dbOf(req), cacheOf(req), auditService, {
-    policy: { zones: body.zones, default_zone: body.default_zone },
+    policy: { zones: body.zones, default_zone: body.default_zone, cutoff_hour: body.cutoff_hour ?? null },
     reason: body.reason,
     expectedUpdatedAt: body.expected_updated_at ?? null,
     userId: req.user?.id ?? null,

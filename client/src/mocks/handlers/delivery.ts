@@ -14,7 +14,7 @@ import { defaultZone, isDeliveryPolicy, resolveZone } from '../../services/deliv
 import type { DeliveryPolicy } from '../../services/deliveryZones.ts';
 
 const STORAGE_KEY = 'explooro:mock:delivery:zones:v2';
-const LIMITS = { min: 0, max: 5000, minZones: 1, maxZones: 10, nameMaxLength: 60, days: { min: 0, max: 30 } };
+const LIMITS = { min: 0, max: 5000, minZones: 1, maxZones: 10, nameMaxLength: 60, days: { min: 0, max: 30 }, cutoff: { min: 0, max: 23 } };
 const KEY_PATTERN = /^[a-z][a-z0-9_]{1,39}$/;
 const DISTRICTS_BY_DIVISION = Object.fromEntries(BANGLADESH_DIVISIONS.map((d) => [d.id, d.districts.map((x) => x.id)]));
 const DISTRICT_IDS = new Set(Object.values(DISTRICTS_BY_DIVISION).flat());
@@ -23,6 +23,7 @@ type StoredPolicy = DeliveryPolicy & { updated_at: string | null; updated_by: nu
 
 const DEFAULT_POLICY: StoredPolicy = {
   default_zone: 'outside_dhaka',
+  cutoff_hour: null,
   zones: [
     { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, team_charge: 60, days_min: 1, days_max: 2, districts: ['dhaka_city'] },
     { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 60, team_charge: 60, days_min: 3, days_max: 5, districts: [] },
@@ -65,6 +66,7 @@ const isCharge = (n) => typeof n === 'number' && Number.isFinite(n) && n >= LIMI
 
 const publicView = (p: DeliveryPolicy) => ({
   default_zone: p.default_zone,
+  cutoff_hour: p.cutoff_hour ?? null,
   zones: p.zones.map(({ key, name_en, name_bn, charge, team_charge, days_min, days_max, districts }) => ({
     key, name_en, name_bn, charge, team_charge, days_min, days_max, districts: [...districts],
   })),
@@ -101,6 +103,10 @@ function check(body): ReturnType<typeof bad> | null {
     }
   }
   if (!keys.has(body.default_zone)) return bad('Pick which zone charges every district no zone lists.', 'ডিফল্ট এলাকা বেছে নিন।');
+  const cutoff = body.cutoff_hour;
+  if (!(cutoff == null || (Number.isInteger(cutoff) && cutoff >= LIMITS.cutoff.min && cutoff <= LIMITS.cutoff.max))) {
+    return bad(`The order cut-off must be an hour from ${LIMITS.cutoff.min} to ${LIMITS.cutoff.max}, or none.`, `অর্ডারের কাট-অফ ${LIMITS.cutoff.min} থেকে ${LIMITS.cutoff.max}টার মধ্যে একটি ঘণ্টা হতে হবে, নয়তো কিছু নয়।`);
+  }
   if (typeof body.reason !== 'string' || body.reason.trim().length < 10) {
     return bad('Give a reason of at least 10 characters for this change.', 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।');
   }
@@ -146,6 +152,7 @@ export const deliveryHandlers = [
       const before = publicView(mockPolicy);
       mockPolicy = {
         default_zone: body.default_zone,
+        cutoff_hour: body.cutoff_hour ?? null,
         zones: body.zones.map((z) => ({
           key: z.key, name_en: z.name_en.trim(), name_bn: z.name_bn.trim(), charge: z.charge,
           team_charge: z.team_charge, days_min: z.days_min, days_max: z.days_max, districts: [...new Set<string>(z.districts)],

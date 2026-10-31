@@ -83,6 +83,7 @@ describe('2. server and client agree', () => {
     const view = server.publicView(p);
     assert.ok(client.isDeliveryPolicy(view));
     assert.equal(view.per_parcel_charge, 120, 'the pre-zone field means the default zone');
+    assert.equal('cutoff_hour' in view, true, 'the cut-off travels to the client');
     for (const v of BD_DISTRICT_IDS) assert.equal(client.resolveZone(view, v).charge, server.resolveZone(p, v).charge);
   });
 
@@ -118,6 +119,16 @@ describe('3. validatePolicy is strict', () => {
       const p = policy();
       p.zones[0].districts = [bad];
       assert.throws(() => server.validatePolicy(p), VALIDATION, String(bad));
+    }
+  });
+
+  test('the cut-off hour is an hour 0-23 or none, nothing else', () => {
+    assert.equal(server.validatePolicy({ ...policy(), cutoff_hour: 17 }).cutoff_hour, 17);
+    assert.equal(server.validatePolicy({ ...policy(), cutoff_hour: 0 }).cutoff_hour, 0);
+    assert.equal(server.validatePolicy({ ...policy() }).cutoff_hour, null, 'absent means no cut-off');
+    assert.equal(server.validatePolicy({ ...policy(), cutoff_hour: null }).cutoff_hour, null);
+    for (const bad of [24, -1, 12.5, '14', true]) {
+      assert.throws(() => server.validatePolicy({ ...policy(), cutoff_hour: bad }), VALIDATION, String(bad));
     }
   });
 

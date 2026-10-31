@@ -125,3 +125,47 @@ describe('cart prices a saler-sourced line at the shop partner custom price', ()
     assert.equal(cart.items[0].unit_price, '1200.00');
   });
 });
+
+describe('cart estimates delivery for the shopper\'s area, not always the default zone', () => {
+  const ZONES = {
+    default_zone: 'outside_dhaka',
+    zones: [
+      { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: 60, team_charge: 60, days_min: 1, days_max: 2, districts: ['dhaka_city'] },
+      { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: 120, team_charge: 120, days_min: 3, days_max: 5, districts: [] },
+    ],
+  };
+
+  /** A cart of one no-saler line, with a delivery.zones policy and an optional default address. */
+  function estimateDb({ defaultDistrict = null } = {}) {
+    const db = createFakeDb();
+    const line = { id: 1, cart_id: 1, product_id: 1, variant_id: null, saler_id: null, bundle_id: null,
+      qty: 1, price_at_add: PRODUCT.default_retail_price, added_at: new Date() };
+    db.items.push(line);
+    const base = db.query.bind(db);
+    db.query = async (sql, params = []) => {
+      if (sql.includes('FROM platform_settings') && params[0] === 'delivery.zones') {
+        return { rows: [{ key: 'delivery.zones', value_json: ZONES }] };
+      }
+      if (sql.includes('FROM user_addresses')) {
+        return { rows: defaultDistrict ? [{ district: defaultDistrict, is_default: true }] : [] };
+      }
+      return base(sql, params);
+    };
+    return db;
+  }
+
+  test('an explicit district prices the estimate for that zone', async () => {
+    assert.equal((await getCart(estimateDb(), { userId: 9, district: 'dhaka_city' })).estimated_shipping, '60.00');
+    assert.equal((await getCart(estimateDb(), { userId: 9, district: 'sylhet_city' })).estimated_shipping, '120.00');
+  });
+
+  test('with no district it falls back to the default saved address, then the default zone', async () => {
+    const fromAddress = await getCart(estimateDb({ defaultDistrict: 'dhaka_city' }), { userId: 9 });
+    assert.equal(fromAddress.estimated_shipping, '60.00');
+    assert.equal(fromAddress.estimated_shipping_district, 'dhaka_city');
+
+    const noAddress = await getCart(estimateDb(), { userId: 9 });
+    assert.equal(noAddress.estimated_shipping, '120.00', 'the default zone');
+    assert.equal(noAddress.estimated_shipping_zone, 'outside_dhaka');
+  });
+});

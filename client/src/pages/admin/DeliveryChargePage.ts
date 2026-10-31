@@ -39,10 +39,11 @@ import type { PageContext } from '../types.ts';
 
 const MIN_REASON_LENGTH = 10;
 
-interface Limits { min: number; max: number; minZones: number; maxZones: number; nameMaxLength: number; days: { min: number; max: number } }
+interface Limits { min: number; max: number; minZones: number; maxZones: number; nameMaxLength: number; days: { min: number; max: number }; cutoff: { min: number; max: number } }
 
 const clonePolicy = (p: DeliveryPolicy): DeliveryPolicy => ({
   default_zone: p.default_zone,
+  cutoff_hour: p.cutoff_hour ?? null,
   zones: p.zones.map((z) => ({ ...z, districts: [...z.districts] })),
 });
 
@@ -330,6 +331,38 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
     refreshTester();
   }
 
+  function cutoffField(limits: Limits, editable: boolean) {
+    const wrap = document.createElement('div');
+    wrap.className = 'delivery-zones__cutoff';
+    const label = document.createElement('label');
+    label.htmlFor = 'delivery-cutoff';
+    label.textContent = t('admin.delivery.cutoff_label');
+    const select = document.createElement('select');
+    select.id = 'delivery-cutoff';
+    select.className = 'form-select';
+    select.disabled = !editable;
+    const none = document.createElement('option');
+    none.value = '';
+    none.textContent = t('admin.delivery.cutoff_none');
+    select.append(none);
+    for (let h = limits.cutoff.min; h <= limits.cutoff.max; h += 1) {
+      const opt = document.createElement('option');
+      opt.value = String(h);
+      // 14 -> "2:00 PM", shown the shopper's way; the stored value is the 24h hour.
+      opt.textContent = new Date(2000, 0, 1, h).toLocaleTimeString(isBn ? 'bn-BD' : 'en-US', { hour: 'numeric', minute: '2-digit' });
+      if (draft.cutoff_hour === h) opt.selected = true;
+      select.append(opt);
+    }
+    select.addEventListener('change', () => {
+      draft.cutoff_hour = select.value === '' ? null : Number(select.value);
+    });
+    const hint = document.createElement('p');
+    hint.className = 'text-xs text-muted';
+    hint.textContent = t('admin.delivery.cutoff_hint');
+    wrap.append(label, select, hint);
+    return wrap;
+  }
+
   function zonesPanel() {
     const limits: Limits = data.limits;
     const editable = canUpdate();
@@ -445,6 +478,7 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
               charge: z.charge, team_charge: z.team_charge, days_min: z.days_min, days_max: z.days_max, districts: z.districts,
             })),
             default_zone: draft.default_zone,
+            cutoff_hour: draft.cutoff_hour ?? null,
             expected_updated_at: data.policy.updated_at ?? null,
             reason: reasonText.trim(),
           });
@@ -463,7 +497,7 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
     actions.className = 'delivery-zones__actions';
     actions.append(reason, save);
 
-    wrap.append(zonesHost, toolbar, tester, actions);
+    wrap.append(zonesHost, toolbar, cutoffField(limits, editable), tester, actions);
     panel.append(wrap);
 
     if (!editable) {

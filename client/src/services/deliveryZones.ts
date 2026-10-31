@@ -24,6 +24,8 @@ export interface DeliveryZone {
 export interface DeliveryPolicy {
   default_zone: string;
   zones: DeliveryZone[];
+  /** Hour of day (Asia/Dhaka) after which an order misses today's courier hand-off; null = none. */
+  cutoff_hour?: number | null;
   /** The default zone's charge; kept by the API for clients from before zones existed. */
   per_parcel_charge?: number;
 }
@@ -78,20 +80,47 @@ export function defaultZone(policy: DeliveryPolicy): DeliveryZone {
   return resolveZone(policy, null);
 }
 
+/** The year, month (0-11), day and hour of a timestamp as read in Asia/Dhaka (the courier's clock). */
+function dhakaParts(when: Date): { y: number; m: number; d: number; h: number } | null {
+  try {
+    const f = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Dhaka', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false,
+    });
+    const p: Record<string, string> = {};
+    for (const part of f.formatToParts(when)) p[part.type] = part.value;
+    // Intl may render midnight as hour "24"; fold it back to 0.
+    const h = Number(p.hour) % 24;
+    return { y: Number(p.year), m: Number(p.month) - 1, d: Number(p.day), h };
+  } catch {
+    return null;
+  }
+}
+
 /**
- * When an order should arrive: placed date + the zone's days, as two Dates (earliest, latest), or null
- * when the order carries no promised time (placed before migration 099, or a team order of an old
- * member). WHY calendar days: couriers here deliver on Fridays too, and a promise the shopper can
- * check against a calendar is easier to trust than "business days".
+ * When an order should arrive: the day it was placed + the zone's days, as two Dates (earliest,
+ * latest), or null when the order carries no promised time (placed before migration 099, or a team
+ * order of an old member).
+ *
+ * WHY calendar days: couriers here deliver on Fridays too, so a promise the shopper can check against a
+ * calendar is easier to trust than "business days". `cutoffHour` is the courier's daily hand-off hour
+ * (Asia/Dhaka): an order placed at or after it misses today's pickup, so its days start from tomorrow.
  */
-export function expectedDeliveryWindow(placedAt: unknown, daysMin: unknown, daysMax: unknown): [Date, Date] | null {
+export function expectedDeliveryWindow(
+  placedAt: unknown,
+  daysMin: unknown,
+  daysMax: unknown,
+  { cutoffHour = null }: { cutoffHour?: number | null } = {},
+): [Date, Date] | null {
   const start = new Date(placedAt as string);
   const min = Number(daysMin);
   const max = Number(daysMax);
   if (Number.isNaN(start.getTime()) || daysMin == null || daysMax == null || !Number.isInteger(min) || !Number.isInteger(max) || min < 0 || max < min) {
     return null;
   }
-  const at = (days: number) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + days);
+  const parts = dhakaParts(start) ?? { y: start.getFullYear(), m: start.getMonth(), d: start.getDate(), h: start.getHours() };
+  const missedToday = Number.isInteger(cutoffHour) && parts.h >= (cutoffHour as number);
+  const base = parts.d + (missedToday ? 1 : 0);
+  const at = (days: number) => new Date(parts.y, parts.m, base + days);
   return [at(min), at(max)];
 }
 

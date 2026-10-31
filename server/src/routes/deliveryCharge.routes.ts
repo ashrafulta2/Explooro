@@ -58,6 +58,7 @@ export default async function deliveryChargeRoutes(app) {
               },
             },
             default_zone: { type: 'string', maxLength: 40 },
+            cutoff_hour: { type: ['integer', 'null'] },
             expected_updated_at: { type: ['string', 'null'] },
             reason: { type: 'string', minLength: 10, maxLength: 500 },
           },

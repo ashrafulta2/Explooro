@@ -2727,7 +2727,9 @@
     "items_count": {
       "one": "{{count}} item",
       "other": "{{count}} items"
-    }
+    },
+    "deliver_to": "Deliver to",
+    "deliver_to_any": "Choose your area"
   },
   "wishlist": {
     "title": "Saved Items (Wishlist)",
@@ -5869,7 +5871,10 @@
       "days_hint": "Delivery time is whole days from {{min}} to {{max}}, and \"from\" cannot be more than \"to\".",
       "tester_charge": "{{charge}} per parcel",
       "tester_team": "team {{charge}}",
-      "history_team": "team {{charge}}"
+      "history_team": "team {{charge}}",
+      "cutoff_label": "Order cut-off time",
+      "cutoff_none": "No cut-off",
+      "cutoff_hint": "Orders placed at or after this time (Bangladesh time) miss that day's courier hand-off, so delivery is counted from the next day."
     },
     "operations": {
       "title": "Manual operations",
