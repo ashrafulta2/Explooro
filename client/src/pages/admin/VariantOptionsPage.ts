@@ -172,7 +172,7 @@ export default function VariantOptionsPage(root: HTMLElement) {
     panel.className = 'admin-panel mt-4';
     panel.innerHTML = `
       <h2 class="admin-panel__title">${escapeHtml(t('admin_catalog.variant_options.card_title'))}</h2>
-      <p class="text-sm text-secondary">${escapeHtml(t('admin_catalog.variant_options.card_desc'))}</p>
+      <p data-page-info class="text-sm text-secondary">${escapeHtml(t('admin_catalog.variant_options.card_desc'))}</p>
       <p class="text-xs text-muted">${escapeHtml(data.updated_at ? t('admin_catalog.variant_options.changed', { when: relative(data.updated_at) }) : t('admin_catalog.variant_options.never_changed'))}</p>
     `;
     panel.append(table(canUpdate));

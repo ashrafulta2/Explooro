@@ -53,7 +53,7 @@ export function GrowthAssistant({ recommendations = null, onActionExecuted = nul
         ${t('saler.growth_assistant.title', 'AI Growth Assistant')}
         <span class="badge badge--primary text-[10px] uppercase tracking-wider font-semibold">Live Advice</span>
       </h3>
-      <p style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
+      <p data-page-info style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
         ${t('saler.growth_assistant.subtitle', 'Grounded next-steps derived from your real catalog metrics and peer sales.')}
       </p>
     </div>

@@ -81,7 +81,7 @@ export default function AdminPartnerRewardsPage(root: HTMLElement) {
     panel.className = 'admin-panel mt-4';
     panel.innerHTML = `
       <h2 class="admin-panel__title">${escapeHtml(t('admin.partner_rewards.close_title'))}</h2>
-      <p class="text-sm text-secondary">${escapeHtml(t('admin.partner_rewards.close_desc', { days: formatNumber(data.policy.settle_lag_days) }))}</p>
+      <p data-page-info class="text-sm text-secondary">${escapeHtml(t('admin.partner_rewards.close_desc', { days: formatNumber(data.policy.settle_lag_days) }))}</p>
     `;
     const note = document.createElement('p');
     note.className = 'text-xs text-muted mt-2';
@@ -131,7 +131,7 @@ export default function AdminPartnerRewardsPage(root: HTMLElement) {
       </tr>`).join('');
     panel.innerHTML = `
       <h2 class="admin-panel__title">${escapeHtml(t('admin.partner_rewards.top_title', { month: monthLabel(preview.period.start) }))}</h2>
-      <p class="text-xs text-muted">${escapeHtml(t('admin.partner_rewards.top_desc'))}</p>` + (rows
+      <p data-page-info class="text-xs text-muted">${escapeHtml(t('admin.partner_rewards.top_desc'))}</p>` + (rows
       ? `<div class="system-table-wrap"><table class="system-table">
           <thead><tr><th>${escapeHtml(t('admin.partner_rewards.col_partner'))}</th>${head}
             <th class="text-right">${escapeHtml(t('admin.partner_rewards.col_score'))}</th>

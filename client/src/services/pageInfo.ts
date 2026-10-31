@@ -2,7 +2,8 @@
  * pageInfo.ts — folds the descriptive line under a page/section title into an (i) InfoTip.
  *
  * Instruction text ("what this page is for") under every title made screens read as clutter. The
- * sentence is kept — it moves into an InfoTip beside the title. Pages keep writing the same
+ * sentence is kept — it moves into an InfoTip beside the title, and a click on the (i) expands it
+ * back in place. Pages keep writing the same
  * subtitle markup; this module collapses it, so a new page gets the behaviour for free.
  *
  * Opt in/out:
@@ -35,12 +36,14 @@ const INFO_CLASSES = [
   'editor-card__subtitle', 'system-panel__sub', 'cod-recon-panel__subtitle',
   'warranties-guide__subtitle', 'profit-calc__subtitle', 'become-saler-reward__subtitle',
   'ad-wizard__subtitle', 'settings-section-desc', 'team-detail-slots-card__subtitle', 'card__subtitle',
+  'supplier-header__sub', 'advertise-head__sub', 'page-avail__subtitle', 'cm-header__sub',
+  'coins-streak-card__subtitle', 'language-policy-card__hint', 'become-saler-reward__order-note',
 ];
 
 export const INFO_SELECTOR =
   `:is(${INFO_CLASSES.map((c) => `.${c}`).join(',')},[data-page-info]):not([data-info-keep])`;
 
-const HEADING = 'h1,h2,h3,h4';
+const HEADING = 'h1,h2,h3,h4,legend'; // a <legend> titles its fieldset like a heading
 const tips = new WeakMap<Element, ReturnType<typeof InfoTip>>(); // subtitle element -> its InfoTip
 
 /** The heading this subtitle describes: the one right before it, or the last one inside the
@@ -74,7 +77,9 @@ function fold(sub: Element) {
   const heading = findHeading(sub);
   if (!heading) return;
 
-  const tip = InfoTip({ content: text });
+  // WHY: the subtitle itself is the click-to-expand panel, so expanded text shows exactly where
+  // the page put it, styled by the page, and follows the page's later rewrites for free.
+  const tip = InfoTip({ content: text, panel: sub as HTMLElement });
   tip.dataset.info = text;
   tips.set(sub, tip);
   heading.append(tip);

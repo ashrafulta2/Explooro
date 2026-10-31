@@ -61,7 +61,7 @@ export default function DeliveryChargePage(root: HTMLElement, { navigate }: Page
     panel.className = 'admin-panel group-buy-settings';
     panel.innerHTML = `
       <h2 class="admin-panel__title">${escapeHtml(t('admin.delivery.card_title'))}</h2>
-      <p class="text-sm text-secondary">${escapeHtml(t('admin.delivery.card_desc'))}</p>
+      <p data-page-info class="text-sm text-secondary">${escapeHtml(t('admin.delivery.card_desc'))}</p>
     `;
 
     const grid = document.createElement('div');

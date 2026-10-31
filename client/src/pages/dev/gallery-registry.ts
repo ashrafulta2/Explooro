@@ -642,7 +642,7 @@ function renderInfoTip() {
   const title = document.createElement('h2');
   title.textContent = 'Shop Partner Academy';
   title.append(InfoTip({ content: 'Master factory sourcing, B2B escrow deals, and social marketing with micro-learning courses' }));
-  wrap.append(specimen('beside a title — hover, focus or tap', title));
+  wrap.append(specimen('beside a title — hover or focus for a popup, click to expand below', title));
   return wrap;
 }
 

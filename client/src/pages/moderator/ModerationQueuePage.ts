@@ -427,7 +427,7 @@ export default function ModerationQueuePage(root: HTMLElement, ctx: PageContext 
               ${t('moderation.page_title', 'Product Approval & Content Moderation Queue')}
             </h1>
           </div>
-          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+          <p data-page-info style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
             ${t('moderation.page_subtitle', 'Review new listings, customer reviews, UGC videos, and shop partner storefront assets.')}
           </p>
         </div>

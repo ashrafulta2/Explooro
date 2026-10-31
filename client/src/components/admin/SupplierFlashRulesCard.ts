@@ -38,6 +38,7 @@ export function SupplierFlashRulesCard({ initial = null }: SupplierFlashRulesCar
     title.textContent = t('admin_flash_rules.title');
     const intro = document.createElement('p');
     intro.style.cssText = 'margin: 0; font-size: 13px; color: var(--text-secondary);';
+    intro.dataset.pageInfo = '';
     intro.textContent = t('admin_flash_rules.intro');
     card.append(title, intro);
 

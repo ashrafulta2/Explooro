@@ -401,7 +401,7 @@ export default function Staff2faPage(root: HTMLElement, { navigate }: PageContex
           <h3 style="font-size: 1rem; font-weight: 600; margin: 0 0 0.5rem 0; color: var(--text-primary);">
             🚨 ${t('admin_2fa.breakglass_card_title')}
           </h3>
-          <p style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
+          <p data-page-info style="font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; margin: 0 0 1rem 0;">
             ${t('admin_2fa.breakglass_desc')}
           </p>
           <div style="display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem; background: var(--surface-2); border-radius: 4px; border: 1px solid var(--border-subtle);">

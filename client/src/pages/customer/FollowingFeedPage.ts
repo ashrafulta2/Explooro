@@ -833,7 +833,7 @@ function sectionHeader({ icon, title, subtitle, linkHref, linkLabel, blockClass 
       <h3 class="${blockClass}__title">
         <span aria-hidden="true">${icon}</span> ${esc(title)}
       </h3>
-      ${subtitle ? `<p class="text-xs text-muted mt-0.5">${esc(subtitle)}</p>` : ''}
+      ${subtitle ? `<p data-page-info class="text-xs text-muted mt-0.5">${esc(subtitle)}</p>` : ''}
     </div>
     ${
       linkHref

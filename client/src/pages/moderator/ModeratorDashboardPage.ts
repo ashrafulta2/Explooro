@@ -198,7 +198,7 @@ export default function ModeratorDashboardPage(root: HTMLElement) {
               ROLE: ${userRoles.join(', ').toUpperCase()}
             </span>
           </div>
-          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+          <p data-page-info style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
             ${t('moderator_dashboard.page_subtitle', 'Real-time queue monitoring, workload orchestration, and elevated access management.')}
           </p>
         </div>

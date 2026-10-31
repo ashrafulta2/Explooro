@@ -238,7 +238,7 @@ export default function DisputePanelPage(root: HTMLElement) {
               ${t('dispute.page_title', 'Dispute Resolution & Arbitration Panel')}
             </h1>
           </div>
-          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+          <p data-page-info style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
             ${t('dispute.page_subtitle', 'Mediate 3-way buyer-saler-supplier conflicts, examine audit timelines, and execute binding verdicts.')}
           </p>
         </div>

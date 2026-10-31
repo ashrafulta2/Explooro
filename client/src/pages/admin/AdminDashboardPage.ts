@@ -389,7 +389,7 @@ export default function AdminDashboardPage(root: HTMLElement, { navigate }: Page
             <span>${esc(t('admin.alerts.title'))}</span>
             <span class="admin-alerts__count-badge" data-region="alert-badge"></span>
           </h2>
-          <span class="admin-dashboard__note">${esc(tr('deep_link_sub'))}</span>
+          <p data-page-info class="admin-dashboard__note">${esc(tr('deep_link_sub'))}</p>
         </div>
         <div class="admin-alerts__tools">
           <div class="admin-alerts__search" data-slot="search"></div>

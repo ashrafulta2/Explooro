@@ -49,3 +49,13 @@ test('every data-page-info marker sits on a <p> element', () => {
     }
   }
 });
+
+test('a click on the (i) expands the text in place, and the hover popup stays shut while it is open', () => {
+  const tip = read('../src/components/ui/InfoTip.ts');
+  assert.match(tip, /aria-expanded/);
+  assert.match(tip, /data-info-open/);
+  assert.match(read('../src/components/ui/Tooltip.ts'), /getAttribute\('aria-expanded'\) === 'true'\) return/);
+  // pageInfo hands the folded subtitle over as the panel, and the CSS lets an open one show again.
+  assert.match(read('../src/services/pageInfo.ts'), /panel: sub/);
+  assert.match(read('../src/styles/components/feedback.css'), /\[data-info-folded\]:not\(\[data-info-open\]\)/);
+});

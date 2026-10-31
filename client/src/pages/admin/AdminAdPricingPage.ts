@@ -128,7 +128,7 @@ export default function AdminAdPricingPage(root: HTMLElement) {
             <span class="ad-rate-card__model">ads.density</span>
           </div>
         </div>
-        <p class="ad-density__hint" style="margin-bottom: var(--space-3);">
+        <p data-page-info class="ad-density__hint" style="margin-bottom: var(--space-3);">
           ${isBn
             ? `বেশি ঘন ঘন ad দেখালে ক্রেতা বিরক্ত হন, কম হলে আয় কমে। প্রতি ${lim.every.min}টার কম card এ একটা ad রাখা যায় না, তাই দুটো ad কখনো পাশাপাশি বসে না। নতুন নিয়ম ক্রেতার পরের page load থেকে কাজ করবে।`
             : `Too often and shoppers tune out; too rarely and ad revenue drops. An ad can't appear more than once per ${lim.every.min} cards, so two never sit side by side. Shoppers get the change on their next page load.`}

@@ -60,7 +60,7 @@ export default function AdminGroupBuyPage(root: HTMLElement, { navigate }: PageC
     panel.className = 'admin-panel group-buy-settings';
     panel.innerHTML = `
       <h2 class="admin-panel__title">${escapeHtml(t('admin.group_buy.settings_title'))}</h2>
-      <p class="text-sm text-secondary">${escapeHtml(t('admin.group_buy.settings_desc'))}</p>
+      <p data-page-info class="text-sm text-secondary">${escapeHtml(t('admin.group_buy.settings_desc'))}</p>
     `;
 
     const grid = document.createElement('div');

@@ -105,6 +105,8 @@ export function Tooltip({
   function show() {
     clearTimeout(hideTimer);
     if (open) return;
+    // WHY: a trigger that has expanded its text in place (InfoTip) already shows it.
+    if (trigger.getAttribute('aria-expanded') === 'true') return;
     showTimer = setTimeout(() => {
       if (!tip.isConnected) document.body.append(tip);
       if (tip.popover) {

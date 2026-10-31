@@ -101,7 +101,7 @@ export default function TranslationManagerPage(root: HTMLElement, ctx: PageConte
               ${t('editor.translations_title', 'Localization & Translation Studio')}
             </h1>
           </div>
-          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+          <p data-page-info style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
             ${t('editor.translations_subtitle', 'Zero-deploy translation editor, missing-key finder, and multi-locale completeness gauges.')}
           </p>
         </div>

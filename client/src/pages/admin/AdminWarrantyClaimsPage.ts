@@ -117,7 +117,7 @@ export default function AdminWarrantyClaimsPage(root: HTMLElement) {
     container.innerHTML = `
       <header>
         <h1 style="margin: 0; font-size: var(--text-2xl);">${t('warranty_admin.title', 'Warranty claims')}</h1>
-        <p style="margin: 4px 0 0; color: var(--text-secondary);">${t('warranty_admin.subtitle', 'Suppliers cannot refund on their own. Approve or reject the refunds they propose.')}</p>
+        <p data-page-info style="margin: 4px 0 0; color: var(--text-secondary);">${t('warranty_admin.subtitle', 'Suppliers cannot refund on their own. Approve or reject the refunds they propose.')}</p>
       </header>
       <div role="tablist" aria-label="${t('warranty_admin.tabs_label', 'Claim filter')}" style="display: flex; gap: 8px;">
         ${TABS.map((tab) => `

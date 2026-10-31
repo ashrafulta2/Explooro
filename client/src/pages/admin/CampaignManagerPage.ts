@@ -124,7 +124,7 @@ export class CampaignManagerPage {
                 ${isBn ? 'ক্যাম্পেইন ও প্রমোশন ম্যানেজার' : 'Campaign & Promotion Manager'}
               </h1>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+            <p data-page-info style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
               ${isBn ? 'ফ্ল্যাশ সেল, কুপন ভাউচার ও ডিসকাউন্ট বাজেট নিয়ন্ত্রণ করুন' : 'Manage flash sales, coupon vouchers, budget caps, and emergency stops'}
             </p>
           </div>

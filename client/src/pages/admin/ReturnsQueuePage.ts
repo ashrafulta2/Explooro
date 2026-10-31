@@ -118,7 +118,7 @@ export default function ReturnsQueuePage(root: HTMLElement) {
               ${t('returns.queue_title', 'Returns & Reverse Quality Inspection Queue')}
             </h1>
           </div>
-          <p style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
+          <p data-page-info style="font-size: 13px; color: var(--text-muted, #64748b); margin: 4px 0 0 0;">
             ${t('returns.queue_subtitle', 'Review customer return claims, verify photo evidence, and manage reverse courier inspections.')}
           </p>
         </div>
