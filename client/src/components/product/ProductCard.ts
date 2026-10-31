@@ -552,7 +552,7 @@ export function ProductCard({
     spBadge.style.top = '8px';
     spBadge.style.right = '8px';
     spBadge.style.zIndex = '2';
-    spBadge.textContent = 'Sponsored';
+    spBadge.textContent = t('ads.sponsored');
     imgWrap.append(spBadge);
   }
 

@@ -96,3 +96,15 @@ test('no invented flash strip is left in the widget or the home page', () => {
   assert.ok(!home.includes('flashList = allProducts'), 'HomePage must not fill the strip with the catalog');
   assert.ok(!/price: 999|special_price: 799/.test(home), 'a sponsored unit must not carry a made-up price');
 });
+
+test('the sponsored label is translated, never a hardcoded English string', () => {
+  const en = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/en.json'), 'utf8'));
+  const bn = JSON.parse(fs.readFileSync(path.resolve(root, 'src/locales/bn.json'), 'utf8'));
+  assert.equal(en.ads.sponsored, 'Sponsored');
+  assert.equal(bn.ads.sponsored, 'স্পন্সর্ড');
+  for (const file of ['src/components/product/ProductCard.ts', 'src/pages/customer/FollowingFeedPage.ts']) {
+    const src = fs.readFileSync(path.resolve(root, file), 'utf8');
+    assert.ok(!src.includes("textContent = 'Sponsored'"), `${file} must use t('ads.sponsored')`);
+    assert.ok(src.includes("t('ads.sponsored')"), `${file} must use t('ads.sponsored')`);
+  }
+});

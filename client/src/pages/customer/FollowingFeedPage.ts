@@ -1199,7 +1199,7 @@ function createDiscoverStoresSection(stores, nav, onToggleFollow) {
       badge.style.position = 'absolute';
       badge.style.top = '12px';
       badge.style.right = '12px';
-      badge.textContent = 'Sponsored';
+      badge.textContent = t('ads.sponsored');
       card.style.position = 'relative';
       card.append(badge);
     }
