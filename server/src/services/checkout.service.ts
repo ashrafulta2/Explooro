@@ -218,7 +218,10 @@ export async function executeCheckout(pool, cache, {
     const supplierCount = supplierGroups.size;
     // WHY fresh: the charge written onto the order must be the one in the database now, not a
     // cached copy from before a super admin changed it.
-    const shippingPerParcelPaisa = toPaisa(await deliveryChargeService.perParcelCharge(client, cache, { fresh: true }));
+    // WHY by district: the charge depends on the delivery zone (Inside Dhaka, Outside Dhaka, ...), and
+    // the zone is decided here from the address, never taken from what the client showed.
+    const delivery = await deliveryChargeService.zoneForAddress(client, cache, { district }, { fresh: true });
+    const shippingPerParcelPaisa = toPaisa(delivery.charge);
 
     // 6. Coupon Validation & Calculation
     let coupon = null;
@@ -343,6 +346,7 @@ export async function executeCheckout(pool, cache, {
       district,
       upazila,
       addressLine,
+      deliveryZone: delivery.zone.key,
     });
 
     // 9. FEFO Batch Allocation, Stock Decrement & Sub-Orders Creation

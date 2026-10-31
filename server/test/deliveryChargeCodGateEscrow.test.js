@@ -71,59 +71,75 @@ describe('1. paid gateway orders lock escrow', () => {
 });
 
 describe('2. delivery charge is a setting', () => {
+  // Zones (migration 098) are covered in depth by deliveryZones.test.js; these are the 069 guarantees.
+  const zones = (inside, outside) => ({
+    default_zone: 'outside_dhaka',
+    zones: [
+      { key: 'inside_dhaka', name_en: 'Inside Dhaka', name_bn: 'ঢাকার ভিতরে', charge: inside, districts: ['dhaka_city'] },
+      { key: 'outside_dhaka', name_en: 'Outside Dhaka', name_bn: 'ঢাকার বাইরে', charge: outside, districts: [] },
+    ],
+  });
+
   test('checkout and the cart read it; no ৳60 constant is left', () => {
     const checkout = src('services/checkout.service.ts');
     const cart = src('services/cart.service.ts');
     assert.ok(!/toPaisa\(60(\.0)?\)/.test(checkout));
     assert.ok(!/PerParcel = 60/.test(cart));
-    assert.match(checkout, /deliveryChargeService\.perParcelCharge\(client, cache, \{ fresh: true \}\)/);
-    assert.match(cart, /deliveryChargeService\.perParcelCharge\(db/);
+    assert.match(checkout, /deliveryChargeService\.zoneForAddress\(client, cache, \{ district \}, \{ fresh: true \}\)/);
+    assert.match(cart, /deliveryChargeService\.zoneForAddress\(db/);
   });
 
-  test('validatePolicy accepts the range in whole paisa and refuses the rest', () => {
-    assert.deepEqual(deliveryChargeService.validatePolicy({ per_parcel_charge: 0 }), { per_parcel_charge: 0 });
-    assert.deepEqual(deliveryChargeService.validatePolicy({ per_parcel_charge: 80.5 }), { per_parcel_charge: 80.5 });
+  test('validatePolicy accepts charges in whole paisa within the range and refuses the rest', () => {
+    assert.equal(deliveryChargeService.validatePolicy(zones(0, 80.5)).zones[1].charge, 80.5);
     for (const bad of [-1, 5000.01, 12.345, '60', null, Number.NaN]) {
-      assert.throws(() => deliveryChargeService.validatePolicy({ per_parcel_charge: bad }), (e) => e.code === 'VALIDATION_FAILED');
+      assert.throws(() => deliveryChargeService.validatePolicy(zones(60, bad)), (e) => e.code === 'VALIDATION_FAILED');
     }
   });
 
-  test('getPolicy reads the stored value and falls back to the default', async () => {
-    const stored = fakeDb('pool', (sql) => (sql.includes('platform_settings')
-      ? { rows: [{ key: 'delivery.per_parcel_charge', value_json: 85, updated_at: null, updated_by: null }] }
+  test('getPolicy reads the stored zones, then the pre-098 number, then the default', async () => {
+    const stored = fakeDb('pool', (sql, params) => (sql.includes('platform_settings') && params[0] === 'delivery.zones'
+      ? { rows: [{ key: 'delivery.zones', value_json: zones(70, 130), updated_at: null, updated_by: null }] }
       : { rows: [] }));
-    assert.equal(await deliveryChargeService.perParcelCharge(stored, null), 85);
+    assert.equal(await deliveryChargeService.perParcelCharge(stored, null, { district: 'dhaka_city' }), 70);
+    assert.equal(await deliveryChargeService.perParcelCharge(stored, null, { district: 'sylhet_city' }), 130);
+    assert.equal(await deliveryChargeService.perParcelCharge(stored, null), 130, 'no address: the default zone');
+
+    const legacy = fakeDb('pool', (sql, params) => (params[0] === 'delivery.per_parcel_charge'
+      ? { rows: [{ key: 'delivery.per_parcel_charge', value_json: 85 }] }
+      : { rows: [] }));
+    assert.equal(await deliveryChargeService.perParcelCharge(legacy, null, { district: 'dhaka_city' }), 85);
+    assert.equal(await deliveryChargeService.perParcelCharge(legacy, null, { district: 'bogura' }), 85);
 
     const empty = fakeDb('pool');
-    assert.equal(await deliveryChargeService.perParcelCharge(empty, null), deliveryChargeService.DEFAULT_POLICY.per_parcel_charge);
+    assert.equal(await deliveryChargeService.perParcelCharge(empty, null), 60);
 
-    const corrupt = fakeDb('pool', () => ({ rows: [{ key: 'delivery.per_parcel_charge', value_json: -5 }] }));
-    assert.equal(await deliveryChargeService.perParcelCharge(corrupt, null), deliveryChargeService.DEFAULT_POLICY.per_parcel_charge);
+    const corrupt = fakeDb('pool', () => ({ rows: [{ key: 'x', value_json: -5 }] }));
+    assert.equal(await deliveryChargeService.perParcelCharge(corrupt, null), 60);
   });
 
   test('updatePolicy writes, audits before/after and needs a reason', async () => {
-    let value = 60;
+    let value = zones(60, 60);
     const db = fakeDb('pool', (sql, params) => {
       if (sql.includes('INSERT INTO platform_settings')) value = JSON.parse(params[1]);
-      if (sql.includes('FROM platform_settings')) return { rows: [{ key: 'delivery.per_parcel_charge', value_json: value }] };
+      if (sql.includes('FROM platform_settings') && params[0] === 'delivery.zones') return { rows: [{ key: 'delivery.zones', value_json: value }] };
       return { rows: [] };
     });
     const audits = [];
     const audit = { record: async (_db, row) => audits.push(row) };
 
     await assert.rejects(
-      deliveryChargeService.updatePolicy(db, null, audit, { policy: { per_parcel_charge: 70 }, reason: 'short', userId: 1 }),
+      deliveryChargeService.updatePolicy(db, null, audit, { policy: zones(60, 120), reason: 'short', userId: 1 }),
       (e) => e.code === 'VALIDATION_FAILED'
     );
     const after = await deliveryChargeService.updatePolicy(db, null, audit, {
-      policy: { per_parcel_charge: 75 },
-      reason: 'Courier rates went up this month',
+      policy: zones(60, 120),
+      reason: 'Courier rates outside Dhaka went up',
       userId: 1,
     });
-    assert.equal(after.per_parcel_charge, 75);
+    assert.equal(after.zones[1].charge, 120);
     assert.equal(audits.length, 1);
-    assert.deepEqual(audits[0].beforeJson, { per_parcel_charge: 60 });
-    assert.deepEqual(audits[0].afterJson, { per_parcel_charge: 75 });
+    assert.equal(audits[0].beforeJson.zones[1].charge, 60);
+    assert.equal(audits[0].afterJson.zones[1].charge, 120);
     assert.equal(audits[0].action, 'platform.delivery.update');
   });
 

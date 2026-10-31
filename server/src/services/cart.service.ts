@@ -190,8 +190,10 @@ export async function getCart(db, { userId = null, guestToken = null }) {
     subtotal: p.subtotal.toFixed(2),
   }));
 
-  // The super admin sets this at /admin/platform/delivery; checkout charges the same number.
-  const estimatedShippingPerParcel = await deliveryChargeService.perParcelCharge(db, null);
+  // The super admin sets the charge per delivery zone at /admin/platform/delivery. The cart has no
+  // address yet, so it estimates with the default zone; checkout charges the zone of the district
+  // the shopper picks (and shows that figure before they confirm).
+  const { zone: estimateZone, charge: estimatedShippingPerParcel } = await deliveryChargeService.zoneForAddress(db, null);
   const estimatedShippingTotal = parcels.length * estimatedShippingPerParcel;
   const grandTotal = subtotal + estimatedShippingTotal;
 
@@ -206,6 +208,7 @@ export async function getCart(db, { userId = null, guestToken = null }) {
     items_count: totalItemsCount,
     subtotal: subtotal.toFixed(2),
     estimated_shipping: estimatedShippingTotal.toFixed(2),
+    estimated_shipping_zone: estimateZone.key,
     grand_total: grandTotal.toFixed(2),
     has_warnings: hasWarnings,
     last_activity_at: cart.last_activity_at,

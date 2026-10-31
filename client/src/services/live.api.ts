@@ -46,11 +46,14 @@ export interface InStreamQuoteOptions {
   variantId?: number | string | null;
   quantity?: number;
   couponCode?: string;
+  district?: string;
 }
 
-export async function getInStreamQuote(streamId: number | string, { productId, variantId = null, quantity = 1, couponCode = '' }: InStreamQuoteOptions) {
+export async function getInStreamQuote(streamId: number | string, { productId, variantId = null, quantity = 1, couponCode = '', district = '' }: InStreamQuoteOptions) {
   const query: Record<string, unknown> = { product_id: Number(productId), quantity };
   if (couponCode) query.coupon_code = couponCode;
+  // The district picks the delivery zone the quote charges; the order resolves the same zone.
+  if (district) query.district = district;
   if (variantId) query.variant_id = Number(variantId);
   return api.get(`/live/streams/${streamId}/quote`, { query });
 }

@@ -3,7 +3,7 @@
  */
 
 import { getMockSessionUser } from './auth.ts';
-import { mockDeliveryCharge } from './delivery.ts';
+import { mockDeliveryChargeFor } from './delivery.ts';
 import type { MockRoute } from '../types.ts';
 
 let mockLiveStreams: Record<string, any>[] = [
@@ -497,7 +497,7 @@ export const liveHandlers = [
     method: 'GET',
     path: '/live/streams/:id/quote',
     handler({ params, query }) {
-      const quote = mockQuote(Number(params.id), Number(query?.product_id), Number(query?.quantity ?? 1), query?.coupon_code);
+      const quote = mockQuote(Number(params.id), Number(query?.product_id), Number(query?.quantity ?? 1), query?.coupon_code, query?.district);
       if (!quote) {
         return {
           status: 404,
@@ -513,7 +513,7 @@ export const liveHandlers = [
     handler({ params, body }) {
       const streamId = Number(params.id);
       const b = body || {};
-      const quote = mockQuote(streamId, Number(b.product_id), Number(b.quantity ?? 1), b.coupon_code);
+      const quote = mockQuote(streamId, Number(b.product_id), Number(b.quantity ?? 1), b.coupon_code, b.district);
       if (quote?.coupon && !quote.coupon.valid) {
         return {
           status: 422,
@@ -783,7 +783,7 @@ export const liveHandlers = [
 // One demo code, so the drawer's coupon field has something to apply in mock mode.
 const MOCK_LIVE_COUPONS = { LIVE10: 10 };
 
-export function mockQuote(streamId, productId, quantity = 1, couponCode = '') {
+export function mockQuote(streamId, productId, quantity = 1, couponCode = '', district = null) {
   const stream = mockLiveStreams.find((s) => s.id === streamId);
   if (!stream) return null;
   const candidates = [stream.pinned_product, ...(stream.products || [])].filter(Boolean);
@@ -791,7 +791,9 @@ export function mockQuote(streamId, productId, quantity = 1, couponCode = '') {
   const unit = Number(item?.price);
   if (!item || !Number.isFinite(unit) || unit <= 0) return null;
   const qty = Number.isInteger(quantity) && quantity >= 1 ? quantity : 1;
-  const shipping = mockDeliveryCharge();
+  // The zone of the drawer's district, as the server resolves it; the default zone when none.
+  const zone = mockDeliveryChargeFor(district);
+  const shipping = zone.charge;
   const stock = Number(item.stock ?? 0);
   let discount = 0;
   let coupon = null;
@@ -812,6 +814,7 @@ export function mockQuote(streamId, productId, quantity = 1, couponCode = '') {
     unit_price: unit,
     items_amount: unit * qty,
     shipping_amount: shipping,
+    delivery_zone: { key: zone.key, name_en: zone.name_en, name_bn: zone.name_bn },
     discount_amount: discount,
     total_amount: unit * qty + shipping - discount,
     coupon,

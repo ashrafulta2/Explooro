@@ -12,7 +12,9 @@ import { AddressForm } from '../checkout/AddressForm.ts';
 import { PaymentSelector } from '../checkout/PaymentSelector.ts';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.ts';
 import { addToCart } from '../../services/cart.ts';
-import { knownDeliveryCharge, loadDeliveryCharge } from '../../services/deliveryCharge.ts';
+import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge } from '../../services/deliveryCharge.ts';
+import { zoneName } from '../../services/deliveryZones.ts';
+import { escapeHtml } from '../../services/html.ts';
 import { getCurrentUser } from '../../services/session.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { resolveProductImage } from '../product/ProductCard.ts';
@@ -183,8 +185,10 @@ export function openQuickBuyModal({
 
       const unitPriceNum = Number(price);
       const itemsSubtotal = unitPriceNum * qty;
-      // The super admin's per-parcel charge (/admin/platform/delivery), loaded when the modal opened.
-      const shipping = Number(deliveryCharge ?? 0);
+      // The per-parcel charge of the zone the step-1 district falls in (/admin/platform/delivery);
+      // the server resolves the same zone when the order is placed.
+      const zone = knownZoneFor(addressData.district);
+      const shipping = Number(zone ? zone.charge : (deliveryCharge ?? 0));
       const totalAmount = itemsSubtotal + shipping;
 
       const summaryCard = document.createElement('div');
@@ -195,7 +199,7 @@ export function openQuickBuyModal({
           <strong>${formatCurrency(itemsSubtotal.toFixed(2))}</strong>
         </div>
         <div class="quick-buy-modal__summary-row">
-          <span>${t('cart.shipping_estimate', { count: 1 })}</span>
+          <span>${zone ? escapeHtml(t('checkout.delivery_zone', { zone: zoneName(zone, document.documentElement.lang) })) : t('cart.shipping_estimate', { count: 1 })}</span>
           <strong>${formatCurrency(shipping.toFixed(2))}</strong>
         </div>
         <div class="quick-buy-modal__summary-row quick-buy-modal__summary-row--total">
@@ -302,12 +306,11 @@ export function openQuickBuyModal({
 
   renderStep();
   modal.openModal();
-  // A Quick Buy is one supplier, so one parcel. Refresh the summary if the charge changed.
+  // A Quick Buy is one supplier, so one parcel. Once the zone policy is loaded, re-price the summary:
+  // the zone of the picked district may differ from what a remembered policy said.
   loadDeliveryCharge().then((charge) => {
-    if (charge !== null && charge !== deliveryCharge) {
-      deliveryCharge = charge;
-      if (step === 2) renderStep();
-    }
+    if (charge !== null) deliveryCharge = charge;
+    if (step === 2) renderStep();
   });
   return modal;
 }

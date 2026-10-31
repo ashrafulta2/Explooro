@@ -67,6 +67,8 @@ export async function createOrder(db, {
   upazila = null,
   addressLine,
   liveStreamId = null,
+  // The delivery zone key the shipping charge came from (migration 098); null for team purchases.
+  deliveryZone = null,
 }) {
   const query = `
     INSERT INTO orders (
@@ -74,14 +76,14 @@ export async function createOrder(db, {
       coins_redeemed, coins_discount, currency, payment_method, payment_status,
       is_otp_verified, trust_score_at_order, coupon_id, team_purchase_id, idempotency_key,
       recipient_name, recipient_phone, division, district, upazila, address_line,
-      live_stream_id, placed_at, created_at
+      live_stream_id, delivery_zone, placed_at, created_at
     )
     VALUES (
       $1, $2, $3, $4, $5, $6,
       $7, $8, $9, $10, $11,
       $12, $13, $14, $15, $16,
       $17, $18, $19, $20, $21, $22,
-      $23, now(), now()
+      $23, $24, now(), now()
     )
     RETURNING *
   `;
@@ -109,6 +111,7 @@ export async function createOrder(db, {
     upazila,
     addressLine,
     liveStreamId,
+    deliveryZone,
   ]);
   return rows[0];
 }
