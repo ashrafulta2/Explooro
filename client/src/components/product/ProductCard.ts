@@ -28,6 +28,7 @@ import { formatCurrency, formatBdt } from '../../services/format.ts';
 import { adsApi } from '../../services/ads.api.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { openQuickBuyModal } from '../cart/QuickBuyModal.ts';
+import { flashDealView } from '../../services/flashDeal.ts';
 import { track, observeImpression } from '../../services/signals.ts';
 
 /** The fields `resolveProductImage` looks at. Every one is optional; it falls back through all of them. */
@@ -64,8 +65,13 @@ export interface ProductCardData extends ProductImageSource {
   product_ref?: string;
   isSponsored?: boolean;
   price?: number | string;
+  /** A real compare-at price supplied by the caller; never computed by the card. */
   original_price?: number;
   is_flash_sale?: boolean;
+  /** The live flash sale's deal price, allocation and sales (GET /products LEFT JOIN flash_sales). */
+  flash_discount_price?: number | string | null;
+  flash_allocated_qty?: number | string | null;
+  flash_sold_qty?: number | string | null;
   is_verified_supplier?: boolean;
   /** Only drawn when the `physical_shop_status` module is on. */
   store_open?: boolean;
@@ -599,28 +605,27 @@ export function ProductCard({
   const priceRow = document.createElement('div');
   priceRow.className = 'product-card__price-row';
 
+  // WHY flashDealView: every figure in this row must come from data (see services/flashDeal.ts) —
+  // the old `price × 1.25` fallback printed a fake "was" price and a constant 20% OFF.
+  const flashOn = modules?.flash_sale !== false;
+  const deal = flashDealView(flashOn ? product : { ...product, is_flash_sale: false });
+
   const priceEl = document.createElement('span');
   priceEl.className = 'product-card__price';
-  priceEl.textContent = formatCurrency(product.price, { lang });
+  priceEl.textContent = formatCurrency(deal.price, { lang });
   priceRow.append(priceEl);
 
-  // Flash Sale Original Price Strikethrough & Discount Tag
-  if (product.is_flash_sale && (modules?.flash_sale !== false)) {
-    const numPrice = parseFloat(String(product.price)) || 0;
-    const origPrice = product.original_price ?? (numPrice > 0 ? Math.round(numPrice * 1.25) : 0);
-    if (origPrice > numPrice) {
-      const origEl = document.createElement('span');
-      origEl.className = 'product-card__original-price';
-      origEl.textContent = formatCurrency(origPrice, { lang });
-      priceRow.append(origEl);
+  if (deal.wasPrice) {
+    const origEl = document.createElement('span');
+    origEl.className = 'product-card__original-price';
+    origEl.textContent = formatCurrency(deal.wasPrice, { lang });
+    priceRow.append(origEl);
 
-      const discountPct = Math.round(((origPrice - numPrice) / origPrice) * 100);
-      if (discountPct > 0) {
-        const discBadge = document.createElement('span');
-        discBadge.className = 'product-card__discount-badge';
-        discBadge.textContent = t('marketplace.flash_sale.discount_off', { pct: discountPct }) || `-${discountPct}%`;
-        priceRow.append(discBadge);
-      }
+    if (deal.pctOff) {
+      const discBadge = document.createElement('span');
+      discBadge.className = 'product-card__discount-badge';
+      discBadge.textContent = t('marketplace.flash_sale.discount_off', { pct: deal.pctOff }) || `-${deal.pctOff}%`;
+      priceRow.append(discBadge);
     }
   }
 
@@ -646,13 +651,11 @@ export function ProductCard({
   ratingWrap.append(ratingCount);
   body.append(ratingWrap);
 
-  // Flash Sale Claimed Stock Progress Bar
-  if (product.is_flash_sale && (modules?.flash_sale !== false)) {
+  // Flash Sale claimed bar — only when the deal's real allocation is known.
+  if (deal.claimedPct != null) {
     const progressWrap = document.createElement('div');
     progressWrap.className = 'product-card__flash-progress';
-    const totalStock = Math.max(20, (product.stock_qty ?? product.stock ?? 10) + 15);
-    const currStock = product.stock_qty ?? product.stock ?? 10;
-    const soldPct = Math.min(95, Math.max(35, Math.round(((totalStock - currStock) / totalStock) * 100)));
+    const soldPct = deal.claimedPct;
 
     const bar = document.createElement('div');
     bar.className = 'product-card__progress-bar';
