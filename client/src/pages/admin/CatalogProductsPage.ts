@@ -22,6 +22,7 @@ import { previewPricing } from '../../services/catalog.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatNumber, formatCurrency } from '../../services/format.ts';
+import { markupForCategory, retailFromSupplierPrice, type MarkupPolicy } from '../../services/retailMarkup.ts';
 import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.ts';
 import { ImageUploader } from '../../components/media/ImageUploader.ts';
 import { can } from '../../services/permissions.ts';
@@ -60,30 +61,55 @@ function attachImageFallback(img, title, ref, placeholderClassName) {
 }
 
 /**
- * Shows the supplier what one unit pays them, live, under the price and margin fields: retail minus the
- * margin %, the same base cost the form sends. WHY: the form no longer asks for a partner profit
- * (owner decision 2026-10-31), so this line is how a supplier checks their own profit before listing.
+ * The markup policy the retail quote is drawn from. WHY fetched per form, not cached for the session:
+ * an admin may change a markup and open this form in the same session, and a stale quote would show
+ * a retail price the save does not store.
+ */
+function loadMarkupPolicy(): Promise<MarkupPolicy> {
+  return api.get('/pricing/markup').then((res) => res.data?.policy || res.policy);
+}
+
+/**
+ * Shows the supplier, live, the retail price customers will see for the price they entered. WHY: since
+ * 2026-10-31 the supplier names only their own price per unit and the platform adds the admin's
+ * markup for the category (retailMarkup.service.ts); this line is the same rule, previewed.
  * Returns a refresh function for when the fields are filled in code.
  */
-function wireSupplierPayout(form: HTMLFormElement): () => void {
+function wireRetailQuote(form: HTMLFormElement): () => void {
   const out = form.querySelector<HTMLElement>('[data-slot="payout"]');
-  const read = (name: string) => parseFloat(form.querySelector<HTMLInputElement>(`[name="${name}"]`)?.value || '');
+  let policy: MarkupPolicy | null = null;
   const refresh = () => {
     if (!out) return;
-    const price = read('price');
-    const margin = read('margin_pct');
-    if (!(price > 0) || !(margin >= 0 && margin < 100)) {
-      out.textContent = t('admin_catalog.payout_prompt');
+    const price = parseFloat(form.querySelector<HTMLInputElement>('[name="supplier_price"]')?.value || '');
+    if (!(price > 0)) {
+      out.textContent = t('admin_catalog.retail_prompt');
       return;
     }
-    const payout = Math.round(price * (1 - margin / 100) * 100) / 100;
-    out.innerHTML = `${t('admin_catalog.payout_label')} <strong>${formatCurrency(payout.toFixed(2))}</strong>
-      <span class="catalog-form-hint">${t('admin_catalog.payout_hint', { price: formatCurrency(price.toFixed(2)), margin: formatNumber(margin), share: formatCurrency((price - payout).toFixed(2)) })}</span>`;
+    if (!policy) {
+      out.textContent = t('admin_catalog.retail_loading');
+      return;
+    }
+    const categoryId = form.querySelector<HTMLSelectElement>('[name="category_id"]')?.value;
+    const markup = markupForCategory(policy, categoryId);
+    const retail = retailFromSupplierPrice(price, markup, policy.round_to_bdt);
+    const hintKey = policy.round_to_bdt > 0 ? 'admin_catalog.retail_hint' : 'admin_catalog.retail_hint_exact';
+    out.innerHTML = `${t('admin_catalog.retail_label')} <strong>${formatCurrency(retail.toFixed(2))}</strong>
+      <span class="catalog-form-hint">${t(hintKey, { price: formatCurrency(price.toFixed(2)), markup: formatNumber(markup), round: formatNumber(policy.round_to_bdt) })}</span>`;
   };
   form.addEventListener('input', (e) => {
-    const name = (e.target as HTMLInputElement)?.name;
-    if (name === 'price' || name === 'margin_pct') refresh();
+    if ((e.target as HTMLInputElement)?.name === 'supplier_price') refresh();
   });
+  form.addEventListener('change', (e) => {
+    if ((e.target as HTMLSelectElement)?.name === 'category_id') refresh();
+  });
+  loadMarkupPolicy()
+    .then((p) => {
+      policy = p;
+      refresh();
+    })
+    .catch(() => {
+      if (out) out.textContent = t('admin_catalog.retail_unavailable');
+    });
   refresh();
   return refresh;
 }
@@ -937,16 +963,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
 
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_price', 'Retail Price (BDT)')} *</label>
-          <input type="number" step="0.01" name="price" class="catalog-form-input" aria-label="1250.00" placeholder="1250.00" required />
+          <label class="catalog-form-label" for="add-supplier-price">${t('admin_catalog.field_supplier_price')} *</label>
+          <input type="number" step="0.01" min="0.01" id="add-supplier-price" name="supplier_price" class="catalog-form-input" placeholder="1000.00" required />
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_stock', 'Initial Stock Quantity')} *</label>
           <input type="number" name="stock" class="catalog-form-input" aria-label="50" placeholder="50" value="50" required />
-        </div>
-        <div class="catalog-form-group">
-          <label class="catalog-form-label">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
-          <input type="number" name="margin_pct" class="catalog-form-input" aria-label="20" placeholder="20" value="20" required />
         </div>
       </div>
       <p class="catalog-form-payout" data-slot="payout" aria-live="polite"></p>
@@ -976,8 +998,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     uploader.setAttribute('aria-labelledby', 'add-images-label');
     form.querySelector('[data-slot="images"]').append(uploader);
 
-    fillCategoryOptions(form.querySelector('select[name="category_id"]'));
-    wireSupplierPayout(form);
+    const refreshQuote = wireRetailQuote(form);
+    fillCategoryOptions(form.querySelector('select[name="category_id"]')).then(refreshQuote, refreshQuote);
 
     const modalFooter = document.createElement('div');
     modalFooter.style.display = 'flex';
@@ -999,8 +1021,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       onClick: async () => {
         const formData = new FormData(form);
         const titleEn = formData.get('title_en')?.toString().trim();
-        const price = parseFloat(formData.get('price')?.toString() || '');
-        const marginPct = parseFloat(formData.get('margin_pct')?.toString() || '');
+        const supplierPrice = parseFloat(formData.get('supplier_price')?.toString() || '');
         const categoryId = parseInt(formData.get('category_id')?.toString() || '', 10);
 
         // Highlight and focus the first invalid field so a rejected click is never silent.
@@ -1008,11 +1029,9 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           ? 'title_en'
           : !categoryId
             ? 'category_id'
-            : !(price > 0)
-              ? 'price'
-              : !(marginPct >= 0 && marginPct < 100)
-                ? 'margin_pct'
-                : null;
+            : !(supplierPrice > 0)
+              ? 'supplier_price'
+              : null;
         if (invalid) {
           const el = form.querySelector<HTMLInputElement>(`[name="${invalid}"]`);
           el?.focus();
@@ -1034,10 +1053,6 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           return;
         }
 
-        // WHY: the server takes cost fields. The margin % is the share of the retail price that goes to
-        // the platform and the partner pool, so the supplier's base cost is retail minus that share and
-        // the wholesale margin is 0 (retail >= base + wholesale then holds by construction).
-        const baseCost = Math.round(price * (1 - marginPct / 100) * 100) / 100;
         const titleBn = formData.get('title_bn')?.toString().trim() || titleEn;
 
         const payload: Record<string, any> = {
@@ -1047,10 +1062,9 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           description_en: formData.get('description_en')?.toString().trim() || undefined,
           description_bn: formData.get('description_bn')?.toString().trim() || undefined,
           brand: formData.get('brand')?.toString().trim() || undefined,
-          base_cost: baseCost,
-          wholesale_margin: 0,
-          default_retail_price: price,
-          // No partner profit is sent: the server derives it from the admin's split (product.service.ts).
+          // Only the supplier's own price is sent: the server sets the retail price from the admin markup
+          // and the partner profit from the admin split (product.service.ts, retailMarkup.service.ts).
+          supplier_price: supplierPrice,
           stock_qty: parseInt(formData.get('stock')?.toString() || '0', 10),
           media_ids: mediaIds,
         };
@@ -1127,16 +1141,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
 
       <div class="catalog-form-grid">
         <div class="catalog-form-group">
-          <label class="catalog-form-label" for="edit-price">${t('admin_catalog.field_price', 'Retail Price (BDT)')} *</label>
-          <input type="number" step="0.01" id="edit-price" name="price" class="catalog-form-input" required />
+          <label class="catalog-form-label" for="edit-supplier-price">${t('admin_catalog.field_supplier_price')} *</label>
+          <input type="number" step="0.01" min="0.01" id="edit-supplier-price" name="supplier_price" class="catalog-form-input" required />
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="edit-stock">${t('admin_catalog.field_stock_current', 'Stock Quantity')} *</label>
           <input type="number" min="0" id="edit-stock" name="stock" class="catalog-form-input" required />
-        </div>
-        <div class="catalog-form-group">
-          <label class="catalog-form-label" for="edit-margin">${t('admin_catalog.field_margin', 'Shop Partner Margin %')} *</label>
-          <input type="number" step="0.01" id="edit-margin" name="margin_pct" class="catalog-form-input" required />
         </div>
       </div>
       <p class="catalog-form-payout" data-slot="payout" aria-live="polite"></p>
@@ -1161,28 +1171,27 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     // Values are assigned as properties, never interpolated into the markup: a title containing a
     // quote (e.g. 42" TV) used to break out of value="…" and truncate the field.
     const field = (name) => form.querySelector<HTMLInputElement>(`[name="${name}"]`);
-    const retailOf = (p) => parseFloat(p.default_retail_price ?? p.price) || 0;
-    const marginOf = (p) => {
-      const retail = retailOf(p);
-      if (p.base_cost !== undefined && p.base_cost !== null && retail > 0) {
-        const cost = parseFloat(p.base_cost) + (parseFloat(p.wholesale_margin) || 0);
-        return Math.round(((retail - cost) / retail) * 10000) / 100;
+    // The supplier's own price is what they are paid per unit: base cost + any wholesale margin. A list
+    // row without cost fields (older fixtures) falls back to retail minus its margin %.
+    const supplierPriceOf = (p) => {
+      if (p.base_cost !== undefined && p.base_cost !== null) {
+        return Math.round((parseFloat(p.base_cost) + (parseFloat(p.wholesale_margin) || 0)) * 100) / 100;
       }
-      return parseFloat(p.margin_pct) || 0;
+      const retail = parseFloat(p.default_retail_price ?? p.price) || 0;
+      return Math.round(retail * (1 - (parseFloat(p.margin_pct) || 0) / 100) * 100) / 100;
     };
     let detail = product;
     const fillFields = (p) => {
       field('title_en').value = p.title_en || '';
       field('title_bn').value = p.title_bn || '';
       field('brand').value = p.brand || '';
-      field('price').value = retailOf(p) ? retailOf(p).toFixed(2) : '';
+      field('supplier_price').value = supplierPriceOf(p) ? supplierPriceOf(p).toFixed(2) : '';
       field('stock').value = p.stock_qty ?? p.stock ?? 0;
-      field('margin_pct').value = String(marginOf(p));
       field('description_en').value = p.description_en || '';
       field('description_bn').value = p.description_bn || '';
     };
     fillFields(product);
-    const refreshPayout = wireSupplierPayout(form);
+    const refreshPayout = wireRetailQuote(form);
 
     // Uploader starts with the product's current photos. Only rows with a real media_id can be
     // sent back; a mock fixture's synthesized gallery falls back to its single listing image.
@@ -1211,6 +1220,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         ? String(c.id) === String(product.category_id)
         : c.name_en === product.category
     );
+    // The quote needs the selected category (its markup), which only exists once the options load.
+    categoriesReady.then(refreshPayout, refreshPayout);
 
     // WHY fetch the detail: the list row carries neither the photo ids nor brand/descriptions, so
     // editing from it alone would show an empty gallery and blank out those fields on save.
@@ -1227,6 +1238,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         if (!photosTouched) uploader.setItems(toItems(detail));
         await categoriesReady;
         if (detail.category_id && !categorySelectEl.value) categorySelectEl.value = String(detail.category_id);
+        refreshPayout();
       })
       .catch(() => {
         /* list-row values stay in the form; saving still works for the fields shown */
@@ -1254,21 +1266,18 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         const str = (k) => formData.get(k)?.toString().trim() || '';
         const titleEn = str('title_en');
         const categoryId = parseInt(str('category_id'), 10);
-        const price = parseFloat(str('price'));
-        const marginPct = parseFloat(str('margin_pct'));
+        const supplierPrice = parseFloat(str('supplier_price'));
         const stock = parseInt(str('stock'), 10);
 
         const invalid = !titleEn
           ? 'title_en'
           : !categoryId
             ? 'category_id'
-            : !(price > 0)
-              ? 'price'
+            : !(supplierPrice > 0)
+              ? 'supplier_price'
               : !(stock >= 0)
                 ? 'stock'
-                : !(marginPct >= 0 && marginPct < 100)
-                  ? 'margin_pct'
-                  : null;
+                : null;
         if (invalid) {
           const el = field(invalid);
           el?.focus();
@@ -1302,16 +1311,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           stock_qty: stock,
         };
 
-        // Only re-derive cost when price or margin actually changed, so opening and saving an
-        // untouched product never nudges its stored base cost through a rounding round-trip.
-        if (price !== retailOf(detail) || marginPct !== marginOf(detail)) {
-          const wholesale = parseFloat(detail.wholesale_margin) || 0;
-          // Same rule as the create form: the margin % is the platform + partner pool share of retail, and
-          // the supplier's existing wholesale margin is kept rather than silently zeroed. The server then
-          // re-derives the partner profit from the new price.
-          payload.base_cost = Math.max(0, Math.round((price * (1 - marginPct / 100) - wholesale) * 100) / 100);
-          payload.wholesale_margin = wholesale;
-          payload.default_retail_price = price;
+        // WHY only on a change: an untouched save must not re-price the product with today's markup.
+        // A new category counts too, because its markup may differ. The server derives retail and
+        // partner profit from supplier_price (product.service.ts updateProduct).
+        const categoryMoved = detail.category_id != null && String(detail.category_id) !== String(categoryId);
+        if (supplierPrice !== supplierPriceOf(detail) || categoryMoved) {
+          payload.supplier_price = supplierPrice;
         }
 
         // A synthesized mock photo has no media id; if it's still the only photo, leave photos alone.

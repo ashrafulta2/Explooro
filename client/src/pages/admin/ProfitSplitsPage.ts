@@ -20,6 +20,7 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 import { simulateSplit } from './splitSimulator.ts';
+import { retailFromSupplierPrice } from '../../services/retailMarkup.ts';
 import type { PageContext } from '../types.ts';
 
 export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageContext = {}) {
@@ -31,15 +32,21 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
   let isLoading = true;
   let isSavingGlobal = false;
 
-  // Simulator State
-  let simRetailPrice = 1500;
-  let simMarginPct = 20;
+  // Simulator State. A null markup follows the saved default markup.
+  let simSupplierPrice = 1000;
+  let simMarkupPct: number | null = null;
+
+  // Retail markup form state (retailMarkup.service.ts); one reason box serves every markup action.
+  let formMarkupPct = 15;
+  let formRoundTo = 10;
+  let markupReason = '';
+  let isSavingMarkup = false;
 
   // Global Split Form State
   // WHY min margin, partner default profit and extra markup have no inputs any more: no sale reads them
   // since partner prices were locked (migration 085). They are still sent back unchanged on save, so
   // the stored row keeps its shape for the older readers (pricing preview, finance controller).
-  let formSalerSplit = 40;
+  let formSalerSplit = 70;
   let formMinMargin = 5;
   let formPlatformDefaultProfit = 10;
   let formSalerDefaultProfit = 20;
@@ -128,19 +135,21 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
       const res = await adminApi.getProfitSplits();
       splitsData = res.data || res || {};
       if (splitsData.global) {
-        formSalerSplit = splitsData.global.saler_split_pct ?? 40;
+        formSalerSplit = splitsData.global.saler_split_pct ?? 70;
         formMinMargin = splitsData.global.min_margin_pct ?? 5;
         formPlatformDefaultProfit = splitsData.global.platform_default_profit_pct ?? 10;
         formSalerDefaultProfit = splitsData.global.saler_default_profit_pct ?? 20;
         formExtraMarkupPlatform = splitsData.global.extra_markup_platform_pct ?? 20;
       }
+      formMarkupPct = splitsData.markup?.default_markup_pct ?? 15;
+      formRoundTo = splitsData.markup?.round_to_bdt ?? 10;
       syncTierForm();
     } catch (err) {
       toast.error(err.message || 'Failed to load profit split policies.');
       splitsData = {
         global: {
-          saler_split_pct: 40,
-          platform_split_pct: 60,
+          saler_split_pct: 70,
+          platform_split_pct: 30,
           min_margin_pct: 5,
           platform_default_profit_pct: 10,
           saler_default_profit_pct: 20,
@@ -149,7 +158,8 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
         categories: [],
         tiers: [],
         audit_log: [],
-        metrics: { default_saler_split: 40, default_platform_split: 60, active_overrides_count: 0 },
+        markup: { default_markup_pct: 15, round_to_bdt: 10 },
+        metrics: { default_saler_split: 70, default_platform_split: 30, active_overrides_count: 0 },
       };
     } finally {
       isLoading = false;
@@ -161,8 +171,9 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
   // before applying it. The arithmetic itself lives in splitSimulator.ts.
   function renderSimResults(): string {
     const r = simulateSplit({
-      price: simRetailPrice,
-      marginPct: simMarginPct,
+      supplierPrice: simSupplierPrice,
+      markupPct: simMarkupPct ?? formMarkupPct,
+      roundToBdt: formRoundTo,
       partnerSharePct: formSalerSplit,
       platformFloorPct: formPlatformDefaultProfit,
     });
@@ -174,6 +185,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
       notes.push(`<p class="split-sim-note split-sim-note--warn">${t('admin_splits.sim_note_capped', { floor: formatCurrency(r.platformFloor) })}</p>`);
     }
     return `
+      <p class="split-sim-retail">${t('admin_splits.sim_retail_result', { retail: `<strong>${formatCurrency(r.retail)}</strong>` })}</p>
       <div>
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
           <span class="text-xs font-bold uppercase tracking-wider text-secondary">${t('admin_splits.sim_distribution')}</span>
@@ -190,7 +202,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
         <div class="split-breakdown-chip">
           <span class="split-breakdown-chip__title">${t('admin_splits.sim_supplier_payout')}</span>
           <span class="split-breakdown-chip__amount">${formatCurrency(r.supplier)}</span>
-          <span class="split-breakdown-chip__pct">${t('admin_splits.sim_supplier_hint', { pct: 100 - simMarginPct })}</span>
+          <span class="split-breakdown-chip__pct">${t('admin_splits.sim_supplier_hint')}</span>
         </div>
         <div class="split-breakdown-chip">
           <span class="split-breakdown-chip__title">${t('admin_splits.sim_partner_pool')}</span>
@@ -206,6 +218,206 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
 
       ${notes.join('')}
     `;
+  }
+
+  function requireMarkupReason(): string | null {
+    const reason = markupReason.trim();
+    if (!reason) {
+      toast.warning(t('admin_splits.toast_reason_required'));
+      container.querySelector<HTMLInputElement>('#markup-reason')?.focus();
+      return null;
+    }
+    return reason;
+  }
+
+  async function runMarkupAction(action: () => Promise<unknown>, successMessage: string | ((res: any) => string)) {
+    try {
+      const res = await action();
+      toast.success(typeof successMessage === 'function' ? successMessage(res) : successMessage);
+      markupReason = '';
+      await loadData();
+    } catch (err) {
+      toast.error(err.message || t('common.error', 'Something went wrong.'));
+    }
+  }
+
+  async function handleReprice(category: { id: number | string; name_en?: string; name_bn?: string } | null) {
+    const reason = requireMarkupReason();
+    if (!reason) return;
+    const name = category ? (isBn ? category.name_bn || category.name_en : category.name_en) : '';
+    const confirmed = await confirmDialog({
+      title: t('admin_splits.markup_reprice_title'),
+      description: category ? t('admin_splits.markup_reprice_desc_cat', { category: name }) : t('admin_splits.markup_reprice_desc_all'),
+      confirmLabel: t('admin_splits.markup_reprice_confirm'),
+      cancelLabel: t('common.cancel', 'Cancel'),
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+    await runMarkupAction(
+      () => adminApi.repriceFromMarkup({ category_id: category?.id ?? null, reason }),
+      (res) => {
+        const d = res?.data || res || {};
+        return t('admin_splits.toast_markup_repriced', { count: d.repriced ?? 0, checked: d.checked ?? 0 });
+      }
+    );
+  }
+
+  function openCategoryMarkupModal(category) {
+    const name = isBn ? category.name_bn || category.name_en : category.name_en;
+    const body = document.createElement('div');
+    body.className = 'flex flex-col gap-3';
+    body.innerHTML = `
+      <div class="form-group">
+        <label for="markup-cat-pct" class="form-label">${t('admin_splits.markup_modal_label')}</label>
+        <input id="markup-cat-pct" type="number" class="form-input" min="0" max="300" step="0.5" value="${category.markup_pct}" />
+      </div>
+      <div class="form-group">
+        <label for="markup-cat-reason" class="form-label">${t('admin_splits.markup_reason_prompt')} <span class="text-danger">*</span></label>
+        <input id="markup-cat-reason" type="text" class="form-input" />
+      </div>`;
+    const pctInput = body.querySelector<HTMLInputElement>('#markup-cat-pct');
+    const reasonInput = body.querySelector<HTMLInputElement>('#markup-cat-reason');
+    const footer = document.createElement('div');
+    footer.className = 'flex justify-end gap-2';
+    const modal = Modal({ title: t('admin_splits.markup_modal_title', { category: name }), content: body, footer });
+    footer.append(
+      Button({ label: t('common.cancel', 'Cancel'), variant: 'secondary', onClick: () => modal.close() }),
+      Button({
+        label: t('admin_splits.markup_save'),
+        variant: 'primary',
+        onClick: async () => {
+          const reason = reasonInput.value.trim();
+          if (!reason) {
+            toast.warning(t('admin_splits.toast_reason_required'));
+            reasonInput.focus();
+            return;
+          }
+          modal.close();
+          await runMarkupAction(
+            () => adminApi.updateCategoryMarkup(category.id, { markup_pct: Number(pctInput.value), reason }),
+            t('admin_splits.toast_markup_saved')
+          );
+        },
+      })
+    );
+    modal.open();
+  }
+
+  // WHY its own panel: the markup decides the retail price, the split above decides how the margin is
+  // shared. Both edit settings read by the server (retailMarkup.service.ts, pricing.service.ts).
+  function renderMarkupPanel(categories): HTMLElement {
+    const example = (pct: number) => formatCurrency(retailFromSupplierPrice(1000, pct, formRoundTo));
+    const panel = document.createElement('div');
+    panel.className = 'admin-panel';
+    panel.innerHTML = `
+      <div class="admin-panel__header">
+        <div>
+          <h2 class="admin-panel__title">🏷️ ${t('admin_splits.markup_title')}</h2>
+          <p class="admin-panel__subtitle">${t('admin_splits.markup_subtitle')}</p>
+        </div>
+        <button type="button" class="btn btn--sm btn--secondary" data-action="reprice-all">${t('admin_splits.markup_reprice_all')}</button>
+      </div>
+
+      <form class="markup-form flex flex-col gap-4">
+        <div class="form-grid form-grid--3col">
+          <div class="form-group">
+            <label for="markup-default" class="form-label">${t('admin_splits.markup_default_label')}</label>
+            <input id="markup-default" name="markup_default" type="number" class="form-input" min="0" max="300" step="0.5" value="${formMarkupPct}" />
+            <span class="text-2xs text-secondary mt-1 block">${t('admin_splits.markup_default_hint')}</span>
+          </div>
+          <div class="form-group">
+            <label for="markup-round" class="form-label">${t('admin_splits.markup_round_label')}</label>
+            <input id="markup-round" name="markup_round" type="number" class="form-input" min="0" max="1000" step="1" value="${formRoundTo}" />
+            <span class="text-2xs text-secondary mt-1 block">${t('admin_splits.markup_round_hint')}</span>
+          </div>
+          <div class="form-group">
+            <label for="markup-reason" class="form-label">${t('admin_splits.policy_reason_label')} <span class="text-danger">*</span></label>
+            <input id="markup-reason" name="markup_reason" type="text" class="form-input" value="" placeholder="${t('admin_splits.policy_reason_placeholder')}" />
+          </div>
+        </div>
+        <p class="split-sim-note" data-slot="markup-example">${t('admin_splits.markup_example', { retail: example(formMarkupPct) })}</p>
+        <p class="split-sim-note split-sim-note--warn">${t('admin_splits.markup_applies_note')}</p>
+        <div class="form-actions">
+          <button type="submit" class="btn btn--primary" ${isSavingMarkup ? 'disabled' : ''}>💾 ${t('admin_splits.markup_save')}</button>
+        </div>
+      </form>
+
+      <div class="admin-table-wrap mt-4">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>${t('admin_splits.th_category')}</th>
+              <th>${t('admin_splits.markup_th_markup')}</th>
+              <th>${t('admin_splits.markup_th_example')}</th>
+              <th class="text-right">${t('admin_splits.th_actions')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${categories
+              .map(
+                (c) => `
+              <tr data-cat-id="${c.id}">
+                <td>${isBn ? c.name_bn || c.name_en : c.name_en}</td>
+                <td>
+                  <span class="font-mono font-bold">${c.markup_pct ?? formMarkupPct}%</span>
+                  <span class="badge badge--sm ${c.markup_is_override ? 'badge--brand' : 'badge--neutral'}">${t(c.markup_is_override ? 'admin_splits.markup_custom_badge' : 'admin_splits.markup_default_badge')}</span>
+                </td>
+                <td class="font-mono">${example(c.markup_pct ?? formMarkupPct)}</td>
+                <td class="text-right">
+                  <div class="flex justify-end gap-2 flex-wrap">
+                    <button type="button" class="btn btn--sm btn--secondary" data-action="edit">${t('admin_splits.markup_edit')}</button>
+                    ${c.markup_is_override ? `<button type="button" class="btn btn--sm btn--ghost" data-action="reset">${t('admin_splits.markup_reset')}</button>` : ''}
+                    <button type="button" class="btn btn--sm btn--ghost" data-action="reprice">${t('admin_splits.markup_reprice')}</button>
+                  </div>
+                </td>
+              </tr>`
+              )
+              .join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    const reasonInput = panel.querySelector<HTMLInputElement>('#markup-reason');
+    reasonInput.value = markupReason;
+    panel.addEventListener('input', (e) => {
+      const input = e.target as HTMLInputElement;
+      if (input.name === 'markup_reason') markupReason = input.value;
+      if (input.name === 'markup_default' || input.name === 'markup_round') {
+        const value = parseFloat(input.value);
+        if (!Number.isFinite(value)) return;
+        if (input.name === 'markup_default') formMarkupPct = value;
+        else formRoundTo = value;
+        const slot = panel.querySelector('[data-slot="markup-example"]');
+        if (slot) slot.textContent = t('admin_splits.markup_example', { retail: example(formMarkupPct) });
+        refreshSim();
+      }
+    });
+    panel.querySelector('.markup-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const reason = requireMarkupReason();
+      if (!reason) return;
+      isSavingMarkup = true;
+      await runMarkupAction(
+        () => adminApi.updateMarkup({ default_markup_pct: formMarkupPct, round_to_bdt: formRoundTo, reason }),
+        t('admin_splits.toast_markup_saved')
+      );
+      isSavingMarkup = false;
+    });
+    panel.querySelector('[data-action="reprice-all"]')?.addEventListener('click', () => handleReprice(null));
+    panel.querySelector('tbody')?.addEventListener('click', async (e) => {
+      const button = (e.target as HTMLElement).closest<HTMLButtonElement>('button[data-action]');
+      const row = button?.closest<HTMLElement>('tr[data-cat-id]');
+      const category = row && categories.find((c) => String(c.id) === row.dataset.catId);
+      if (!category) return;
+      if (button.dataset.action === 'edit') openCategoryMarkupModal(category);
+      if (button.dataset.action === 'reprice') handleReprice(category);
+      if (button.dataset.action === 'reset') {
+        const reason = requireMarkupReason();
+        if (!reason) return;
+        await runMarkupAction(() => adminApi.resetCategoryMarkup(category.id, reason), t('admin_splits.toast_markup_reset'));
+      }
+    });
+    return panel;
   }
 
   function refreshSim() {
@@ -395,14 +607,14 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
       <div class="split-simulator-grid">
         <div class="split-simulator-form">
           <div class="form-group">
-            <label for="split-sim-retail" class="form-label">${t('admin_splits.sim_retail_price')}</label>
-            <input id="split-sim-retail" type="number" class="form-input" name="sim_price" min="1" max="10000000" step="10" value="${simRetailPrice}" />
+            <label for="split-sim-supplier" class="form-label">${t('admin_splits.sim_supplier_price')}</label>
+            <input id="split-sim-supplier" type="number" class="form-input" name="sim_price" min="1" max="10000000" step="10" value="${simSupplierPrice}" />
           </div>
 
           <div class="form-group">
-            <label for="split-sim-margin" class="form-label">${t('admin_splits.sim_margin_pct')}</label>
-            <input id="split-sim-margin" type="number" class="form-input" name="sim_margin" min="0" max="99" step="1" value="${simMarginPct}" />
-            <span class="text-2xs text-secondary mt-1 block">${t('admin_splits.sim_margin_hint')}</span>
+            <label for="split-sim-markup" class="form-label">${t('admin_splits.sim_markup_pct')}</label>
+            <input id="split-sim-markup" type="number" class="form-input" name="sim_markup" min="0" max="300" step="1" value="${simMarkupPct ?? formMarkupPct}" />
+            <span class="text-2xs text-secondary mt-1 block">${t('admin_splits.sim_markup_hint', { round: formRoundTo })}</span>
           </div>
         </div>
 
@@ -414,8 +626,8 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
     simulatorCard.querySelector('.split-simulator-form')?.addEventListener('input', (e) => {
       const input = e.target as HTMLInputElement;
       const value = parseFloat(input.value);
-      if (input.name === 'sim_price') simRetailPrice = value;
-      if (input.name === 'sim_margin') simMarginPct = value;
+      if (input.name === 'sim_price') simSupplierPrice = value;
+      if (input.name === 'sim_markup') simMarkupPct = value;
       refreshSim();
     });
 
@@ -504,6 +716,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
 
     globalPanel.querySelector('.global-split-form')?.addEventListener('submit', handleSaveGlobal);
     container.append(globalPanel);
+    container.append(renderMarkupPanel(categories));
 
     // 6. Category-Specific Overrides Table
     const catPanel = document.createElement('div');

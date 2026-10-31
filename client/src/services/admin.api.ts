@@ -202,6 +202,25 @@ export const adminApi = {
     return api.delete(`/admin/finance/splits/categories/${categoryId}`);
   },
 
+  /** Default retail markup % and the rounding step (retailMarkup.service.ts). */
+  async updateMarkup({ default_markup_pct, round_to_bdt, reason }: { default_markup_pct: number; round_to_bdt: number; reason: string }) {
+    return api.put('/admin/finance/markup', { default_markup_pct, round_to_bdt, reason });
+  },
+
+  async updateCategoryMarkup(categoryId: number | string, { markup_pct, reason }: { markup_pct: number; reason: string }) {
+    return api.put(`/admin/finance/markup/categories/${categoryId}`, { markup_pct, reason });
+  },
+
+  // WHY the reason in the query: a DELETE body is dropped by some proxies; the server reads either.
+  async resetCategoryMarkup(categoryId: number | string, reason: string) {
+    return api.delete(`/admin/finance/markup/categories/${categoryId}?reason=${encodeURIComponent(reason)}`);
+  },
+
+  /** Re-prices existing products from today's markup; no category = every product. */
+  async repriceFromMarkup({ category_id, reason }: { category_id?: number | string | null; reason: string }) {
+    return api.post('/admin/finance/markup/reprice', { category_id: category_id ?? null, reason });
+  },
+
   /**
    * Updates Shop Partner trust tier commission incentive bonuses and, optionally, the volume ladder
    * ({ enabled, window_days, thresholds }) that decides which tier a shop partner is in. One request, so a

@@ -660,11 +660,11 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     assert.ok(sub2, 'Supplier 102 sub-order exists');
 
     // Verify sub-order 1 (Handloom Cotton Saree: base 500, retail 700 -> net margin 200)
-    // 40% saler split = ৳80.00, 60% platform split = ৳120.00
+    // 70% saler split (default since 2026-10-31) = ৳140.00, 30% platform split = ৳60.00
     assert.equal(parseFloat(sub1.subtotal_base), 500.00);
     assert.equal(parseFloat(sub1.net_retail_margin), 200.00);
-    assert.equal(parseFloat(sub1.saler_commission), 80.00);
-    assert.equal(parseFloat(sub1.platform_margin), 120.00);
+    assert.equal(parseFloat(sub1.saler_commission), 140.00);
+    assert.equal(parseFloat(sub1.platform_margin), 60.00);
     assert.equal(
       parseFloat(sub1.saler_commission) + parseFloat(sub1.platform_margin),
       parseFloat(sub1.net_retail_margin),
@@ -672,12 +672,12 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     );
 
     // Verify sub-order 2 (Linen Panjabi: base 800 + wholesale 100 = 900, retail 1200 -> net margin 300)
-    // 40% saler split = ৳120.00, 60% platform split = ৳180.00
+    // 70% saler split = ৳210.00, 30% platform split = ৳90.00
     assert.equal(parseFloat(sub2.subtotal_base), 800.00);
     assert.equal(parseFloat(sub2.wholesale_margin), 100.00);
     assert.equal(parseFloat(sub2.net_retail_margin), 300.00);
-    assert.equal(parseFloat(sub2.saler_commission), 120.00);
-    assert.equal(parseFloat(sub2.platform_margin), 180.00);
+    assert.equal(parseFloat(sub2.saler_commission), 210.00);
+    assert.equal(parseFloat(sub2.platform_margin), 90.00);
 
     // Cart converted and items cleared
     const convertedCart = db.carts.find((c) => c.id === 1);
@@ -921,7 +921,7 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     assert.equal(sub1.saler_id, 201);
     assert.equal(sub1.short_link_id, 5);
     assert.equal(sub1.attribution_source, 'SHORT_LINK');
-    assert.equal(Number(sub1.saler_commission), 80);
+    assert.equal(Number(sub1.saler_commission), 140);
     assert.ok(fresh.orderItems.every((i) => i.saler_id === 201), 'each sold line keeps its shop partner');
 
     await new Promise((r) => setImmediate(r)); // the conversion is counted after commit
@@ -967,7 +967,7 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     assert.equal(Number(result.order.items_amount), 1400);
     assert.equal(fresh.products.find((p) => p.id === 1).stock_qty, 8, 'stock is decremented under the lock');
     assert.equal(fresh.subOrders[0].saler_id, 201, 'the partner on the line is credited on the parcel');
-    assert.equal(Number(fresh.subOrders[0].saler_commission), 160, '2 x the ৳80 partner share');
+    assert.equal(Number(fresh.subOrders[0].saler_commission), 280, '2 x the ৳140 partner share');
     const cart = fresh.carts.find((c) => c.id === 1);
     assert.equal(cart.status, 'ACTIVE', "the customer's own cart is not converted");
     assert.equal(fresh.cartItems.filter((ci) => ci.cart_id === 1).length, 2, 'nor emptied');

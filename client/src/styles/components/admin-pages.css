@@ -1340,3 +1340,9 @@
 /* Dispute arbitration: case list beside the case detail on wide screens, stacked on mobile. */
 .dispute-panel-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (min-width: 900px) { .dispute-panel-layout { grid-template-columns: 340px minmax(0, 1fr); } }
+
+.split-sim-retail {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}

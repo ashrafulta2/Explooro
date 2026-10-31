@@ -4,6 +4,15 @@
 import productFixtures from '../fixtures/products.json' with { type: 'json' };
 import stores from '../fixtures/stores.json' with { type: 'json' };
 import { resolveMockMediaUrl } from './media.ts';
+import { markupForCategory, retailFromSupplierPrice } from '../../services/retailMarkup.ts';
+
+/**
+ * The markup policy (live: pricing.markup + category_markups, retailMarkup.service.ts). Exported so the
+ * admin handlers at /admin/finance/markup edit the same object the product form quotes from.
+ */
+export const mockMarkup = { default_markup_pct: 15, round_to_bdt: 10, categories: {} as Record<string, number> };
+const mockRetailFor = (supplierPrice, categoryId) =>
+  retailFromSupplierPrice(supplierPrice, markupForCategory(mockMarkup, categoryId), mockMarkup.round_to_bdt);
 import type { MockRoute } from '../types.ts';
 
 // WHY widened: the handlers add fields the fixture rows never had (`id`, `flash_sale_id`, `slug`).
@@ -402,6 +411,13 @@ export default [
     },
   },
   {
+    method: 'GET',
+    path: '/pricing/markup',
+    handler() {
+      return { status: 200, body: { data: { policy: mockMarkup } } };
+    },
+  },
+  {
     method: 'POST',
     path: '/products',
     handler({ body }) {
@@ -435,8 +451,10 @@ export default [
         };
       }
       const category = MOCK_CATEGORIES.find((c) => String(c.id) === String(b.category_id));
-      const retail = parseFloat(b.default_retail_price) || 0;
-      const cost = (parseFloat(b.base_cost) || 0) + (parseFloat(b.wholesale_margin) || 0);
+      // Same as live: a supplier_price sets the cost and the platform derives retail from the markup.
+      const supplierPrice = parseFloat(b.supplier_price);
+      const retail = supplierPrice > 0 ? mockRetailFor(supplierPrice, b.category_id) : parseFloat(b.default_retail_price) || 0;
+      const cost = supplierPrice > 0 ? supplierPrice : (parseFloat(b.base_cost) || 0) + (parseFloat(b.wholesale_margin) || 0);
       const ref = b.ref || `PRD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
       const newProduct = {
         ref,
@@ -444,6 +462,10 @@ export default [
         title_en: b.title_en,
         title_bn: b.title_bn,
         price: retail.toFixed(2),
+        default_retail_price: retail.toFixed(2),
+        base_cost: cost.toFixed(2),
+        wholesale_margin: '0.00',
+        category_id: category?.id ?? b.category_id,
         currency: b.currency || 'BDT',
         district: b.district || 'Dhaka',
         store_ref: b.store_ref || 'STR-RAHIM001',
@@ -546,6 +568,10 @@ export default [
       }
 
       const category = b.category_id !== undefined ? MOCK_CATEGORIES.find((c) => String(c.id) === String(b.category_id)) : null;
+      const supplierPrice = parseFloat(b.supplier_price);
+      if (supplierPrice > 0) {
+        Object.assign(b, { base_cost: supplierPrice, wholesale_margin: 0, default_retail_price: mockRetailFor(supplierPrice, b.category_id ?? current.category_id) });
+      }
       const retail = b.default_retail_price !== undefined ? parseFloat(b.default_retail_price) : parseFloat(current.price);
       const updated = {
         ...current,
@@ -557,6 +583,8 @@ export default [
         ...(category && { category_id: category.id, category: category.name_en, category_bn: category.name_bn }),
         ...(b.stock_qty !== undefined && { stock: parseInt(b.stock_qty, 10) || 0 }),
         price: retail.toFixed(2),
+        default_retail_price: retail.toFixed(2),
+        ...(b.base_cost !== undefined && { base_cost: String(b.base_cost), wholesale_margin: String(b.wholesale_margin ?? 0) }),
         ...(b.base_cost !== undefined && retail > 0 && {
           margin_pct: Math.round(((retail - parseFloat(b.base_cost) - (parseFloat(b.wholesale_margin) || 0)) / retail) * 100),
         }),

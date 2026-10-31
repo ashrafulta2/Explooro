@@ -8,6 +8,8 @@ import * as clawbackService from '../services/clawback.service.ts';
 import { runEscrowReleaseSweep } from '../jobs/escrowRelease.job.ts';
 import * as escrowAdminService from '../services/escrowAdmin.service.ts';
 import { writeAudit } from '../lib/audit.ts';
+import * as retailMarkup from '../services/retailMarkup.service.ts';
+import { repriceProducts } from '../services/product.service.ts';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.ts';
 import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.ts';
 import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.ts';
@@ -365,8 +367,8 @@ export async function getProfitSplits(req, reply) {
 
   // 1. Read global default split from platform_settings
   let globalSplit = {
-    saler_split_pct: 40.0,
-    platform_split_pct: 60.0,
+    saler_split_pct: 70.0,
+    platform_split_pct: 30.0,
     min_margin_pct: 5.0,
     platform_default_profit_pct: 10.0,
     saler_default_profit_pct: 20.0,
@@ -382,8 +384,8 @@ export async function getProfitSplits(req, reply) {
   );
   for (const r of settingRows) {
     if (r.value_json) {
-      globalSplit.saler_split_pct = parseFloat(r.value_json.saler_split_pct ?? 40);
-      globalSplit.platform_split_pct = parseFloat(r.value_json.platform_split_pct ?? 60);
+      globalSplit.saler_split_pct = parseFloat(r.value_json.saler_split_pct ?? 70);
+      globalSplit.platform_split_pct = parseFloat(r.value_json.platform_split_pct ?? 30);
       globalSplit.min_margin_pct = parseFloat(r.value_json.min_margin_pct ?? 5);
       globalSplit.platform_default_profit_pct = parseFloat(r.value_json.platform_default_profit_pct ?? 10);
       globalSplit.saler_default_profit_pct = parseFloat(r.value_json.saler_default_profit_pct ?? 20);
@@ -408,6 +410,7 @@ export async function getProfitSplits(req, reply) {
      ) r ON true
      ORDER BY c.id ASC`
   );
+  const markup = await retailMarkup.loadMarkupPolicy(db);
   const categories = catRows.map((c) => ({
     id: c.id,
     name_en: c.name_en,
@@ -416,6 +419,8 @@ export async function getProfitSplits(req, reply) {
     saler_split_pct: c.saler_split_pct != null ? parseFloat(c.saler_split_pct) : globalSplit.saler_split_pct,
     platform_split_pct: c.platform_split_pct != null ? parseFloat(c.platform_split_pct) : globalSplit.platform_split_pct,
     is_override: c.saler_split_pct != null,
+    markup_pct: retailMarkup.markupForCategory(markup, c.id),
+    markup_is_override: markup.categories[String(c.id)] !== undefined,
     updated_at: c.override_at ?? null,
   }));
 
@@ -465,6 +470,7 @@ export async function getProfitSplits(req, reply) {
   return reply.send({
     data: {
       global: globalSplit,
+      markup: { default_markup_pct: markup.default_markup_pct, round_to_bdt: markup.round_to_bdt, limits: retailMarkup.MARKUP_LIMITS },
       categories,
       tiers,
       tier_rules: tierRules,
@@ -824,4 +830,42 @@ export async function updateSubscriberStatus(req, reply) {
       message_bn: 'সাবস্ক্রাইবার তথ্য সফলভাবে আপডেট হয়েছে।',
     },
   });
+}
+
+// ================= RETAIL MARKUP (retailMarkup.service.ts) =================
+
+export async function updateMarkup(req, reply) {
+  const saved = await retailMarkup.saveDefaultMarkup(req.server.db, {
+    defaultMarkupPct: req.body?.default_markup_pct,
+    roundToBdt: req.body?.round_to_bdt,
+    reason: req.body?.reason,
+    actorId: req.user?.id ?? null,
+  });
+  return reply.send({ data: { markup: saved } });
+}
+
+export async function updateCategoryMarkup(req, reply) {
+  const saved = await retailMarkup.setCategoryMarkup(req.server.db, {
+    categoryId: req.params.id,
+    markupPct: req.body?.markup_pct,
+    reason: req.body?.reason,
+    actorId: req.user?.id ?? null,
+  });
+  return reply.send({ data: saved });
+}
+
+export async function resetCategoryMarkup(req, reply) {
+  const result = await retailMarkup.clearCategoryMarkup(req.server.db, {
+    categoryId: req.params.id,
+    reason: req.body?.reason ?? req.query?.reason,
+    actorId: req.user?.id ?? null,
+  });
+  return reply.send({ data: result });
+}
+
+export async function repriceFromMarkup(req, reply) {
+  const raw = req.body?.category_id;
+  const categoryId = raw === undefined || raw === null || raw === '' ? null : Number(raw);
+  const result = await repriceProducts(req.server.db, { categoryId, reason: req.body?.reason, actorId: req.user?.id ?? null });
+  return reply.send({ data: result });
 }

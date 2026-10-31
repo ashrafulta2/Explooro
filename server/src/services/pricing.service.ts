@@ -203,8 +203,8 @@ async function resolveBaseSplit(db, { productId, productRef, categoryId }, prelo
         : await db.query(`SELECT value_json FROM platform_settings WHERE key = 'commission.default_splits'`);
       if (rows.length > 0 && rows[0].value_json) {
         const val = rows[0].value_json;
-        const salerPct = parseFloat(val.saler_split_pct ?? val.saler ?? 40);
-        const platformPct = parseFloat(val.platform_split_pct ?? val.platform ?? 60);
+        const salerPct = parseFloat(val.saler_split_pct ?? val.saler ?? 70);
+        const platformPct = parseFloat(val.platform_split_pct ?? val.platform ?? 30);
         return {
           salerSplitPct: salerPct,
           platformSplitPct: platformPct,
@@ -218,8 +218,8 @@ async function resolveBaseSplit(db, { productId, productRef, categoryId }, prelo
 
   // 4. Default fallback
   return {
-    salerSplitPct: 40.0,
-    platformSplitPct: 60.0,
+    salerSplitPct: 70.0,
+    platformSplitPct: 30.0,
     ruleSource: 'DEFAULT_FALLBACK',
   };
 }
@@ -254,8 +254,9 @@ export async function resolvePlatformPricingConfig(db: any): Promise<{ platformD
     platformDefaultProfitPct: 10.0,
     salerDefaultProfitPct: 20.0,
     extraMarkupPlatformPct: 20.0,
-    salerSplitPct: 40.0,
-    platformSplitPct: 60.0,
+    // WHY 70/30: owner decision 2026-10-31 (migration 094 moves a stored 40/60).
+    salerSplitPct: 70.0,
+    platformSplitPct: 30.0,
   };
 
   if (!db) return fallback;
@@ -270,8 +271,8 @@ export async function resolvePlatformPricingConfig(db: any): Promise<{ platformD
         platformDefaultProfitPct: parseFloat(val.platform_default_profit_pct ?? 10.0),
         salerDefaultProfitPct: parseFloat(val.saler_default_profit_pct ?? 20.0),
         extraMarkupPlatformPct: parseFloat(val.extra_markup_platform_pct ?? 20.0),
-        salerSplitPct: parseFloat(val.saler_split_pct ?? 40.0),
-        platformSplitPct: parseFloat(val.platform_split_pct ?? 60.0),
+        salerSplitPct: parseFloat(val.saler_split_pct ?? 70.0),
+        platformSplitPct: parseFloat(val.platform_split_pct ?? 30.0),
       };
     }
   } catch {

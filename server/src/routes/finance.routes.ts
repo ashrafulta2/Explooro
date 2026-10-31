@@ -222,6 +222,28 @@ export default async function financeRoutes(app) {
     handler: controller.deleteCategorySplit,
   });
 
+  // 24b. Retail price markup: default, per-category override, and an on-request re-price.
+  app.put('/admin/finance/markup', {
+    config: { page: '/admin/finance/splits' },
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.updateMarkup,
+  });
+  app.put('/admin/finance/markup/categories/:id', {
+    config: { page: '/admin/finance/splits' },
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.updateCategoryMarkup,
+  });
+  app.delete('/admin/finance/markup/categories/:id', {
+    config: { page: '/admin/finance/splits' },
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.resetCategoryMarkup,
+  });
+  app.post('/admin/finance/markup/reprice', {
+    config: { page: '/admin/finance/splits' },
+    preHandler: [app.authenticate, app.requirePermission('finance.split.update')],
+    handler: controller.repriceFromMarkup,
+  });
+
   // 25. Update Shop Partner Trust Tier Split Bonuses
   app.put('/admin/finance/splits/tiers', {
     preHandler: [app.authenticate, app.requirePermission('finance.split.update')],

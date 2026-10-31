@@ -7,6 +7,7 @@ import { assertPartnerProfitFits, calculatePricingBreakdown, loadSplitRules, res
 import { AppError } from '../plugins/errorHandler.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 import { withTransaction } from '../config/db.ts';
+import { quoteRetail } from './retailMarkup.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 import * as recoCache from './recoCache.service.ts';
 import { attachToProducts as attachSupplierScorecards } from './supplierScorecard.service.ts';
@@ -115,6 +116,7 @@ export async function createProduct(
     defaultRetailPrice,
     minRetailPrice,
     partnerProfit = undefined,
+    supplierPrice = undefined,
     stockQty = 0,
     lowStockThreshold = 5,
     weightGrams,
@@ -153,6 +155,17 @@ export async function createProduct(
   const category = await productRepo.getCategoryById(db, categoryId);
   if (!category) {
     throw new AppError('NOT_FOUND', 'Category not found.', 'ক্যাটাগরি পাওয়া যায়নি।');
+  }
+
+  // WHY supplier price wins: since 2026-10-31 the supplier names only what they want per unit and the
+  // platform sets the retail price from the admin markup (retailMarkup.service.ts). base_cost/retail
+  // fields are still accepted from older clients and the public API.
+  if (hasValue(supplierPrice)) {
+    assertSupplierPrice(supplierPrice);
+    baseCost = supplierPrice;
+    wholesaleMargin = 0;
+    defaultRetailPrice = (await quoteRetail(db, { supplierPrice, categoryId })).retail;
+    minRetailPrice = defaultRetailPrice;
   }
 
   const baseCostPaisa = toPaisa(baseCost);
@@ -244,6 +257,57 @@ async function defaultPartnerProfit(db, { baseCost, wholesaleMargin, defaultReta
   return toBdtNumber(Math.min(fromSplitPaisa, toPaisa(maxAllowed)));
 }
 
+const hasValue = (v) => v !== undefined && v !== null && v !== '';
+
+function assertSupplierPrice(value) {
+  const n = Number(value);
+  // 1e10 keeps the derived retail inside NUMERIC(14,2) even at the highest markup.
+  if (!Number.isFinite(n) || n <= 0 || n > 1e10) {
+    throw new AppError('VALIDATION_FAILED', 'Your price must be more than 0.', 'আপনার দাম 0 এর বেশি হতে হবে।', { field: 'supplier_price' });
+  }
+}
+
+/**
+ * Re-prices existing products from today's markup: retail = their supplier price + their category's
+ * markup, and the partner profit follows the new margin. `categoryId` limits it to one category.
+ * WHY only on an admin's request: a markup edit applies to new products and price edits; moving every
+ * live price at once would change carts and shared links under shoppers (owner decision 2026-10-31).
+ */
+export async function repriceProducts(db, { categoryId = null, reason, actorId }) {
+  const why = String(reason ?? '').trim();
+  if (!why) throw new AppError('VALIDATION_FAILED', 'A reason is required.', 'একটি কারণ লিখতে হবে।', { field: 'reason' });
+  return inTransaction(db, async (tx) => {
+    const { rows } = await tx.query(
+      `SELECT id, category_id, base_cost, wholesale_margin, default_retail_price, partner_profit
+       FROM products
+       WHERE status <> 'ARCHIVED' AND ($1::bigint IS NULL OR category_id = $1)
+       FOR UPDATE`,
+      [categoryId]
+    );
+    let changed = 0;
+    for (const p of rows) {
+      const supplierPrice = toBdtNumber(toPaisa(p.base_cost) + toPaisa(p.wholesale_margin));
+      const { retail } = await quoteRetail(tx, { supplierPrice, categoryId: p.category_id });
+      if (toPaisa(retail) === toPaisa(p.default_retail_price)) continue;
+      const partnerProfit = await defaultPartnerProfit(tx, { baseCost: p.base_cost, wholesaleMargin: p.wholesale_margin, defaultRetailPrice: retail });
+      await tx.query(
+        `UPDATE products SET default_retail_price = $2, min_retail_price = $2, partner_profit = $3, updated_at = now() WHERE id = $1`,
+        [p.id, retail, partnerProfit]
+      );
+      changed++;
+    }
+    await writeAudit(tx, {
+      action: 'catalog.product.reprice',
+      targetType: 'PROFIT_SPLIT',
+      targetRef: categoryId ? `MARKUP:REPRICE:CATEGORY:${categoryId}` : 'MARKUP:REPRICE:ALL',
+      actorId,
+      before: { products_checked: rows.length },
+      after: { products_repriced: changed, meta: { reason: why } },
+    });
+    return { checked: rows.length, repriced: changed };
+  });
+}
+
 // WHY id-or-ref: every client surface addresses products by `ref` (PRD-…), but the route used to
 // parseInt the param, so an edit or delete from the admin catalog always hit NaN → NOT_FOUND.
 async function findProductByIdOrRef(db, idOrRef) {
@@ -300,7 +364,7 @@ async function assertSupplierStatusChange(db, product, to) {
 export async function updateProduct(db, idOrRef, supplierId, rawFields: Record<string, any> = {}, isStaff = false) {
   const existing = await findProductByIdOrRef(db, idOrRef);
   const id = Number(existing.id);
-  const { media_ids: mediaIds, ...fields } = rawFields;
+  const { media_ids: mediaIds, supplier_price: supplierPrice, ...fields } = rawFields;
 
   // `supplier_id` is a NUMERIC/BIGINT column, which node-postgres returns as a string; `supplierId`
   // is a real Number off req.user.id — a strict !== always treated every owner as a non-owner.
@@ -310,6 +374,14 @@ export async function updateProduct(db, idOrRef, supplierId, rawFields: Record<s
 
   if (!isStaff && fields.status !== undefined) {
     await assertSupplierStatusChange(db, existing, fields.status);
+  }
+
+  // A new supplier price re-derives the retail price from the markup of the (possibly new) category.
+  if (hasValue(supplierPrice)) {
+    assertSupplierPrice(supplierPrice);
+    const categoryId = fields.category_id !== undefined ? fields.category_id : existing.category_id;
+    const { retail } = await quoteRetail(db, { supplierPrice, categoryId });
+    Object.assign(fields, { base_cost: supplierPrice, wholesale_margin: 0, default_retail_price: retail, min_retail_price: retail });
   }
 
   // Validate pricing invariants if updated

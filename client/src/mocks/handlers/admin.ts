@@ -11,6 +11,8 @@
 import type { MockRoute } from '../types.ts';
 import { mockTeamSettings } from './teamPurchase.ts';
 import { moduleRegistry, moduleState, buildAdminModules, persistModuleState } from '../moduleState.ts';
+import { mockMarkup } from './products.ts';
+import { markupForCategory } from '../../services/retailMarkup.ts';
 import permissionCatalog from '../../../../docs/permission-catalog.json' with { type: 'json' };
 
 function traceId() {
@@ -3254,7 +3256,12 @@ export const adminHandlers: MockRoute[] = [
         status: 200,
         body: {
           global: mockGlobalSplit,
-          categories: mockCategorySplits,
+          markup: { default_markup_pct: mockMarkup.default_markup_pct, round_to_bdt: mockMarkup.round_to_bdt, limits: MOCK_MARKUP_LIMITS },
+          categories: mockCategorySplits.map((c) => ({
+            ...c,
+            markup_pct: markupForCategory(mockMarkup, c.id),
+            markup_is_override: mockMarkup.categories[String(c.id)] !== undefined,
+          })),
           tiers: mockTierIncentives,
           tier_rules: mockTierRules,
           audit_log: mockSplitAuditLog,
@@ -3391,6 +3398,48 @@ export const adminHandlers: MockRoute[] = [
           message_bn: 'ক্যাটাগরি স্প্লিট গ্লোবাল ডিফল্টে রিসেট করা হয়েছে।',
         },
       };
+    },
+  },
+
+  // 45b. Retail price markup (live: retailMarkup.service.ts). Same strict bounds and required reason.
+  {
+    method: 'PUT',
+    path: '/admin/finance/markup',
+    handler({ body }) {
+      const pct = Number(body?.default_markup_pct);
+      const round = Number(body?.round_to_bdt);
+      const bad = mockMarkupInvalid(pct, MOCK_MARKUP_LIMITS.markup_pct) || mockMarkupInvalid(round, MOCK_MARKUP_LIMITS.round_to_bdt) || !Number.isInteger(round);
+      if (bad || !String(body?.reason ?? '').trim()) return mockMarkupError();
+      mockMarkup.default_markup_pct = pct;
+      mockMarkup.round_to_bdt = round;
+      return { status: 200, body: { data: { markup: { default_markup_pct: pct, round_to_bdt: round } } } };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/finance/markup/categories/:id',
+    handler({ params, body }) {
+      const pct = Number(body?.markup_pct);
+      if (mockMarkupInvalid(pct, MOCK_MARKUP_LIMITS.markup_pct) || !String(body?.reason ?? '').trim()) return mockMarkupError();
+      mockMarkup.categories[String(params?.id)] = pct;
+      return { status: 200, body: { data: { category_id: Number(params?.id), markup_pct: pct } } };
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/admin/finance/markup/categories/:id',
+    handler({ params }) {
+      const had = mockMarkup.categories[String(params?.id)] !== undefined;
+      delete mockMarkup.categories[String(params?.id)];
+      return { status: 200, body: { data: { category_id: Number(params?.id), reset: had } } };
+    },
+  },
+  {
+    method: 'POST',
+    path: '/admin/finance/markup/reprice',
+    handler({ body }) {
+      if (!String(body?.reason ?? '').trim()) return mockMarkupError();
+      return { status: 200, body: { data: { checked: 12, repriced: 9 } } };
     },
   },
 
@@ -3908,9 +3957,16 @@ export const adminHandlers: MockRoute[] = [
 ];
 
 // --- Profit Splits Mock State ---
+const MOCK_MARKUP_LIMITS = { markup_pct: { min: 0, max: 300 }, round_to_bdt: { min: 0, max: 1000 } };
+const mockMarkupInvalid = (n, { min, max }) => !Number.isFinite(n) || n < min || n > max;
+const mockMarkupError = () => ({
+  status: 400,
+  body: { error: { code: 'VALIDATION_FAILED', message_en: 'Check the markup values and give a reason.', message_bn: 'Markup এর মান দেখুন এবং একটি কারণ লিখুন।' } },
+});
+
 let mockGlobalSplit = {
-  saler_split_pct: 40.0,
-  platform_split_pct: 60.0,
+  saler_split_pct: 70.0,
+  platform_split_pct: 30.0,
   min_margin_pct: 5.0,
   platform_default_profit_pct: 10.0,
   saler_default_profit_pct: 20.0,

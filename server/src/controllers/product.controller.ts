@@ -4,6 +4,7 @@
 
 import * as productService from '../services/product.service.ts';
 import * as pricingService from '../services/pricing.service.ts';
+import { loadMarkupPolicy } from '../services/retailMarkup.service.ts';
 
 export async function createProduct(req, reply) {
   const db = req.db || req.server?.db;
@@ -22,6 +23,7 @@ export async function createProduct(req, reply) {
     default_retail_price,
     min_retail_price,
     partner_profit,
+    supplier_price,
     stock_qty,
     low_stock_threshold,
     weight_grams,
@@ -48,6 +50,7 @@ export async function createProduct(req, reply) {
     defaultRetailPrice: default_retail_price,
     minRetailPrice: min_retail_price,
     partnerProfit: partner_profit,
+    supplierPrice: supplier_price,
     stockQty: stock_qty,
     lowStockThreshold: low_stock_threshold,
     weightGrams: weight_grams,
@@ -264,4 +267,15 @@ export async function getCatalogStats(req, reply) {
   });
 
   return reply.send({ data: { stats }, stats });
+}
+
+/**
+ * GET /pricing/markup — the markup policy the supplier product form quotes the retail price from.
+ * WHY signed-in only, not public: it is the platform's pricing rule, not catalog data; the form
+ * mirrors the arithmetic so the quote matches what the server stores (retailMarkup.service.ts).
+ */
+export async function getMarkupPolicy(req, reply) {
+  const db = req.db || req.server?.db;
+  const policy = await loadMarkupPolicy(db);
+  return reply.send({ data: { policy } });
 }

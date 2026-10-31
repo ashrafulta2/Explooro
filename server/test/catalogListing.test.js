@@ -312,7 +312,7 @@ describe('GET /products — min_margin', () => {
   test('filters on the same number the product card badges, so no card contradicts the filter', async () => {
     const unfiltered = await listProducts(app, db, '');
     assert.deepEqual(unfiltered.body.data.products.map((p) => p.id), [1, 2]);
-    assert.equal(unfiltered.body.data.products[0].pricing.saler_margin_pct, 20);
+    assert.equal(unfiltered.body.data.products[0].pricing.saler_margin_pct, 35);
     assert.equal(unfiltered.body.data.products[1].pricing.saler_margin_pct, 0);
 
     const { body } = await listProducts(app, db, '?min_margin=10');

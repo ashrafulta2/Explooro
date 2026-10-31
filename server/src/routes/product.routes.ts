@@ -28,6 +28,7 @@ export default async function productRoutes(app) {
   app.get('/catalog/categories', productController.listCategories);
   app.get('/products/:id', productController.getProduct);
   app.post('/pricing/preview', productController.previewPricing);
+  app.get('/pricing/markup', { preHandler: [authenticate] }, productController.getMarkupPolicy);
 
   // Admin Catalog Analytics
   // WHY the same permission as the catalog page it feeds (catalog.product.view_all): a KPI that
