@@ -64,6 +64,8 @@ ON CONFLICT (slug) WHERE deleted_at IS NULL DO UPDATE
 SET shop_name = EXCLUDED.shop_name, bio = EXCLUDED.bio, announcement = EXCLUDED.announcement;
 
 -- 4. Seed 60 Realistic Products (Bilingual, Valid Margins, Stock, Search Vectors)
+--    base_cost + wholesale_margin is the supplier's price. default_retail_price / min_retail_price are
+--    replaced by seed.ts from that price (see step 9).
 INSERT INTO products (
   id, ref, supplier_id, category_id, slug,
   title_en, title_bn,
@@ -522,13 +524,7 @@ INSERT INTO saler_store_items (store_id, saler_id, product_id, custom_retail_pri
 ON CONFLICT (store_id, product_id) DO UPDATE
 SET custom_retail_price = NULL, collection_name = EXCLUDED.collection_name;
 
--- 9. Partner profit per product (migration 085). Products inserted above start at 0, so give each the
---    share the old global split paid, exactly as the migration backfilled existing rows.
-UPDATE products p
-SET partner_profit = round(
-      (p.default_retail_price - p.base_cost - p.wholesale_margin)
-      * COALESCE((SELECT (value_json->>'saler_split_pct')::numeric
-                  FROM platform_settings WHERE key = 'commission.default_splits'), 40) / 100,
-      2)
-WHERE p.partner_profit = 0
-  AND p.default_retail_price > p.base_cost + p.wholesale_margin;
+-- 9. Retail and partner profit are NOT set here. The retail prices typed above are placeholders that
+--    satisfy the table's CHECKs; `npm run seed` (seed.ts) then re-prices every product from its
+--    supplier price (base_cost + wholesale_margin) through product.service `repriceProducts`, so a
+--    fresh seed follows today's markup and split instead of numbers frozen in this file.

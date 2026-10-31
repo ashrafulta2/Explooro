@@ -272,24 +272,32 @@ function assertSupplierPrice(value) {
  * markup, and the partner profit follows the new margin. `categoryId` limits it to one category.
  * WHY only on an admin's request: a markup edit applies to new products and price edits; moving every
  * live price at once would change carts and shared links under shoppers (owner decision 2026-10-31).
+ *
+ * By default a product whose retail is already right is left alone, and ARCHIVED ones are skipped. A
+ * one-off migration (and the dev seed) passes `includeArchived` and `refreshPartnerProfit`; the latter
+ * rewrites every partner profit from today's split even where the retail did not move.
+ * WHY it is needed: a split change (40% → 70%, 2026-10-31) leaves a retail right and its profit stale.
  */
-export async function repriceProducts(db, { categoryId = null, reason, actorId }) {
+export async function repriceProducts(db, { categoryId = null, reason, actorId, includeArchived = false, refreshPartnerProfit = false }) {
   const why = String(reason ?? '').trim();
   if (!why) throw new AppError('VALIDATION_FAILED', 'A reason is required.', 'একটি কারণ লিখতে হবে।', { field: 'reason' });
   return inTransaction(db, async (tx) => {
     const { rows } = await tx.query(
-      `SELECT id, category_id, base_cost, wholesale_margin, default_retail_price, partner_profit
+      `SELECT id, category_id, base_cost, wholesale_margin, default_retail_price, min_retail_price, partner_profit
        FROM products
-       WHERE status <> 'ARCHIVED' AND ($1::bigint IS NULL OR category_id = $1)
+       WHERE ($2::boolean OR status <> 'ARCHIVED') AND ($1::bigint IS NULL OR category_id = $1)
+       ORDER BY id
        FOR UPDATE`,
-      [categoryId]
+      [categoryId, includeArchived]
     );
     let changed = 0;
     for (const p of rows) {
       const supplierPrice = toBdtNumber(toPaisa(p.base_cost) + toPaisa(p.wholesale_margin));
       const { retail } = await quoteRetail(tx, { supplierPrice, categoryId: p.category_id });
-      if (toPaisa(retail) === toPaisa(p.default_retail_price)) continue;
+      const retailRight = toPaisa(retail) === toPaisa(p.default_retail_price) && toPaisa(retail) === toPaisa(p.min_retail_price);
+      if (retailRight && !refreshPartnerProfit) continue;
       const partnerProfit = await defaultPartnerProfit(tx, { baseCost: p.base_cost, wholesaleMargin: p.wholesale_margin, defaultRetailPrice: retail });
+      if (retailRight && toPaisa(partnerProfit) === toPaisa(p.partner_profit)) continue;
       await tx.query(
         `UPDATE products SET default_retail_price = $2, min_retail_price = $2, partner_profit = $3, updated_at = now() WHERE id = $1`,
         [p.id, retail, partnerProfit]
@@ -301,7 +309,7 @@ export async function repriceProducts(db, { categoryId = null, reason, actorId }
       targetType: 'PROFIT_SPLIT',
       targetRef: categoryId ? `MARKUP:REPRICE:CATEGORY:${categoryId}` : 'MARKUP:REPRICE:ALL',
       actorId,
-      before: { products_checked: rows.length },
+      before: { products_checked: rows.length, include_archived: includeArchived, refresh_partner_profit: refreshPartnerProfit },
       after: { products_repriced: changed, meta: { reason: why } },
     });
     return { checked: rows.length, repriced: changed };

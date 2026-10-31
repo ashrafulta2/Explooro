@@ -14,6 +14,7 @@ import path from 'node:path';
 
 import * as server from '../src/services/retailMarkup.service.ts';
 import * as client from '../../client/src/services/retailMarkup.ts';
+import { repriceProducts } from '../src/services/product.service.ts';
 
 const read = (rel) => fs.readFileSync(path.resolve(import.meta.dirname, '..', rel), 'utf8');
 
@@ -113,5 +114,59 @@ describe('products take the supplier price', () => {
     assert.ok(page.includes('supplier_price: supplierPrice,'));
     assert.ok(!page.includes('name="margin_pct"') && !page.includes('name="price"'));
     assert.ok(!/default_retail_price:|base_cost:/.test(page.slice(page.indexOf('const payload'))), 'no cost or retail sent by the form');
+  });
+});
+
+describe('repriceProducts', () => {
+  // Fake DB: today's settings (15% markup, ৳10 step, 70/30 split, 10% platform floor) and two products
+  // still on the old 40% split. #1's retail is already right; #2 is ARCHIVED with an old retail.
+  function fakeDb() {
+    const products = [
+      { id: 1, category_id: 2, status: 'ACTIVE', base_cost: '900.00', wholesale_margin: '100.00', default_retail_price: '1150.00', min_retail_price: '1150.00', partner_profit: '60.00' },
+      { id: 2, category_id: 2, status: 'ARCHIVED', base_cost: '450.00', wholesale_margin: '50.00', default_retail_price: '600.00', min_retail_price: '550.00', partner_profit: '40.00' },
+    ];
+    const updates = [];
+    const audits = [];
+    const db = {
+      products,
+      updates,
+      audits,
+      async query(sql, params = []) {
+        if (sql.includes('commission.default_splits')) return { rows: [{ value_json: { saler_split_pct: 70, platform_split_pct: 30, platform_default_profit_pct: 10 } }] };
+        if (sql.includes('FROM platform_settings WHERE key = $1')) return { rows: [{ value_json: { default_markup_pct: 15, round_to_bdt: 10 } }] };
+        if (sql.includes('FROM category_markups')) return { rows: [] };
+        if (sql.includes('FROM products')) return { rows: products.filter((p) => params[1] || p.status !== 'ARCHIVED') };
+        if (sql.startsWith('UPDATE products')) { updates.push(params); return { rows: [] }; }
+        if (sql.includes('INSERT INTO audit_logs')) { audits.push(params); return { rows: [{ id: 1 }] }; }
+        return { rows: [] };
+      },
+    };
+    return db;
+  }
+
+  test('by default a product whose retail is right keeps its partner profit, and ARCHIVED is skipped', async () => {
+    const db = fakeDb();
+    const result = await repriceProducts(db, { reason: 'markup changed', actorId: 1 });
+    assert.deepEqual(result, { checked: 1, repriced: 0 });
+    assert.equal(db.updates.length, 0);
+    assert.equal(db.audits.length, 1);
+  });
+
+  test('refreshPartnerProfit rewrites the profit from today\'s split even where retail did not move', async () => {
+    const db = fakeDb();
+    const result = await repriceProducts(db, { reason: 'split moved to 70/30', actorId: 1, includeArchived: true, refreshPartnerProfit: true });
+    assert.deepEqual(result, { checked: 2, repriced: 2 });
+    // ৳1,000 → ৳1,150: 70% of ৳150 is ৳105, capped so the platform keeps ৳100 → ৳50.
+    assert.deepEqual(db.updates[0], [1, 1150, 50]);
+    // ৳500 → ৳575 → ৳580 (rounded up): 70% of ৳80 is ৳56, capped at ৳580 − ৳500 − ৳50 = ৳30.
+    assert.deepEqual(db.updates[1], [2, 580, 30]);
+  });
+
+  test('a second full run changes nothing', async () => {
+    const db = fakeDb();
+    db.products[0].partner_profit = '50.00';
+    Object.assign(db.products[1], { default_retail_price: '580.00', min_retail_price: '580.00', partner_profit: '30.00' });
+    const result = await repriceProducts(db, { reason: 'again', actorId: 1, includeArchived: true, refreshPartnerProfit: true });
+    assert.deepEqual(result, { checked: 2, repriced: 0 });
   });
 });

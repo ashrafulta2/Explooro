@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import '../config/loadEnvFile.ts';
 import { loadEnv } from '../config/env.ts';
 import { createDbPool, withTransaction } from '../config/db.ts';
+import { repriceProducts } from '../services/product.service.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SEEDS_DIR = path.join(__dirname, 'seeds');
@@ -42,6 +43,19 @@ async function run() {
         ? `Resynced id sequences: ${resynced.join(', ')}`
         : 'All id sequences already in sync.'
     );
+
+    // WHY prices are derived here and not typed in 005_demo_catalog.sql: retail and partner profit
+    // follow today's markup and split (platform_settings), so the seed's numbers would go stale on the
+    // next policy change. The SQL holds only the supplier's price (base_cost + wholesale_margin);
+    // retail = that + the category's markup and the partner profit come from the same service the
+    // admin's re-price uses. Dev data only, so every product is rewritten, ARCHIVED ones included.
+    const priced = await repriceProducts(pool, {
+      reason: 'Seed: derive retail and partner profit from the supplier price',
+      actorId: null,
+      includeArchived: true,
+      refreshPartnerProfit: true,
+    });
+    console.log(`Priced products from the supplier price: ${priced.repriced} of ${priced.checked} changed.`);
   } finally {
     await pool.end();
   }
