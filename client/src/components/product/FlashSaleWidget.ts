@@ -3,7 +3,7 @@
  *
  * @param {object}    opts
  * @param {object[]}  opts.products   — flash sale products (product data objects)
- * @param {number}    opts.endsAt     — Unix timestamp (ms) when the flash sale ends
+ * @param {number}    opts.endsAt     — Unix timestamp (ms) when the earliest shown deal ends; null = no countdown
  * @param {string}    opts.role       — current user role
  * @param {object}    opts.modules    — live module flags
  * @param {string}    opts.lang       — 'en' | 'bn'
@@ -15,6 +15,10 @@
  *  - The countdown `setInterval` is cleared in cleanup() to avoid leaking timers.
  *  - The component is only mounted when modules.flash_sale is truthy — callers gate it.
  *  - Compact ProductCards are used in the scroll row (no action button, smaller footprint).
+ *  - Only real live deals (services/flashDeal.ts liveFlashDeals) and labelled sponsored units are
+ *    shown; a product is never tagged SALE here unless it has a flash sale.
+ *  - The countdown is the real end of the earliest deal shown, never an invented window. At zero
+ *    the timer stops and `onExpired` lets the page reload the strip.
  */
 
 import { ProductCard } from './ProductCard.ts';
@@ -26,12 +30,15 @@ import type {
   ProductWidgetHandle,
 } from './ProductCard.ts';
 import { t } from '../../services/i18n.ts';
+import { flashStripEndsAt, liveFlashDeals } from '../../services/flashDeal.ts';
 
 export interface FlashSaleWidgetOptions {
-  /** Flash-sale products; when none is flagged, the first ten are shown as if they were. */
+  /** Live flash-sale products and sponsored units; anything else is dropped. */
   products?: ProductCardData[];
-  /** Unix time in ms when the sale ends; defaults to four hours from now. */
-  endsAt?: number;
+  /** Unix time in ms when the earliest shown deal ends; defaults to the deals' own `flash_ends_at`. null hides the countdown. */
+  endsAt?: number | null;
+  /** Called once when the countdown reaches zero, so the page can reload the strip. */
+  onExpired?: (() => void) | null;
   role?: 'customer' | 'saler' | string;
   modules?: ProductModules;
   lang?: 'en' | 'bn' | string;
@@ -103,14 +110,19 @@ function makeSep(): HTMLSpanElement {
 
 export function FlashSaleWidget({
   products = [],
-  endsAt = Date.now() + 4 * 60 * 60 * 1000, // default 4 hours from now
+  endsAt,
   role = 'customer',
   modules = {},
   lang = 'en',
   onNavigate = null,
   onAction = null,
   onViewAll = null,
+  onExpired = null,
 }: FlashSaleWidgetOptions = {}): ProductWidgetHandle {
+  const deals = liveFlashDeals(products);
+  const sponsored = products.filter((p) => p?.isSponsored);
+  const endTime = endsAt === undefined ? flashStripEndsAt(deals) : endsAt;
+
   const root = document.createElement('section');
   root.className = 'flash-sale-widget';
   root.setAttribute('aria-label', t('marketplace.flash_sale.title'));
@@ -141,14 +153,14 @@ export function FlashSaleWidget({
   const timerWrap = document.createElement('div');
   timerWrap.className = 'flash-sale-widget__timer';
 
-  const initial = secondsToHMS((endsAt - Date.now()) / 1000);
+  const initial = secondsToHMS(((endTime ?? Date.now()) - Date.now()) / 1000);
   const { wrap: hhWrap, num: hhNum } = makeTimeUnit(initial.hh, t('marketplace.flash_sale.h'));
   const { wrap: mmWrap, num: mmNum } = makeTimeUnit(initial.mm, t('marketplace.flash_sale.m'));
   const { wrap: ssWrap, num: ssNum } = makeTimeUnit(initial.ss, t('marketplace.flash_sale.s'));
 
   timerWrap.append(hhWrap, makeSep(), mmWrap, makeSep(), ssWrap);
   countdownWrap.append(timerWrap);
-  headerLeft.append(countdownWrap);
+  if (endTime !== null) headerLeft.append(countdownWrap);
   header.append(headerLeft);
 
   // View all action in header
@@ -188,15 +200,11 @@ export function FlashSaleWidget({
   const scroll = document.createElement('div');
   scroll.className = 'flash-sale-widget__scroll';
 
-  let flashProducts = products.filter((p) => p.is_flash_sale);
-  if (flashProducts.length === 0 && products.length > 0) {
-    flashProducts = products.slice(0, 10).map((p) => ({ ...p, is_flash_sale: true }));
-  }
-
-  for (const product of flashProducts) {
+  // Sponsored units first (a bought FLASH_STRIP slot), then the deals. Neither is re-flagged.
+  for (const product of [...sponsored, ...deals]) {
     scroll.append(
       ProductCard({
-        product: { ...product, is_flash_sale: true },
+        product,
         role,
         modules: { ...modules, flash_sale: true },
         lang,
@@ -232,16 +240,19 @@ export function FlashSaleWidget({
   root.append(scrollWrapper);
 
   // ── Countdown interval ───────────────────────────────────────────────────
-  const interval = setInterval(() => {
-    const { hh, mm, ss } = secondsToHMS((endsAt - Date.now()) / 1000);
+  const interval = endTime === null ? null : setInterval(() => {
+    const { hh, mm, ss } = secondsToHMS((endTime - Date.now()) / 1000);
     hhNum.textContent = hh;
     mmNum.textContent = mm;
     ssNum.textContent = ss;
-    if (Date.now() >= endsAt) clearInterval(interval);
+    if (Date.now() >= endTime) {
+      clearInterval(interval);
+      if (typeof onExpired === 'function') onExpired();
+    }
   }, 1000);
 
   function cleanup(): void {
-    clearInterval(interval);
+    if (interval) clearInterval(interval);
     scroll.removeEventListener('scroll', updateArrows);
   }
 

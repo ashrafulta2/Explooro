@@ -261,6 +261,8 @@ function fixtureFlashDeal(p: Record<string, any>, i: number) {
     flash_discount_price: (Math.round(regular * (100 - pctOff)) / 100).toFixed(2),
     flash_allocated_qty: allocated,
     flash_sold_qty: Math.round(allocated * (0.3 + (i % 5) * 0.12)),
+    // Staggered ends (2h, 3h, ... from page load) so the strip's countdown runs to a real deal end.
+    flash_ends_at: new Date(Date.now() + (2 + (i % 6)) * 60 * 60 * 1000).toISOString(),
   };
 }
 let activeProducts: Record<string, any>[] = products.map((p, i) => ({

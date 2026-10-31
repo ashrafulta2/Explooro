@@ -67,3 +67,43 @@ export function flashDealView(product: FlashDealSource | null | undefined): Flas
 
   return { price, wasPrice, pctOff: pctOff && pctOff > 0 ? pctOff : null, claimedPct };
 }
+
+/** A list row as the home flash strip reads it. */
+export interface FlashStripSource extends FlashDealSource {
+  isSponsored?: boolean;
+  /** When the live deal ends (ISO string from GET /products). */
+  flash_ends_at?: string | number | null;
+}
+
+function endsAtMs(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null;
+  const ms = typeof value === 'number' ? value : Date.parse(String(value));
+  return Number.isFinite(ms) ? ms : null;
+}
+
+/**
+ * The products the home flash strip may show: ones with a live flash sale that has not ended.
+ * WHY: the strip used to fill itself with the first ten ordinary products, tagged SALE, whenever no
+ * deal was running. A product whose deal has no known end is kept (the server only lists live
+ * deals); one whose end has passed is dropped, since a loaded page outlives its deals.
+ */
+export function liveFlashDeals<T extends FlashStripSource>(products: T[] | null | undefined, now: number = Date.now()): T[] {
+  return (products || []).filter((p) => {
+    if (!p || p.isSponsored || !p.is_flash_sale) return false;
+    const end = endsAtMs(p.flash_ends_at);
+    return end === null || end > now;
+  });
+}
+
+/**
+ * When the strip's countdown reaches zero: the earliest end among the deals it shows, or null when
+ * none carries an end time (then no countdown is drawn). WHY: it used to be a fixed now + 4 hours.
+ */
+export function flashStripEndsAt(products: FlashStripSource[] | null | undefined, now: number = Date.now()): number | null {
+  let earliest: number | null = null;
+  for (const p of liveFlashDeals(products, now)) {
+    const end = endsAtMs(p.flash_ends_at);
+    if (end !== null && (earliest === null || end < earliest)) earliest = end;
+  }
+  return earliest;
+}

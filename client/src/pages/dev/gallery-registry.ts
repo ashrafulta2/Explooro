@@ -881,10 +881,18 @@ function renderHomeTop() {
 
 function renderFlashSaleWidget() {
   const wrap = document.createDocumentFragment();
-  wrap.append(subgroup('FlashSaleWidget — 4h countdown with demo products'));
+  wrap.append(subgroup('FlashSaleWidget — countdown to the earliest deal end; only real deals are shown'));
+  // Each flagged demo product carries a whole deal; the unflagged one is dropped by the widget.
+  const hour = 60 * 60 * 1000;
+  const products = DEMO_PRODUCTS.map((p, i) => (p.is_flash_sale ? {
+    ...p,
+    flash_discount_price: (Number(p.price) * 0.85).toFixed(2),
+    flash_allocated_qty: 40,
+    flash_sold_qty: 12 + i * 8,
+    flash_ends_at: new Date(Date.now() + (3 + i) * hour).toISOString(),
+  } : p));
   const { el } = FlashSaleWidget({
-    products: DEMO_PRODUCTS,
-    endsAt: Date.now() + 4 * 60 * 60 * 1000,
+    products,
     role: 'customer', modules: DEMO_MODULES, lang: 'en', onNavigate: () => {}, onAction: () => {},
   });
   wrap.append(specimen('flash sale widget', el));

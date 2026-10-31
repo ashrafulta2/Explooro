@@ -22,6 +22,9 @@
 import { appStore } from '../state/appStore.ts';
 import { listProducts } from '../services/catalog.api.ts';
 import { adsApi } from '../services/ads.api.ts';
+import type { ReservedPlacement } from '../services/ads.api.ts';
+import type { ProductCardData } from '../components/product/ProductCard.ts';
+import { liveFlashDeals } from '../services/flashDeal.ts';
 import { AD_DENSITY, adInterleaver, fetchInlineAds } from '../components/ads/adPlacement.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../services/i18n.ts';
 import { isFeatureEnabled } from '../services/featureFlags.ts';
@@ -163,6 +166,21 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   });
   page.append(pillsEl);
 
+  // A bought reserved slot (FLASH_STRIP, CATEGORY_BANNER) drawn as a card. WHY no price: the slot
+  // is a link to the advertiser's target and the placement API sends no price, so the card shows it
+  // labelled Sponsored and states none. It used to print a made-up ৳999 (which also widened the
+  // price filter's range) and, in the flash strip, a SALE tag.
+  function reservedAdCard(ad: ReservedPlacement): ProductCardData {
+    return {
+      id: `ad_${ad.campaign_id}`,
+      ref: ad.creative?.target_url?.split('/').pop() || '',
+      title_en: ad.campaign_name || '',
+      title_bn: ad.campaign_name || '',
+      image_url: ad.creative?.image_url || '',
+      isSponsored: true,
+    };
+  }
+
   // ── Flash sale widget (module-gated) ────────────────────────────────────
   let flashWidgetCleanup = null;
   let flashSection = null;
@@ -173,7 +191,11 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
     if (flashSection || flashMounting) return; // already mounted or mid-mount
     flashMounting = true;
 
-    let flashList = allProducts?.filter((p) => p.is_flash_sale) || [];
+    // WHY no fallbacks: a strip titled "Flash Sale" with a countdown claims these deals are real and
+    // ending. With no live deal it used to show the catalog tagged SALE under an invented 4h timer;
+    // now it stays unmounted. Sponsored FLASH_STRIP units ride along only beside real deals.
+    let flashList: ProductCardData[] = liveFlashDeals<ProductCardData>(allProducts);
+    let adProducts: ProductCardData[] = [];
     try {
       const [flashRes, adsRes] = await Promise.all([
         flashList.length === 0 ? listProducts({ flash_sale: '1', limit: 12 }).catch(() => null) : Promise.resolve(null),
@@ -181,41 +203,32 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
       ]);
 
       if (flashRes?.products?.length > 0) {
-        flashList = flashRes.products;
+        flashList = liveFlashDeals<ProductCardData>(flashRes.products);
       }
-      
-      const reservedAds = adsRes?.data || [];
-      if (reservedAds.length > 0) {
-        const adProducts = reservedAds.map(ad => ({
-          id: `ad_${ad.campaign_id}`,
-          ref: ad.creative?.target_url?.split('/').pop() || '',
-          title_en: ad.campaign_name || 'Sponsored Deal',
-          title_bn: ad.campaign_name || 'Sponsored Deal',
-          price: 999.00,
-          special_price: 799.00,
-          main_image: ad.creative?.image_url || 'https://placehold.co/400x400?text=AD',
-          isSponsored: true,
-          is_flash_sale: true,
-          store: { shop_name: 'Sponsored Store' }
-        }));
-        flashList = [...adProducts, ...flashList];
-      }
+
+      adProducts = (adsRes?.data || []).map(reservedAdCard);
     } catch {
-      // Fallback
+      // Network failure: show whatever live deals the grid already had.
     }
 
     if (flashList.length === 0) {
-      flashList = allProducts || [];
+      flashMounting = false;
+      return;
     }
+    flashList = [...adProducts, ...flashList];
 
     const sec = document.createElement('div');
     sec.className = 'home-section';
     sec.setAttribute('data-module', 'flash_sale');
 
-    // Flash sale ends at a fixed 4h window for demo; real data would come from API
+    // The countdown is the earliest real `flash_ends_at` among the deals (FlashSaleWidget default).
+    // When it runs out, reload the strip so the ended deal leaves and the next one's clock shows.
     const { el, cleanup } = FlashSaleWidget({
       products: flashList,
-      endsAt: Date.now() + 4 * 60 * 60 * 1000,
+      onExpired: () => {
+        unmountFlashWidget();
+        mountFlashWidget(allProducts);
+      },
       role,
       modules,
       lang: getLanguage(),
@@ -419,17 +432,7 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
           const adsRes = await adsApi.listReservedPlacements('CATEGORY_BANNER', activeCategory);
           const reservedAds = adsRes?.data || [];
           if (reservedAds.length > 0 && result?.products) {
-            const adProducts = reservedAds.map(ad => ({
-              id: `ad_${ad.campaign_id}`,
-              ref: ad.creative?.target_url?.split('/').pop() || '',
-              title_en: ad.campaign_name || 'Sponsored Category Ad',
-              title_bn: ad.campaign_name || 'Sponsored Category Ad',
-              price: 999.00,
-              special_price: 799.00,
-              main_image: ad.creative?.image_url || 'https://placehold.co/400x400?text=Category+AD',
-              isSponsored: true,
-              store: { shop_name: 'Sponsored Store' }
-            }));
+            const adProducts = reservedAds.map(reservedAdCard);
             result.products = [...adProducts, ...result.products];
           }
         } catch (err) {

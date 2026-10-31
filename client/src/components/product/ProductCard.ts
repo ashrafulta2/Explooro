@@ -72,6 +72,8 @@ export interface ProductCardData extends ProductImageSource {
   flash_discount_price?: number | string | null;
   flash_allocated_qty?: number | string | null;
   flash_sold_qty?: number | string | null;
+  /** When the live deal ends (ISO); the home flash strip counts down to the earliest one. */
+  flash_ends_at?: string | null;
   is_verified_supplier?: boolean;
   /** Only drawn when the `physical_shop_status` module is on. */
   store_open?: boolean;
@@ -613,7 +615,10 @@ export function ProductCard({
   const priceEl = document.createElement('span');
   priceEl.className = 'product-card__price';
   priceEl.textContent = formatCurrency(deal.price, { lang });
-  priceRow.append(priceEl);
+  // WHY: a sponsored ad unit (FLASH_STRIP slot) has no price of its own; printing ৳0 or a made-up
+  // figure would be a price claim nobody made.
+  const hasPrice = !(product.isSponsored && (product.price === undefined || product.price === null || product.price === ''));
+  if (hasPrice) priceRow.append(priceEl);
 
   if (deal.wasPrice) {
     const origEl = document.createElement('span');
