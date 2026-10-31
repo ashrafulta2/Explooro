@@ -20,6 +20,9 @@ import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
+import { findPricingConflicts, newConflicts, type PricingPolicyInput } from '../../services/pricingConflicts.ts';
+import { PricingConflicts, confirmNewConflicts } from '../../components/admin/PricingConflicts.ts';
+import type { PageContext } from '../types.ts';
 
 const STATUS_BADGE = {
   ACTIVE: 'system-table__badge--info',
@@ -28,7 +31,7 @@ const STATUS_BADGE = {
   CANCELLED: 'system-table__badge--danger',
 };
 
-export default function AdminGroupBuyPage(root: HTMLElement) {
+export default function AdminGroupBuyPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
   const container = document.createElement('div');
   container.className = 'admin-page group-buy-page';
@@ -112,6 +115,24 @@ export default function AdminGroupBuyPage(root: HTMLElement) {
 
     grid.append(shipping, discount2, discount3, windowHours);
 
+    // A team discount can conflict with the markup and split set at /admin/finance/splits
+    // (services/pricingConflicts.ts). The panel follows the unsaved discounts; a save that would add a
+    // conflict asks first.
+    const policyWith = (team): PricingPolicyInput | null => overview.pricing && {
+      markup: overview.pricing.markup,
+      split: overview.pricing.split,
+      team,
+      categoryNames: overview.pricing.categories,
+    };
+    const formTeam = () => ({ discount_pct_2: Number(discount2.value), discount_pct_3: Number(discount3.value) });
+    // WHY team conflicts only: a share the platform minimum cuts is fixed on the splits page, which shows it.
+    const conflictsOf = (team) => {
+      const policy = policyWith(team);
+      return policy ? findPricingConflicts(policy).filter((c) => c.code.startsWith('TEAM_')) : [];
+    };
+    const conflicts = PricingConflicts({ conflicts: conflictsOf(formTeam()), navigate, currentPath: '/admin/growth/group-buy' });
+    grid.addEventListener('input', () => conflicts.update(conflictsOf(formTeam())));
+
     const note = document.createElement('p');
     note.className = 'text-xs text-muted';
     note.textContent = t('admin.group_buy.snapshot_note');
@@ -127,6 +148,8 @@ export default function AdminGroupBuyPage(root: HTMLElement) {
           discount_pct_3: Number(discount3.value),
           window_hours: Number(windowHours.value),
         };
+        const added = newConflicts(conflictsOf(settings), conflictsOf(formTeam()));
+        if (!(await confirmNewConflicts(added))) return;
         save.disabled = true;
         try {
           const res = await api.put('/admin/growth/group-buy/settings', payload);
@@ -148,7 +171,7 @@ export default function AdminGroupBuyPage(root: HTMLElement) {
     actions.className = 'group-buy-settings__actions';
     actions.append(note, save);
 
-    panel.append(grid, actions);
+    panel.append(grid, conflicts, actions);
     return panel;
   }
 

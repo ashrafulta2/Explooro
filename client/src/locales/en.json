@@ -7988,5 +7988,32 @@
       "NOTHING_TO_PAY": "Nothing to pay back",
       "OTHER": "Not eligible"
     }
+  },
+  "pricing_conflicts": {
+    "title": "Settings that conflict: {{count}}",
+    "intro": "Each setting is valid on its own, but together they change what a sale pays. Check before saving.",
+    "none": "No price or discount setting conflicts with another.",
+    "severity_error": "Conflict",
+    "severity_warning": "Heads-up",
+    "scope_default": "Default markup {{markup}}%:",
+    "scope_default_with": "Default markup {{markup}}% ({{categories}}):",
+    "scope_category": "{{categories}} at {{markup}}% markup:",
+    "more_categories": "+{{count}} more",
+    "markup_below_floor": "The markup ({{markup}}%) is below the platform minimum ({{floor}}%). The partner pool gets nothing and the platform keeps less than its minimum on every sale.",
+    "markup_below_floor_fix": "Raise the markup to at least {{floor}}%, or lower the platform minimum to {{markup}}% or less.",
+    "split_capped": "The partner pool is set to {{share}}% of the margin, but at a {{markup}}% markup the platform minimum ({{floor}}%) leaves room for only {{effective_share}}%.",
+    "split_capped_fix": "To pay the full {{share}}%, raise the markup to {{need_markup}}% or more, or lower the platform minimum to {{max_floor}}% or less. If this is intended, no change is needed.",
+    "team_at_cost": "A {{size}}-member team gets {{discount}}% off, which is more than the {{markup}}% markup adds. Teams buy at the supplier's price: the platform and the partner pool earn nothing.",
+    "team_at_cost_fix": "Keep the {{size}}-member team discount at {{max_discount}}% or less to keep the platform minimum (above {{cost_discount}}% the team buys at cost), or raise the markup.",
+    "team_below_floor": "A {{size}}-member team gets {{discount}}% off, which leaves a {{team_margin}}% margin, below the platform minimum ({{floor}}%).",
+    "team_below_floor_fix": "Keep the {{size}}-member team discount at {{max_discount}}% or less to keep the platform minimum, or raise the markup.",
+    "link": {
+      "splits": "Change markup or split",
+      "group-buy": "Change team discounts"
+    },
+    "confirm_title": "This change causes {{count}} new conflict(s)",
+    "confirm_desc": "You can save anyway if this is intended.",
+    "confirm_save": "Save anyway",
+    "confirm_back": "Go back and change"
   }
 }

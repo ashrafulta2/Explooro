@@ -7988,5 +7988,32 @@
       "NOTHING_TO_PAY": "ফেরত দেওয়ার কিছু নেই",
       "OTHER": "যোগ্য নয়"
     }
+  },
+  "pricing_conflicts": {
+    "title": "পরস্পরবিরোধী setting: {{count}}টি",
+    "intro": "প্রতিটি setting আলাদাভাবে ঠিক আছে, কিন্তু একসাথে এগুলো বিক্রির হিসাব বদলে দেয়। Save করার আগে দেখে নিন।",
+    "none": "কোনো দাম বা ছাড়ের setting অন্যটির সাথে সংঘাতে নেই।",
+    "severity_error": "সংঘাত",
+    "severity_warning": "খেয়াল করুন",
+    "scope_default": "ডিফল্ট markup {{markup}}%:",
+    "scope_default_with": "ডিফল্ট markup {{markup}}% ({{categories}}):",
+    "scope_category": "{{categories}}, markup {{markup}}%:",
+    "more_categories": "আরও {{count}}টি",
+    "markup_below_floor": "Markup ({{markup}}%) প্ল্যাটফর্মের ন্যূনতম অংশের ({{floor}}%) চেয়ে কম। প্রতিটি বিক্রিতে partner pool কিছুই পায় না, আর প্ল্যাটফর্ম তার ন্যূনতমের চেয়ে কম রাখে।",
+    "markup_below_floor_fix": "Markup অন্তত {{floor}}% করুন, অথবা প্ল্যাটফর্মের ন্যূনতম অংশ {{markup}}% বা তার কম করুন।",
+    "split_capped": "Partner pool কে margin এর {{share}}% দেওয়ার কথা, কিন্তু {{markup}}% markup এ প্ল্যাটফর্মের ন্যূনতম অংশ ({{floor}}%) রাখার পর মাত্র {{effective_share}}% দেওয়া যায়।",
+    "split_capped_fix": "পুরো {{share}}% দিতে markup {{need_markup}}% বা তার বেশি করুন, অথবা প্ল্যাটফর্মের ন্যূনতম অংশ {{max_floor}}% বা তার কম করুন। ইচ্ছাকৃত হলে কিছু বদলাতে হবে না।",
+    "team_at_cost": "{{size}} জনের team {{discount}}% ছাড় পায়, যা {{markup}}% markup এর চেয়ে বেশি। Team গুলো supplier এর দামে কেনে: প্ল্যাটফর্ম আর partner pool কিছুই পায় না।",
+    "team_at_cost_fix": "প্ল্যাটফর্মের ন্যূনতম অংশ রাখতে {{size}} জনের team এর ছাড় {{max_discount}}% বা তার কম রাখুন ({{cost_discount}}% এর বেশি হলে team supplier এর দামে কেনে), অথবা markup বাড়ান।",
+    "team_below_floor": "{{size}} জনের team {{discount}}% ছাড় পায়, তাতে margin থাকে {{team_margin}}%, যা প্ল্যাটফর্মের ন্যূনতম অংশের ({{floor}}%) চেয়ে কম।",
+    "team_below_floor_fix": "প্ল্যাটফর্মের ন্যূনতম অংশ রাখতে {{size}} জনের team এর ছাড় {{max_discount}}% বা তার কম রাখুন, অথবা markup বাড়ান।",
+    "link": {
+      "splits": "Markup বা split বদলান",
+      "group-buy": "Team এর ছাড় বদলান"
+    },
+    "confirm_title": "এই পরিবর্তনে {{count}}টি নতুন সংঘাত তৈরি হবে",
+    "confirm_desc": "ইচ্ছাকৃত হলে তবুও save করতে পারেন।",
+    "confirm_save": "তবুও save করুন",
+    "confirm_back": "ফিরে গিয়ে বদলান"
   }
 }

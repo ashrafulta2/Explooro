@@ -21,6 +21,8 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 import { simulateSplit } from './splitSimulator.ts';
 import { retailFromSupplierPrice } from '../../services/retailMarkup.ts';
+import { findPricingConflicts, newConflicts, type PricingPolicyInput } from '../../services/pricingConflicts.ts';
+import { PricingConflicts, confirmNewConflicts } from '../../components/admin/PricingConflicts.ts';
 import type { PageContext } from '../types.ts';
 
 export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageContext = {}) {
@@ -220,6 +222,54 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
     `;
   }
 
+  // Settings that work against each other (services/pricingConflicts.ts). The panel follows the
+  // unsaved form; a save that would add a conflict asks first.
+  const conflictsPanel = PricingConflicts({ navigate, currentPath: '/admin/finance/splits' });
+
+  function markupOverrides(): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const c of splitsData?.categories || []) if (c.markup_is_override) out[String(c.id)] = Number(c.markup_pct);
+    return out;
+  }
+
+  function savedPolicy(): PricingPolicyInput {
+    return {
+      markup: { default_markup_pct: Number(splitsData?.markup?.default_markup_pct ?? 15), categories: markupOverrides() },
+      split: {
+        saler_split_pct: Number(splitsData?.global?.saler_split_pct ?? 70),
+        platform_default_profit_pct: Number(splitsData?.global?.platform_default_profit_pct ?? 10),
+      },
+      team: splitsData?.team_buying ?? null,
+      categoryNames: splitsData?.categories || [],
+    };
+  }
+
+  function formPolicy(): PricingPolicyInput {
+    const saved = savedPolicy();
+    return {
+      ...saved,
+      markup: { ...saved.markup, default_markup_pct: formMarkupPct },
+      split: { saler_split_pct: formSalerSplit, platform_default_profit_pct: formPlatformDefaultProfit },
+    };
+  }
+
+  function refreshConflicts() {
+    conflictsPanel.update(findPricingConflicts(formPolicy()));
+  }
+
+  /** True when the admin goes ahead: the change adds no conflict, or they confirmed it. */
+  function confirmPolicyChange(next: PricingPolicyInput): Promise<boolean> {
+    return confirmNewConflicts(newConflicts(findPricingConflicts(savedPolicy()), findPricingConflicts(next)));
+  }
+
+  function withCategoryMarkup(categoryId: number | string, pct: number | null): PricingPolicyInput {
+    const saved = savedPolicy();
+    const categories = { ...saved.markup.categories };
+    if (pct === null) delete categories[String(categoryId)];
+    else categories[String(categoryId)] = pct;
+    return { ...saved, markup: { ...saved.markup, categories } };
+  }
+
   function requireMarkupReason(): string | null {
     const reason = markupReason.trim();
     if (!reason) {
@@ -293,6 +343,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
             return;
           }
           modal.close();
+          if (!(await confirmPolicyChange(withCategoryMarkup(category.id, Number(pctInput.value))))) return;
           await runMarkupAction(
             () => adminApi.updateCategoryMarkup(category.id, { markup_pct: Number(pctInput.value), reason }),
             t('admin_splits.toast_markup_saved')
@@ -396,6 +447,8 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
       e.preventDefault();
       const reason = requireMarkupReason();
       if (!reason) return;
+      const saved = savedPolicy();
+      if (!(await confirmPolicyChange({ ...saved, markup: { ...saved.markup, default_markup_pct: formMarkupPct } }))) return;
       isSavingMarkup = true;
       await runMarkupAction(
         () => adminApi.updateMarkup({ default_markup_pct: formMarkupPct, round_to_bdt: formRoundTo, reason }),
@@ -414,6 +467,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
       if (button.dataset.action === 'reset') {
         const reason = requireMarkupReason();
         if (!reason) return;
+        if (!(await confirmPolicyChange(withCategoryMarkup(category.id, null)))) return;
         await runMarkupAction(() => adminApi.resetCategoryMarkup(category.id, reason), t('admin_splits.toast_markup_reset'));
       }
     });
@@ -423,6 +477,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
   function refreshSim() {
     const slot = container.querySelector<HTMLElement>('[data-slot="sim-results"]');
     if (slot) slot.innerHTML = renderSimResults();
+    refreshConflicts();
   }
 
   async function handleSaveGlobal(e) {
@@ -433,6 +488,9 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
     }
 
     const platformPct = 100 - formSalerSplit;
+
+    const saved = savedPolicy();
+    if (!(await confirmPolicyChange({ ...saved, split: { saler_split_pct: formSalerSplit, platform_default_profit_pct: formPlatformDefaultProfit } }))) return;
 
     const confirmed = await confirmDialog({
       title: t('admin_splits.modal_confirm_title'),
@@ -556,6 +614,9 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
       root.replaceChildren(container);
       return;
     }
+
+    refreshConflicts();
+    container.append(conflictsPanel);
 
     const g = splitsData?.global || { saler_split_pct: 40, platform_split_pct: 60 };
     const m = splitsData?.metrics || {};

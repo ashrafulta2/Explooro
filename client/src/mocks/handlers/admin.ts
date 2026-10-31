@@ -3005,6 +3005,11 @@ export const adminHandlers: MockRoute[] = [
         body: {
           settings: { ...mockTeamSettings },
           limits: { window_hours: { min: 1, max: 168 }, discount_pct: { min: 0, max: 90 }, shipping_charge: { min: 0, max: 5000 } },
+          pricing: {
+            markup: { default_markup_pct: mockMarkup.default_markup_pct, categories: { ...mockMarkup.categories } },
+            split: { saler_split_pct: mockGlobalSplit.saler_split_pct, platform_default_profit_pct: mockGlobalSplit.platform_default_profit_pct },
+            categories: mockCategorySplits.map((c) => ({ id: c.id, name_en: c.name_en, name_bn: c.name_bn })),
+          },
           stats: { total_teams: 4, active_pools: 2, completed_teams: 1, expired_teams: 1, gross_team_gmv_bdt: '3120.00', conversion_rate_pct: 50 },
           teams,
         },
@@ -3256,6 +3261,7 @@ export const adminHandlers: MockRoute[] = [
         status: 200,
         body: {
           global: mockGlobalSplit,
+          team_buying: { discount_pct_2: mockTeamSettings.discount_pct_2, discount_pct_3: mockTeamSettings.discount_pct_3 },
           markup: { default_markup_pct: mockMarkup.default_markup_pct, round_to_bdt: mockMarkup.round_to_bdt, limits: MOCK_MARKUP_LIMITS },
           categories: mockCategorySplits.map((c) => ({
             ...c,

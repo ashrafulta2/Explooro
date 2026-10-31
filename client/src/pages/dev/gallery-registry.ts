@@ -50,6 +50,8 @@ import { MASTER_PRESETS } from '../../config/master-themes.ts';
 import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colorRamp.ts';
 import { CategoryPills } from '../../components/product/CategoryPills.ts';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.ts';
+import { PricingConflicts } from '../../components/admin/PricingConflicts.ts';
+import { findPricingConflicts } from '../../services/pricingConflicts.ts';
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.ts';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.ts';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.ts';
@@ -1420,6 +1422,8 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'card', label: 'Card', group: 'Surfaces & Feedback', render: renderCard },
     { id: 'skeleton', label: 'Skeleton', group: 'Surfaces & Feedback', render: renderSkeleton },
     { id: 'empty-state', label: 'EmptyState', group: 'Surfaces & Feedback', render: renderEmptyState },
+    // Price and discount settings that work against each other (/admin/finance/splits, /admin/growth/group-buy)
+    { id: 'pricing-conflicts', label: 'PricingConflicts', group: 'Surfaces & Feedback', render: renderPricingConflictsSpecimen },
 
     // ── Data & Navigation ────────────────────────────────────────────────────
     { id: 'table', label: 'Table', group: 'Data & Navigation', render: renderTable },
@@ -3125,6 +3129,29 @@ function renderGrowthAssistantSpecimen() {
 
   const assistant = GrowthAssistant({ recommendations: sampleRecs });
   wrap.append(specimen('Live Advice Cards with Directly Executable 1-Click Triggers', assistant.element));
+  return wrap;
+}
+
+/**
+ * PricingConflicts — the warning list the two pricing admin pages show while the admin types. One
+ * specimen per state, each computed by the real rules (services/pricingConflicts.ts).
+ */
+function renderPricingConflictsSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Settings that work against each other'));
+  const categoryNames = [
+    { id: 1, name_en: 'Fashion', name_bn: 'ফ্যাশন' },
+    { id: 2, name_en: 'Electronics', name_bn: 'ইলেকট্রনিক্স' },
+    { id: 3, name_en: 'Grocery', name_bn: 'মুদি' },
+  ];
+  const split = { saler_split_pct: 70, platform_default_profit_pct: 10 };
+  const shipped = findPricingConflicts({ markup: { default_markup_pct: 15 }, split, team: { discount_pct_2: 15, discount_pct_3: 25 }, categoryNames });
+  const lowCategory = findPricingConflicts({ markup: { default_markup_pct: 40, categories: { 3: 8 } }, split, team: { discount_pct_2: 5, discount_pct_3: 10 }, categoryNames });
+  const clear = findPricingConflicts({ markup: { default_markup_pct: 40 }, split: { saler_split_pct: 70, platform_default_profit_pct: 10 }, team: null, categoryNames });
+  wrap.append(specimen('15% markup, 70% share, 10% minimum, 15% / 25% team discounts', PricingConflicts({ conflicts: shipped, navigate: () => {} })));
+  wrap.append(specimen('One category priced under the platform minimum', PricingConflicts({ conflicts: lowCategory })));
+  wrap.append(specimen('No conflict', PricingConflicts({ conflicts: clear })));
   return wrap;
 }
 

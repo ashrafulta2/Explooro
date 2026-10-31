@@ -10,6 +10,7 @@ import * as escrowAdminService from '../services/escrowAdmin.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 import * as retailMarkup from '../services/retailMarkup.service.ts';
 import { repriceProducts } from '../services/product.service.ts';
+import { getTeamBuyingSettings } from '../services/teamPurchase.service.ts';
 import { resolveSplitPercentages, resolveTierBonuses, TIER_KEYS } from '../services/pricing.service.ts';
 import { loadRules as loadTierRules, saveRules as saveTierRules, validateRules as validateTierRules } from '../services/salerTierBonus.ts';
 import { recomputeAll as recomputeSalerTiers } from '../services/salerTier.service.ts';
@@ -467,9 +468,15 @@ export async function getProfitSplits(req, reply) {
 
   const activeOverrides = categories.filter((c) => c.is_override).length;
 
+  // WHY the team discounts ride along: a markup or split edit here can conflict with them, and the page
+  // warns while the admin types (client/src/services/pricingConflicts.ts). Off module → nothing to clash.
+  const { rows: teamModule } = await db.query(`SELECT is_enabled FROM platform_modules WHERE key = 'group_buying'`);
+  const teamSettings = teamModule[0]?.is_enabled ? await getTeamBuyingSettings(db) : null;
+
   return reply.send({
     data: {
       global: globalSplit,
+      team_buying: teamSettings ? { discount_pct_2: teamSettings.discount_pct_2, discount_pct_3: teamSettings.discount_pct_3 } : null,
       markup: { default_markup_pct: markup.default_markup_pct, round_to_bdt: markup.round_to_bdt, limits: retailMarkup.MARKUP_LIMITS },
       categories,
       tiers,

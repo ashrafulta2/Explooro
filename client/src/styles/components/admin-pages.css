@@ -918,6 +918,29 @@
   color: var(--text-primary);
 }
 
+/* Settings that work against each other (components/admin/PricingConflicts.ts) */
+.pricing-conflicts {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border-subtle);
+  background: var(--surface-1);
+  font-size: var(--text-sm);
+}
+.pricing-conflicts[data-state='warning'] { border-color: var(--warning-border); background: var(--warning-bg); }
+.pricing-conflicts[data-state='error'] { border-color: var(--danger-border); background: var(--danger-bg); }
+.pricing-conflicts__title { margin: 0; font-size: var(--text-base); font-weight: 700; }
+.pricing-conflicts__intro,
+.pricing-conflicts__clear,
+.pricing-conflicts__fix { margin: var(--space-1) 0 0; color: var(--text-secondary); }
+.pricing-conflicts__list { list-style: none; margin: var(--space-3) 0 0; padding: 0; display: grid; gap: var(--space-3); }
+.pricing-conflicts__item { display: flex; gap: var(--space-3); align-items: flex-start; }
+.pricing-conflicts__body { min-width: 0; }
+.pricing-conflicts__scope { margin: 0; font-weight: 600; }
+.pricing-conflicts__problem { margin: var(--space-1) 0 0; }
+.pricing-conflicts__links { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-1); }
+.pricing-conflicts__link { color: var(--text-brand); font-weight: 600; }
+
 /* ==========================================================================
    7. Subscriptions & Plan Cards
    ========================================================================== */
