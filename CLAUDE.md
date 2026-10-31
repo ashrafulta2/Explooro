@@ -8,6 +8,15 @@ Explooro — a social commerce and shop partner platform for Bangladesh. Supplie
 stock, Shop Partners sell it from zero-inventory branded virtual storefronts, and commissions settle
 through an escrow-backed digital vault.
 
+## Talking to the owner: Bangla, never Hindi
+
+The owner writes and speaks **Bangla** (often Banglish, Bangla in Latin letters), frequently by
+voice dictation. Dictation on their device sometimes mis-hears Bangla as Hindi and delivers
+Devanagari or Hindi-looking text. Treat any such message as **mis-transcribed Bangla**: read it as
+Bangla, and reply in Bangla/Banglish (or English for technical detail). Never reply in Hindi or
+Devanagari, and never "translate" their words into Hindi. If a dictated message is unclear, ask in
+Bangla.
+
 ## The build plan lives in docs/prompt.md — read it before building anything
 
 All planning and specification documents live in [`docs/`](docs/), not the repo root.
