@@ -881,13 +881,22 @@ function renderHomeTop() {
 
 function renderFlashSaleWidget() {
   const wrap = document.createDocumentFragment();
-  wrap.append(subgroup('FlashSaleWidget — 4h countdown with demo products'));
+  wrap.append(subgroup('FlashSaleWidget — only flagged deals, countdown to the earliest real flash_ends_at'));
+  // Demo end times: the strip counts down to the earliest one; unflagged rows are never shown.
+  const hour = 60 * 60 * 1000;
+  const demoDeals = DEMO_PRODUCTS.map((p, i) => (p.is_flash_sale ? { ...p, flash_ends_at: new Date(Date.now() + (i + 2) * hour).toISOString() } : p));
   const { el } = FlashSaleWidget({
-    products: DEMO_PRODUCTS,
-    endsAt: Date.now() + 4 * 60 * 60 * 1000,
+    products: demoDeals,
     role: 'customer', modules: DEMO_MODULES, lang: 'en', onNavigate: () => {}, onAction: () => {},
   });
   wrap.append(specimen('flash sale widget', el));
+  const empty = FlashSaleWidget({
+    products: DEMO_PRODUCTS.map((p) => ({ ...p, is_flash_sale: false })),
+    role: 'customer', modules: DEMO_MODULES, lang: 'en',
+  });
+  const note = document.createElement('p');
+  note.textContent = `No live deal: the widget renders hidden (hidden=${empty.el.hidden}) and the home page does not mount it.`;
+  wrap.append(specimen('flash sale widget — no live deal', note));
   return wrap;
 }
 
