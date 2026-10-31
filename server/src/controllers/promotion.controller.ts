@@ -4,6 +4,32 @@
 
 import * as couponService from '../services/coupon.service.ts';
 import * as flashSaleService from '../services/flashSale.service.ts';
+import { loadPricingContext } from '../services/retailMarkup.service.ts';
+
+/**
+ * The admin coupon list, with the pricing settings the coupon form warns against
+ * (client/src/services/pricingConflicts.ts findCouponConflicts).
+ */
+export async function adminListCoupons(req, reply) {
+  const db = req.db || req.server?.db;
+  const { scope_type, funded_by, is_active, limit, offset } = req.query || {};
+  const [coupons, pricing] = await Promise.all([
+    couponService.listCoupons(db, {
+      scopeType: scope_type,
+      fundedBy: funded_by,
+      isActive: is_active,
+      limit: limit ? parseInt(limit, 10) : 50,
+      offset: offset ? parseInt(offset, 10) : 0,
+    }),
+    loadPricingContext(db),
+  ]);
+  return reply.send({ coupons, pricing });
+}
+
+export async function getFlashSalePriceContext(req, reply) {
+  const db = req.db || req.server?.db;
+  return reply.send(await flashSaleService.getPriceContext(db, req.query?.product_id));
+}
 
 export async function createCoupon(req, reply) {
   const db = req.db || req.server?.db;

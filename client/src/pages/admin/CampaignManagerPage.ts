@@ -13,11 +13,15 @@ import { toast } from '../../services/toast.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { formatCurrency, formatNumber, formatDate } from '../../services/format.ts';
 import { Modal } from '../../components/ui/Modal.ts';
+import { PricingConflicts, confirmNewConflicts, conflictText } from '../../components/admin/PricingConflicts.ts';
+import { findCouponConflicts, findDealPriceConflicts, type PricingConflict, type PricingPolicyInput } from '../../services/pricingConflicts.ts';
 
 export class CampaignManagerPage {
   activeTab: 'flash_sales' | 'coupons';
   flashSales: any[] = [];
   coupons: any[] = [];
+  /** Markups, partner share and platform minimum, for the coupon form's warnings. Null if not sent. */
+  couponPricing: PricingPolicyInput | null = null;
   loading = true;
   rootEl: HTMLElement | null = null;
   unsubscribeLang: (() => void) | null = null;
@@ -61,6 +65,8 @@ export class CampaignManagerPage {
       ]);
       this.flashSales = fsRes.data?.flash_sales || fsRes.flash_sales || [];
       this.coupons = cRes.data?.coupons || cRes.coupons || [];
+      const pricing = cRes.data?.pricing || cRes.pricing;
+      this.couponPricing = pricing ? { markup: pricing.markup, split: pricing.split, categoryNames: pricing.categories } : null;
     } catch (err) {
       toast.error(err.message || 'Failed to load promotion campaigns');
     } finally {
@@ -598,6 +604,8 @@ export class CampaignManagerPage {
         </div>
       </div>
 
+      <div data-slot="price-conflicts"></div>
+
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
         <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
         <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Schedule Deal'}</button>
@@ -614,7 +622,50 @@ export class CampaignManagerPage {
     modalBackdrop.open(document.activeElement);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
-    modalBackdrop.querySelector('#form-create-flash-sale')!.addEventListener('submit', async (e) => {
+    // The deal price is judged against the product's own supplier price, retail and partner profit
+    // (services/pricingConflicts.ts), fetched once the admin has typed a product id.
+    const flashForm = modalBackdrop.querySelector<HTMLFormElement>('#form-create-flash-sale')!;
+    const field = (name: string) => flashForm.elements.namedItem(name) as HTMLInputElement;
+    const conflicts = PricingConflicts({ subject: 'price' });
+    conflicts.hidden = true;
+    flashForm.querySelector('[data-slot="price-conflicts"]')!.replaceWith(conflicts);
+    let priceContext: Record<string, any> | null = null;
+    let contextFor = '';
+    const dealConflicts = (): PricingConflict[] => {
+      const price = parseFloat(field('discount_price').value);
+      if (!priceContext || !(price > 0)) return [];
+      const p = priceContext.product;
+      return findDealPriceConflicts({
+        price,
+        supplierPrice: p.supplier_price,
+        retailPrice: p.retail_price,
+        partnerProfit: p.partner_profit,
+        floorPct: priceContext.platform_default_profit_pct,
+      });
+    };
+    const refresh = () => {
+      conflicts.hidden = !priceContext || !(parseFloat(field('discount_price').value) > 0);
+      conflicts.update(dealConflicts());
+    };
+    const loadContext = async () => {
+      const id = field('product_id').value.trim();
+      if (id === contextFor) return;
+      contextFor = id;
+      priceContext = null;
+      if (/^\d+$/.test(id)) {
+        try {
+          priceContext = await api.get(`/admin/growth/campaigns/flash-sales/price-context?product_id=${id}`);
+        } catch {
+          priceContext = null; // an unknown id is reported by the create call itself
+        }
+      }
+      if (contextFor === id) refresh();
+    };
+    field('product_id').addEventListener('change', loadContext);
+    field('product_id').addEventListener('blur', loadContext);
+    field('discount_price').addEventListener('input', refresh);
+
+    flashForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target as unknown as Record<string, HTMLInputElement>;
       const data = {
@@ -623,6 +674,15 @@ export class CampaignManagerPage {
         discount_price: parseFloat(form.discount_price.value),
         allocated_qty: parseInt(form.allocated_qty.value, 10),
       };
+
+      await loadContext();
+      const found = dealConflicts();
+      const blocking = found.find((c) => c.severity === 'error');
+      if (blocking) {
+        toast.error(conflictText(blocking).problem);
+        return;
+      }
+      if (!(await confirmNewConflicts(found))) return;
 
       try {
         await api.post('/admin/growth/campaigns/flash-sales', data);
@@ -673,6 +733,8 @@ export class CampaignManagerPage {
         </div>
       </div>
 
+      <div data-slot="coupon-conflicts"></div>
+
       <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
         <button type="button" class="btn-cancel" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${isBn ? 'বাতিল' : 'Cancel'}</button>
         <button type="submit" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--brand, #4f46e5); color: var(--brand-contrast, #1f1f1f); font-size: 12px; font-weight: 700; cursor: pointer;">${isBn ? 'তৈরি করুন' : 'Create Coupon'}</button>
@@ -689,7 +751,25 @@ export class CampaignManagerPage {
     modalBackdrop.open(document.activeElement);
     modalBackdrop.querySelector('.btn-cancel').addEventListener('click', closeModal);
 
-    modalBackdrop.querySelector('#form-create-coupon').addEventListener('submit', async (e) => {
+    // An admin coupon is platform-funded: warn when it gives more than the platform keeps of a sale
+    // (services/pricingConflicts.ts findCouponConflicts).
+    const couponForm = modalBackdrop.querySelector<HTMLFormElement>('#form-create-coupon')!;
+    const value = (name: string) => (couponForm.elements.namedItem(name) as HTMLInputElement).value;
+    const couponConflicts = (): PricingConflict[] => this.couponPricing
+      ? findCouponConflicts({
+        discount_type: value('discount_type'),
+        discount_value: parseFloat(value('discount_value')),
+        min_spend: parseFloat(value('min_spend_amount')),
+        funded_by: 'PLATFORM',
+      }, this.couponPricing)
+      : [];
+    const conflicts = PricingConflicts({ conflicts: couponConflicts(), subject: 'price' });
+    conflicts.hidden = !this.couponPricing;
+    couponForm.querySelector('[data-slot="coupon-conflicts"]')!.replaceWith(conflicts);
+    couponForm.addEventListener('input', () => conflicts.update(couponConflicts()));
+    couponForm.addEventListener('change', () => conflicts.update(couponConflicts()));
+
+    couponForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target as HTMLFormElement & Record<string, HTMLInputElement>;
       const data = {
@@ -699,6 +779,8 @@ export class CampaignManagerPage {
         budget_cap: parseFloat(form.budget_cap.value),
         min_spend_amount: parseFloat(form.min_spend_amount.value),
       };
+
+      if (!(await confirmNewConflicts(couponConflicts()))) return;
 
       try {
         await api.post('/admin/growth/coupons', data);

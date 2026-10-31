@@ -14,6 +14,7 @@ import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { isEnabled } from './module.service.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
+import { resolvePlatformPricingConfig } from './pricing.service.ts';
 
 function generateFlashSaleRef() {
   const code = randomBytes(4).toString('hex').toUpperCase();
@@ -59,7 +60,8 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta: Record
 
   // Fetch product to verify stock and price
   const { rows: prodRows } = await db.query(
-    `SELECT id, title_en, title_bn, default_retail_price, stock_qty, status
+    `SELECT id, title_en, title_bn, default_retail_price, stock_qty, status,
+            (base_cost + wholesale_margin) AS supplier_price
      FROM products WHERE id = $1`,
     [productId]
   );
@@ -76,6 +78,17 @@ export async function createFlashSale(db, creatorUser, saleData, reqMeta: Record
       'discount_price',
       `Discount price (৳${discountPrice}) must be lower than original price (৳${originalPrice}).`,
       `ছাড়ের মূল্য (৳${discountPrice}) মূল মূল্যের (৳${originalPrice}) চেয়ে কম হতে হবে।`
+    );
+  }
+
+  // WHY refused, not warned: checkout never sells under the supplier's price (pricing.service), so a
+  // deal below it could not be bought by anyone. Same rule live streams apply to a special price.
+  const supplierPrice = Number(product.supplier_price);
+  if (Math.round(discountPrice * 100) < Math.round(supplierPrice * 100)) {
+    throw invalid(
+      'discount_price',
+      `Discount price (৳${discountPrice}) cannot be below what the supplier is paid (৳${supplierPrice.toFixed(2)}).`,
+      `ছাড়ের মূল্য (৳${discountPrice}) supplier এর প্রাপ্য দামের (৳${supplierPrice.toFixed(2)}) নিচে হতে পারবে না।`
     );
   }
 
@@ -320,4 +333,36 @@ export async function listAllFlashSales(db, { status, limit = 50, offset = 0 }: 
 
   const { rows } = await db.query(query, params);
   return rows;
+}
+
+/**
+ * What the flash sale form needs to warn about a price before it is saved
+ * (client/src/services/pricingConflicts.ts findDealPriceConflicts): the product's supplier price,
+ * retail price and partner profit, and the platform minimum.
+ */
+export async function getPriceContext(db, productId) {
+  const id = parseInt(productId, 10);
+  if (isNaN(id)) {
+    throw new AppError('VALIDATION_FAILED', 'Valid product ID is required.', 'সঠিক পণ্য আইডি প্রয়োজন।', { field: 'product_id' });
+  }
+  const { rows } = await db.query(
+    `SELECT id, title_en, title_bn, default_retail_price AS retail_price, partner_profit,
+            (base_cost + wholesale_margin) AS supplier_price
+     FROM products WHERE id = $1`,
+    [id]
+  );
+  if (rows.length === 0) throw new AppError('NOT_FOUND', 'Product not found.', 'পণ্য পাওয়া যায়নি।');
+  const { platformDefaultProfitPct } = await resolvePlatformPricingConfig(db);
+  const p = rows[0];
+  return {
+    product: {
+      id: Number(p.id),
+      title_en: p.title_en,
+      title_bn: p.title_bn,
+      supplier_price: Number(p.supplier_price),
+      retail_price: Number(p.retail_price),
+      partner_profit: Number(p.partner_profit),
+    },
+    platform_default_profit_pct: platformDefaultProfitPct,
+  };
 }

@@ -34,7 +34,7 @@ export default async function promotionRoutes(app) {
   // 3. Admin Governance & Campaign Oversight
   app.get('/admin/growth/coupons', {
     preHandler: [app.authenticate, requireCouponsModule, requireManageCoupons],
-  }, promotionController.listCoupons);
+  }, promotionController.adminListCoupons);
 
   app.post('/admin/growth/coupons', {
     preHandler: [app.authenticate, requireCouponsModule, requireManageCoupons],
@@ -47,6 +47,12 @@ export default async function promotionRoutes(app) {
   app.get('/admin/growth/campaigns/flash-sales', {
     preHandler: [app.authenticate, requireFlashSaleModule, requireManageCampaigns],
   }, promotionController.listAllFlashSales);
+
+  // Supplier price, retail and partner profit of one product, so the form warns about a deal price
+  // before it is saved. Same guard as creating the sale.
+  app.get('/admin/growth/campaigns/flash-sales/price-context', {
+    preHandler: [app.authenticate, requireFlashSaleModule, requireManageCampaigns],
+  }, promotionController.getFlashSalePriceContext);
 
   app.post('/admin/growth/campaigns/flash-sales', {
     preHandler: [app.authenticate, requireFlashSaleModule, requireManageCampaigns],

@@ -2,7 +2,32 @@
  * campaigns.ts — Mock API handlers for Campaign & Promotion Manager (Prompt 9.2).
  */
 
-import { findMockProductById, findMockProductByFlashSaleId, setMockProductFlashSale } from './products.ts';
+import { findMockProductById, findMockProductByFlashSaleId, setMockProductFlashSale, mockMarkup } from './products.ts';
+import { mockPricingContext } from './admin.ts';
+import { markupForCategory } from '../../services/retailMarkup.ts';
+
+/**
+ * Supplier price and partner profit of a mock product (live: flashSale.service getPriceContext).
+ * Fixture rows carry only a retail `price`, so the supplier price is backed out of today's markup and
+ * the partner profit follows the split, the way product.service sets them on a new product.
+ */
+function mockPriceContext(product) {
+  const pricing = mockPricingContext();
+  const retail = Number(product.default_retail_price ?? product.price) || 0;
+  const markup = markupForCategory(mockMarkup, product.category_id);
+  const supplier = product.base_cost != null
+    ? Number(product.base_cost) + Number(product.wholesale_margin || 0)
+    : Math.round((retail * 100) / (100 + markup));
+  const margin = Math.max(retail - supplier, 0);
+  const floor = (supplier * pricing.split.platform_default_profit_pct) / 100;
+  const partnerProfit = product.partner_profit != null
+    ? Number(product.partner_profit)
+    : Math.floor(Math.min((margin * pricing.split.saler_split_pct) / 100, Math.max(margin - floor, 0)));
+  return {
+    product: { id: product.id, title_en: product.title_en, title_bn: product.title_bn, supplier_price: supplier, retail_price: retail, partner_profit: partnerProfit },
+    platform_default_profit_pct: pricing.split.platform_default_profit_pct,
+  };
+}
 import type { MockRoute } from '../types.ts';
 
 let mockFlashSales: Record<string, any>[] = [
@@ -167,6 +192,10 @@ export const campaignHandlers = [
         if (!(discountPrice > 0) || discountPrice >= originalPrice) {
           return fail(400, 'VALIDATION_FAILED', `Discount price (৳${discountPrice}) must be lower than original price (৳${originalPrice}).`, `ছাড়ের মূল্য (৳${discountPrice}) মূল মূল্যের (৳${originalPrice}) চেয়ে কম হতে হবে।`);
         }
+        const supplierPrice = mockPriceContext(product).product.supplier_price;
+        if (discountPrice < supplierPrice) {
+          return fail(400, 'VALIDATION_FAILED', `Discount price (৳${discountPrice}) cannot be below what the supplier is paid (৳${supplierPrice.toFixed(2)}).`, `ছাড়ের মূল্য (৳${discountPrice}) supplier এর প্রাপ্য দামের (৳${supplierPrice.toFixed(2)}) নিচে হতে পারবে না।`);
+        }
         if (!(allocatedQty > 0)) return fail(400, 'VALIDATION_FAILED', 'Allocated stock quantity must be at least 1.', 'বরাদ্দকৃত স্টক অন্তত ১ হতে হবে।');
         if (!(endsAt > startsAt)) return fail(400, 'VALIDATION_FAILED', 'Flash sale end time must be strictly after start time.', 'ফ্ল্যাশ সেলের শেষ সময় শুরুর সময়ের পরে হতে হবে।');
         if (Number(product.stock) < allocatedQty) {
@@ -199,6 +228,15 @@ export const campaignHandlers = [
     },
   },
   {
+    method: 'GET',
+    path: '/admin/growth/campaigns/flash-sales/price-context',
+    handler({ query }) {
+      const product = findMockProductById(query?.product_id);
+      if (!product) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Product not found.', message_bn: 'পণ্য পাওয়া যায়নি।' } } };
+      return { status: 200, body: mockPriceContext(product) };
+    },
+  },
+  {
     method: 'POST',
     path: '/admin/growth/campaigns/flash-sales/:id/emergency-stop',
     handler({ params }) {
@@ -225,6 +263,7 @@ export const campaignHandlers = [
             coupons: mockCoupons,
           },
           coupons: mockCoupons,
+          pricing: mockPricingContext(),
         },
       };
     },

@@ -17,7 +17,7 @@
 
 import { AppError } from '../plugins/errorHandler.ts';
 import { writeAudit } from '../lib/audit.ts';
-import { toPaisa } from './pricing.service.ts';
+import { resolvePlatformPricingConfig, toPaisa } from './pricing.service.ts';
 
 export const SETTING_KEY = 'pricing.markup';
 
@@ -72,6 +72,24 @@ export async function loadMarkupPolicy(db): Promise<MarkupPolicy> {
   return {
     default_markup_pct: readNumber(value.default_markup_pct, DEFAULT_MARKUP.default_markup_pct, MARKUP_LIMITS.markup_pct),
     round_to_bdt: readNumber(value.round_to_bdt, DEFAULT_MARKUP.round_to_bdt, MARKUP_LIMITS.round_to_bdt),
+    categories,
+  };
+}
+
+/**
+ * The settings the price-conflict warnings need (client/src/services/pricingConflicts.ts): markups,
+ * the partner share, the platform minimum and the category names. Sent by every admin page that sets a
+ * price or a discount, so each can warn about a clash with settings that live on another page.
+ */
+export async function loadPricingContext(db) {
+  const [markup, split, { rows: categories }] = await Promise.all([
+    loadMarkupPolicy(db),
+    resolvePlatformPricingConfig(db),
+    db.query(`SELECT id, name_en, name_bn FROM categories ORDER BY id`),
+  ]);
+  return {
+    markup: { default_markup_pct: markup.default_markup_pct, categories: markup.categories },
+    split: { saler_split_pct: split.salerSplitPct, platform_default_profit_pct: split.platformDefaultProfitPct },
     categories,
   };
 }

@@ -26,8 +26,8 @@ import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
 import * as vaultService from './vault.service.ts';
 import { isEnabled, updateModuleSettings } from './module.service.ts';
-import { calculatePricingBreakdown, resolvePlatformPricingConfig } from './pricing.service.ts';
-import { loadMarkupPolicy } from './retailMarkup.service.ts';
+import { calculatePricingBreakdown } from './pricing.service.ts';
+import { loadPricingContext } from './retailMarkup.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
 
 export const TEAM_SIZES = Object.freeze([2, 3]);
@@ -868,20 +868,12 @@ export async function getAdminOverview(db, { limit = 50, offset = 0 } = {}) {
 
   // WHY the markup and split ride along: a team discount can conflict with them, and the page warns
   // while the admin types (client/src/services/pricingConflicts.ts).
-  const [markup, split, { rows: categories }] = await Promise.all([
-    loadMarkupPolicy(db),
-    resolvePlatformPricingConfig(db),
-    db.query(`SELECT id, name_en, name_bn FROM categories ORDER BY id`),
-  ]);
+  const pricing = await loadPricingContext(db);
 
   return {
     settings,
     limits: SETTING_LIMITS,
-    pricing: {
-      markup: { default_markup_pct: markup.default_markup_pct, categories: markup.categories },
-      split: { saler_split_pct: split.salerSplitPct, platform_default_profit_pct: split.platformDefaultProfitPct },
-      categories,
-    },
+    pricing,
     stats: {
       ...s,
       conversion_rate_pct: finished > 0 ? Math.round((s.completed_teams * 1000) / finished) / 10 : null,

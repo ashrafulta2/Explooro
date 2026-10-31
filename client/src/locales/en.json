@@ -8014,6 +8014,20 @@
     "confirm_title": "This change causes {{count}} new conflict(s)",
     "confirm_desc": "You can save anyway if this is intended.",
     "confirm_save": "Save anyway",
-    "confirm_back": "Go back and change"
+    "confirm_back": "Go back and change",
+    "deal_not_a_discount": "The deal price (৳{{price}}) is not below the normal price (৳{{retail}}), so it is not a discount.",
+    "deal_not_a_discount_fix": "Set the deal price under ৳{{retail}}.",
+    "deal_below_supplier": "The deal price (৳{{price}}) is below what the supplier is paid (৳{{supplier}}). Checkout refuses such a sale, so nobody could buy this deal.",
+    "deal_below_supplier_fix": "Set the deal price to ৳{{supplier}} or more.",
+    "deal_below_floor": "At ৳{{price}} the partner pool takes ৳{{pool}} and the platform keeps only ৳{{platform}} per unit, under its minimum of ৳{{floor_amount}}.",
+    "deal_below_floor_fix": "At ৳{{min_price}} or more the platform keeps its minimum. If the lower price is intended, you can save anyway.",
+    "coupon_percent_above_share": "This coupon gives {{coupon_pct}}% off, but on the lowest markup in use ({{markup}}%) the platform keeps only about {{platform_pct}}% of a sale. The platform pays the difference on every order it applies to.",
+    "coupon_percent_above_share_fix": "Keep the discount at {{platform_pct}}% or less, or add a maximum discount amount. If this is a deliberate promotion, you can save anyway.",
+    "coupon_fixed_above_share": "৳{{amount}} off a ৳{{min_spend}} order is {{coupon_pct}}% of it, but on the lowest markup in use ({{markup}}%) the platform keeps only about {{platform_pct}}% of a sale. The platform pays the difference on the smallest orders.",
+    "coupon_fixed_above_share_fix": "Raise the minimum spend to ৳{{min_spend_needed}} or more, or lower the amount. If this is a deliberate promotion, you can save anyway.",
+    "deal_below_floor_fix_no_room": "At this product's normal price the partner pool's profit already uses everything above the platform minimum, so any discount below ৳{{retail}} comes out of the platform's share. If the deal is intended, you can save anyway.",
+    "price_title": "Check this price: {{count}} issue(s)",
+    "price_intro": "This price works against the platform's pricing settings. Check before saving.",
+    "price_none": "This price and the pricing settings agree."
   }
 }

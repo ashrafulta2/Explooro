@@ -3005,11 +3005,7 @@ export const adminHandlers: MockRoute[] = [
         body: {
           settings: { ...mockTeamSettings },
           limits: { window_hours: { min: 1, max: 168 }, discount_pct: { min: 0, max: 90 }, shipping_charge: { min: 0, max: 5000 } },
-          pricing: {
-            markup: { default_markup_pct: mockMarkup.default_markup_pct, categories: { ...mockMarkup.categories } },
-            split: { saler_split_pct: mockGlobalSplit.saler_split_pct, platform_default_profit_pct: mockGlobalSplit.platform_default_profit_pct },
-            categories: mockCategorySplits.map((c) => ({ id: c.id, name_en: c.name_en, name_bn: c.name_bn })),
-          },
+          pricing: mockPricingContext(),
           stats: { total_teams: 4, active_pools: 2, completed_teams: 1, expired_teams: 1, gross_team_gmv_bdt: '3120.00', conversion_rate_pct: 50 },
           teams,
         },
@@ -3969,6 +3965,15 @@ const mockMarkupError = () => ({
   status: 400,
   body: { error: { code: 'VALIDATION_FAILED', message_en: 'Check the markup values and give a reason.', message_bn: 'Markup এর মান দেখুন এবং একটি কারণ লিখুন।' } },
 });
+
+/** The settings the price-conflict warnings need (live: retailMarkup.service loadPricingContext). */
+export function mockPricingContext() {
+  return {
+    markup: { default_markup_pct: mockMarkup.default_markup_pct, categories: { ...mockMarkup.categories } },
+    split: { saler_split_pct: mockGlobalSplit.saler_split_pct, platform_default_profit_pct: mockGlobalSplit.platform_default_profit_pct },
+    categories: mockCategorySplits.map((c) => ({ id: c.id, name_en: c.name_en, name_bn: c.name_bn })),
+  };
+}
 
 let mockGlobalSplit = {
   saler_split_pct: 70.0,

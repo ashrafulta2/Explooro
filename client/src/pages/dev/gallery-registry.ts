@@ -51,7 +51,7 @@ import { generatePalette, BRAND_STEPS, NEUTRAL_STEPS } from '../../services/colo
 import { CategoryPills } from '../../components/product/CategoryPills.ts';
 import { LocaleChoiceCard } from '../../components/admin/LocaleChoiceCard.ts';
 import { PricingConflicts } from '../../components/admin/PricingConflicts.ts';
-import { findPricingConflicts } from '../../services/pricingConflicts.ts';
+import { findPricingConflicts, findDealPriceConflicts, findCouponConflicts } from '../../services/pricingConflicts.ts';
 import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.ts';
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.ts';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.ts';
@@ -3152,6 +3152,12 @@ function renderPricingConflictsSpecimen() {
   wrap.append(specimen('15% markup, 70% share, 10% minimum, 15% / 25% team discounts', PricingConflicts({ conflicts: shipped, navigate: () => {} })));
   wrap.append(specimen('One category priced under the platform minimum', PricingConflicts({ conflicts: lowCategory })));
   wrap.append(specimen('No conflict', PricingConflicts({ conflicts: clear })));
+  const deal = findDealPriceConflicts({ price: 1290, supplierPrice: 1250, retailPrice: 1440, partnerProfit: 65, floorPct: 10 });
+  const dealBelowCost = findDealPriceConflicts({ price: 1200, supplierPrice: 1250, retailPrice: 1440, partnerProfit: 65, floorPct: 10 });
+  const coupon = findCouponConflicts({ discount_type: 'FIXED', discount_value: 150, min_spend: 1000 }, { markup: { default_markup_pct: 15 }, split, categoryNames });
+  wrap.append(specimen('Flash sale price under the platform minimum', PricingConflicts({ conflicts: deal , subject: 'price' })));
+  wrap.append(specimen('Flash sale price under the supplier price (refused)', PricingConflicts({ conflicts: dealBelowCost , subject: 'price' })));
+  wrap.append(specimen('Platform-funded coupon worth more than the platform keeps', PricingConflicts({ conflicts: coupon , subject: 'price' })));
   return wrap;
 }
 

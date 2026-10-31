@@ -8014,6 +8014,20 @@
     "confirm_title": "এই পরিবর্তনে {{count}}টি নতুন সংঘাত তৈরি হবে",
     "confirm_desc": "ইচ্ছাকৃত হলে তবুও save করতে পারেন।",
     "confirm_save": "তবুও save করুন",
-    "confirm_back": "ফিরে গিয়ে বদলান"
+    "confirm_back": "ফিরে গিয়ে বদলান",
+    "deal_not_a_discount": "Deal এর দাম (৳{{price}}) সাধারণ দামের (৳{{retail}}) চেয়ে কম নয়, তাই এটা কোনো ছাড় নয়।",
+    "deal_not_a_discount_fix": "Deal এর দাম ৳{{retail}} এর কম দিন।",
+    "deal_below_supplier": "Deal এর দাম (৳{{price}}) supplier এর প্রাপ্য দামের (৳{{supplier}}) চেয়ে কম। Checkout এমন বিক্রি নেয় না, তাই এই deal কেউ কিনতে পারবে না।",
+    "deal_below_supplier_fix": "Deal এর দাম ৳{{supplier}} বা তার বেশি দিন।",
+    "deal_below_floor": "৳{{price}} দামে partner pool পায় ৳{{pool}}, আর প্ল্যাটফর্ম প্রতি unit এ রাখে মাত্র ৳{{platform}}, যা তার ন্যূনতম ৳{{floor_amount}} এর চেয়ে কম।",
+    "deal_below_floor_fix": "৳{{min_price}} বা তার বেশি দামে প্ল্যাটফর্ম তার ন্যূনতম অংশ পায়। কম দাম ইচ্ছাকৃত হলে তবুও save করতে পারেন।",
+    "coupon_percent_above_share": "এই coupon {{coupon_pct}}% ছাড় দেয়, কিন্তু সবচেয়ে কম markup এ ({{markup}}%) প্ল্যাটফর্ম একটি বিক্রির মাত্র প্রায় {{platform_pct}}% রাখে। যেসব order এ এটা লাগে, প্রতিটিতে বাকিটা প্ল্যাটফর্মকে নিজের পকেট থেকে দিতে হয়।",
+    "coupon_percent_above_share_fix": "ছাড় {{platform_pct}}% বা তার কম রাখুন, অথবা সর্বোচ্চ ছাড়ের একটা সীমা দিন। ইচ্ছাকৃত promotion হলে তবুও save করতে পারেন।",
+    "coupon_fixed_above_share": "৳{{min_spend}} এর order এ ৳{{amount}} ছাড় মানে {{coupon_pct}}%, কিন্তু সবচেয়ে কম markup এ ({{markup}}%) প্ল্যাটফর্ম একটি বিক্রির মাত্র প্রায় {{platform_pct}}% রাখে। ছোট order গুলোতে বাকিটা প্ল্যাটফর্মকে নিজের পকেট থেকে দিতে হয়।",
+    "coupon_fixed_above_share_fix": "সর্বনিম্ন খরচ ৳{{min_spend_needed}} বা তার বেশি করুন, অথবা ছাড়ের পরিমাণ কমান। ইচ্ছাকৃত promotion হলে তবুও save করতে পারেন।",
+    "deal_below_floor_fix_no_room": "এই product এর সাধারণ দামেই partner pool এর profit প্ল্যাটফর্মের ন্যূনতম অংশের উপরের সবটুকু নিয়ে নেয়, তাই ৳{{retail}} এর নিচে যেকোনো ছাড় প্ল্যাটফর্মের অংশ থেকেই যায়। Deal টা ইচ্ছাকৃত হলে তবুও save করতে পারেন।",
+    "price_title": "এই দামটি দেখে নিন: {{count}}টি সমস্যা",
+    "price_intro": "এই দাম প্ল্যাটফর্মের pricing setting এর সাথে মেলে না। Save করার আগে দেখে নিন।",
+    "price_none": "এই দাম pricing setting এর সাথে মেলে।"
   }
 }

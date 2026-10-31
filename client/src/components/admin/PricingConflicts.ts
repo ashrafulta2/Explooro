@@ -1,7 +1,8 @@
 /**
  * PricingConflicts.ts — the list of price and discount settings that work against each other
- * (rules in services/pricingConflicts.ts). Shown on /admin/finance/splits and /admin/growth/group-buy,
- * refreshed while the admin types, so a conflict is seen before it is saved.
+ * (rules in services/pricingConflicts.ts). Shown on /admin/finance/splits, /admin/growth/group-buy and
+ * the flash sale and coupon forms, refreshed while the admin types, so a conflict is seen before it is
+ * saved.
  *
  * `update(conflicts)` redraws in place: the pages call it on every keystroke, and rebuilding the form
  * around it would throw away the input's focus. An empty list renders a short all-clear line, never
@@ -19,6 +20,8 @@ import type { PricingConflict } from '../../services/pricingConflicts.ts';
 const MAX_NAMED_CATEGORIES = 3;
 
 function scopeText(c: PricingConflict): string {
+  // A single deal or coupon has no markup group to name.
+  if (!c.categories) return '';
   const isBn = getLanguage() === 'bn';
   const names = c.categories.map((cat) => (isBn ? cat.name_bn : cat.name_en));
   const shown = names.slice(0, MAX_NAMED_CATEGORIES).join(', ');
@@ -36,7 +39,7 @@ export function conflictText(c: PricingConflict): { problem: string; fix: string
   const code = c.code.toLowerCase();
   return {
     problem: t(`pricing_conflicts.${code}`, c.params),
-    fix: t(`pricing_conflicts.${code}_fix`, c.params),
+    fix: t(`pricing_conflicts.${c.fix || `${code}_fix`}`, c.params),
   };
 }
 
@@ -49,7 +52,7 @@ function itemHtml(c: PricingConflict, navigable: boolean): string {
     <li class="pricing-conflicts__item pricing-conflicts__item--${c.severity}">
       <span class="badge badge--sm ${c.severity === 'error' ? 'badge--danger' : 'badge--warning'}">${escapeHtml(t(`pricing_conflicts.severity_${c.severity}`))}</span>
       <div class="pricing-conflicts__body">
-        <p class="pricing-conflicts__scope">${escapeHtml(scopeText(c))}</p>
+        ${c.categories ? `<p class="pricing-conflicts__scope">${escapeHtml(scopeText(c))}</p>` : ''}
         <p class="pricing-conflicts__problem">${escapeHtml(problem)}</p>
         <p class="pricing-conflicts__fix">${escapeHtml(fix)}</p>
         ${links ? `<div class="pricing-conflicts__links">${links}</div>` : ''}
@@ -61,15 +64,18 @@ function itemHtml(c: PricingConflict, navigable: boolean): string {
  * @param opts.conflicts  what findPricingConflicts returned
  * @param opts.navigate   the router's navigate; when given, each conflict links to the page that fixes it
  * @param opts.currentPath the page this renders on, whose own link is left out
+ * @param opts.subject  'settings' (default) for platform settings, 'price' for one deal or coupon
  */
 export function PricingConflicts({
   conflicts = [],
   navigate = null,
   currentPath = '',
+  subject = 'settings',
 }: {
   conflicts?: PricingConflict[];
   navigate?: ((path: string) => void) | null;
   currentPath?: string;
+  subject?: 'settings' | 'price';
 } = {}) {
   const el = document.createElement('section');
   el.className = 'pricing-conflicts';
@@ -80,13 +86,13 @@ export function PricingConflicts({
     const errors = list.filter((c) => c.severity === 'error').length;
     if (!list.length) {
       el.dataset.state = 'clear';
-      el.innerHTML = `<p class="pricing-conflicts__clear">✓ ${escapeHtml(t('pricing_conflicts.none'))}</p>`;
+      el.innerHTML = `<p class="pricing-conflicts__clear">✓ ${escapeHtml(t(subject === 'price' ? 'pricing_conflicts.price_none' : 'pricing_conflicts.none'))}</p>`;
       return;
     }
     el.dataset.state = errors ? 'error' : 'warning';
     el.innerHTML = `
-      <h3 class="pricing-conflicts__title">⚠ ${escapeHtml(t('pricing_conflicts.title', { count: list.length }))}</h3>
-      <p class="pricing-conflicts__intro">${escapeHtml(t('pricing_conflicts.intro'))}</p>
+      <h3 class="pricing-conflicts__title">⚠ ${escapeHtml(t(subject === 'price' ? 'pricing_conflicts.price_title' : 'pricing_conflicts.title', { count: list.length }))}</h3>
+      <p class="pricing-conflicts__intro">${escapeHtml(t(subject === 'price' ? 'pricing_conflicts.price_intro' : 'pricing_conflicts.intro'))}</p>
       <ul class="pricing-conflicts__list">${list.map((c) => itemHtml(c, Boolean(navigate))).join('')}</ul>`;
   }
 
@@ -110,7 +116,7 @@ export function PricingConflicts({
 export async function confirmNewConflicts(added: PricingConflict[]): Promise<boolean> {
   if (!added.length) return true;
   // WHY one line: the dialog's description is plain text, where a newline would collapse anyway.
-  const lines = added.map((c) => `• ${scopeText(c)} ${conflictText(c).problem}`).join(' ');
+  const lines = added.map((c) => `• ${[scopeText(c), conflictText(c).problem].filter(Boolean).join(' ')}`).join(' ');
   return confirmDialog({
     title: t('pricing_conflicts.confirm_title', { count: added.length }),
     description: `${t('pricing_conflicts.confirm_desc')} ${lines}`,
