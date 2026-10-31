@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (212 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (216 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -76,6 +76,8 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('platform.genie.update', 'platform', 'Change the popup genie effect', 'পপআপ জিনি ইফেক্ট পরিবর্তন', 'turn the popup open/close animation on or off and change how long and how smooth it is for every visitor', 'সব দর্শনার্থীর জন্য পপআপ খোলা/বন্ধ হওয়ার অ্যানিমেশন চালু-বন্ধ করতে এবং তার সময় ও মসৃণতা বদলাতে', 'MEDIUM', true, 'approve_before'),
   ('platform.delivery.view', 'platform', 'View the delivery charge', 'ডেলিভারি চার্জ দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.delivery.update', 'platform', 'Change the delivery charge', 'ডেলিভারি চার্জ পরিবর্তন', 'change the delivery charge every shopper pays per parcel at checkout', 'চেকআউটে প্রত্যেক ক্রেতা প্রতি পার্সেলে যে ডেলিভারি চার্জ দেন তা বদলাতে', 'CRITICAL', false, 'approve_before'),
+  ('platform.operations.view', 'platform', 'View manual operations mode', 'ম্যানুয়াল অপারেশন মোড দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('platform.operations.update', 'platform', 'Switch payouts and couriers between manual and automatic', 'পেআউট ও কুরিয়ার ম্যানুয়াল/স্বয়ংক্রিয় করা', 'decide whether withdrawals are sent by hand or by the bKash gateway, and whether parcels are booked by hand or through a courier API', 'উইথড্র হাতে পাঠানো হবে নাকি বিকাশ গেটওয়ে দিয়ে, আর পার্সেল হাতে বুক হবে নাকি কুরিয়ার API দিয়ে, তা ঠিক করতে', 'CRITICAL', false, 'approve_before'),
   ('platform.recommendation.view', 'platform', 'View personalized feed settings', 'পার্সোনালাইজড ফিড সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.recommendation.update', 'platform', 'Tune the personalized feed', 'পার্সোনালাইজড ফিড টিউন করা', 'change how products are ranked and which rails appear on the home page for every shopper', 'সব ক্রেতার জন্য পণ্য কীভাবে সাজানো হবে এবং হোম পেজে কোন কোন রেল দেখা যাবে তা বদলাতে', 'MEDIUM', true, 'approve_before'),
   ('platform.integration.view', 'platform', 'View integrations', 'ইন্টিগ্রেশন দেখা', 'see which payment and courier integrations are connected', 'কোন পেমেন্ট ও কুরিয়ার ইন্টিগ্রেশন যুক্ত আছে তা দেখতে', 'MEDIUM', true, 'approve_before'),
@@ -129,6 +131,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('logistics.shipment.view', 'logistics', 'View shipments', 'চালান দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('logistics.consignment.create', 'logistics', 'Create consignments', 'কনসাইনমেন্ট তৈরি', NULL, NULL, 'LOW', true, 'approve_before'),
   ('logistics.consignment.cancel', 'logistics', 'Cancel consignments', 'কনসাইনমেন্ট বাতিল', 'cancel a booked courier pickup', 'বুক করা কুরিয়ার পিকআপ বাতিল করতে', 'MEDIUM', true, 'approve_before'),
+  ('logistics.shipment.mark_status', 'logistics', 'Mark a hand-sent parcel delivered or returned', 'হাতে পাঠানো পার্সেল ডেলিভারড বা ফেরত চিহ্নিত করা', 'mark a parcel you gave to a courier yourself as delivered (which starts the profit split) or returned', 'নিজে কুরিয়ারে দেওয়া পার্সেল ডেলিভারড (এতে লাভ ভাগ শুরু হয়) বা ফেরত হিসেবে চিহ্নিত করতে', 'MEDIUM', true, 'approve_before'),
   ('logistics.carrier.view', 'logistics', 'View courier hub', 'কুরিয়ার হাব দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('logistics.carrier.manage', 'logistics', 'Manage courier routing', 'কুরিয়ার রাউটিং ব্যবস্থাপনা', 'choose which courier serves which district', 'কোন জেলায় কোন কুরিয়ার সেবা দেবে তা নির্ধারণ করতে', 'HIGH', true, 'approve_before'),
   ('logistics.carrier.credentials', 'logistics', 'Manage courier credentials', 'কুরিয়ার ক্রেডেনশিয়াল ব্যবস্থাপনা', 'change Steadfast, Pathao and RedX API credentials', 'স্টেডফাস্ট, পাঠাও ও রেডএক্সের এপিআই ক্রেডেনশিয়াল পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
@@ -150,6 +153,7 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('finance.payout.approve', 'finance', 'Approve payouts', 'পেআউট অনুমোদন', 'approve withdrawal requests and send money to shop partners', 'উত্তোলনের আবেদন অনুমোদন করে শপ পার্টনারদের টাকা পাঠাতে', 'HIGH', true, 'approve_before'),
   ('finance.payout.approve_large', 'finance', 'Approve large payouts', 'বড় অঙ্কের পেআউট অনুমোদন', 'approve withdrawals above the platform''s high-value threshold', 'প্ল্যাটফর্মের উচ্চ-মূল্য সীমার উপরে উত্তোলন অনুমোদন করতে', 'CRITICAL', false, 'approve_before'),
   ('finance.payout.batch', 'finance', 'Batch-disburse payouts', 'একসাথে পেআউট পাঠানো', 'pay out many approved withdrawals at once', 'একসাথে অনেক অনুমোদিত উত্তোলন পাঠাতে', 'HIGH', true, 'approve_before'),
+  ('finance.payout.complete_manual', 'finance', 'Mark a payout as paid by hand', 'হাতে পাঠানো পেআউট পরিশোধিত হিসেবে চিহ্নিত করা', 'record a withdrawal you sent from your own bKash or Nagad, with its TrxID, which takes the money out of the partner''s vault for good', 'নিজের বিকাশ বা নগদ থেকে পাঠানো উইথড্র TrxID সহ লিখে রাখতে, যাতে টাকাটা পার্টনারের ভল্ট থেকে স্থায়ীভাবে কাটা যায়', 'CRITICAL', false, 'approve_before'),
   ('finance.split.view', 'finance', 'View profit splits', 'মুনাফা বণ্টন দেখা', 'see the commission split rules', 'কমিশন বণ্টনের নিয়ম দেখতে', 'MEDIUM', true, 'approve_before'),
   ('finance.split.update', 'finance', 'Change profit splits', 'মুনাফা বণ্টন পরিবর্তন', 'change how commission is divided between shop partner and platform', 'শপ পার্টনার ও প্ল্যাটফর্মের মধ্যে কমিশন কীভাবে ভাগ হবে তা পরিবর্তন করতে', 'CRITICAL', false, 'approve_before'),
   ('finance.subscription.manage', 'finance', 'Manage shop partner fees', 'শপ পার্টনার ফি ব্যবস্থাপনা', 'turn on or configure shop partner subscription and listing fees', 'শপ পার্টনারর সাবস্ক্রিপশন ও লিস্টিং ফি চালু বা নির্ধারণ করতে', 'CRITICAL', false, 'approve_before'),
@@ -339,6 +343,9 @@ FROM (VALUES
   ('admin', 'platform.delivery.view'),
   ('super_admin', 'platform.delivery.view'),
   ('super_admin', 'platform.delivery.update'),
+  ('admin', 'platform.operations.view'),
+  ('super_admin', 'platform.operations.view'),
+  ('super_admin', 'platform.operations.update'),
   ('admin', 'platform.recommendation.view'),
   ('super_admin', 'platform.recommendation.view'),
   ('super_admin', 'platform.recommendation.update'),
@@ -457,6 +464,7 @@ FROM (VALUES
   ('supplier', 'logistics.consignment.cancel'),
   ('admin', 'logistics.consignment.cancel'),
   ('super_admin', 'logistics.consignment.cancel'),
+  ('supplier', 'logistics.shipment.mark_status'),
   ('admin', 'logistics.carrier.view'),
   ('super_admin', 'logistics.carrier.view'),
   ('admin', 'logistics.carrier.manage'),
@@ -497,6 +505,7 @@ FROM (VALUES
   ('super_admin', 'finance.payout.approve_large'),
   ('admin', 'finance.payout.batch'),
   ('super_admin', 'finance.payout.batch'),
+  ('super_admin', 'finance.payout.complete_manual'),
   ('admin', 'finance.split.view'),
   ('super_admin', 'finance.split.view'),
   ('super_admin', 'finance.split.update'),
