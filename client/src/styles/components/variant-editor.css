@@ -21,3 +21,6 @@
 .variant-editor__dim:has(input:disabled) { color: var(--text-secondary); cursor: not-allowed; }
 .variant-editor__photo { display: flex; align-items: center; gap: var(--space-2); }
 .variant-editor__thumb { width: 2.25rem; height: 2.25rem; flex: none; object-fit: cover; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); }
+.variant-editor__dim--not-offered { color: var(--danger); text-decoration: line-through; }
+/* /admin/catalog/variant-options: keep the own-list box and its "follows its parent" note on one line. */
+.variant-options-table td:nth-child(2) { white-space: nowrap; }

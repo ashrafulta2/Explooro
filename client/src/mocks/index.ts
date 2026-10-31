@@ -40,6 +40,7 @@ import { localizationHandlers } from './handlers/localization.ts';
 import { genieHandlers } from './handlers/genie.ts';
 import { deliveryHandlers } from './handlers/delivery.ts';
 import { attributionHandlers } from './handlers/attribution.ts';
+import { variantOptionsHandlers } from './handlers/variantOptions.ts';
 import { partnerRewardHandlers } from './handlers/partnerReward.ts';
 import { walletTopupHandlers } from './handlers/walletTopup.ts';
 import { recommendationHandlers } from './handlers/recommendations.ts';
@@ -93,6 +94,7 @@ const handlers: (Omit<MockRoute, 'method'> & { method: string })[] = [
   ...genieHandlers,
   ...deliveryHandlers,
   ...attributionHandlers,
+  ...variantOptionsHandlers,
   ...partnerRewardHandlers,
   ...walletTopupHandlers,
   ...recommendationHandlers,

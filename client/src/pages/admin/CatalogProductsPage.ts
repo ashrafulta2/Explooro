@@ -26,6 +26,7 @@ import { markupForCategory, retailFromSupplierPrice, type MarkupPolicy } from '.
 import { PLACEHOLDER_COLOURS, placeholderInitials } from '../../components/product/ProductCard.ts';
 import { ImageUploader } from '../../components/media/ImageUploader.ts';
 import { VariantEditor, type VariantEditorElement } from '../../components/catalog/VariantEditor.ts';
+import { optionsForCategory } from '../../services/variantOptions.ts';
 import { can } from '../../services/permissions.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import type { PageContext } from '../types.ts';
@@ -120,7 +121,7 @@ function wireRetailQuote(form: HTMLFormElement): () => void {
  * field to it: with any variant the stock is their total, read-only, because the server writes the
  * sum (productVariant.service.ts) and a typed number would be overwritten on save.
  */
-function wireVariants(form: HTMLFormElement, { pending = false }: { pending?: boolean } = {}): VariantEditorElement {
+function wireVariants(form: HTMLFormElement, { pending = false }: { pending?: boolean } = {}): VariantEditorElement & { refreshOptions(): void } {
   const stock = form.querySelector<HTMLInputElement>('[name="stock"]');
   const sync = () => {
     const rows = editor.getVariants();
@@ -136,7 +137,17 @@ function wireVariants(form: HTMLFormElement, { pending = false }: { pending?: bo
     sync();
   };
   sync();
-  return editor;
+  // Offer only what the chosen category offers (/admin/catalog/variant-options); the server checks
+  // the same list on save. A stale answer for a category no longer selected is dropped.
+  const category = form.querySelector<HTMLSelectElement>('[name="category_id"]');
+  const refreshOptions = () => {
+    const id = category?.value;
+    optionsForCategory(id).then((options) => {
+      if (category?.value === id) editor.setAllowed(options);
+    });
+  };
+  category?.addEventListener('change', refreshOptions);
+  return Object.assign(editor, { refreshOptions });
 }
 
 export default function CatalogProductsPage(root: HTMLElement, { navigate }: PageContext = {}) {
@@ -1031,8 +1042,13 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     form.querySelector('[data-slot="images"]').append(uploader);
 
     const refreshQuote = wireRetailQuote(form);
-    fillCategoryOptions(form.querySelector('select[name="category_id"]')).then(refreshQuote, refreshQuote);
     const variantEditor = wireVariants(form);
+    // The quote and the variant options both depend on the category, which exists once options load.
+    const afterCategories = () => {
+      refreshQuote();
+      variantEditor.refreshOptions();
+    };
+    fillCategoryOptions(form.querySelector('select[name="category_id"]')).then(afterCategories, afterCategories);
 
     const modalFooter = document.createElement('div');
     modalFooter.style.display = 'flex';
@@ -1275,6 +1291,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     );
     // The quote needs the selected category (its markup), which only exists once the options load.
     categoriesReady.then(refreshPayout, refreshPayout);
+    categoriesReady.then(() => variantEditor.refreshOptions(), () => variantEditor.refreshOptions());
 
     // WHY fetch the detail: the list row carries neither the photo ids nor brand/descriptions, so
     // editing from it alone would show an empty gallery and blank out those fields on save.
@@ -1294,6 +1311,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         variantEditor.setVariants(detail.variants || []);
         await categoriesReady;
         if (detail.category_id && !categorySelectEl.value) categorySelectEl.value = String(detail.category_id);
+        variantEditor.refreshOptions();
         refreshPayout();
       })
       .catch(() => {

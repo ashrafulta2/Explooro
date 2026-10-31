@@ -6,6 +6,7 @@ import stores from '../fixtures/stores.json' with { type: 'json' };
 import { resolveMockMediaUrl } from './media.ts';
 import { markupForCategory, retailFromSupplierPrice } from '../../services/retailMarkup.ts';
 import { VARIANT_DIMENSIONS } from '../../config/variantDimensions.ts';
+import { mockOptionsForCategory } from './variantOptions.ts';
 
 /**
  * The markup policy (live: pricing.markup + category_markups, retailMarkup.service.ts). Exported so the
@@ -294,7 +295,7 @@ const mockSalerStoreItems = [
 
 // Names match the admin catalog page's category filter so a product created in mock mode
 // shows up under it.
-const MOCK_CATEGORIES = [
+export const MOCK_CATEGORIES = [
   { id: 1, name_en: 'Clothing', name_bn: 'পোশাক', slug: 'clothing', parent_id: null },
   { id: 2, name_en: 'Electronics', name_bn: 'ইলেকট্রনিক্স', slug: 'electronics', parent_id: null },
   { id: 3, name_en: 'Kids', name_bn: 'শিশু', slug: 'kids', parent_id: null },
@@ -649,7 +650,17 @@ export default [
       if (bad) {
         return {
           status: 400,
-          body: { error: { code: 'VALIDATION_FAILED', message_en: 'Check the sizes and colours.', message_bn: 'সাইজ ও রং যাচাই করুন।' } },
+          body: { error: { code: 'VALIDATION_FAILED', message_en: 'Check the options.', message_bn: 'অপশনগুলো যাচাই করুন।' } },
+        };
+      }
+      // The category's allowed options (handlers/variantOptions.ts), as productVariant.service.ts checks live.
+      const categoryId = p.category_id ?? MOCK_CATEGORIES.find((c) => c.name_en === p.category)?.id ?? null;
+      const allowed = mockOptionsForCategory(categoryId);
+      const offending = rows.flatMap((v) => VARIANT_DIMENSIONS.filter((k) => v.attributes[k] && !allowed.includes(k)))[0];
+      if (offending) {
+        return {
+          status: 400,
+          body: { error: { code: 'VALIDATION_FAILED', message_en: `This product's category does not offer "${offending}".`, message_bn: `এই প্রোডাক্টের ক্যাটেগরিতে "${offending}" অপশন নেই।` } },
         };
       }
       p.saved_variants = rows.map((v, i) => {

@@ -169,3 +169,157 @@ describe('variant save — real Postgres', { skip: DB_URL ? false : 'set VARIANT
     await assert.rejects(saveVariants(db, product.ref, -1, [{ attributes: { size: 'ZZ-X' } }]), (err) => err.code === 'FORBIDDEN');
   });
 });
+
+// ── HTTP: the real routes, guards and controllers over the same kind of rolled-back transaction ──
+
+describe('variant + variant-option routes — real Postgres over HTTP', { skip: DB_URL ? false : 'set VARIANT_TEST_DATABASE_URL to a migrated + seeded database' }, () => {
+  let client;
+  let app;
+  const db = { query: (...args) => client.query(...args) };
+  const q = async (sql, params) => (await client.query(sql, params)).rows;
+  let product;
+  let superAdminId;
+  let customerId;
+
+  before(async () => {
+    const pg = createRequire(import.meta.url)('pg');
+    client = new pg.Client({ connectionString: DB_URL, ssl: /sslmode=require/i.test(DB_URL) ? { rejectUnauthorized: false } : false });
+    await client.connect();
+    await client.query('BEGIN');
+    [product] = await q(
+      `SELECT p.id, p.ref, p.supplier_id, p.category_id FROM products p
+        WHERE p.deleted_at IS NULL AND EXISTS (SELECT 1 FROM product_variants v WHERE v.product_id = p.id AND v.is_active)
+        ORDER BY p.id LIMIT 1`
+    );
+    const roleUser = async (key) =>
+      (await q(`SELECT u.id FROM users u JOIN user_roles ur ON ur.user_id = u.id JOIN roles r ON r.id = ur.role_id WHERE r.key = $1 ORDER BY u.id LIMIT 1`, [key]))[0]?.id;
+    superAdminId = Number(await roleUser('super_admin'));
+    customerId = Number(await roleUser('customer'));
+    assert.ok(product && superAdminId && customerId, 'needs a seeded product, a super admin and a customer');
+
+    const Fastify = (await import('fastify')).default;
+    const { default: requestContextPlugin } = await import('../src/plugins/requestContext.ts');
+    const { default: errorHandlerPlugin } = await import('../src/plugins/errorHandler.ts');
+    const { default: requirePermissionPlugin } = await import('../src/middlewares/requirePermission.ts');
+    const { default: productRoutes } = await import('../src/routes/product.routes.ts');
+    const { default: variantOptionsRoutes } = await import('../src/routes/variantOptions.routes.ts');
+    const { createMemoryCache } = await import('../src/config/cache-drivers/memory.ts');
+
+    app = Fastify();
+    app.decorate('db', db);
+    app.decorate('cache', createMemoryCache());
+    // Stands in for the JWT plugin only: who is calling. Everything after it (permission, restriction,
+    // ownership, the SQL) is the real code reading the real tables.
+    app.addHook('onRequest', async (req) => {
+      const id = req.headers['x-test-user'];
+      if (id) {
+        const roles = (await q(`SELECT r.key FROM user_roles ur JOIN roles r ON r.id = ur.role_id WHERE ur.user_id = $1`, [Number(id)])).map((r) => r.key);
+        req.user = { id: Number(id), roles };
+      }
+    });
+    app.register(requestContextPlugin);
+    app.register(errorHandlerPlugin);
+    app.register(requirePermissionPlugin);
+    await app.register(productRoutes, { prefix: '/api/v1' });
+    await app.register(variantOptionsRoutes, { prefix: '/api/v1' });
+    await app.ready();
+  });
+
+  after(async () => {
+    if (app) await app.close();
+    if (!client) return;
+    await client.query('ROLLBACK');
+    await client.end();
+  });
+
+  beforeEach(() => client.query('SAVEPOINT http_case'));
+  afterEach(() => client.query('ROLLBACK TO SAVEPOINT http_case'));
+
+  const call = (method, url, { user = null, body = undefined } = {}) =>
+    app.inject({ method, url: `/api/v1${url}`, headers: user ? { 'x-test-user': String(user) } : {}, payload: body });
+  const putVariants = (user, variants) => call('PUT', `/products/${product.ref}/variants`, { user, body: { variants } });
+
+  test('owner saves: 200, the response envelope, and the rows', async () => {
+    const res = await putVariants(product.supplier_id, [{ attributes: { size: 'ZZ-HTTP' }, stock_qty: 3 }]);
+    assert.equal(res.statusCode, 200, res.body);
+    const body = res.json();
+    assert.equal(body.data.product_ref, product.ref);
+    assert.deepEqual(body.data.variants.map((v) => v.attributes.size), ['ZZ-HTTP']);
+    assert.equal(body.data.stock_qty, 3);
+  });
+
+  test('signed out: 401, nothing written', async () => {
+    const res = await putVariants(null, [{ attributes: { size: 'ZZ-HTTP' } }]);
+    assert.equal(res.statusCode, 401);
+    assert.equal((await q(`SELECT 1 FROM product_variants WHERE attributes_json->>'size' = 'ZZ-HTTP'`)).length, 0);
+  });
+
+  test('a product the caller does not own: 403', async () => {
+    const res = await putVariants(customerId, [{ attributes: { size: 'ZZ-HTTP' } }]);
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.json().error.code, 'FORBIDDEN');
+  });
+
+  test('staff may edit any supplier variants', async () => {
+    const res = await putVariants(superAdminId, [{ attributes: { size: 'ZZ-STAFF' }, stock_qty: 1 }]);
+    assert.equal(res.statusCode, 200, res.body);
+  });
+
+  test('a bad row: 400 VALIDATION_FAILED', async () => {
+    const res = await putVariants(product.supplier_id, [{ attributes: { size: 'M' }, stock_qty: -1 }]);
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.json().error.code, 'VALIDATION_FAILED');
+  });
+
+  test('a supplier blocked from listing products is stopped by the restriction guard', async () => {
+    await q(
+      `INSERT INTO user_restrictions (subject_type, subject_ref, capability_key, mode, reason, applied_by)
+       VALUES ('USER', $1, 'can_list_products', 'BLOCK', 'Test block from productVariant.db.test.js', $2)`,
+      [String(product.supplier_id), superAdminId]
+    );
+    const res = await putVariants(product.supplier_id, [{ attributes: { size: 'ZZ-HTTP' } }]);
+    assert.notEqual(res.statusCode, 200);
+    assert.equal(res.json().error.code, 'USER_RESTRICTED');
+  });
+
+  test('the category rule end to end: admin narrows it, the form list follows, the save refuses the rest', async () => {
+    const before = await call('GET', `/catalog/variant-options?category_id=${product.category_id}`, { user: product.supplier_id });
+    assert.equal(before.statusCode, 200, before.body);
+    assert.ok(before.json().data.options.includes('size'), 'nothing set yet: every option');
+
+    const admin = await call('GET', '/admin/catalog/variant-options', { user: superAdminId });
+    assert.equal(admin.statusCode, 200, admin.body);
+    const saved = await call('PUT', '/admin/catalog/variant-options', {
+      user: superAdminId,
+      body: { categories: { [product.category_id]: ['weight'] }, reason: 'Test: only weight here', base_updated_at: admin.json().data.updated_at },
+    });
+    assert.equal(saved.statusCode, 200, saved.body);
+
+    const after = await call('GET', `/catalog/variant-options?category_id=${product.category_id}`, { user: product.supplier_id });
+    assert.deepEqual(after.json().data.options, ['weight']);
+
+    const refused = await putVariants(product.supplier_id, [{ attributes: { size: 'M' }, stock_qty: 1 }]);
+    assert.equal(refused.statusCode, 400);
+    assert.match(refused.json().error.message_en, /does not offer "size"/);
+    const ok = await putVariants(product.supplier_id, [{ attributes: { weight: '1 kg' }, stock_qty: 1 }]);
+    assert.equal(ok.statusCode, 200, ok.body);
+
+    const audit = await q(`SELECT after_json FROM audit_logs WHERE action = 'catalog.variant_options.update' ORDER BY id DESC LIMIT 1`);
+    // The audit service keeps the reason beside the value (meta), so compare the setting itself.
+    assert.deepEqual(audit[0].after_json.categories, { [product.category_id]: ['weight'] });
+    assert.equal(audit[0].after_json.meta?.reason, 'Test: only weight here');
+  });
+
+  test('admin page: a customer is refused, a stale save is 409, a short reason is 400', async () => {
+    assert.equal((await call('GET', '/admin/catalog/variant-options', { user: customerId })).statusCode, 403);
+
+    const stale = await call('PUT', '/admin/catalog/variant-options', {
+      user: superAdminId,
+      body: { categories: {}, reason: 'Test: stale version', base_updated_at: '2000-01-01T00:00:00.000Z' },
+    });
+    assert.equal(stale.statusCode, 409, stale.body);
+
+    const short = await call('PUT', '/admin/catalog/variant-options', { user: superAdminId, body: { categories: {}, reason: 'short' } });
+    assert.equal(short.statusCode, 400);
+  });
+});

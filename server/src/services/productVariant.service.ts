@@ -14,18 +14,16 @@ import * as productRepo from '../repositories/product.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { withTransaction } from '../config/db.ts';
 import { writeAudit } from '../lib/audit.ts';
+import { MAX_VARIANT_DIMENSIONS, VARIANT_ATTRIBUTE_KEYS } from '../config/variantDimensions.ts';
+import { loadAllowedForCategory } from './variantOptions.service.ts';
 
-/**
- * What variants may differ by. VariantSelector draws one button row per key it finds.
- * Must equal client/src/config/variantDimensions.ts (server/test/productVariant.test.js checks).
- */
-export const VARIANT_ATTRIBUTE_KEYS = ['size', 'color', 'material', 'style', 'weight', 'volume', 'capacity', 'pack_size'] as const;
+export { VARIANT_ATTRIBUTE_KEYS };
 
 // WHY these bounds are constants, not settings: they are input-shape limits (one form row per
 // variant, a label that fits a button, a picker a shopper can answer), not business numbers.
 export const VARIANT_LIMITS = {
   maxVariants: 100,
-  maxDimensions: 3,
+  maxDimensions: MAX_VARIANT_DIMENSIONS,
   maxValueLength: 40,
   maxSkuLength: 64,
   // The INTEGER column's ceiling and a ceiling that keeps retail + delta inside NUMERIC(14,2).
@@ -171,6 +169,20 @@ export function assertVariantPhotos(wanted: VariantInput[], productMediaIds: num
   });
 }
 
+/**
+ * Throws unless every option the rows use is one the product's category offers
+ * (variantOptions.service.ts, set at /admin/catalog/variant-options). Pure.
+ */
+export function assertCategoryOptions(wanted: VariantInput[], allowed: string[]): void {
+  const ok = new Set(allowed);
+  wanted.forEach((v, i) => {
+    const bad = Object.keys(v.attributes).find((k) => !ok.has(k));
+    if (bad) {
+      invalid(i, bad, `this product's category does not offer "${bad}".`, `এই প্রোডাক্টের ক্যাটেগরিতে "${bad}" অপশন নেই।`);
+    }
+  });
+}
+
 /** A SKU for a row the supplier left blank: the product ref plus the combination, e.g. PRD-8F2K-M-RED. */
 export function defaultSku(productRef: string, attributes: Record<string, string>): string {
   const latin = VARIANT_ATTRIBUTE_KEYS.map((k) => attributes[k]).filter(Boolean)
@@ -235,6 +247,7 @@ export async function saveVariants(db, idOrRef, userId, rawVariants, isStaff = f
     throw new AppError('FORBIDDEN', 'You do not own this product.', 'আপনি এই প্রোডাক্টটির মালিক নন।');
   }
   const productId = Number(product.id);
+  assertCategoryOptions(wanted, await loadAllowedForCategory(db, product.category_id));
 
   try {
     const result = await inTransaction(db, async (tx) => {

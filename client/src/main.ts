@@ -972,6 +972,16 @@ async function bootRouterDemo() {
         module: 'core',
         load: () => import('./pages/admin/CategoriesPage.ts'),
       },
+      // Which variant options (size, colour, weight, ...) each category offers. `.view` opens it,
+      // `.manage` saves (server/src/routes/variantOptions.routes.ts); the nav item carries the same pair.
+      {
+        path: '/admin/catalog/variant-options',
+        title: 'Variant Options — Explooro Admin',
+        requiresAuth: true,
+        permission: 'catalog.category.view',
+        module: 'core',
+        load: () => import('./pages/admin/VariantOptionsPage.ts'),
+      },
       {
         path: '/admin/categories',
         title: 'Categories & Commissions — Explooro Admin',

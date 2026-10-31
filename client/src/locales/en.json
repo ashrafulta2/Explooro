@@ -704,7 +704,8 @@
       "language": "Language",
       "genie": "Popup effect",
       "recommendations": "Personalized feed",
-      "delivery": "Delivery charge"
+      "delivery": "Delivery charge",
+      "variant_options": "Variant Options"
     },
     "moderator": {
       "queue": "Product Moderation",
@@ -6000,7 +6001,34 @@
         "volume": "1 L",
         "capacity": "128 GB",
         "pack_size": "Pack of 3"
-      }
+      },
+      "not_offered": "This product's category does not offer \"{{option}}\". Untick it and use another option."
+    },
+    "variant_options": {
+      "title": "Variant options",
+      "subtitle": "Choose which kinds of options suppliers can offer in each category, e.g. only weight and pack size for groceries.",
+      "card_title": "Options per category",
+      "card_desc": "A category without a list of its own follows its parent. With no list anywhere, every option is offered. Suppliers' product forms show only the options their category offers, and the server refuses any other.",
+      "changed": "Last changed {{when}}",
+      "never_changed": "Never changed: every category offers every option.",
+      "col_category": "Category",
+      "col_own": "Own list",
+      "inactive": "inactive",
+      "own_label": "{{name}} has its own list",
+      "follows_parent": "follows its parent",
+      "all_by_default": "all options",
+      "need_one": "Keep at least one option. To allow all, untick \"Own list\".",
+      "reason": "Reason for this change",
+      "reason_hint": "At least {{min}} characters. Saved in the audit log.",
+      "saved": "Variant options saved.",
+      "view_only": "You can view these options. Changing them needs the \"Manage categories\" permission.",
+      "history_title": "Change history",
+      "history_empty": "No changes yet.",
+      "all_everywhere": "every option everywhere",
+      "col_when": "When",
+      "col_who": "Who",
+      "col_change": "Change",
+      "col_reason": "Reason"
     }
   },
   "customer_returns": {

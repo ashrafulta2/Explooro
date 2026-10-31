@@ -18,3 +18,28 @@ export const MAX_VARIANT_DIMENSIONS = 3;
 
 /** What a new product's editor starts with: the two clothing shops use most. */
 export const DEFAULT_VARIANT_DIMENSIONS: VariantDimension[] = ['size', 'color'];
+
+/**
+ * Which options a category offers: its own entry, else its nearest parent's, else every option.
+ * The same rule as server/src/services/variantOptions.service.ts resolveFor (a server test runs both).
+ */
+export interface VariantOptionRules {
+  categories: Record<string, string[]>;
+}
+
+export function resolveFor(
+  rules: VariantOptionRules,
+  categoryId: number | string | null,
+  parentOf: Map<string, string | null>
+): VariantDimension[] {
+  const seen = new Set<string>();
+  let id = categoryId == null ? null : String(categoryId);
+  while (id && !seen.has(id)) {
+    seen.add(id);
+    const own = rules.categories[id];
+    if (own) return VARIANT_DIMENSIONS.filter((d) => own.includes(d));
+    id = parentOf.get(id) ?? null;
+  }
+  return [...VARIANT_DIMENSIONS];
+}
+

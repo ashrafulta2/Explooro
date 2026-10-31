@@ -43,6 +43,12 @@ export interface VariantEditorElement extends HTMLDivElement {
   setVariants(list: unknown[]): void;
   /** The product's current photos; a row whose photo was removed falls back to none. */
   setPhotos(photos: VariantPhoto[]): void;
+  /**
+   * The options the product's category offers (GET /catalog/variant-options). Others are hidden;
+   * one the stored rows already use stays visible and is reported by validate(), so nothing is
+   * dropped silently.
+   */
+  setAllowed(options: readonly string[]): void;
   /** True once the supplier changed anything, so an untouched form never rewrites variants. */
   isTouched(): boolean;
   /** A message for the first row the server would refuse, or null. Focuses that field. */
@@ -149,6 +155,7 @@ export function VariantEditor({
   let touched = false;
   let dims: VariantDimension[] = [...DEFAULT_VARIANT_DIMENSIONS];
   let photoList: VariantPhoto[] = [];
+  let allowed: VariantDimension[] = [...VARIANT_DIMENSIONS];
 
   const usablePhotos = () => photoList.filter((p) => /^\d+$/.test(String(p.id)));
 
@@ -263,6 +270,9 @@ export function VariantEditor({
       box.checked = dims.includes(d);
       // Unchecked boxes lock once the maximum is reached, so the limit is visible, not an error.
       box.disabled = !box.checked && dims.length >= MAX_VARIANT_DIMENSIONS;
+      const label = box.parentElement as HTMLLabelElement;
+      label.hidden = !allowed.includes(d) && !box.checked;
+      label.classList.toggle('variant-editor__dim--not-offered', !allowed.includes(d));
     }
     empty.textContent = t(pending ? 'common.loading' : 'admin_catalog.variants.empty');
     empty.hidden = rows.length > 0;
@@ -326,12 +336,29 @@ export function VariantEditor({
     list.querySelectorAll<HTMLElement>('.variant-editor__photo').forEach((w) => (w as any).refill?.());
   };
 
+  root.setAllowed = (options) => {
+    allowed = VARIANT_DIMENSIONS.filter((d) => options.includes(d));
+    if (!allowed.length) allowed = [...VARIANT_DIMENSIONS];
+    // A product with no rows yet starts from what its category offers, not from size + colour.
+    if (!read().length && !touched && dims.some((d) => !allowed.includes(d))) {
+      const fromDefault = DEFAULT_VARIANT_DIMENSIONS.filter((d) => allowed.includes(d));
+      dims = fromDefault.length ? fromDefault : [allowed[0]];
+    }
+    refresh();
+  };
+
   root.isTouched = () => touched;
   root.totalStock = () => sumStock(root.getVariants());
 
   root.validate = () => {
     const seen = new Set<string>();
-    for (const r of read()) {
+    const rows = read();
+    const notOffered = dims.find((d) => !allowed.includes(d));
+    if (notOffered && rows.length) {
+      dimChecks.get(notOffered)?.focus();
+      return t('admin_catalog.variants.not_offered', { option: dimLabel(notOffered) });
+    }
+    for (const r of rows) {
       const fail = (name: string, key: string) => {
         const el = r.el.querySelector<HTMLInputElement>(`[name="variant_${name}"]`);
         el?.setAttribute('aria-invalid', 'true');
