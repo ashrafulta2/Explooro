@@ -6,6 +6,7 @@
  */
 
 import * as controller from '../controllers/auth.controller.ts';
+import { SUPPLIER_TYPES } from '../services/profile.service.ts';
 
 const PHONE = { type: 'string', pattern: '^\\+8801[3-9]\\d{8}$', nullable: true };
 const EMAIL = { type: 'string', format: 'email', maxLength: 255, nullable: true };
@@ -28,6 +29,8 @@ export default async function authRoutes(app) {
           password: { type: 'string', minLength: 8, maxLength: 128, nullable: true },
           full_name: { type: 'string', minLength: 1, maxLength: 200, nullable: true },
           role: SELF_SERVICE_ROLE,
+          // Kept only when role is supplier (auth.service registerUser).
+          supplier_type: { type: 'string', enum: SUPPLIER_TYPES, nullable: true },
           referral_code: { type: 'string', minLength: 3, maxLength: 60, nullable: true },
         },
         anyOf: [{ required: ['phone'] }, { required: ['email'] }],

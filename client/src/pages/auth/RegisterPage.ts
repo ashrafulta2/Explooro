@@ -101,6 +101,7 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
       roleCards.forEach((c, idx) => {
         c.dataset.selected = roles[idx].key === selectedRole ? 'true' : 'false';
       });
+      updateSupplierTypeUi();
     });
 
     return cardEl;
@@ -108,6 +109,39 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
 
   rolesGrid.append(...roleCards);
   roleSection.append(roleLabel, rolesGrid);
+
+  // Business type — asked only of a supplier, and required then, so every new supplier starts with
+  // one. It can be changed later on /account/profile. Mirrors profile.service.ts SUPPLIER_TYPES.
+  const SUPPLIER_TYPES = ['MANUFACTURER', 'DISTRIBUTOR', 'TRADER'];
+  const supplierTypeField = document.createElement('div');
+  supplierTypeField.className = 'auth-field';
+  const supplierTypeLabel = document.createElement('label');
+  supplierTypeLabel.className = 'auth-field__label';
+  supplierTypeLabel.htmlFor = 'register-supplier-type';
+  supplierTypeLabel.textContent = t('auth.register.supplier_type_label');
+  const supplierTypeSelect = document.createElement('select');
+  supplierTypeSelect.id = 'register-supplier-type';
+  supplierTypeSelect.className = 'auth-field__input';
+  const supplierTypePlaceholder = document.createElement('option');
+  supplierTypePlaceholder.value = '';
+  supplierTypePlaceholder.textContent = t('auth.register.supplier_type_placeholder');
+  supplierTypePlaceholder.disabled = true;
+  supplierTypePlaceholder.selected = true;
+  supplierTypeSelect.append(supplierTypePlaceholder);
+  SUPPLIER_TYPES.forEach((type) => {
+    const opt = document.createElement('option');
+    opt.value = type;
+    opt.textContent = t(`profile.supplier_type_${type.toLowerCase()}`, type);
+    supplierTypeSelect.append(opt);
+  });
+  supplierTypeField.append(supplierTypeLabel, supplierTypeSelect);
+
+  function updateSupplierTypeUi() {
+    const isSupplier = selectedRole === 'supplier';
+    supplierTypeField.style.display = isSupplier ? 'flex' : 'none';
+    supplierTypeSelect.required = isSupplier;
+  }
+  updateSupplierTypeUi();
 
   // Phone Field
   const phoneField = document.createElement('div');
@@ -280,6 +314,7 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
         phone: phone || undefined,
         email: email || undefined,
         role: selectedRole,
+        supplierType: selectedRole === 'supplier' ? supplierTypeSelect.value || undefined : undefined,
         name,
         password,
         referralCode: referralInput.value.trim() || undefined,
@@ -307,7 +342,7 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
     }
   });
 
-  form.append(roleSection, phoneField, emailField, nameField, passwordField, referralField, errorDiv, submitBtn);
+  form.append(roleSection, supplierTypeField, phoneField, emailField, nameField, passwordField, referralField, errorDiv, submitBtn);
 
   // Footer / Login link
   const footer = document.createElement('div');

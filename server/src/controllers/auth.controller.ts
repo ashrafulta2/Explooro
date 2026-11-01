@@ -78,8 +78,16 @@ function loginResponseBody(result) {
 
 export async function register(req, reply) {
   const { db, cache } = req.server;
-  const { phone, email, password, full_name: fullName, role, referral_code: referralCode } = req.body;
-  const user = await authService.registerUser(db, { phone, email, password, fullName, role });
+  const {
+    phone,
+    email,
+    password,
+    full_name: fullName,
+    role,
+    supplier_type: supplierType,
+    referral_code: referralCode,
+  } = req.body;
+  const user = await authService.registerUser(db, { phone, email, password, fullName, role, supplierType });
 
   // WHY best-effort: a bad, expired or fraud-flagged code must never cost someone their account.
   // The refusal is recorded by the engine (FRAUD_FLAGGED row) and the signup carries on.

@@ -181,7 +181,7 @@ describe('Profile payload validation (buildProfileUpdate)', () => {
     );
   });
 
-  test('the supplier types match migration 100, the profile page and the mock', () => {
+  test('the supplier types match migration 100, the profile and sign-up pages, and the mock', () => {
     const listIn = (path, re) => {
       const match = readFileSync(new URL(path, import.meta.url), 'utf8').match(re);
       assert.ok(match, `no supplier type list found in ${path}`);
@@ -190,6 +190,7 @@ describe('Profile payload validation (buildProfileUpdate)', () => {
     const expected = [...profileService.SUPPLIER_TYPES].sort();
     assert.deepEqual(listIn('../src/db/migrations/100_supplier_type.sql', /supplier_type IN \(([^)]*)\)/), expected);
     assert.deepEqual(listIn('../../client/src/pages/settings/ProfilePage.ts', /SUPPLIER_TYPES = \[([^\]]*)\]/), expected);
+    assert.deepEqual(listIn('../../client/src/pages/auth/RegisterPage.ts', /SUPPLIER_TYPES = \[([^\]]*)\]/), expected);
     assert.deepEqual(listIn('../../client/src/mocks/handlers/me.ts', /SUPPLIER_TYPES = \[([^\]]*)\]/), expected);
   });
 

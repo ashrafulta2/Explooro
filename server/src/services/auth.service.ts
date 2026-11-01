@@ -17,6 +17,7 @@ import { AppError } from '../plugins/errorHandler.ts';
 import { checkBucket } from '../lib/rateBucket.ts';
 import * as userRepo from '../repositories/user.repository.ts';
 import * as rbacService from './rbac.service.ts';
+import { SUPPLIER_TYPES } from './profile.service.ts';
 import {
   generateSecret,
   buildOtpauthUri,
@@ -129,7 +130,7 @@ async function completeLogin(db, cache, config, user, { ip, userAgent }) {
 // Mirrors auth.routes.ts's SELF_SERVICE_ROLE enum — kept in sync there, not re-validated here.
 const SELF_SERVICE_ROLES = new Set(['customer', 'saler', 'supplier']);
 
-export async function registerUser(db, { phone, email, password, fullName, role }) {
+export async function registerUser(db, { phone, email, password, fullName, role, supplierType = null }) {
   if (!phone && !email) {
     throw new AppError(
       'VALIDATION_FAILED',
@@ -168,8 +169,10 @@ export async function registerUser(db, { phone, email, password, fullName, role 
     email: email ? email.toLowerCase().trim() : null,
     passwordHash,
   });
-  await userRepo.createUserProfile(db, { userId: user.id, fullName });
   const roleKey = SELF_SERVICE_ROLES.has(role) ? role : 'customer';
+  // Same rule as profile.service.ts: a business type belongs to a supplier, anyone else's is dropped.
+  const keptSupplierType = roleKey === 'supplier' && SUPPLIER_TYPES.includes(supplierType) ? supplierType : null;
+  await userRepo.createUserProfile(db, { userId: user.id, fullName, supplierType: keptSupplierType });
   await userRepo.assignRole(db, { userId: user.id, roleKey });
 
   await writeAudit(db, {
@@ -182,6 +185,7 @@ export async function registerUser(db, { phone, email, password, fullName, role 
       email: email ? email.toLowerCase().trim() : null,
       has_password: Boolean(password),
       role: roleKey,
+      supplier_type: keptSupplierType,
     },
   });
 

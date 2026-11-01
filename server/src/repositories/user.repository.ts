@@ -42,11 +42,11 @@ export async function createUser(db, { ref, phone = null, email = null, password
   return rows[0];
 }
 
-export async function createUserProfile(db, { userId, fullName = null }) {
+export async function createUserProfile(db, { userId, fullName = null, supplierType = null }) {
   await db.query(
-    `INSERT INTO user_profiles (user_id, full_name, display_name) VALUES ($1, $2, $2)
+    `INSERT INTO user_profiles (user_id, full_name, display_name, supplier_type) VALUES ($1, $2, $2, $3)
      ON CONFLICT (user_id) DO NOTHING`,
-    [userId, fullName]
+    [userId, fullName, supplierType]
   );
 }
 

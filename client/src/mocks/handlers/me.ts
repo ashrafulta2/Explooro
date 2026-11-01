@@ -90,7 +90,7 @@ function seedProfile() {
     bio: '',
     timezone: 'Asia/Dhaka',
     use_bengali_numerals: false,
-    supplier_type: null,
+    supplier_type: user?.supplier_type ?? null,
   };
 }
 

@@ -77,8 +77,8 @@ class MockDb {
 
     // INSERT INTO user_profiles
     if (s.startsWith('INSERT INTO user_profiles')) {
-      const [userId, fullName] = params;
-      const profile = { user_id: userId, full_name: fullName, display_name: fullName };
+      const [userId, fullName, supplierType = null] = params;
+      const profile = { user_id: userId, full_name: fullName, display_name: fullName, supplier_type: supplierType };
       this.profiles.push(profile);
       return { rows: [profile] };
     }
@@ -284,6 +284,32 @@ describe('Dual Mobile Number & Email Address Registration System', () => {
     assert.ok(user);
     assert.equal(user.phone, '+8801712345678');
     assert.equal(user.email, null);
+  });
+
+  test('2a. A supplier signing up records their business type on the profile', async () => {
+    const user = await authService.registerUser(db, {
+      phone: '+8801812345601',
+      password: 'StrongPassword123!',
+      fullName: 'Rahim Textiles',
+      role: 'supplier',
+      supplierType: 'MANUFACTURER',
+    });
+
+    const profile = db.profiles.find((p) => p.user_id === user.id);
+    assert.equal(profile.supplier_type, 'MANUFACTURER');
+  });
+
+  test('2b. A business type sent with any other role is dropped', async () => {
+    const user = await authService.registerUser(db, {
+      phone: '+8801812345602',
+      password: 'StrongPassword123!',
+      fullName: 'Nusrat Jahan',
+      role: 'customer',
+      supplierType: 'TRADER',
+    });
+
+    const profile = db.profiles.find((p) => p.user_id === user.id);
+    assert.equal(profile.supplier_type, null);
   });
 
   test('3. Registration without phone AND without email is rejected with VALIDATION_FAILED', async () => {

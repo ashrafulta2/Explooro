@@ -276,6 +276,8 @@ export default [
         email: email || `${role}@explooro.local`,
         name,
         roles: [role],
+        // Read by handlers/me.ts when it seeds this user's profile; kept for suppliers only, as on the server.
+        supplier_type: role === 'supplier' ? body?.supplier_type || null : null,
       };
 
       setCurrentMockUser(user);
