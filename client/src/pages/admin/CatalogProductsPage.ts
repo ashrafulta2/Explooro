@@ -238,7 +238,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     label: t('admin_catalog.add_product', '+ Add New Product'),
     variant: 'primary',
     size: 'sm',
-    onClick: () => openAddProductModal(),
+    onClick: () => openAddProductPage(),
   });
 
   headerActions.append(exportBtn, addProductBtn);
@@ -963,9 +963,11 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
   }
 
   // ---------------------------------------------------------------------------
-  // 6. Add Product Modal
+  // 6. Add Product — full page (was a modal; a dedicated screen is far easier to
+  //    fill in than a cramped popup, especially the photo uploader and the two
+  //    bilingual description boxes).
   // ---------------------------------------------------------------------------
-  function openAddProductModal() {
+  function openAddProductPage() {
     const form = document.createElement('form');
     form.className = 'catalog-form';
     form.style.display = 'flex';
@@ -1050,17 +1052,22 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     };
     fillCategoryOptions(form.querySelector('select[name="category_id"]')).then(afterCategories, afterCategories);
 
-    const modalFooter = document.createElement('div');
-    modalFooter.style.display = 'flex';
-    modalFooter.style.justifyContent = 'flex-end';
-    modalFooter.style.gap = 'var(--space-2)';
-    modalFooter.style.width = '100%';
+    // The create screen replaces the catalog list in place: the list is hidden while the form is
+    // open and restored (and reloaded on success) on close, so no router/permission plumbing changes.
+    const createPage = document.createElement('div');
+    createPage.className = 'catalog-create';
+
+    function closeCreatePage() {
+      createPage.remove();
+      container.style.display = '';
+      window.scrollTo({ top: 0 });
+    }
 
     const cancelBtn = Button({
       label: t('common.cancel', 'Cancel'),
       variant: 'secondary',
       size: 'sm',
-      onClick: () => modal.close(),
+      onClick: () => closeCreatePage(),
     });
 
     const submitBtn = Button({
@@ -1138,7 +1145,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
             }
           }
           toast.success(t('admin_catalog.product_created_success', 'Product registered in catalog!'));
-          modal.close();
+          closeCreatePage();
           await loadData();
         } catch (err) {
           toast.error(err.message || 'Failed to create product.');
@@ -1156,17 +1163,45 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     form.addEventListener('input', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
     form.addEventListener('change', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
 
-    modalFooter.append(cancelBtn, submitBtn);
-
-    const modal = Modal({
-      title: t('admin_catalog.modal_add_title', 'Register New Product in Catalog'),
-      description: t('admin_catalog.modal_add_subtitle', 'Add new supplier listing with verified pricing and commercial profit split.'),
-      content: form,
-      footer: modalFooter,
-      size: 'lg',
+    const backBtn = Button({
+      label: `← ${t('admin_catalog.back_to_catalog', 'Back to catalog')}`,
+      variant: 'ghost',
+      size: 'sm',
+      onClick: () => closeCreatePage(),
     });
 
-    modal.open();
+    const topbar = document.createElement('div');
+    topbar.className = 'catalog-create__topbar';
+    topbar.append(backBtn);
+
+    const head = document.createElement('div');
+    head.className = 'catalog-create__head';
+    const headTitle = document.createElement('h1');
+    headTitle.className = 'catalog-create__title';
+    headTitle.textContent = t('admin_catalog.modal_add_title', 'Register New Product in Catalog');
+    const headSubtitle = document.createElement('p');
+    headSubtitle.className = 'catalog-create__subtitle';
+    headSubtitle.textContent = t(
+      'admin_catalog.modal_add_subtitle',
+      'Add new supplier listing with verified pricing and commercial profit split.'
+    );
+    head.append(headTitle, headSubtitle);
+
+    const card = document.createElement('div');
+    card.className = 'catalog-create__card';
+    card.append(head, form);
+
+    const footer = document.createElement('div');
+    footer.className = 'catalog-create__footer';
+    footer.append(cancelBtn, submitBtn);
+
+    createPage.append(topbar, card, footer);
+
+    // Swap the list out for the form, scroll to the top, and move focus to the first field.
+    container.style.display = 'none';
+    root.appendChild(createPage);
+    window.scrollTo({ top: 0 });
+    form.querySelector<HTMLInputElement>('input[name="title_en"]')?.focus();
   }
 
   // ---------------------------------------------------------------------------
@@ -1867,6 +1902,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
 
   return {
     destroy() {
+      // The add-product screen is appended to root beside the list, so clear it too on navigation.
+      root.querySelector('.catalog-create')?.remove();
       container.remove();
     },
   };

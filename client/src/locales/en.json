@@ -5885,6 +5885,7 @@
     "subtitle": "Oversee platform inventory, audit commercial margins, manage live supplier listings, and register new sample products.",
     "export_csv": "Export CSV",
     "add_product": "+ Add New Product",
+    "back_to_catalog": "Back to catalog",
     "kpi_total_products": "Total Products",
     "kpi_categories_active": "Active Categories",
     "kpi_in_stock": "In-Stock & Live",
