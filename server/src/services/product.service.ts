@@ -556,6 +556,8 @@ export async function getProductDetail(db, idOrRefOrSlug) {
     ref: supplier.ref,
     name: supplier.display_name || supplier.full_name,
     district: supplier.district,
+    // MANUFACTURER / DISTRIBUTOR / TRADER, or null while the supplier has not said (migration 100).
+    supplier_type: supplier.supplier_type ?? null,
     tier,
     is_verified: tier !== 'STARTER',
     trust_score: supplier.score,

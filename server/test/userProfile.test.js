@@ -194,6 +194,17 @@ describe('Profile payload validation (buildProfileUpdate)', () => {
     assert.deepEqual(listIn('../../client/src/mocks/handlers/me.ts', /SUPPLIER_TYPES = \[([^\]]*)\]/), expected);
   });
 
+  test('every supplier type has a short label in both locales, for the product card and admin screens', () => {
+    for (const locale of ['en', 'bn']) {
+      const dict = JSON.parse(readFileSync(new URL(`../../client/src/locales/${locale}.json`, import.meta.url), 'utf8'));
+      for (const type of profileService.SUPPLIER_TYPES) {
+        const label = dict.supplier_type?.[type.toLowerCase()];
+        assert.ok(typeof label === 'string' && label.trim(), `${locale}.json is missing supplier_type.${type.toLowerCase()}`);
+      }
+      assert.ok(dict.supplier_type?.label && dict.supplier_type?.not_set, `${locale}.json is missing supplier_type.label/not_set`);
+    }
+  });
+
   test('locale and ui_mode are restricted to their CHECK constraints', () => {
     assert.throws(() => profileService.buildProfileUpdate(VALID_PAYLOAD({ locale: 'fr' })), /Unsupported language/);
     assert.throws(

@@ -249,7 +249,7 @@ export async function insertProductImages(db, productId, mediaIds) {
 /** Supplier trust tier + a handful of profile fields for the product detail page's supplier card. */
 export async function getSupplierInfo(db, supplierId) {
   const { rows } = await db.query(
-    `SELECT u.id, u.ref, up.display_name, up.full_name, up.district,
+    `SELECT u.id, u.ref, up.display_name, up.full_name, up.district, up.supplier_type,
             ts.tier, ts.score, ts.completed_orders
      FROM users u
      LEFT JOIN user_profiles up ON up.user_id = u.id

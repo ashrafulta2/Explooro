@@ -322,6 +322,15 @@ export default function UserDetailPage(root: HTMLElement, { params = {}, navigat
       field(t('user_detail.field_address', 'Address'), userData.address_line || '—'),
       field(t('user_detail.field_registered', 'Registered On'), fmtDate(userData.created_at)),
     );
+    const isSupplier = (userData.roles || []).some((r) => (typeof r === 'string' ? r : r?.key) === 'supplier');
+    if (isSupplier) {
+      grid.append(field(
+        t('supplier_type.label', 'Business type'),
+        userData.supplier_type
+          ? t(`supplier_type.${String(userData.supplier_type).toLowerCase()}`, userData.supplier_type)
+          : t('supplier_type.not_set', 'Not set yet'),
+      ));
+    }
     pane.append(grid);
   }
 

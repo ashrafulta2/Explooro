@@ -8334,5 +8334,12 @@
     "eta_days": "{{min}}–{{max}} days",
     "eta_days_one": "{{n}} days",
     "eta_same_day": "Same day"
+  },
+  "supplier_type": {
+    "label": "Business type",
+    "not_set": "Not set yet",
+    "manufacturer": "Manufacturer",
+    "distributor": "Distributor",
+    "trader": "Trader"
   }
 }

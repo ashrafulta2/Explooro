@@ -97,6 +97,14 @@ function supplierCard(supplier, lang) {
   }
   card.append(nameRow);
 
+  // Manufacturer / Distributor / Trader, as the supplier chose it. Nothing is shown until they do.
+  if (supplier.supplier_type) {
+    const type = document.createElement('p');
+    type.className = 'supplier-card__type';
+    type.textContent = t(`supplier_type.${String(supplier.supplier_type).toLowerCase()}`, supplier.supplier_type);
+    card.append(type);
+  }
+
   if (supplier.tier) {
     const tier = document.createElement('span');
     tier.className = 'badge badge--tier badge--sm';

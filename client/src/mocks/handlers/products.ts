@@ -133,13 +133,19 @@ function sharePcts(pool, margin) {
   return { pool_share_pct: poolPct, platform_share_pct: Number((100 - poolPct).toFixed(2)) };
 }
 
+// The fourth slot is null: a supplier who has not chosen yet, which the product card must handle.
+const MOCK_SUPPLIER_TYPES = ['MANUFACTURER', 'DISTRIBUTOR', 'TRADER', null];
+
 export function synthesizeSupplier(product) {
   const store = stores.find((s) => s.ref === product.store_ref);
   const tier = product.supplier_tier || 'standard';
+  // Derived from the store ref so the same supplier always shows the same type.
+  const refSum = [...String(product.store_ref || '')].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
   return {
     ref: product.store_ref,
     name: store?.name_en || `${product.district} Supplier Co.`,
     district: store?.district || product.district,
+    supplier_type: MOCK_SUPPLIER_TYPES[refSum % MOCK_SUPPLIER_TYPES.length],
     tier,
     is_verified: tier !== 'standard',
     response_time_en: RESPONSE_TIME_BY_TIER[tier]?.en,

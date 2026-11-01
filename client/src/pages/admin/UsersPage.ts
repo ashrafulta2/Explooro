@@ -111,6 +111,7 @@ export default function UsersPage(root: HTMLElement, { navigate }: PageContext =
       'Phone',
       'Email',
       'Role',
+      'Supplier Type',
       'District',
       'Status',
       'Active Restrictions',
@@ -123,6 +124,7 @@ export default function UsersPage(root: HTMLElement, { navigate }: PageContext =
       csvCell(u.phone || ''),
       csvCell(u.email || ''),
       csvCell(u.role_label_en || u.role_key || ''),
+      csvCell(u.supplier_type || ''),
       csvCell(u.district || ''),
       csvCell(u.status || ''),
       csvCell(u.active_restrictions_count || 0),
@@ -618,6 +620,15 @@ export default function UsersPage(root: HTMLElement, { navigate }: PageContext =
       const roleVariant = getRoleBadgeVariant(u.role_key);
       const roleBadge = Badge({ label: roleLabel, variant: roleVariant });
       tdRole.append(roleBadge);
+      // A supplier's business type (migration 100) under the role, or "Not set yet" until they choose.
+      if (u.role_key === 'supplier') {
+        const typeLine = document.createElement('div');
+        typeLine.className = 'admin-users-subline';
+        typeLine.textContent = u.supplier_type
+          ? t(`supplier_type.${String(u.supplier_type).toLowerCase()}`, u.supplier_type)
+          : t('supplier_type.not_set', 'Not set yet');
+        tdRole.append(typeLine);
+      }
 
       // 4. District
       const tdDistrict = document.createElement('td');

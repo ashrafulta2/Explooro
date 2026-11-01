@@ -313,6 +313,7 @@ const mockUserRoster = [
     id: 3, ref: 'USR-9K4P8ZN2', phone: '+8801711000003', email: 'karim.textiles@ctg.bd',
     full_name: 'Karim Textile Mills', role_key: 'supplier', role_label_en: 'Supplier', role_label_bn: 'সাপ্লায়ার',
     tier: 'VERIFIED_SUPPLIER', district: 'Chittagong', division: 'Chattogram', address_line: 'Plot 19, Nasirabad I/A',
+    supplier_type: 'MANUFACTURER',
     status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 0,
     orders_count: 310, gmv_bdt: 980000, created_at: '2026-01-20T08:15:00Z',
     wallet_balance_bdt: 214300.00, escrow_held_bdt: 58200.00,

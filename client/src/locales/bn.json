@@ -8334,5 +8334,12 @@
     "eta_days": "{{min}}–{{max}} দিন",
     "eta_days_one": "{{n}} দিন",
     "eta_same_day": "একই দিনে"
+  },
+  "supplier_type": {
+    "label": "ব্যবসার ধরন",
+    "not_set": "এখনো জানানো হয়নি",
+    "manufacturer": "প্রস্তুতকারক",
+    "distributor": "পরিবেশক",
+    "trader": "ব্যবসায়ী"
   }
 }

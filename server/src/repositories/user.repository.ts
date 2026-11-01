@@ -277,7 +277,7 @@ export async function listUsersForAdmin(
 
   const { rows } = await db.query(
     `SELECT u.id, u.ref, u.phone, u.email, u.status, u.is_phone_verified, u.is_email_verified, u.last_login_at, u.created_at,
-            up.full_name, up.display_name, up.district, up.division,
+            up.full_name, up.display_name, up.district, up.division, up.supplier_type,
             r.key AS role_key, r.label_en AS role_label_en, r.label_bn AS role_label_bn,
             (SELECT COUNT(*) FROM user_restrictions ur WHERE ur.subject_type = 'USER' AND ur.subject_ref = u.ref AND ur.lifted_at IS NULL AND (ur.expires_at IS NULL OR ur.expires_at > now()))::int AS active_restrictions_count
      FROM users u
@@ -296,8 +296,8 @@ export async function listUsersForAdmin(
 export async function getUserDetailForAdmin(db, userIdOrRef) {
   const isNumeric = /^\d+$/.test(String(userIdOrRef));
   const querySql = isNumeric
-    ? 'SELECT u.*, up.full_name, up.display_name, up.district, up.division, up.address_line, up.postal_code, up.bio FROM users u LEFT JOIN user_profiles up ON up.user_id = u.id WHERE u.id = $1 AND u.deleted_at IS NULL'
-    : 'SELECT u.*, up.full_name, up.display_name, up.district, up.division, up.address_line, up.postal_code, up.bio FROM users u LEFT JOIN user_profiles up ON up.user_id = u.id WHERE u.ref = $1 AND u.deleted_at IS NULL';
+    ? 'SELECT u.*, up.full_name, up.display_name, up.district, up.division, up.address_line, up.postal_code, up.bio, up.supplier_type FROM users u LEFT JOIN user_profiles up ON up.user_id = u.id WHERE u.id = $1 AND u.deleted_at IS NULL'
+    : 'SELECT u.*, up.full_name, up.display_name, up.district, up.division, up.address_line, up.postal_code, up.bio, up.supplier_type FROM users u LEFT JOIN user_profiles up ON up.user_id = u.id WHERE u.ref = $1 AND u.deleted_at IS NULL';
 
   const { rows } = await db.query(querySql, [userIdOrRef]);
   if (!rows[0]) return null;
