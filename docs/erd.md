@@ -159,6 +159,7 @@ CREATE TABLE user_profiles (
   timezone            TEXT NOT NULL DEFAULT 'Asia/Dhaka',
   use_bengali_numerals BOOLEAN NOT NULL DEFAULT false,
   department          TEXT CHECK (department IS NULL OR char_length(department) <= 120), -- staff only; migration 048
+  supplier_type       TEXT CHECK (supplier_type IS NULL OR supplier_type IN ('MANUFACTURER','DISTRIBUTOR','TRADER')), -- suppliers only; migration 100
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at          TIMESTAMPTZ
 );

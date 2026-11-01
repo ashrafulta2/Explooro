@@ -48,6 +48,9 @@ const ACCEPTED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/a
 
 const GENDERS = ['UNSPECIFIED', 'MALE', 'FEMALE', 'OTHER'];
 
+// Mirrors profile.service.ts SUPPLIER_TYPES. Shown only to an account holding the supplier role.
+const SUPPLIER_TYPES = ['MANUFACTURER', 'DISTRIBUTOR', 'TRADER'];
+
 // A short, honest list rather than the full IANA database: this product ships in Bangladesh, and
 // the diaspora entries below cover where its users actually are.
 const TIMEZONES = [
@@ -423,6 +426,33 @@ export default function ProfilePage(root: HTMLElement, { navigate }: PageContext
     );
   }
 
+  function isSupplier() {
+    return (saved.roles || []).some((role) => (typeof role === 'string' ? role : role?.key) === 'supplier');
+  }
+
+  function buildBusinessCard() {
+    fields.supplier_type = Select({
+      label: t('profile.field_supplier_type', 'Business type'),
+      hint: t('profile.hint_supplier_type', 'Do you make the products, distribute a brand, or buy and resell?'),
+      placeholder: t('profile.select_supplier_type', 'Select your business type'),
+      value: saved.supplier_type || '',
+      options: SUPPLIER_TYPES.map((type) => ({
+        value: type,
+        label: t(`profile.supplier_type_${type.toLowerCase()}`, type),
+      })),
+      onChange: markDirty,
+    });
+    fields.supplier_type.classList.add('profile-card__field--wide');
+
+    return labelledSection(
+      'profile.section_business',
+      'Business',
+      'profile.section_business_desc',
+      'What kind of supplier you are.',
+      [fields.supplier_type]
+    );
+  }
+
   function verificationBadge(verified) {
     const wrap = document.createElement('span');
     wrap.className = 'profile-verify';
@@ -731,6 +761,9 @@ export default function ProfilePage(root: HTMLElement, { navigate }: PageContext
     // key entirely means "unchanged" on both paths; `null` still means "remove my photo".
     if (pendingAvatar !== undefined) payload.avatar_media_id = currentAvatarId();
 
+    // Only a supplier sees the field; the server drops it for everyone else anyway.
+    if (fields.supplier_type) payload.supplier_type = fields.supplier_type.value || null;
+
     return payload;
   }
 
@@ -845,7 +878,12 @@ export default function ProfilePage(root: HTMLElement, { navigate }: PageContext
 
     const col1 = document.createElement('div');
     col1.className = 'profile-grid__col';
-    col1.append(buildPersonalCard(), buildLocationCard());
+    // Cleared first: render() runs again after a save, and a stale entry would keep a detached
+    // select feeding collectPayload if the account lost the supplier role in between.
+    delete fields.supplier_type;
+    col1.append(buildPersonalCard());
+    if (isSupplier()) col1.append(buildBusinessCard());
+    col1.append(buildLocationCard());
 
     const col2 = document.createElement('div');
     col2.className = 'profile-grid__col';

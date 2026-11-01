@@ -24,6 +24,8 @@ import * as auditService from './audit.service.ts';
 export const GENDERS = ['MALE', 'FEMALE', 'OTHER', 'UNSPECIFIED'];
 export const LOCALES = ['bn', 'en'];
 export const UI_MODES = ['simple', 'advanced'];
+// Mirrors migration 100's CHECK. A supplier picks one of these; every other account keeps NULL.
+export const SUPPLIER_TYPES = ['MANUFACTURER', 'DISTRIBUTOR', 'TRADER'];
 
 // Bangladesh's own minimum for an independent commercial account. Enforced here rather than in the
 // browser because the birth date drives age-gated campaigns later.
@@ -156,6 +158,16 @@ export function buildProfileUpdate(payload: Record<string, any> = {}) {
     profile.use_bengali_numerals = Boolean(payload.use_bengali_numerals);
   }
 
+  // Whether the caller may set it at all (supplier role only) is decided by updateMyProfile, which
+  // knows the roles; this pure function only checks the value.
+  if ('supplier_type' in payload) {
+    const supplierType = payload.supplier_type ? String(payload.supplier_type).toUpperCase() : null;
+    if (supplierType && !SUPPLIER_TYPES.includes(supplierType)) {
+      fail('Select a valid business type.', 'সঠিক ব্যবসার ধরন নির্বাচন করুন।', 'supplier_type');
+    }
+    profile.supplier_type = supplierType;
+  }
+
   if ('avatar_media_id' in payload) {
     const raw = payload.avatar_media_id;
     if (raw === null || raw === '' || raw === undefined) {
@@ -230,6 +242,7 @@ function presentProfile(row, piiKey) {
     bio: row.bio,
     timezone: row.timezone || 'Asia/Dhaka',
     use_bengali_numerals: Boolean(row.use_bengali_numerals),
+    supplier_type: row.supplier_type ?? null,
   };
 }
 
@@ -246,6 +259,14 @@ export async function updateMyProfile(db, config, userId, payload: Record<string
   if (!current) throw new AppError('NOT_FOUND', 'Account not found.', 'অ্যাকাউন্ট পাওয়া যায়নি।');
 
   const { profile, account } = buildProfileUpdate(payload);
+
+  // WHY dropped, not rejected: the business type describes a supplier's business, so only a
+  // supplier may record one. A customer whose client echoes the whole GET payload back (with
+  // supplier_type: null) must still get a clean save, the same as rule 1's dropped fields.
+  if ('supplier_type' in profile) {
+    const roles = await userRepo.getRolesForUser(db, userId);
+    if (!roles.some((r) => r.key === 'supplier')) delete profile.supplier_type;
+  }
 
   if (account.email && account.email !== String(current.email || '').toLowerCase()) {
     if (await userRepo.isEmailTakenByAnotherUser(db, account.email, userId)) {

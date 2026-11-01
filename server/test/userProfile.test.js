@@ -12,6 +12,7 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import Fastify from 'fastify';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 import meRoutes from '../src/routes/me.routes.ts';
@@ -76,7 +77,7 @@ const VALID_PAYLOAD = (over = {}) => ({
  * Mock pool whose `.connect()` shares the queryHandler, so `withTransaction()` runs its real
  * BEGIN/COMMIT path. `calls` records `{ sql, params }` in order.
  */
-function createMockDb({ profileRow = PROFILE_ROW(), emailTaken = false, avatarAsset = null } = {}) {
+function createMockDb({ profileRow = PROFILE_ROW(), emailTaken = false, avatarAsset = null, roles = ['customer'] } = {}) {
   const calls = [];
 
   async function query(sql, params = []) {
@@ -85,7 +86,7 @@ function createMockDb({ profileRow = PROFILE_ROW(), emailTaken = false, avatarAs
 
     if (/^(BEGIN|COMMIT|ROLLBACK)$/i.test(normalized)) return { rows: [] };
     if (/FROM users u LEFT JOIN user_profiles/i.test(normalized)) return { rows: [profileRow] };
-    if (/FROM user_roles|JOIN roles/i.test(normalized)) return { rows: [{ key: 'customer' }] };
+    if (/FROM user_roles|JOIN roles/i.test(normalized)) return { rows: roles.map((key) => ({ key })) };
     if (/SELECT 1 FROM users WHERE LOWER\(email\)/i.test(normalized)) {
       return { rows: emailTaken ? [{ '?column?': 1 }] : [] };
     }
@@ -166,6 +167,30 @@ describe('Profile payload validation (buildProfileUpdate)', () => {
       () => profileService.buildProfileUpdate(VALID_PAYLOAD({ gender: 'ROBOT' })),
       (err) => err.details?.field === 'gender'
     );
+  });
+
+  test('supplier_type is restricted to the column CHECK constraint, and empty clears it', () => {
+    assert.equal(
+      profileService.buildProfileUpdate(VALID_PAYLOAD({ supplier_type: 'manufacturer' })).profile.supplier_type,
+      'MANUFACTURER'
+    );
+    assert.equal(profileService.buildProfileUpdate(VALID_PAYLOAD({ supplier_type: '' })).profile.supplier_type, null);
+    assert.throws(
+      () => profileService.buildProfileUpdate(VALID_PAYLOAD({ supplier_type: 'WIZARD' })),
+      (err) => err.details?.field === 'supplier_type'
+    );
+  });
+
+  test('the supplier types match migration 100, the profile page and the mock', () => {
+    const listIn = (path, re) => {
+      const match = readFileSync(new URL(path, import.meta.url), 'utf8').match(re);
+      assert.ok(match, `no supplier type list found in ${path}`);
+      return [...match[1].matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]).sort();
+    };
+    const expected = [...profileService.SUPPLIER_TYPES].sort();
+    assert.deepEqual(listIn('../src/db/migrations/100_supplier_type.sql', /supplier_type IN \(([^)]*)\)/), expected);
+    assert.deepEqual(listIn('../../client/src/pages/settings/ProfilePage.ts', /SUPPLIER_TYPES = \[([^\]]*)\]/), expected);
+    assert.deepEqual(listIn('../../client/src/mocks/handlers/me.ts', /SUPPLIER_TYPES = \[([^\]]*)\]/), expected);
   });
 
   test('locale and ui_mode are restricted to their CHECK constraints', () => {
@@ -279,6 +304,24 @@ describe('updateMyProfile', () => {
     assert.ok(update, 'locale/ui_mode still write');
     assert.ok(!/is_email_verified/.test(update.sql), 'an unchanged email must not re-verify or un-verify');
     assert.ok(!/email = /.test(update.sql), 'and must not be rewritten at all');
+  });
+
+  test('a supplier records their business type', async () => {
+    const db = createMockDb({ roles: ['supplier'] });
+    await profileService.updateMyProfile(db, TEST_CONFIG, USER_ID, VALID_PAYLOAD({ supplier_type: 'DISTRIBUTOR' }));
+
+    const upsert = findCall(db, /INSERT INTO user_profiles/i);
+    assert.match(upsert.sql, /supplier_type/);
+    assert.ok(upsert.params.includes('DISTRIBUTOR'));
+  });
+
+  test('a non-supplier\'s business type is dropped, not written and not refused', async () => {
+    const db = createMockDb({ roles: ['customer'] });
+    await profileService.updateMyProfile(db, TEST_CONFIG, USER_ID, VALID_PAYLOAD({ supplier_type: 'MANUFACTURER' }));
+
+    const upsert = findCall(db, /INSERT INTO user_profiles/i);
+    assert.ok(upsert, 'the rest of the profile still saves');
+    assert.ok(!/supplier_type/.test(upsert.sql), 'supplier_type never reaches the repository');
   });
 
   test('an email already registered elsewhere is a CONFLICT, not a 500 from the unique index', async () => {

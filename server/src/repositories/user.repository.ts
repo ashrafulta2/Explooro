@@ -348,7 +348,7 @@ export async function getSelfProfile(db, userId) {
             u.status, u.locale, u.ui_mode, u.last_login_at, u.created_at,
             up.full_name, up.display_name, up.avatar_media_id, up.date_of_birth, up.gender,
             up.division, up.district, up.upazila, up.address_line, up.postal_code, up.bio,
-            up.timezone, up.use_bengali_numerals, up.updated_at AS profile_updated_at,
+            up.timezone, up.use_bengali_numerals, up.supplier_type, up.updated_at AS profile_updated_at,
             m.storage_key AS avatar_storage_key
        FROM users u
        LEFT JOIN user_profiles up ON up.user_id = u.id
@@ -374,6 +374,7 @@ export const SELF_PROFILE_COLUMNS = [
   'bio',
   'timezone',
   'use_bengali_numerals',
+  'supplier_type',
 ];
 
 /**

@@ -19,6 +19,7 @@ import type { MockRoute } from '../types.ts';
 const PROFILE_KEY = 'explooro.mock.profile';
 
 const GENDERS = ['MALE', 'FEMALE', 'OTHER', 'UNSPECIFIED'];
+const SUPPLIER_TYPES = ['MANUFACTURER', 'DISTRIBUTOR', 'TRADER'];
 
 // Editable columns, matching profile.service.ts's whitelist. Anything else in the body is dropped.
 const PROFILE_FIELDS = [
@@ -35,6 +36,7 @@ const PROFILE_FIELDS = [
   'bio',
   'timezone',
   'use_bengali_numerals',
+  'supplier_type',
 ];
 
 function loadStored() {
@@ -88,6 +90,7 @@ function seedProfile() {
     bio: '',
     timezone: 'Asia/Dhaka',
     use_bengali_numerals: false,
+    supplier_type: null,
   };
 }
 
@@ -156,6 +159,10 @@ export default [
         return validationError('Select a valid gender option.', 'সঠিক লিঙ্গ নির্বাচন করুন।', 'gender');
       }
 
+      if (payload.supplier_type && !SUPPLIER_TYPES.includes(String(payload.supplier_type).toUpperCase())) {
+        return validationError('Select a valid business type.', 'সঠিক ব্যবসার ধরন নির্বাচন করুন।', 'supplier_type');
+      }
+
       const email = payload.email ? String(payload.email).trim().toLowerCase() : null;
       if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
         return validationError('Enter a valid email address.', 'সঠিক ইমেইল ঠিকানা দিন।', 'email');
@@ -180,6 +187,10 @@ export default [
       next.full_name = fullName;
       next.display_name = String(payload.display_name ?? '').trim() || fullName;
       next.gender = payload.gender ? String(payload.gender).toUpperCase() : null;
+      // As in profile.service.ts: only a supplier's business type is kept.
+      const isSupplier = (current.roles || []).some((r) => (typeof r === 'string' ? r : r?.key) === 'supplier');
+      if (!isSupplier) next.supplier_type = current.supplier_type ?? null;
+      else if (next.supplier_type) next.supplier_type = String(next.supplier_type).toUpperCase();
       next.postal_code = postalCode;
       next.use_bengali_numerals = Boolean(payload.use_bengali_numerals);
       if (payload.locale) next.locale = String(payload.locale).toLowerCase();
