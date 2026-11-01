@@ -1353,17 +1353,21 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         /* list-row values stay in the form; saving still works for the fields shown */
       });
 
-    const modalFooter = document.createElement('div');
-    modalFooter.style.display = 'flex';
-    modalFooter.style.justifyContent = 'flex-end';
-    modalFooter.style.gap = 'var(--space-2)';
-    modalFooter.style.width = '100%';
+    // Same full-page treatment as Add: the edit form replaces the list in place rather than a popup.
+    const editPage = document.createElement('div');
+    editPage.className = 'catalog-create';
+
+    function closeEditPage() {
+      editPage.remove();
+      container.style.display = '';
+      window.scrollTo({ top: 0 });
+    }
 
     const cancelBtn = Button({
       label: t('common.cancel', 'Cancel'),
       variant: 'secondary',
       size: 'sm',
-      onClick: () => modal.close(),
+      onClick: () => closeEditPage(),
     });
 
     const saveBtn = Button({
@@ -1445,7 +1449,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
             await api.put(`/products/${encodeURIComponent(product.ref)}/variants`, { variants: variantEditor.getVariants() });
           }
           toast.success(t('admin_catalog.product_updated_success', 'Product updated successfully!'));
-          modal.close();
+          closeEditPage();
           await loadData();
         } catch (err) {
           toast.error(err.message || 'Failed to update product.');
@@ -1462,17 +1466,42 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     form.addEventListener('input', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
     form.addEventListener('change', (e) => (e.target as HTMLElement).removeAttribute?.('aria-invalid'));
 
-    modalFooter.append(cancelBtn, saveBtn);
-
-    const modal = Modal({
-      title: t('admin_catalog.modal_edit_title', 'Edit Product Listing'),
-      description: `Ref: ${product.ref}`,
-      content: form,
-      footer: modalFooter,
-      size: 'lg',
+    const backBtn = Button({
+      label: `← ${t('admin_catalog.back_to_catalog', 'Back to catalog')}`,
+      variant: 'ghost',
+      size: 'sm',
+      onClick: () => closeEditPage(),
     });
 
-    modal.open();
+    const topbar = document.createElement('div');
+    topbar.className = 'catalog-create__topbar';
+    topbar.append(backBtn);
+
+    const head = document.createElement('div');
+    head.className = 'catalog-create__head';
+    const headTitle = document.createElement('h1');
+    headTitle.className = 'catalog-create__title';
+    headTitle.textContent = t('admin_catalog.modal_edit_title', 'Edit Product Listing');
+    const headSubtitle = document.createElement('p');
+    headSubtitle.className = 'catalog-create__subtitle';
+    headSubtitle.textContent = `Ref: ${product.ref}`;
+    head.append(headTitle, headSubtitle);
+
+    const card = document.createElement('div');
+    card.className = 'catalog-create__card';
+    card.append(head, form);
+
+    const footer = document.createElement('div');
+    footer.className = 'catalog-create__footer';
+    footer.append(cancelBtn, saveBtn);
+
+    editPage.append(topbar, card, footer);
+
+    // Swap the list out for the form, scroll to the top, and move focus to the first field.
+    container.style.display = 'none';
+    root.appendChild(editPage);
+    window.scrollTo({ top: 0 });
+    form.querySelector<HTMLInputElement>('input[name="title_en"]')?.focus();
   }
 
   // ---------------------------------------------------------------------------
