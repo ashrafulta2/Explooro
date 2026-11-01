@@ -15,7 +15,6 @@
 import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { Drawer } from '../../components/ui/Drawer.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
 import { api } from '../../core/api.ts';
 import { previewPricing } from '../../services/catalog.api.ts';
@@ -77,7 +76,7 @@ function loadMarkupPolicy(): Promise<MarkupPolicy> {
  * markup for the category (retailMarkup.service.ts); this line is the same rule, previewed.
  * Returns a refresh function for when the fields are filled in code.
  */
-function wireRetailQuote(form: HTMLFormElement): () => void {
+function wireRetailQuote(form: HTMLFormElement, isSupplierView = false): () => void {
   const out = form.querySelector<HTMLElement>('[data-slot="payout"]');
   let policy: MarkupPolicy | null = null;
   const refresh = () => {
@@ -94,9 +93,14 @@ function wireRetailQuote(form: HTMLFormElement): () => void {
     const categoryId = form.querySelector<HTMLSelectElement>('[name="category_id"]')?.value;
     const markup = markupForCategory(policy, categoryId);
     const retail = retailFromSupplierPrice(price, markup, policy.round_to_bdt);
+    // WHY the supplier gate: the headline retail price is theirs to see, but HOW it is built — the
+    // platform's category markup and rounding — is an internal pricing rule only the admin needs.
+    // Suppliers get just "Customers will see: <price>"; admins keep the full explanation.
     const hintKey = policy.round_to_bdt > 0 ? 'admin_catalog.retail_hint' : 'admin_catalog.retail_hint_exact';
-    out.innerHTML = `${t('admin_catalog.retail_label')} <strong>${formatCurrency(retail.toFixed(2))}</strong>
-      <span class="catalog-form-hint">${t(hintKey, { price: formatCurrency(price.toFixed(2)), markup: formatNumber(markup), round: formatNumber(policy.round_to_bdt) })}</span>`;
+    const hint = isSupplierView
+      ? ''
+      : `<span class="catalog-form-hint">${t(hintKey, { price: formatCurrency(price.toFixed(2)), markup: formatNumber(markup), round: formatNumber(policy.round_to_bdt) })}</span>`;
+    out.innerHTML = `${t('admin_catalog.retail_label')} <strong>${formatCurrency(retail.toFixed(2))}</strong>${hint}`;
   };
   form.addEventListener('input', (e) => {
     if ((e.target as HTMLInputElement)?.name === 'supplier_price') refresh();
@@ -853,7 +857,9 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       </section>
 
       <section class="catalog-drawer__card">
-        <h4 class="catalog-drawer__card-title">${t('admin_catalog.financial_split_title', 'Commerce Margin & Settlement Split')}</h4>
+        <h4 class="catalog-drawer__card-title">${isSupplierView
+          ? t('admin_catalog.supplier_pricing_title', 'Product Pricing')
+          : t('admin_catalog.financial_split_title', 'Commerce Margin & Settlement Split')}</h4>
         <dl class="catalog-drawer__rows catalog-drawer__split"></dl>
       </section>
 
@@ -891,11 +897,16 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       mode: 'split',
     })
       .then((pr) => {
+        // WHY the supplier gate: the Shop Partner's earning and the platform's escrow fee are the
+        // downstream settlement split — none of the supplier's business. A supplier sees only the
+        // retail price and their own wholesale cost; the full split stays admin-only.
         splitEl.innerHTML =
           splitRow(t('admin_catalog.suggested_retail', 'Suggested Retail Price'), formatCurrency(retail), ' catalog-drawer__row--strong') +
           splitRow(t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost'), formatCurrency(pr.wholesale_cost)) +
-          splitRow(`💰 ${t('admin_catalog.saler_earning', { pct: formatNumber(pr.pool_share_pct ?? pr.saler_split_pct) })}`, formatCurrency(pr.saler_earning), ' catalog-drawer__row--earn') +
-          splitRow(t('admin_catalog.platform_fee', { pct: formatNumber(pr.platform_share_pct ?? pr.platform_split_pct) }), formatCurrency(pr.platform_earning), ' catalog-drawer__row--muted');
+          (isSupplierView
+            ? ''
+            : splitRow(`💰 ${t('admin_catalog.saler_earning', { pct: formatNumber(pr.pool_share_pct ?? pr.saler_split_pct) })}`, formatCurrency(pr.saler_earning), ' catalog-drawer__row--earn') +
+              splitRow(t('admin_catalog.platform_fee', { pct: formatNumber(pr.platform_share_pct ?? pr.platform_split_pct) }), formatCurrency(pr.platform_earning), ' catalog-drawer__row--muted'));
       })
       .catch(() => {
         splitEl.innerHTML =
@@ -906,15 +917,15 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     const heroImg = drawerContent.querySelector('.catalog-drawer-hero-img');
     if (heroImg) attachImageFallback(heroImg, primaryTitle, product.ref, 'catalog-drawer-hero-img catalog-drawer-hero-img--placeholder');
 
-    const drawerFooter = document.createElement('div');
-    drawerFooter.className = 'catalog-drawer__footer';
+    const modalFooter = document.createElement('div');
+    modalFooter.className = 'catalog-drawer__footer';
 
     const viewLiveBtn = Button({
       label: t('admin_catalog.view_marketplace', 'View on Storefront'),
       variant: 'secondary',
       size: 'sm',
       onClick: () => {
-        drawer.close();
+        modal.close();
         navigate?.(`/product/${product.ref}`);
       },
     });
@@ -924,24 +935,27 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       variant: 'primary',
       size: 'sm',
       onClick: () => {
-        drawer.close();
+        modal.close();
         openEditProductModal(product);
       },
     });
 
-    drawerFooter.append(viewLiveBtn, editBtn);
+    modalFooter.append(viewLiveBtn, editBtn);
 
-    const drawer = Drawer({
+    // WHY a centred Modal rather than a right-side Drawer: the slide-in panel hugged the screen edge
+    // and read as cramped, pulling the eye away from the content. The inspection is a self-contained
+    // read, so it belongs in a centred popup. Modal has no `removeOnClose`, so the node is removed in
+    // onClose — otherwise each inspect would leave a dead <dialog> stacked in the DOM.
+    const modal = Modal({
       title: t('admin_catalog.product_details', 'Product Inspection'),
       description: `SKU: ${product.ref}`,
       content: drawerContent,
-      footer: drawerFooter,
-      side: 'right',
+      footer: modalFooter,
       size: 'md',
-      removeOnClose: true,
+      onClose: () => modal.remove(),
     });
 
-    drawer.open();
+    modal.open();
   }
 
   // WHY: the product API takes a real category_id, not a display name — load the live list.
@@ -1043,7 +1057,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     uploader.setAttribute('aria-labelledby', 'add-images-label');
     form.querySelector('[data-slot="images"]').append(uploader);
 
-    const refreshQuote = wireRetailQuote(form);
+    const refreshQuote = wireRetailQuote(form, isSupplierView);
     const variantEditor = wireVariants(form);
     // The quote and the variant options both depend on the category, which exists once options load.
     const afterCategories = () => {
@@ -1181,10 +1195,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     headTitle.textContent = t('admin_catalog.modal_add_title', 'Register New Product in Catalog');
     const headSubtitle = document.createElement('p');
     headSubtitle.className = 'catalog-create__subtitle';
-    headSubtitle.textContent = t(
-      'admin_catalog.modal_add_subtitle',
-      'Add new supplier listing with verified pricing and commercial profit split.'
-    );
+    // WHY the supplier gate: "commercial profit split" is an internal settlement concept the
+    // supplier has no part in — same reason the split rows and the markup hint are admin-only.
+    // Suppliers get a plain description of what the form does; admins keep the full one.
+    headSubtitle.textContent = isSupplierView
+      ? t('admin_catalog.modal_add_subtitle_supplier', 'Add a new product to your catalog with your price per unit.')
+      : t('admin_catalog.modal_add_subtitle', 'Add new supplier listing with verified pricing and commercial profit split.');
     head.append(headTitle, headSubtitle);
 
     const card = document.createElement('div');
@@ -1292,7 +1308,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       field('description_bn').value = p.description_bn || '';
     };
     fillFields(product);
-    const refreshPayout = wireRetailQuote(form);
+    const refreshPayout = wireRetailQuote(form, isSupplierView);
     // Pending until the detail arrives: the list row never carries variants (see the fetch below).
     const variantEditor = wireVariants(form, { pending: true });
 
