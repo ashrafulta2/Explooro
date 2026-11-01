@@ -3,6 +3,7 @@
  */
 
 
+import { mockDeliveryChargeFor } from './delivery.ts';
 import type { MockRoute } from '../types.ts';
 
 let mockTeamPurchases: Record<string, any>[] = [
@@ -144,12 +145,13 @@ let mockTeamPurchases: Record<string, any>[] = [
 ];
 
 // Mirrors the group_buying module settings the server reads (see server teamPurchase.service.ts).
+// The delivery charge is not here since migration 099: it is the team charge of the member's zone
+// (handlers/delivery.ts), as on the server.
 export const mockTeamSettings = {
   default_team_size: 3,
   window_hours: 24,
   discount_pct_2: 15,
   discount_pct_3: 25,
-  shipping_charge: 60,
 };
 
 export const teamPurchaseHandlers = [
@@ -160,6 +162,7 @@ export const teamPurchaseHandlers = [
     path: '/team-purchases/quote',
     handler({ query }) {
       const retail = 2000;
+      const zone = mockDeliveryChargeFor(query?.district);
       const price = (pct) => (Math.round((retail * (100 - pct)) / 100)).toFixed(2);
       return {
         status: 200,
@@ -173,7 +176,8 @@ export const teamPurchaseHandlers = [
           ],
           default_team_size: mockTeamSettings.default_team_size,
           window_hours: mockTeamSettings.window_hours,
-          shipping_charge: mockTeamSettings.shipping_charge.toFixed(2),
+          shipping_charge: zone.team_charge.toFixed(2),
+          delivery_zone: { key: zone.key, name_en: zone.name_en, name_bn: zone.name_bn, days_min: zone.days_min, days_max: zone.days_max },
           payment_methods: ['COD', 'WALLET'],
           wallet_balance: '3500.00',
         },

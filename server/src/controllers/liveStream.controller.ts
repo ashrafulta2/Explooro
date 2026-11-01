@@ -131,6 +131,7 @@ export async function quoteInStreamBuy(req, reply) {
     variantId: req.query.variant_id || null,
     qty: req.query.quantity ?? 1,
     couponCode: req.query.coupon_code || null,
+    district: req.query.district || null,
     userId: req.user?.id ?? null,
   });
   return reply.send({ data: { quote } });

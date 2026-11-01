@@ -27,14 +27,22 @@ const pageSrc = read('src/pages/TeamPurchasePage.ts');
 const adminSrc = read('src/pages/admin/AdminGroupBuyPage.ts');
 
 describe('Team purchase checkout form', () => {
-  it('asks for recipient name and address only', () => {
+  it('asks for recipient name, division, district and address, nothing more', () => {
     const names = [...formSrc.matchAll(/name="([a-z_]+)"/g)].map((m) => m[1]);
     // otp_code is not asked up front: it appears only after the server answers COD_OTP_REQUIRED.
-    assert.deepEqual([...new Set(names)].sort(), ['address_line', 'otp_code', 'payment_method', 'recipient_name']);
+    // WHY division and district (since migration 099): each member pays the team charge of THEIR
+    // delivery zone, which is decided by the district.
+    assert.deepEqual([...new Set(names)].sort(), ['address_line', 'district', 'division', 'otp_code', 'payment_method', 'recipient_name']);
     assert.match(formSrc, /otpField\.hidden = true;/, 'the code field starts hidden');
-    for (const absent of ['recipient_phone', 'division', 'district', 'upazila']) {
+    for (const absent of ['recipient_phone', 'upazila']) {
       assert.ok(!names.includes(absent), `the form must not ask for ${absent}`);
     }
+  });
+
+  it('charges the picked district\'s zone team charge and sends the district', () => {
+    assert.match(formSrc, /knownZoneFor\(districtSelect\.value\)/);
+    assert.match(formSrc, /z \? z\.team_charge : Number\(shippingCharge\)/);
+    assert.match(formSrc, /district: districtSelect\.value,/);
   });
 
   it('asks for the SMS code only when the server requires it, and only for COD', () => {

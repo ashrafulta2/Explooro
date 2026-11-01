@@ -14,6 +14,7 @@ import * as cartRepo from '../repositories/cart.repository.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { getStorageDriver } from '../integrations/storage/index.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
+import * as customerAddressRepo from '../repositories/customerAddress.repository.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
 import * as attributionService from './attribution.service.ts';
 import { findLiveFlashSale, resolveFlashLine } from './flashSale.service.ts';
@@ -48,7 +49,7 @@ export async function getOrCreateActiveCart(db, { userId = null, guestToken = nu
   return cart;
 }
 
-export async function getCart(db, { userId = null, guestToken = null }) {
+export async function getCart(db, { userId = null, guestToken = null, district = null }) {
   const cart = await getOrCreateActiveCart(db, { userId, guestToken });
   await cartRepo.touchCartActivity(db, cart.id);
 
@@ -190,8 +191,19 @@ export async function getCart(db, { userId = null, guestToken = null }) {
     subtotal: p.subtotal.toFixed(2),
   }));
 
-  // The super admin sets this at /admin/platform/delivery; checkout charges the same number.
-  const estimatedShippingPerParcel = await deliveryChargeService.perParcelCharge(db, null);
+  // The super admin sets the charge per delivery zone at /admin/platform/delivery. The cart estimates
+  // with: the district the shopper chose on the cart (passed in), else their default saved address's
+  // district, else the default zone. Checkout re-resolves from the address the shopper confirms.
+  let estimateDistrict = district;
+  if (!estimateDistrict && userId) {
+    try {
+      const addresses = await customerAddressRepo.listByUser(db, userId, 1);
+      estimateDistrict = addresses?.[0]?.district ?? null;
+    } catch {
+      // No saved address, or the table is not there yet: the default zone is a fine estimate.
+    }
+  }
+  const { zone: estimateZone, charge: estimatedShippingPerParcel } = await deliveryChargeService.zoneForAddress(db, null, { district: estimateDistrict });
   const estimatedShippingTotal = parcels.length * estimatedShippingPerParcel;
   const grandTotal = subtotal + estimatedShippingTotal;
 
@@ -206,6 +218,8 @@ export async function getCart(db, { userId = null, guestToken = null }) {
     items_count: totalItemsCount,
     subtotal: subtotal.toFixed(2),
     estimated_shipping: estimatedShippingTotal.toFixed(2),
+    estimated_shipping_zone: estimateZone.key,
+    estimated_shipping_district: estimateDistrict ?? null,
     grand_total: grandTotal.toFixed(2),
     has_warnings: hasWarnings,
     last_activity_at: cart.last_activity_at,

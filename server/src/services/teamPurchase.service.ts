@@ -11,8 +11,11 @@
  * 4. Anti-gaming: double-join prevention, expired team completion rejection, and the group price is
  *    computed here from settings — never taken from the request.
  *
- * Every number (team sizes' discounts, window, shipping charge) is in the group_buying module's
- * settings_json, edited by a super admin at /admin/growth/group-buy.
+ * The team sizes' discounts and the window are in the group_buying module's settings_json, edited at
+ * /admin/growth/group-buy. The delivery charge is NOT: since migration 099 it is the `team_charge` of
+ * the member's delivery zone (/admin/platform/delivery, deliveryCharge.service.ts), because members of
+ * one team can live in different areas. It is resolved from the member's district when they join and
+ * snapshotted on their member row; their wallet hold, COD gate and order all use that snapshot.
  */
 
 import { randomBytes, randomUUID } from 'node:crypto';
@@ -29,6 +32,7 @@ import { isEnabled, updateModuleSettings } from './module.service.ts';
 import { calculatePricingBreakdown } from './pricing.service.ts';
 import { loadPricingContext } from './retailMarkup.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
+import * as deliveryChargeService from './deliveryCharge.service.ts';
 
 export const TEAM_SIZES = Object.freeze([2, 3]);
 export const PAYMENT_METHODS = Object.freeze(['COD', 'WALLET']);
@@ -38,7 +42,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   window_hours: 24,
   discount_pct_2: 15,
   discount_pct_3: 25,
-  shipping_charge: 60,
 });
 
 // WHY these bounds: the same numbers are in 068_team_purchase_checkout.sql's settings_schema, so
@@ -47,8 +50,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
 export const SETTING_LIMITS = Object.freeze({
   window_hours: { min: 1, max: 168 },
   discount_pct: { min: 0, max: 90 },
-  shipping_charge: { min: 0, max: 5000 },
 });
+const PLACE_MAX = 64;
 
 const NAME_MAX = 100;
 const ADDRESS_MIN = 10;
@@ -82,7 +85,6 @@ export function resolveSettings(raw) {
   const r = raw && typeof raw === 'object' ? raw : {};
   const d = DEFAULT_SETTINGS;
   const int = (v, { min, max }, fallback) => (Number.isInteger(v) && v >= min && v <= max ? v : fallback);
-  const num = (v, { min, max }, fallback) => (typeof v === 'number' && Number.isFinite(v) && v >= min && v <= max ? v : fallback);
   // WHY discount_pct as the second fallback: rows written before 068 only had the one discount.
   const legacyPct = int(r.discount_pct, SETTING_LIMITS.discount_pct, null);
   return {
@@ -90,7 +92,6 @@ export function resolveSettings(raw) {
     window_hours: int(r.window_hours, SETTING_LIMITS.window_hours, d.window_hours),
     discount_pct_2: int(r.discount_pct_2, SETTING_LIMITS.discount_pct, legacyPct ?? d.discount_pct_2),
     discount_pct_3: int(r.discount_pct_3, SETTING_LIMITS.discount_pct, legacyPct ?? d.discount_pct_3),
-    shipping_charge: num(r.shipping_charge, SETTING_LIMITS.shipping_charge, d.shipping_charge),
   };
 }
 
@@ -116,16 +117,12 @@ export function validateSettingsPatch(input) {
   const out: Record<string, number> = {};
   const bad = (en, bn) => new AppError('VALIDATION_FAILED', en, bn);
 
+  // WHY refused, not ignored: a save that silently dropped the charge would look like it worked.
   if (input.shipping_charge !== undefined) {
-    const n = input.shipping_charge;
-    const { min, max } = SETTING_LIMITS.shipping_charge;
-    if (typeof n !== 'number' || !Number.isFinite(n) || n < min || n > max) {
-      throw bad(`Shipping charge must be between ৳${min} and ৳${max}.`, `শিপিং চার্জ ৳${min} থেকে ৳${max}-এর মধ্যে হতে হবে।`);
-    }
-    if (Math.round(n * 100) / 100 !== n) {
-      throw bad('Shipping charge cannot have more than two decimal places.', 'শিপিং চার্জে দুই দশমিকের বেশি ঘর হবে না।');
-    }
-    out.shipping_charge = n;
+    throw bad(
+      'The team-purchase delivery charge is set per area now, at /admin/platform/delivery.',
+      'টিম পারচেজের ডেলিভারি চার্জ এখন এলাকা অনুযায়ী /admin/platform/delivery পেজে সেট হয়।'
+    );
   }
   for (const key of ['discount_pct_2', 'discount_pct_3']) {
     if (input[key] === undefined) continue;
@@ -175,7 +172,7 @@ export function discountForSize(settings, size) {
 }
 
 /** Validates the two fields the form asks for. Returns the trimmed values. */
-export function validateRecipient({ recipientName, addressLine }) {
+export function validateRecipient({ recipientName, addressLine, division = null, district = null }: { recipientName: any; addressLine: any; division?: any; district?: any }) {
   const name = typeof recipientName === 'string' ? recipientName.trim() : '';
   const address = typeof addressLine === 'string' ? addressLine.trim() : '';
   if (!name) {
@@ -191,7 +188,32 @@ export function validateRecipient({ recipientName, addressLine }) {
       `ঠিকানা ${ADDRESS_MIN} থেকে ${ADDRESS_MAX} অক্ষরের হতে হবে (বাড়ি, রাস্তা, এলাকা, জেলা)।`
     );
   }
-  return { recipient_name: name, address_line: address };
+  // The district picks the member's delivery zone. Optional, for clients from before migration 099:
+  // without it the zone is looked for inside the address text (findDistrict), else the default zone.
+  const place: { division?: string; district?: string } = {};
+  for (const [key, value] of [['division', division], ['district', district]] as const) {
+    if (value == null || value === '') continue;
+    if (typeof value !== 'string' || value.trim().length > PLACE_MAX) {
+      throw new AppError('VALIDATION_FAILED', 'Pick a division and district from the list.', 'তালিকা থেকে বিভাগ ও জেলা বেছে নিন।');
+    }
+    place[key] = value.trim();
+  }
+  return { recipient_name: name, address_line: address, ...place };
+}
+
+/**
+ * The delivery zone a member's parcel goes to, and the team-purchase charge for it (paisa). Pass
+ * `{ fresh: true }` inside the join's transaction, so what is snapshotted is what the database says now.
+ */
+export async function memberDelivery(db, cache, recipient, opts: { fresh?: boolean } = {}) {
+  const district = recipient?.district || findDistrict(recipient?.address_line || recipient?.street || '')?.district || null;
+  const { zone } = await deliveryChargeService.zoneForAddress(db, cache, { district }, opts);
+  return { zone, chargePaisa: toPaisa(zone.team_charge) };
+}
+
+/** A member's own snapshotted delivery charge; members from before migration 099 have the team's. */
+function memberShippingPaisa(team, member) {
+  return member?.shipping_charge != null ? toPaisa(member.shipping_charge) : toPaisa(team.shipping_charge || 0);
 }
 
 function assertPaymentMethod(method) {
@@ -252,8 +274,8 @@ async function releaseWalletFunds(client, { teamId, userId, amountPaisa, reason 
   });
 }
 
-function memberTotalPaisa(team) {
-  return toPaisa(team.group_price) + toPaisa(team.shipping_charge || 0);
+function memberTotalPaisa(team, shippingPaisa) {
+  return toPaisa(team.group_price) + shippingPaisa;
 }
 
 /**
@@ -261,14 +283,14 @@ function memberTotalPaisa(team) {
  * on delivery. The code goes to the account phone, which is also the phone on the order.
  * A WALLET member pays up front and is not gated.
  */
-async function gateCodMember(db, cache, client, { team, userId, paymentMethod, cod }) {
+async function gateCodMember(db, cache, client, { team, userId, paymentMethod, cod, shippingPaisa }) {
   if (paymentMethod !== 'COD') return { isOtpVerified: false, trustScore: null };
   const { rows } = await client.query(`SELECT phone FROM users WHERE id = $1`, [userId]);
   return codGateService.enforceCodGate(db, cache, {
     client,
     userId,
     phone: rows[0]?.phone || null,
-    orderAmount: Number(fromPaisa(memberTotalPaisa(team))),
+    orderAmount: Number(fromPaisa(memberTotalPaisa(team, shippingPaisa))),
     otpCode: cod?.otpCode ?? null,
     smsSender: cod?.smsSender ?? null,
     isDevelopment: Boolean(cod?.isDevelopment),
@@ -283,7 +305,7 @@ async function gateCodMember(db, cache, client, { team, userId, paymentMethod, c
  * shipping charge, the accepted payment methods and (when signed in) the wallet balance. The form
  * renders these numbers rather than computing its own, so what it shows is what is charged.
  */
-export async function getQuote(db, { productId, userId = null }) {
+export async function getQuote(db, { productId, userId = null, district = null, cache = null }: { productId: any; userId?: any; district?: any; cache?: any }) {
   const { rows } = await db.query(
     `SELECT id, default_retail_price, base_cost, wholesale_margin, status, stock_qty
      FROM products WHERE id = $1`,
@@ -311,6 +333,10 @@ export async function getQuote(db, { productId, userId = null }) {
     walletBalance = wallet ? wallet.available_balance : '0.00';
   }
 
+  // The member's own delivery charge: the team charge of the zone their district falls in (the default
+  // zone until they pick one). The form re-asks as they change district.
+  const { zone } = await deliveryChargeService.zoneForAddress(db, cache, { district });
+
   return {
     product_id: product.id,
     retail_price: product.default_retail_price,
@@ -318,7 +344,8 @@ export async function getQuote(db, { productId, userId = null }) {
     options,
     default_team_size: settings.default_team_size,
     window_hours: settings.window_hours,
-    shipping_charge: fromPaisa(toPaisa(settings.shipping_charge)),
+    shipping_charge: fromPaisa(toPaisa(zone.team_charge)),
+    delivery_zone: { key: zone.key, name_en: zone.name_en, name_bn: zone.name_bn, days_min: zone.days_min, days_max: zone.days_max },
     payment_methods: [...PAYMENT_METHODS],
     wallet_balance: walletBalance,
   };
@@ -335,6 +362,8 @@ export async function createTeamPurchase(db, cache, {
   requiredMembers = null,
   recipientName,
   addressLine,
+  division = null,
+  district = null,
   paymentMethod = 'COD',
   cod = null,
 }) {
@@ -343,7 +372,7 @@ export async function createTeamPurchase(db, cache, {
     throw new AppError('MODULE_DISABLED', 'Group buying module is currently disabled.');
   }
 
-  const recipient = validateRecipient({ recipientName, addressLine });
+  const recipient = validateRecipient({ recipientName, addressLine, division, district });
   assertPaymentMethod(paymentMethod);
 
   const settings = await getTeamBuyingSettings(db);
@@ -383,6 +412,10 @@ export async function createTeamPurchase(db, cache, {
       discountPct: discountForSize(settings, teamSize),
     });
 
+    // WHY team_purchases.shipping_charge is the starter's: it is the figure the team card shows. Every
+    // member, the starter included, pays their own zone's charge, kept on their member row.
+    const delivery = await memberDelivery(client, cache, recipient, { fresh: true });
+
     const { rows: teamRows } = await client.query(
       `INSERT INTO team_purchases (
         ref, product_id, initiator_user_id, required_members, current_members_count,
@@ -397,14 +430,14 @@ export async function createTeamPurchase(db, cache, {
         teamSize,
         price.group_price,
         Number(product.default_retail_price).toFixed(2),
-        fromPaisa(toPaisa(settings.shipping_charge)),
+        fromPaisa(delivery.chargePaisa),
         expiresAt,
       ]
     );
     const team = teamRows[0];
 
-    const gate = await gateCodMember(db, cache, client, { team, userId, paymentMethod, cod });
-    const member = await addMember(client, { team, userId, recipient, paymentMethod, gate });
+    const gate = await gateCodMember(db, cache, client, { team, userId, paymentMethod, cod, shippingPaisa: delivery.chargePaisa });
+    const member = await addMember(client, { team, userId, recipient, paymentMethod, gate, delivery });
 
     return {
       team,
@@ -413,15 +446,19 @@ export async function createTeamPurchase(db, cache, {
   });
 }
 
-async function addMember(client, { team, userId, recipient, paymentMethod, gate = null }) {
+async function addMember(client, { team, userId, recipient, paymentMethod, gate = null, delivery }) {
   const { rows } = await client.query(
     `INSERT INTO team_purchase_members (
       team_purchase_id, user_id, shipping_address_json, payment_method, payment_hold_status,
-      is_otp_verified, trust_score_at_join
+      is_otp_verified, trust_score_at_join, shipping_charge, delivery_zone
     )
-    VALUES ($1, $2, $3, $4, 'HELD', $5, $6)
+    VALUES ($1, $2, $3, $4, 'HELD', $5, $6, $7, $8)
     RETURNING *`,
-    [team.id, userId, JSON.stringify(recipient), paymentMethod, Boolean(gate?.isOtpVerified), gate?.trustScore == null ? null : Math.round(gate.trustScore)]
+    [
+      team.id, userId, JSON.stringify(recipient), paymentMethod, Boolean(gate?.isOtpVerified),
+      gate?.trustScore == null ? null : Math.round(gate.trustScore),
+      fromPaisa(delivery.chargePaisa), delivery.zone.key,
+    ]
   );
   const member = rows[0];
 
@@ -429,7 +466,7 @@ async function addMember(client, { team, userId, recipient, paymentMethod, gate 
     const holdId = await holdWalletFunds(client, {
       teamId: team.id,
       userId,
-      amountPaisa: memberTotalPaisa(team),
+      amountPaisa: memberTotalPaisa(team, delivery.chargePaisa),
     });
     await client.query(
       `UPDATE team_purchase_members SET hold_txn_group_id = $1 WHERE id = $2`,
@@ -448,6 +485,8 @@ export async function joinTeamPurchase(db, cache, {
   teamId,
   recipientName,
   addressLine,
+  division = null,
+  district = null,
   paymentMethod = 'COD',
   cod = null,
 }) {
@@ -456,7 +495,7 @@ export async function joinTeamPurchase(db, cache, {
     throw new AppError('MODULE_DISABLED', 'Group buying module is currently disabled.');
   }
 
-  const recipient = validateRecipient({ recipientName, addressLine });
+  const recipient = validateRecipient({ recipientName, addressLine, division, district });
   assertPaymentMethod(paymentMethod);
 
   return runWithClient(db, async (client) => {
@@ -490,8 +529,9 @@ export async function joinTeamPurchase(db, cache, {
       throw new AppError('CONFLICT', 'You are already a member of this team purchase.', 'আপনি ইতিমধ্যে এই টিমের সদস্য।');
     }
 
-    const gate = await gateCodMember(db, cache, client, { team, userId, paymentMethod, cod });
-    const newMember = await addMember(client, { team, userId, recipient, paymentMethod, gate });
+    const delivery = await memberDelivery(client, cache, recipient, { fresh: true });
+    const gate = await gateCodMember(db, cache, client, { team, userId, paymentMethod, cod, shippingPaisa: delivery.chargePaisa });
+    const newMember = await addMember(client, { team, userId, recipient, paymentMethod, gate, delivery });
     const newCount = team.current_members_count + 1;
 
     if (newCount < team.required_members) {
@@ -551,7 +591,7 @@ async function completeTeam(client, cache, team) {
 
   const { rows: members } = await client.query(
     `SELECT tpm.id, tpm.user_id, tpm.shipping_address_json, tpm.payment_method, u.phone,
-            tpm.is_otp_verified, tpm.trust_score_at_join,
+            tpm.is_otp_verified, tpm.trust_score_at_join, tpm.shipping_charge, tpm.delivery_zone,
             up.full_name AS profile_name
      FROM team_purchase_members tpm
      JOIN users u ON u.id = tpm.user_id
@@ -573,19 +613,24 @@ async function completeTeam(client, cache, team) {
     ruleSource: 'TEAM_PURCHASE',
   });
 
-  const shippingPaisa = toPaisa(team.shipping_charge || 0);
   const itemPaisa = toPaisa(team.group_price);
-  const totalPaisa = itemPaisa + shippingPaisa;
+  // The delivery TIME is read from the zones now (it is a promise, not money); the CHARGE is each
+  // member's own snapshot, because that is what their wallet hold was taken for.
+  const policy = await deliveryChargeService.getPolicy(client, cache, { fresh: true });
   const created = [];
 
   for (const m of members) {
     const address = typeof m.shipping_address_json === 'string'
       ? JSON.parse(m.shipping_address_json)
       : (m.shipping_address_json || {});
-    // WHY the fallbacks: members who joined before 068 stored { street, name, district, division }.
+    // WHY the fallbacks: members who joined before 068 stored { street, name, district, division };
+    // since 099 the form sends the district it picked, which wins over a guess from the text.
     const addressLine = address.address_line || address.street || '';
-    const place = findDistrict(addressLine)
-      || (address.district ? { division: address.division || '', district: address.district } : null);
+    const place = (address.district ? { division: address.division || '', district: address.district } : null)
+      || findDistrict(addressLine);
+    const shippingPaisa = memberShippingPaisa(team, m);
+    const totalPaisa = itemPaisa + shippingPaisa;
+    const zone = deliveryChargeService.resolveZone(policy, place?.district ?? null);
     const isWallet = m.payment_method === 'WALLET';
 
     if (isWallet) {
@@ -612,6 +657,9 @@ async function completeTeam(client, cache, team) {
       division: place?.division ?? '',
       district: place?.district ?? '',
       addressLine,
+      deliveryZone: m.delivery_zone ?? null,
+      deliveryDaysMin: zone.days_min,
+      deliveryDaysMax: zone.days_max,
     });
 
     const batch = await orderRepo.allocateFefoBatch(client, { productId: product.id, qty: 1 });
@@ -695,7 +743,7 @@ export async function expireIncompleteTeams(db, cache) {
       );
 
       const { rows: held } = await client.query(
-        `SELECT id, user_id, payment_method, hold_txn_group_id
+        `SELECT id, user_id, payment_method, hold_txn_group_id, shipping_charge
          FROM team_purchase_members
          WHERE team_purchase_id = $1 AND payment_hold_status = 'HELD'
          ORDER BY id ASC`,
@@ -707,7 +755,7 @@ export async function expireIncompleteTeams(db, cache) {
           await releaseWalletFunds(client, {
             teamId: team.id,
             userId: m.user_id,
-            amountPaisa: memberTotalPaisa(team),
+            amountPaisa: memberTotalPaisa(team, memberShippingPaisa(team, m)),
             reason: 'expire',
           });
         }
@@ -815,6 +863,8 @@ export async function getUserTeamPurchases(db, userId) {
     SELECT tp.*,
            tpm.payment_hold_status,
            tpm.payment_method AS my_payment_method,
+           tpm.shipping_charge AS my_shipping_charge,
+           tpm.delivery_zone AS my_delivery_zone,
            tpm.order_id,
            tpm.joined_at as my_joined_at,
            p.title_en as product_name_en,

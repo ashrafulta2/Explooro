@@ -1,5 +1,5 @@
 /**
- * deliveryCharge.routes.ts — the per-parcel delivery charge for normal checkout.
+ * deliveryCharge.routes.ts — the per-parcel delivery charge for normal checkout, by delivery zone.
  *
  *   GET  /delivery/policy            public — the cart and Quick Buy show it before sign-in
  *   GET  /admin/platform/delivery    platform.delivery.view    (LOW)
@@ -35,11 +35,31 @@ export default async function deliveryChargeRoutes(app) {
       schema: {
         body: {
           type: 'object',
-          required: ['per_parcel_charge', 'reason'],
+          required: ['zones', 'default_zone', 'reason'],
           additionalProperties: false,
           properties: {
-            // Type only: the range is the service's rule.
-            per_parcel_charge: { type: 'number' },
+            // Shape only: every range and cross-zone rule is the service's (validatePolicy).
+            zones: {
+              type: 'array',
+              maxItems: 50,
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                properties: {
+                  key: { type: 'string', maxLength: 40 },
+                  name_en: { type: 'string', maxLength: 200 },
+                  name_bn: { type: 'string', maxLength: 200 },
+                  charge: { type: 'number' },
+                  team_charge: { type: 'number' },
+                  days_min: { type: 'integer' },
+                  days_max: { type: 'integer' },
+                  districts: { type: 'array', maxItems: 100, items: { type: 'string', maxLength: 64 } },
+                },
+              },
+            },
+            default_zone: { type: 'string', maxLength: 40 },
+            cutoff_hour: { type: ['integer', 'null'] },
+            expected_updated_at: { type: ['string', 'null'] },
             reason: { type: 'string', minLength: 10, maxLength: 500 },
           },
         },

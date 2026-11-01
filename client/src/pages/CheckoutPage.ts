@@ -21,7 +21,10 @@ import { getCurrentUser } from '../services/session.ts';
 import { appStore } from '../state/appStore.ts';
 import { formatCurrency } from '../services/format.ts';
 import { toast } from '../services/toast.ts';
-import { t } from '../services/i18n.ts';
+import { t, getLanguage } from '../services/i18n.ts';
+import { knownZoneFor, loadDeliveryPolicy, deliveryEtaText } from '../services/deliveryCharge.ts';
+import { zoneName } from '../services/deliveryZones.ts';
+import { escapeHtml } from '../services/html.ts';
 import { Button } from '../components/ui/Button.ts';
 import type { PageContext } from './types.ts';
 
@@ -108,11 +111,24 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
   let userAddresses = [];
   let vaultBalance: number | null = null;
 
+  /**
+   * The delivery charge for the district the shopper has picked: the zone's per-parcel charge
+   * (Inside Dhaka, Outside Dhaka, ...) times one parcel per supplier. The server resolves the same zone
+   * from the same district when the order is placed (deliveryCharge.service.ts); until the policy has
+   * loaded, the cart's default-zone estimate stands in.
+   */
+  function shippingInfo() {
+    const parcels = Math.max(1, cartData?.parcels?.length || 1);
+    const zone = knownZoneFor(addressData.district);
+    if (zone) return { zone, perParcel: zone.charge, parcels, total: zone.charge * parcels };
+    const total = Number(cartData?.estimated_shipping) || 0;
+    return { zone: null, perParcel: total / parcels, parcels, total };
+  }
+
   /** What the order will cost: the same sum the summary shows and the server charges. */
   function orderTotal() {
     if (!cartData) return 0;
-    const shipping = Number(cartData.estimated_shipping) || 0;
-    return Math.max(0, Number(cartData.subtotal || 0) + shipping - Number(cartData.discount_amount || 0));
+    return Math.max(0, Number(cartData.subtotal || 0) + shippingInfo().total - Number(cartData.discount_amount || 0));
   }
 
   async function loadCartData() {
@@ -169,9 +185,37 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
 
       renderCheckoutForm();
       renderSummary();
+
+      // A cold first visit has no remembered policy yet; once it arrives, price by zone.
+      const zoneBefore = knownZoneFor(addressData.district)?.key ?? null;
+      loadDeliveryPolicy().then(() => {
+        if ((knownZoneFor(addressData.district)?.key ?? null) !== zoneBefore || zoneBefore === null) {
+          renderPayment();
+          renderSummary();
+          renderParcels();
+        }
+      });
     } catch {
       toast.error(t('checkout.cart_load_failed'));
     }
+  }
+
+  let paymentContent: HTMLElement | null = null;
+
+  /** (Re)builds the payment choices: whether the vault covers the order depends on the zone's charge. */
+  function renderPayment() {
+    if (!paymentContent) return;
+    paymentContent.innerHTML = '';
+    paymentSelector = PaymentSelector({
+      initialMethod: paymentMethod,
+      orderTotal: orderTotal(),
+      vaultBalance,
+      onChange: (method) => {
+        paymentMethod = method;
+        persistDraft();
+      },
+    });
+    paymentContent.append(paymentSelector.element);
   }
 
   function renderCheckoutForm() {
@@ -202,8 +246,17 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
       savedAddresses: userAddresses,
       hideSubmitButton: true,
       onChange: (data) => {
-        addressData = data;
+        const zoneBefore = shippingInfo();
+        addressData = { ...data };
         persistDraft();
+        // WHY only on a zone change: typing a name must not rebuild the summary, but moving from a
+        // Dhaka district to an outside one changes what the order costs, so the shopper sees it now.
+        const zoneAfter = shippingInfo();
+        if (zoneAfter.zone?.key !== zoneBefore.zone?.key || zoneAfter.total !== zoneBefore.total) {
+          renderPayment();
+          renderSummary();
+          renderParcels();
+        }
       },
     });
     addressContent.append(addressForm.element);
@@ -225,19 +278,9 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
     `;
     paymentCard.append(paymentHeader);
 
-    const paymentContent = document.createElement('div');
+    paymentContent = document.createElement('div');
     paymentContent.className = 'checkout-section-card__content';
-
-    paymentSelector = PaymentSelector({
-      initialMethod: paymentMethod,
-      orderTotal: orderTotal(),
-      vaultBalance,
-      onChange: (method) => {
-        paymentMethod = method;
-        persistDraft();
-      },
-    });
-    paymentContent.append(paymentSelector.element);
+    renderPayment();
     paymentCard.append(paymentContent);
     mainCol.append(paymentCard);
 
@@ -264,13 +307,16 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
       const parcelWrap = document.createElement('div');
       parcelWrap.className = 'checkout-page__parcels-wrap';
 
+      // Filled by renderParcels(): the time depends on the district's zone.
+      const parcelEta = '<span class="badge badge--success" data-delivery-eta hidden></span>';
+
       parcels.forEach((parcel, pIdx) => {
         const pCard = document.createElement('div');
         pCard.className = 'checkout-page__parcel-card card card--subtle';
         pCard.innerHTML = `
           <div class="checkout-page__parcel-card-header">
             <strong>${t('cart.parcel_number', { number: pIdx + 1 })}: ${parcel.supplier_name || t('product_detail.supplier.tier.verified')}</strong>
-            <span class="badge badge--success">${t('checkout.parcel_est_delivery')}</span>
+            ${parcelEta}
           </div>
           <div class="checkout-page__parcel-items">
             ${parcel.items.map((item) => `
@@ -287,7 +333,20 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
       itemsContent.append(parcelWrap);
       itemsCard.append(itemsContent);
       mainCol.append(itemsCard);
+      renderParcels();
     }
+  }
+
+  /**
+   * The delivery time on every parcel card, from the zone of the picked district. WHY from the zone:
+   * checkout used to print "2-3 business days" for every address, inside Dhaka or in Bandarban.
+   */
+  function renderParcels() {
+    const eta = deliveryEtaText(knownZoneFor(addressData.district));
+    mainCol.querySelectorAll<HTMLElement>('[data-delivery-eta]').forEach((badge) => {
+      badge.textContent = eta ? t('checkout.parcel_eta', { eta }) : '';
+      badge.hidden = !eta;
+    });
   }
 
   function renderSummary() {
@@ -298,10 +357,17 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
     card.className = 'checkout-summary card';
 
     const subtotal = Number(cartData.subtotal || 0);
-    // The server cart prices delivery with the charge the super admin set; checkout charges the same.
-    const shipping = Number(cartData.estimated_shipping) || 0;
+    // The zone of the picked district decides the per-parcel charge; checkout charges the same.
+    const ship = shippingInfo();
+    const shipping = ship.total;
     const discount = Number(cartData.discount_amount || 0);
     const total = Math.max(0, subtotal + shipping - discount);
+    const zoneLine = ship.zone
+      ? `<div class="checkout-summary__row checkout-summary__row--zone text-xs text-secondary" data-delivery-zone="${ship.zone.key}">
+          <span>${escapeHtml(t('checkout.delivery_zone', { zone: zoneName(ship.zone, getLanguage()) }))}${deliveryEtaText(ship.zone) ? ` · ${escapeHtml(deliveryEtaText(ship.zone))}` : ''}</span>
+          <span>${escapeHtml(t('checkout.delivery_zone_rate', { charge: formatCurrency(ship.perParcel.toFixed(2)), count: ship.parcels }))}</span>
+        </div>`
+      : '';
 
     card.innerHTML = `
       <h3 class="checkout-summary__title">${t('checkout.order_summary') || 'Order Summary'}</h3>
@@ -316,9 +382,10 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
         </div>
       ` : ''}
       <div class="checkout-summary__row">
-        <span>${t('cart.shipping_estimate', { count: cartData.parcels?.length || 1 })}</span>
+        <span>${ship.zone ? t('checkout.delivery_charge', { count: ship.parcels }) : t('cart.shipping_estimate', { count: cartData.parcels?.length || 1 })}</span>
         <span>${formatCurrency(shipping.toFixed(2))}</span>
       </div>
+      ${zoneLine}
       <div class="checkout-summary__divider"></div>
       <div class="checkout-summary__row checkout-summary__row--total">
         <span>${t('cart.total')}</span>

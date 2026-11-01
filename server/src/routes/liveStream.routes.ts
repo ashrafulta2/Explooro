@@ -166,6 +166,8 @@ export default async function liveStreamRoutes(fastify) {
             variant_id: { type: 'integer', minimum: 1 },
             quantity: { type: 'integer', minimum: 1 },
             coupon_code: { type: 'string', maxLength: 64 },
+            // Optional: the district picks the delivery zone; without it the quote uses the default zone.
+            district: { type: 'string', maxLength: 64 },
           },
         },
       },

@@ -1242,8 +1242,9 @@ export class TeamPurchasePage {
       return;
     }
 
-    // WHY the quote: it carries the wallet balance. The price and shipping charge are the team's
-    // own, snapshotted when it was started, so they come from the team row.
+    // WHY the quote: it carries the wallet balance. The group price is the team's own, snapshotted
+    // when it was started, so it comes from the team row. The delivery charge is the joiner's OWN: the
+    // form shows their district's zone charge (team_purchases.shipping_charge is only the starter's).
     let walletBalance = null;
     try {
       const quote = await api.get(`/team-purchases/quote?product_id=${encodeURIComponent(this.team.product_id)}`);
@@ -1258,6 +1259,7 @@ export class TeamPurchasePage {
     let modal = null;
     const checkout = TeamCheckoutForm({
       itemPrice: Number(this.team.group_price),
+      // Only until the zone policy loads; then the joiner's district decides.
       shippingCharge: Number(this.team.shipping_charge ?? 0),
       walletBalance,
       submitLabel: t('team_purchases.confirm_join'),

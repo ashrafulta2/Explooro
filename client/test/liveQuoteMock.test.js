@@ -42,7 +42,8 @@ describe('live in-stream quote (mock)', () => {
     const src = read('pages/LiveStreamPage.ts');
     assert.match(src, /id="chk-qty-inc"/);
     assert.match(src, /quantity: qty,[\s]*recipient_name/);
-    assert.match(src, /getInStreamQuote\(streamId, \{ productId: [^}]*quantity: qty, couponCode \}\)/);
+    // The district picks the delivery zone the quote charges (migration 098).
+    assert.match(src, /getInStreamQuote\(streamId, \{ productId: [^}]*quantity: qty, couponCode, district: distSelect\.value \}\)/);
     // a slow answer for an earlier quantity must not overwrite a later one
     assert.match(src, /if \(seq !== quoteSeq\) return;/);
   });
