@@ -38,7 +38,7 @@ const SEEDED_ONBOARDING_STEPS = [
   {
     id: 'first_sale',
     title_en: 'Make your first sale',
-    desc_en: 'Once an order lands, track fulfilment and withdraw your profit from the vault.',
+    desc_en: 'Once an order lands, the supplier packs and ships it for you.',
     completed: false,
     video_duration: '15s',
     video_title_en: 'What happens after your first sale',
@@ -370,7 +370,7 @@ let mockSalerQuests = [
     id: 'quest_2',
     title_en: 'Source 3 Wholesale Products',
     title_bn: 'হোলসেল ক্যাটালগ থেকে ৩টি পণ্য যুক্ত করুন',
-    desc_en: 'Explore the sourcing catalog and add at least 3 high-margin products to your shelves.',
+    desc_en: 'Explore the sourcing catalog and add at least 3 products to your shelves.',
     category: 'daily',
     reward_coins: 30,
     target_count: 3,
@@ -607,16 +607,12 @@ export default [
       body: {
         data: {
           recommendations: [
-            {
-              type: 'PRICE_OPPORTUNITY',
-              title: 'Walton Smart TV is under-priced vs. demand',
-              recommendation: 'Sales velocity is high — raising your retail price by ৳500 adds more profit with zero conversion drop.',
-              action: { label_en: 'Adjust Price', url: '/saler/products' },
-            },
+            // WHY no price-raise or margin tips (owner, 2026-11-02): partners set no prices since
+            // migration 085 and are shown no per-product profit.
             {
               type: 'HERO_PRODUCT',
               title: 'Jamdani Saree is your top converter',
-              recommendation: 'This product drives 28% of your margin. Generate a flyer to broadcast to your WhatsApp VIP list.',
+              recommendation: 'This product brings in 28% of your store orders. Generate a flyer to broadcast to your WhatsApp VIP list.',
               action: { label_en: 'Create Flyer', url: '/saler/social-kit' },
             },
             {

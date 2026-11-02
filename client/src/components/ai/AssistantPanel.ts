@@ -39,7 +39,6 @@ interface ProductCard {
   title_bn?: string;
   price: number | string;
   rating_avg?: number;
-  margin_pct?: number | null;
   stock_qty?: number;
 }
 
@@ -109,10 +108,8 @@ function buildProductCard({ card, agentType, isBn, onAddToStore }: { card: Produ
   const meta = document.createElement('div');
   meta.className = 'assistant-panel__product-meta';
   const bits: string[] = [];
+  // WHY no "+X%" margin on sourcing cards (owner, 2026-11-02): partners are shown no per-product profit.
   if (card.rating_avg) bits.push(`★ ${card.rating_avg.toFixed(1)}`);
-  if (agentType === 'sourcing' && card.margin_pct !== null && card.margin_pct !== undefined) {
-    bits.push(`+${Math.round(card.margin_pct)}%`);
-  }
   if (!card.stock_qty) bits.push(t('ai.out_of_stock'));
   meta.textContent = bits.join(' · ');
 

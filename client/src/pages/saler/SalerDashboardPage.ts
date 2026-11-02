@@ -628,7 +628,7 @@ function renderToolsGrid(container, data, nav) {
     },
     {
       id: 'tool_analytics',
-      name: t('saler.tools.analytics', 'Sales & Profit Analytics'),
+      name: t('saler.tools.analytics', 'Sales Analytics'),
       desc: t('saler.tools.analytics_desc', 'Pure inline SVG revenue trends, conversion funnels, and traffic sources.'),
       icon: '📈',
       url: '/saler/analytics',

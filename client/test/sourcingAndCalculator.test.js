@@ -159,18 +159,14 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(content.includes('const canViewMargins = isAdmin &&'), 'Shop partners must not see the margin breakdown or a per-product pool amount');
   });
 
-  // 9. ProfitCalculator Invariant — Shop Partner only sees wholesale, retail, and their own profit
-  await t.test('9. ProfitCalculator exposes wholesale cost, retail price, and shop partner profit with zero platform cards or split leak', async () => {
+  // 9. No profit calculator or earnings projection for shop partners (owner, 2026-11-02)
+  await t.test('9. ProfitCalculator and MarginProjection are gone: partners have no per-product profit to calculate', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
-    const filePath = path.resolve(import.meta.dirname, '../src/components/saler/ProfitCalculator.ts');
-    const content = fs.readFileSync(filePath, 'utf8');
-
-    // Cards must be wholesale, retail price, and shop partner profit
-    assert.ok(content.includes('retailPriceCard = createCard'), 'Must contain customer retail price card');
-    assert.ok(!content.includes('platformEarningCard = createCard'), 'Must NOT contain platform earning card');
-    assert.ok(!content.includes('segPlatform'), 'Must NOT contain segPlatform element');
-    assert.ok(!content.includes("createLegendItem('#a855f7'"), 'Must NOT contain platform share legend item');
+    for (const name of ['ProfitCalculator.ts', 'MarginProjection.ts']) {
+      const filePath = path.resolve(import.meta.dirname, '../src/components/saler', name);
+      assert.ok(!fs.existsSync(filePath), `${name} must not come back`);
+    }
   });
 
   // 10. BundleProfitBreakdown Invariant — Platform margin tag suppressed by default

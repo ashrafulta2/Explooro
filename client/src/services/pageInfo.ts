@@ -34,7 +34,7 @@ const INFO_CLASSES = [
   'page-subtitle', 'stream-discovery__subtitle', 'sourcing-hero__subtitle',
   'admin-panel__subtitle', 'admin-chart-panel__subtitle', 'saler-card__subtitle',
   'editor-card__subtitle', 'system-panel__sub', 'cod-recon-panel__subtitle',
-  'warranties-guide__subtitle', 'profit-calc__subtitle', 'become-saler-reward__subtitle',
+  'warranties-guide__subtitle', 'become-saler-reward__subtitle',
   'ad-wizard__subtitle', 'settings-section-desc', 'team-detail-slots-card__subtitle', 'card__subtitle',
   'supplier-header__sub', 'advertise-head__sub', 'page-avail__subtitle', 'cm-header__sub',
   'coins-streak-card__subtitle', 'language-policy-card__hint', 'become-saler-reward__order-note',

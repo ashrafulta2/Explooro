@@ -64,7 +64,6 @@ import { VariantEditor } from '../../components/catalog/VariantEditor.ts';
 import { PriceBreakdown } from '../../components/product/PriceBreakdown.ts';
 import { ReviewList } from '../../components/product/ReviewList.ts';
 import { QnASection } from '../../components/product/QnASection.ts';
-import { ProfitCalculator } from '../../components/saler/ProfitCalculator.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.ts';
 import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.ts';
@@ -72,7 +71,6 @@ import { SampleRequestTable } from '../../components/sampleKit/SampleRequestTabl
 import { MarketingKitCard } from '../../components/sampleKit/MarketingKitCard.ts';
 import { FastPayoutTable } from '../../components/payoutProtection/FastPayoutTable.ts';
 import { ProtectionCoverTable } from '../../components/payoutProtection/ProtectionCoverTable.ts';
-import { MarginProjection } from '../../components/saler/MarginProjection.ts';
 import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.ts';
 import { StoreHeader } from '../../components/store/StoreHeader.ts';
 import { ShelfEditor } from '../../components/store/ShelfEditor.ts';
@@ -985,15 +983,7 @@ function renderQnASection() {
   return wrap;
 }
 
-// ── Prompt 4.7 — Sourcing & Profit Calculator specimens ───────────────────
-
-function renderProfitCalculator() {
-  const wrap = document.createDocumentFragment();
-  wrap.append(subgroup('ProfitCalculator — Base 500 / Wholesale 0 / Retail 700 (Shop Partner ৳80.00)'));
-  const calc = ProfitCalculator({ initialBaseCost: 500, initialWholesaleMargin: 0, initialRetailPrice: 700 });
-  wrap.append(specimen('interactive slider calculator', calc));
-  return wrap;
-}
+// ── Prompt 4.7 — Sourcing specimens ───────────────────────────────────────
 
 function renderSupplierScorecardBadge() {
   const wrap = document.createDocumentFragment();
@@ -1121,14 +1111,6 @@ function renderSponsoredTag() {
     subgroup('SponsoredTag — labels a paid placement in the Sourcing Catalog (always in words)'),
     specimen('tag', SponsoredTag()),
   );
-  return wrap;
-}
-
-function renderMarginProjection() {
-  const wrap = document.createDocumentFragment();
-  wrap.append(subgroup('MarginProjection — Zero-dependency SVG earnings projection chart'));
-  const proj = MarginProjection({ unitProfit: 80, initialVolume: 50 });
-  wrap.append(specimen('volume curve with milestones', proj));
   return wrap;
 }
 
@@ -1494,7 +1476,6 @@ export function buildGalleryEntries(detachedNodes) {
 
     // ── Shop Partner Sourcing & Profit ──────────────────────────────────────────────
     // Prompt 4.7 — Sourcing & Profit Calculator
-    { id: 'profit-calculator', label: 'ProfitCalculator', group: 'Shop Partner Sourcing & Profit', render: renderProfitCalculator },
     { id: 'supplier-scorecard-badge', label: 'SupplierScorecardBadge', group: 'Shop Partner Sourcing & Profit', render: renderSupplierScorecardBadge },
     { id: 'sponsored-tag', label: 'SponsoredTag', group: 'Shop Partner Sourcing & Profit', render: renderSponsoredTag },
     { id: 'incentive-payout-table', label: 'IncentivePayoutTable', group: 'Shop Partner Sourcing & Profit', render: renderIncentivePayoutTable },
@@ -1502,7 +1483,6 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'marketing-kit-card', label: 'MarketingKitCard', group: 'Shop Partner Sourcing & Profit', render: renderMarketingKitCard },
     { id: 'fast-payout-table', label: 'FastPayoutTable', group: 'Shop Partner Sourcing & Profit', render: renderFastPayoutTable },
     { id: 'protection-cover-table', label: 'ProtectionCoverTable', group: 'Shop Partner Sourcing & Profit', render: renderProtectionCoverTable },
-    { id: 'margin-projection', label: 'MarginProjection', group: 'Shop Partner Sourcing & Profit', render: renderMarginProjection },
     { id: 'add-to-store-drawer', label: 'AddToStoreDrawer', group: 'Shop Partner Sourcing & Profit', render: () => renderAddToStoreDrawer(detachedNodes) },
     { id: 'social-kit-modal', label: 'SocialKitModal', group: 'Shop Partner Sourcing & Profit', render: renderSocialKitModalSpecimen },
     // Prompt 10.5 — Cross-Seller Bundling & Surge Pricing

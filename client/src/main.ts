@@ -820,7 +820,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/analytics',
-        title: 'Sales & Profit Analytics — Explooro',
+        title: 'Sales Analytics — Explooro',
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',

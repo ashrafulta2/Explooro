@@ -139,7 +139,7 @@ export async function getSalerOverview(db, salerId) {
       id: 'step_curate',
       title_en: 'Curate your first wholesale product',
       title_bn: 'আপনার প্রথম পাইকারি পণ্য নির্বাচন করুন',
-      desc_en: 'Browse the supplier catalog and add high-margin items to your storefront.',
+      desc_en: 'Browse the supplier catalog and add products to your storefront.',
       desc_bn: 'সাপ্লায়ার ক্যাটালগ থেকে পণ্য বাছাই করে আপনার স্টোরে যুক্ত করুন।',
       action_url: '/saler/sourcing',
       action_label_en: 'Browse Sourcing Catalog',
@@ -182,10 +182,12 @@ export async function getSalerOverview(db, salerId) {
     },
     {
       id: 'step_first_sale',
-      title_en: 'Make your first sale & claim your profit',
-      title_bn: 'প্রথম বিক্রয় সম্পন্ন করে মুনাফা পান',
-      desc_en: 'Suppliers pack & ship orders automatically. Watch earnings deposit into your vault.',
-      desc_bn: 'অর্ডার আসলেই সাপ্লায়ার পাঠিয়ে দিবে এবং মুনাফা আপনার ভল্টে যুক্ত হবে।',
+      // WHY no "claim your profit" (owner, 2026-11-02): a partner never earns per sale, and partners
+      // are shown no reward mechanics.
+      title_en: 'Make your first sale',
+      title_bn: 'প্রথম বিক্রয় সম্পন্ন করুন',
+      desc_en: 'Suppliers pack & ship every order for you.',
+      desc_bn: 'অর্ডার আসলেই সাপ্লায়ার নিজেই প্যাক করে পাঠিয়ে দিবে।',
       action_url: '/saler/vault',
       action_label_en: 'Check Digital Vault',
       action_label_bn: 'ডিজিটাল ভল্ট দেখুন',
@@ -417,23 +419,25 @@ export async function getSalerGrowthRecommendations(db, salerId, lang = 'en', de
     };
   });
 
-  // Fallback defaults if new shop partner has few metrics
+  // Fallback defaults if new shop partner has few metrics.
+  // WHY no margin or profit wording (owner, 2026-11-02): partners never earn per product, so a
+  // "25%+ margin" tip read as their own profit on it.
   if (actionableRecommendations.length === 0) {
     actionableRecommendations.push({
       id: 'rec_default_1',
       type: 'SOURCING_DISCOVERY',
-      title: lang === 'bn' ? 'বেশি মার্জিনের পণ্য বাছাই' : 'Source High Margin Crafts',
+      title: lang === 'bn' ? 'হস্তশিল্পের পণ্য বাছাই' : 'Source Artisan Crafts',
       message: lang === 'bn'
-        ? 'হস্তশিল্প ও জামদানি ক্যাটাগরিতে ২৫%+ মার্জিন পাওয়া যাচ্ছে।'
-        : 'Artisan handloom and crafts currently offer 25%+ retail profit margins.',
+        ? 'হস্তশিল্প ও জামদানি ক্রেতাদের কাছে জনপ্রিয়।'
+        : 'Artisan handloom and crafts are popular with shoppers.',
       recommendation: lang === 'bn'
-        ? 'সোর্সিং ক্যাটালগ থেকে শীর্ষ মার্জিনের পণ্য আপনার স্টোরে যুক্ত করুন।'
-        : 'Explore the sourcing catalog and add high-margin products to your shelves.',
+        ? 'সোর্সিং ক্যাটালগ থেকে কয়েকটি পণ্য আপনার স্টোরে যুক্ত করুন।'
+        : 'Explore the sourcing catalog and add a few to your shelves.',
       action: {
         type: 'NAVIGATE',
-        url: '/saler/sourcing?min_margin=25',
-        label_en: 'Explore 25%+ Margins →',
-        label_bn: '২৫%+ মার্জিনের পণ্য দেখুন →',
+        url: '/saler/sourcing',
+        label_en: 'Browse Catalog →',
+        label_bn: 'ক্যাটালগ দেখুন →',
       },
     });
 

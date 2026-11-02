@@ -180,7 +180,7 @@ describe('conciergeAgent — grounding & prompt-injection resistance', () => {
   });
 });
 
-describe('sourcingAgent — margin-grounded recommendations', () => {
+describe('sourcingAgent — grounded recommendations with no margin or profit', () => {
   const FIXTURE_ITEMS = [
     {
       ref: 'PRD-LOWMARGIN',
@@ -204,22 +204,38 @@ describe('sourcingAgent — margin-grounded recommendations', () => {
     },
   ];
 
-  test('recommends the highest-margin real product first, grounded in catalog data', async () => {
+  test('recommends the best-selling real product first, grounded in catalog data', async () => {
     const db = createFakeDb();
     const fakeListSourcingCatalog = async () => FIXTURE_ITEMS;
 
     const events = await collect(
       runSourcingTurn(
-        { db, userId: 7, conversationId: null, message: 'find me electronics with 20% margin', lang: 'en' },
+        { db, userId: 7, conversationId: null, message: 'find me trending electronics', lang: 'en' },
         { listSourcingCatalog: fakeListSourcingCatalog, isOverBudget: async () => false }
       )
     );
 
     const productsEvent = events.find((e) => e.type === 'products');
     assert.equal(productsEvent.items[0].ref, 'PRD-HIGHMARGIN');
-    assert.equal(productsEvent.items[0].margin_pct, 38);
 
     const text = events.filter((e) => e.type === 'text_delta').map((e) => e.text).join('');
     assert.ok(text.includes('Premium Phone Case'));
+  });
+
+  test('never shows a shop partner a margin or profit figure (owner, 2026-11-02)', async () => {
+    const db = createFakeDb();
+    const events = await collect(
+      runSourcingTurn(
+        { db, userId: 7, conversationId: null, message: 'show me 30% margin products', lang: 'en' },
+        { listSourcingCatalog: async () => FIXTURE_ITEMS, isOverBudget: async () => false }
+      )
+    );
+    const productsEvent = events.find((e) => e.type === 'products');
+    for (const item of productsEvent.items) {
+      assert.equal('margin_pct' in item, false);
+      assert.equal('saler_earning' in item, false);
+    }
+    const text = events.filter((e) => e.type === 'text_delta').map((e) => e.text).join('');
+    assert.ok(!/profit|margin|লাভ|মার্জিন|\+\d+%|228/.test(text), text);
   });
 });

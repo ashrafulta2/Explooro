@@ -596,7 +596,7 @@ export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageCo
 
     const ctaText = document.createElement('span');
     ctaText.className = 'text-xs text-secondary';
-    ctaText.textContent = t('store_builder.need_more_products', 'Looking for high-margin authentic items to add?');
+    ctaText.textContent = t('store_builder.need_more_products', 'Looking for more authentic items to add?');
 
     const ctaBtn = Button({
       label: `🛒 ${t('saler.tools.sourcing', 'Wholesale Sourcing Catalog')}`,
