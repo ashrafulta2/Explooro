@@ -1,0 +1,84 @@
+/**
+ * social-kit.css — Flyer Studio page (/saler/social-kit, SocialKitPage.ts).
+ *
+ * WHY its own file, imported by the page: only this lazy route uses these rules, so they ride in
+ * its chunk instead of the entry CSS, which sits close to the 70KB gzip budget.
+ */
+
+/* ── Shop Partner Social Kit Flyer Studio ── */
+.saler-social-kit-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-6, 24px);
+}
+
+@media (min-width: 1024px) {
+  .saler-social-kit-grid {
+    grid-template-columns: 420px minmax(0, 1fr);
+  }
+}
+
+.saler-flyer-controls {
+  background: var(--surface-0, #ffffff);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-5, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4, 16px);
+}
+
+.saler-flyer-preview-stage {
+  background: var(--surface-1, #f8fafc);
+  border: 1px solid var(--border-subtle, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: var(--space-6, 24px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 480px;
+}
+
+.saler-flyer-preview-canvas {
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+  border-radius: var(--radius-xl, 16px);
+  overflow: hidden;
+  transition: transform 0.2s, max-width 0.2s;
+}
+
+/* Studio controls (SocialKitPage). WHY 2 columns and wrapping labels: the 420px column cannot fit
+   four nowrap buttons such as "9:16 WhatsApp Story / Reel", which overflowed onto each other. */
+.social-kit-studio { min-width: 0; }
+.social-kit-studio__group { display: flex; flex-direction: column; gap: var(--space-2); margin: 0; padding: 0; border: 0; min-width: 0; }
+.social-kit-studio__group--divided { padding-top: var(--space-4); border-top: 1px solid var(--border-subtle); }
+.social-kit-studio__label { padding: 0; font-size: var(--text-xs); font-weight: var(--weight-bold); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.social-kit-studio__label:lang(bn) { text-transform: none; letter-spacing: normal; }
+.social-kit-studio__hint { margin: 0; font-size: var(--text-xs); color: var(--text-muted); }
+.social-kit-studio__hint a { color: var(--text-brand); font-weight: var(--weight-semibold); }
+.social-kit-studio__choices,
+.social-kit-studio__share { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.social-kit-studio__choices .btn,
+.social-kit-studio__share .btn,
+.social-kit-studio__share .btn-social { height: auto; min-height: 40px; padding-block: var(--space-2); white-space: normal; line-height: 1.25; text-align: center; min-width: 0; }
+.social-kit-studio__share .btn-social[aria-disabled="true"] { opacity: 0.45; pointer-events: none; }
+.social-kit-studio__chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.social-kit-studio__chip { padding: var(--space-1) var(--space-3); min-height: 32px; border-radius: var(--radius-full); border: 1px solid var(--border-strong); background: var(--surface-1); color: var(--text-secondary); font: inherit; font-size: var(--text-xs); cursor: pointer; }
+.social-kit-studio__chip:hover { border-color: var(--border-interactive); color: var(--text-brand); }
+.social-kit-studio__chip[aria-pressed="true"] { background: var(--brand); border-color: var(--brand); color: var(--brand-contrast); font-weight: var(--weight-bold); }
+.social-kit-studio__link { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); }
+.social-kit-studio__link-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.social-kit-studio__code { font-family: var(--font-mono); }
+.social-kit-studio__link-row { display: flex; gap: var(--space-2); }
+/* WHY the long selector: input-affordance.css sets `.input:not(.field__control .input)` to flex:none + width:100%. */
+.social-kit-studio .social-kit-studio__link-row .input.social-kit-studio__url { flex: 1 1 auto; width: auto; min-width: 0; font-family: var(--font-mono); font-size: var(--text-xs); background: var(--surface-1); }
+.social-kit-studio__link-row .btn { flex: none; }
+.social-kit-studio__error { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--text-xs); color: var(--text-danger, var(--danger)); }
+.social-kit-studio__error[hidden] { display: none; }
+.social-kit-studio__downloads { display: flex; flex-direction: column; gap: var(--space-2); }
+.social-kit-studio__stage { gap: var(--space-4); min-width: 0; }
+.social-kit-studio__stage-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-2); }
+.social-kit-studio__note { margin: 0; font-size: var(--text-xs); color: var(--text-muted); text-align: center; }
+.social-kit-studio__empty { align-items: flex-start; }

@@ -937,13 +937,20 @@ export default [
     method: 'POST',
     path: '/saler/social-kit/links',
     handler: ({ body }) => {
+      // Same refusal as shortlink.service.ts, so a bad channel fails in mock mode too.
+      const channels = ['GENERAL', 'WHATSAPP', 'FACEBOOK', 'PRINT_FLYER', 'QR_CODE', 'INSTAGRAM'];
+      if (body?.source_channel && !channels.includes(body.source_channel)) {
+        return { status: 400, body: { error: { code: 'VALIDATION_FAILED', message: 'Unknown source_channel.' } } };
+      }
       const code = `exp-${Math.random().toString(36).slice(2, 7)}`;
       return {
         status: 201,
         body: {
           code,
           short_url: `/s/${code}`,
-          full_url: `https://explooro.com/s/${code}`,
+          // The server builds this from PUBLIC_WEB_URL; in mock mode that is this tab's origin, where
+          // the client's /s/:code page opens the link.
+          full_url: `${globalThis.location?.origin || ''}/s/${code}`,
           product_id: body?.product_id || 1,
         },
       };

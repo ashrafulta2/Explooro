@@ -6,439 +6,573 @@
  * 1. Multi-format vector flyer generator (1:1 Square, 9:16 WhatsApp Story, A4 Print Poster, Banner).
  * 2. 4 Premium Theme styles (Dark Luxe, Clean Minimal, Neo-Bangla Gold, Bengali Festive).
  * 3. Promotional banner tag selector (Flash Sale, Free Delivery, Limited Stock, Eid Special, Best Seller).
- * 4. Zero-dependency local QR code generation linking directly to tracked affiliate shortlinks.
- * 5. 1-Click SVG/PNG Download, A4 Print, Instant WhatsApp Broadcast & Facebook Sharing.
- * 6. Batch flyer generation for all curated products.
+ * 4. A real, scannable QR code (lib/qr.ts, encoded locally) of the tracked affiliate short link.
+ * 5. SVG and PNG download, flyer-only print, instant WhatsApp & Facebook sharing.
+ *
+ * The product list and the store name come from GET /saler/store (the partner's own curated items),
+ * so the flyer always advertises a product the partner really sells, under their real store name.
  */
 
 import { salerApi } from '../../services/saler.api.ts';
+import { getMyStore } from '../../services/store.api.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
-import { Button } from '../../components/ui/Button.ts';
+import { escapeHtml } from '../../services/html.ts';
+import { formatCurrency } from '../../services/format.ts';
+import { qrSvgGroup } from '../../lib/qr.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import type { PageContext } from '../types.ts';
+import '../../styles/components/social-kit.css';
 
-export default function SocialKitPage(root: HTMLElement, { query, navigate }: PageContext = {}) {
-  const nav = (url) => {
-    if (typeof navigate === 'function') navigate(url);
-    else {
-      history.pushState({}, '', url);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+type Format = 'SQUARE' | 'STORY' | 'A4_PRINT' | 'BANNER';
+type Theme = 'DARK' | 'MINIMAL' | 'GOLD' | 'FESTIVE';
+type Promo = 'FLASH_SALE' | 'FREE_DELIVERY' | 'LIMITED_STOCK' | 'SPECIAL_EID' | 'BEST_SELLER';
+
+interface KitItem {
+  product_id: number;
+  title_en: string;
+  title_bn: string;
+  price: number | null;
+}
+
+interface KitLink {
+  code: string;
+  full_url: string;
+}
+
+const FORMATS: Record<Format, { width: number; height: number; label: string; preview: string }> = {
+  SQUARE: { width: 1080, height: 1080, label: 'social_kit.format_square', preview: '360px' },
+  STORY: { width: 1080, height: 1920, label: 'social_kit.format_story', preview: '280px' },
+  A4_PRINT: { width: 1240, height: 1754, label: 'social_kit.format_print', preview: '320px' },
+  BANNER: { width: 1200, height: 630, label: 'social_kit.format_banner', preview: '520px' },
+};
+
+const THEMES: Record<Theme, { label: string; bg: string; card: string; accent: string; onAccent: string; text: string; muted: string; price: string }> = {
+  DARK: { label: 'social_kit.theme_dark', bg: '#0f172a', card: '#1e293b', accent: '#38bdf8', onAccent: '#0f172a', text: '#f8fafc', muted: '#94a3b8', price: '#4ade80' },
+  MINIMAL: { label: 'social_kit.theme_minimal', bg: '#ffffff', card: '#f1f5f9', accent: '#1d4ed8', onAccent: '#ffffff', text: '#0f172a', muted: '#475569', price: '#15803d' },
+  GOLD: { label: 'social_kit.theme_gold', bg: '#1a130b', card: '#2e200e', accent: '#f59e0b', onAccent: '#1a130b', text: '#fef3c7', muted: '#fbbf24', price: '#fde68a' },
+  FESTIVE: { label: 'social_kit.theme_festive', bg: '#450a0a', card: '#7f1d1d', accent: '#fbbf24', onAccent: '#450a0a', text: '#fef2f2', muted: '#fecaca', price: '#fde047' },
+};
+
+const PROMOS: Promo[] = ['FLASH_SALE', 'FREE_DELIVERY', 'LIMITED_STOCK', 'SPECIAL_EID', 'BEST_SELLER'];
+const PROMO_LABEL: Record<Promo, string> = {
+  FLASH_SALE: 'social_kit.badge_flash_sale',
+  FREE_DELIVERY: 'social_kit.badge_free_delivery',
+  LIMITED_STOCK: 'social_kit.badge_limited_stock',
+  SPECIAL_EID: 'social_kit.badge_special_eid',
+  BEST_SELLER: 'social_kit.badge_best_seller',
+};
+
+// WHY a stack and not the page font: a downloaded SVG/PNG is opened outside the app, so it can only
+// use fonts installed on the viewer's device. Noto Sans Bengali / Nirmala UI cover Bangla on
+// Android and Windows.
+const FONT_STACK = "'Segoe UI', 'Noto Sans Bengali', 'Nirmala UI', Roboto, system-ui, sans-serif";
+
+/** Splits `text` into at most `maxLines` lines of roughly `maxWidth` px, ellipsising the last one. */
+function wrapText(text: string, maxWidth: number, fontSize: number, maxLines: number): string[] {
+  // WHY an estimate: SVG text cannot wrap and there is no layout engine when the file is downloaded.
+  // 0.56em is a slightly generous average glyph width for both Latin and Bangla at bold weight.
+  const perLine = Math.max(4, Math.floor(maxWidth / (fontSize * 0.56)));
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= perLine) {
+      current = next;
+    } else {
+      if (current) lines.push(current);
+      current = word.length > perLine ? `${word.slice(0, perLine - 1)}…` : word;
     }
-  };
+    if (lines.length === maxLines) break;
+  }
+  if (lines.length < maxLines && current) lines.push(current);
+  if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) {
+    const last = lines[maxLines - 1];
+    lines[maxLines - 1] = `${last.length >= perLine ? last.slice(0, perLine - 1) : last}…`;
+  }
+  return lines;
+}
 
+function textLines(lines: string[], x: number, y: number, fontSize: number, attrs: string): string {
+  return lines.map((line, i) => `<text x="${x}" y="${y + i * fontSize * 1.25}" font-size="${fontSize}" ${attrs}>${escapeHtml(line)}</text>`).join('');
+}
+
+export default function SocialKitPage(root: HTMLElement, { query }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'saler-page-container';
 
-  let products = [];
-  let selectedProductId = query?.product_id ? Number(query.product_id) : 'ALL';
-  let format = 'SQUARE'; // 'SQUARE' | 'STORY' | 'A4_PRINT' | 'BANNER'
-  let theme = 'DARK';    // 'DARK' | 'MINIMAL' | 'GOLD' | 'FESTIVE'
-  let promoTag = 'FLASH_SALE'; // 'FLASH_SALE' | 'FREE_DELIVERY' | 'LIMITED_STOCK' | 'SPECIAL_EID' | 'BEST_SELLER'
-  let shortLink = null;
+  let items: KitItem[] = [];
+  let shopName = '';
+  let storeSlug = '';
+  let selected: number | 'ALL' = query?.product_id ? Number(query.product_id) : 'ALL';
+  let format: Format = 'SQUARE';
+  let theme: Theme = 'DARK';
+  let promo: Promo = 'FLASH_SALE';
   let loading = true;
-  let unsubscribeLang = null;
+  let loadFailed = false;
+  // One tracked link per product and channel, so switching back and forth does not mint new ones.
+  const links = new Map<string, KitLink>();
+  let link: KitLink | null = null;
+  let linkState: 'loading' | 'ready' | 'error' = 'loading';
+  let linkRequest = 0;
+
+  const isBn = () => getLanguage() === 'bn';
+  const itemTitle = (item: KitItem) => (isBn() ? item.title_bn || item.title_en : item.title_en || item.title_bn);
+  const currentItem = () => (selected === 'ALL' ? null : items.find((i) => i.product_id === selected) || null);
+  // Only the values the short_links CHECK constraint accepts (migration 027).
+  const channel = () => (format === 'A4_PRINT' ? 'PRINT_FLYER' : 'QR_CODE');
 
   async function loadData() {
     loading = true;
+    loadFailed = false;
     render();
     try {
-      const res = await salerApi.getProducts();
-      products = res?.data?.products || [];
-      if (selectedProductId !== 'ALL' && !products.find((p) => p.id === selectedProductId || p.product_id === selectedProductId)) {
-        selectedProductId = products[0]?.id || 'ALL';
+      const data = await getMyStore();
+      shopName = data?.store?.shop_name || '';
+      storeSlug = data?.store?.slug || '';
+      const seen = new Set<number>();
+      items = [];
+      for (const shelf of data?.shelves || []) {
+        for (const it of shelf?.items || []) {
+          const id = Number(it.product_id);
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          const price = Number(it.custom_retail_price ?? it.default_retail_price ?? it.price);
+          items.push({ product_id: id, title_en: it.title_en || '', title_bn: it.title_bn || '', price: Number.isFinite(price) && price > 0 ? price : null });
+        }
       }
-      await generateLink();
+      if (selected !== 'ALL' && !items.some((i) => i.product_id === selected)) selected = 'ALL';
     } catch (err) {
-      toast.error(err.message || 'Failed to load products');
+      loadFailed = true;
+      toast.error(err?.message || t('social_kit.load_failed'));
     } finally {
       loading = false;
       render();
     }
+    if (!loadFailed) ensureLink();
   }
 
-  async function generateLink() {
-    try {
-      const res = await salerApi.createSocialKitLink({
-        product_id: selectedProductId === 'ALL' ? undefined : selectedProductId,
-        source_channel: format,
-      });
-      shortLink = res?.data || res;
-    } catch {
-      shortLink = {
-        code: 'exp-demo7',
-        short_url: '/s/exp-demo7',
-        full_url: `${window.location.origin}/s/exp-demo7`,
-      };
+  async function ensureLink() {
+    const key = `${selected}|${channel()}`;
+    const cached = links.get(key);
+    if (cached) {
+      link = cached;
+      linkState = 'ready';
+      refresh();
+      return;
     }
+    const request = ++linkRequest;
+    link = null;
+    linkState = 'loading';
+    refresh();
+    try {
+      const res = await salerApi.createSocialKitLink(
+        selected === 'ALL'
+          // WHY an explicit target: without one the server builds /store/<numeric id>, which is not a
+          // storefront route; storefronts are addressed by slug.
+          ? { source_channel: channel(), target_url: storeSlug ? `/store/${storeSlug}` : undefined }
+          : { product_id: selected, source_channel: channel() },
+      );
+      const data = res?.data || res;
+      if (!data?.code || !data?.full_url) throw new Error('NO_LINK');
+      if (request !== linkRequest) return;
+      link = { code: data.code, full_url: data.full_url };
+      links.set(key, link);
+      linkState = 'ready';
+    } catch {
+      if (request !== linkRequest) return;
+      // WHY no placeholder link: a made-up code printed on a flyer would send every scan nowhere and
+      // credit nobody, so the share and download actions stay off until a real link exists.
+      linkState = 'error';
+    }
+    refresh();
+  }
+
+  function choiceButton(group: string, value: string, label: string, active: boolean) {
+    return `<button type="button" class="btn btn--sm ${active ? 'btn--primary' : 'btn--secondary'} social-kit-studio__choice" data-${group}="${value}" aria-pressed="${active}">${label}</button>`;
   }
 
   function render() {
     container.innerHTML = '';
-    const isBn = getLanguage() === 'bn';
 
-    if (loading) {
-      container.append(
-        Skeleton({ width: '100%', height: '100px' }),
-        Skeleton({ width: '100%', height: '400px' })
-      );
-      return;
-    }
-
-    // 1. Header
     const header = document.createElement('div');
     header.className = 'saler-header-row';
     header.innerHTML = `
       <div class="saler-header-row__titles">
         <div class="saler-header-row__breadcrumb">
-          <a href="/saler" class="hover:text-primary">&lt; ${t('saler.dashboard.title', 'Dashboard')}</a>
+          <a href="/saler">&lt; ${t('saler.dashboard.title', 'Dashboard')}</a>
           <span>/</span>
-          <span class="text-primary font-bold">${t('social_kit.title')}</span>
-        </div>
-        <h1 class="saler-header-row__title">
-          <span>🎨</span>
           <span>${t('social_kit.title')}</span>
-        </h1>
-        <p class="saler-header-row__subtitle">
-          ${t('social_kit.subtitle')}
-        </p>
+        </div>
+        <h1 class="saler-header-row__title"><span aria-hidden="true">🎨</span><span>${t('social_kit.title')}</span></h1>
+        <p class="saler-header-row__subtitle">${t('social_kit.subtitle')}</p>
       </div>
     `;
     container.append(header);
 
-    // 2. Studio Layout Grid (Left: Controls, Right: Live Canvas)
+    if (loading) {
+      container.append(Skeleton({ width: '100%', height: '480px' }));
+      return;
+    }
+
+    if (loadFailed) {
+      const failed = document.createElement('div');
+      failed.className = 'saler-card social-kit-studio__empty';
+      failed.innerHTML = `<p>${t('social_kit.load_failed')}</p><button type="button" class="btn btn--md btn--primary">${t('social_kit.btn_retry')}</button>`;
+      failed.querySelector('button').onclick = () => loadData();
+      container.append(failed);
+      return;
+    }
+
     const grid = document.createElement('div');
     grid.className = 'saler-social-kit-grid';
 
-    // Left Controls Column
     const controls = document.createElement('div');
-    controls.className = 'saler-flyer-controls';
-
-    // Product Selector
-    const productSelectWrap = document.createElement('div');
-    productSelectWrap.className = 'saler-stack--xs';
-    productSelectWrap.innerHTML = `
-      <label for="select-product" class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.select_product')}</label>
-      <select id="select-product" class="select select--sm w-full">
-        <option value="ALL">${t('social_kit.entire_store_opt')}</option>
-        ${products.map((p) => `
-          <option value="${p.id}" ${String(p.id) === String(selectedProductId) ? 'selected' : ''}>
-            ${isBn ? (p.title_bn || p.title_en) : p.title_en} (৳${p.custom_retail_price || p.default_retail_price})
-          </option>
-        `).join('')}
-      </select>
-    `;
-    productSelectWrap.querySelector<HTMLElement>('#select-product').onchange = async (e) => {
-      selectedProductId = (e.target as HTMLInputElement).value === 'ALL' ? 'ALL' : Number((e.target as HTMLInputElement).value);
-      await generateLink();
-      updatePreview();
-    };
-    controls.append(productSelectWrap);
-
-    // Format Selector
-    const formatWrap = document.createElement('div');
-    formatWrap.className = 'saler-stack--xs';
-    formatWrap.innerHTML = `
-      <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.format_title')}</label>
-      <div class="saler-method-grid">
-        <button class="btn btn--xs ${format === 'SQUARE' ? 'btn--primary' : 'btn--neutral'} font-bold btn-format" data-fmt="SQUARE">
-          ${t('social_kit.format_square')}
-        </button>
-        <button class="btn btn--xs ${format === 'STORY' ? 'btn--primary' : 'btn--neutral'} font-bold btn-format" data-fmt="STORY">
-          ${t('social_kit.format_story')}
-        </button>
-        <button class="btn btn--xs ${format === 'A4_PRINT' ? 'btn--primary' : 'btn--neutral'} font-bold btn-format" data-fmt="A4_PRINT">
-          ${t('social_kit.format_print')}
-        </button>
-        <button class="btn btn--xs ${format === 'BANNER' ? 'btn--primary' : 'btn--neutral'} font-bold btn-format" data-fmt="BANNER">
-          ${t('social_kit.format_banner')}
-        </button>
+    controls.className = 'saler-flyer-controls social-kit-studio';
+    controls.innerHTML = `
+      <div class="social-kit-studio__group">
+        <label for="select-product" class="social-kit-studio__label">${t('social_kit.select_product')}</label>
+        <select id="select-product" class="select">
+          <option value="ALL">${t('social_kit.entire_store_opt')}</option>
+          ${items.map((p) => `<option value="${p.product_id}" ${p.product_id === selected ? 'selected' : ''}>${escapeHtml(itemTitle(p))}${p.price ? ` (${formatCurrency(p.price, { symbol: '৳' })})` : ''}</option>`).join('')}
+        </select>
+        ${items.length === 0 ? `<p class="social-kit-studio__hint">${t('social_kit.no_products')} <a href="/saler/sourcing">${t('social_kit.no_products_cta')}</a></p>` : ''}
       </div>
-    `;
-    formatWrap.querySelectorAll<HTMLElement>('.btn-format').forEach((btn) => {
-      btn.onclick = () => {
-        format = btn.getAttribute('data-fmt');
-        render();
-      };
-    });
-    controls.append(formatWrap);
 
-    // Theme Style Selector
-    const themeWrap = document.createElement('div');
-    themeWrap.className = 'saler-stack--xs';
-    themeWrap.innerHTML = `
-      <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.theme_title')}</label>
-      <div class="saler-method-grid">
-        <button class="btn btn--xs ${theme === 'DARK' ? 'btn--primary' : 'btn--neutral'} font-bold btn-theme" data-thm="DARK">
-          ${t('social_kit.theme_dark')}
-        </button>
-        <button class="btn btn--xs ${theme === 'MINIMAL' ? 'btn--primary' : 'btn--neutral'} font-bold btn-theme" data-thm="MINIMAL">
-          ${t('social_kit.theme_minimal')}
-        </button>
-        <button class="btn btn--xs ${theme === 'GOLD' ? 'btn--primary' : 'btn--neutral'} font-bold btn-theme" data-thm="GOLD">
-          ${t('social_kit.theme_gold')}
-        </button>
-        <button class="btn btn--xs ${theme === 'FESTIVE' ? 'btn--primary' : 'btn--neutral'} font-bold btn-theme" data-thm="FESTIVE">
-          ${t('social_kit.theme_festive')}
-        </button>
-      </div>
-    `;
-    themeWrap.querySelectorAll<HTMLElement>('.btn-theme').forEach((btn) => {
-      btn.onclick = () => {
-        theme = btn.getAttribute('data-thm');
-        render();
-      };
-    });
-    controls.append(themeWrap);
+      <fieldset class="social-kit-studio__group">
+        <legend class="social-kit-studio__label">${t('social_kit.format_title')}</legend>
+        <div class="social-kit-studio__choices">
+          ${(Object.keys(FORMATS) as Format[]).map((f) => choiceButton('fmt', f, t(FORMATS[f].label), format === f)).join('')}
+        </div>
+      </fieldset>
 
-    // Promo Badge Picker
-    const promoWrap = document.createElement('div');
-    promoWrap.className = 'saler-stack--xs';
-    promoWrap.innerHTML = `
-      <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.badge_picker_title')}</label>
-      <div class="saler-row" style="gap: 8px;">
-        ${[
-          ['FLASH_SALE', t('social_kit.badge_flash_sale')],
-          ['FREE_DELIVERY', t('social_kit.badge_free_delivery')],
-          ['LIMITED_STOCK', t('social_kit.badge_limited_stock')],
-          ['SPECIAL_EID', t('social_kit.badge_special_eid')],
-          ['BEST_SELLER', t('social_kit.badge_best_seller')],
-        ].map(([val, label]) => `
-          <button class="badge cursor-pointer text-xs py-1 px-3 ${promoTag === val ? 'badge--primary font-bold' : 'badge--neutral'} btn-promo" data-promo="${val}">
-            ${label}
+      <fieldset class="social-kit-studio__group">
+        <legend class="social-kit-studio__label">${t('social_kit.theme_title')}</legend>
+        <div class="social-kit-studio__choices">
+          ${(Object.keys(THEMES) as Theme[]).map((th) => choiceButton('thm', th, t(THEMES[th].label), theme === th)).join('')}
+        </div>
+      </fieldset>
+
+      <fieldset class="social-kit-studio__group">
+        <legend class="social-kit-studio__label">${t('social_kit.badge_picker_title')}</legend>
+        <div class="social-kit-studio__chips">
+          ${PROMOS.map((p) => `<button type="button" class="social-kit-studio__chip" data-promo="${p}" aria-pressed="${promo === p}">${t(PROMO_LABEL[p])}</button>`).join('')}
+        </div>
+      </fieldset>
+
+      <div class="social-kit-studio__link">
+        <div class="social-kit-studio__link-head">
+          <span class="social-kit-studio__label">${t('social_kit.link_box_title')}</span>
+          <span class="badge badge--sm badge--brand social-kit-studio__code" data-slot="code"></span>
+        </div>
+        <div class="social-kit-studio__link-row">
+          <input type="text" readonly aria-label="${t('social_kit.link_input_label')}" class="input social-kit-studio__url" data-slot="url" />
+          <button type="button" class="btn btn--sm btn--primary" data-action="copy">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg>
+            ${t('social_kit.btn_copy_link')}
           </button>
-        `).join('')}
+        </div>
+        <p class="social-kit-studio__error" data-slot="link-error" hidden>
+          ${t('social_kit.link_failed')}
+          <button type="button" class="btn btn--sm btn--secondary" data-action="retry-link">${t('social_kit.btn_retry')}</button>
+        </p>
+      </div>
+
+      <div class="social-kit-studio__group social-kit-studio__group--divided">
+        <span class="social-kit-studio__label">${t('social_kit.instant_share_title')}</span>
+        <div class="social-kit-studio__share">
+          <a target="_blank" rel="noopener noreferrer" class="btn-social btn-social--whatsapp" data-share="whatsapp">${t('social_kit.btn_share_whatsapp')}</a>
+          <a target="_blank" rel="noopener noreferrer" class="btn-social btn-social--facebook" data-share="facebook">${t('social_kit.btn_share_facebook')}</a>
+        </div>
+      </div>
+
+      <div class="social-kit-studio__downloads">
+        <button type="button" class="btn btn--md btn--primary btn--full" data-action="download-png">${t('social_kit.btn_download_png')}</button>
+        <div class="social-kit-studio__share">
+          <button type="button" class="btn btn--md btn--secondary" data-action="download-svg">${t('social_kit.btn_download_svg')}</button>
+          <button type="button" class="btn btn--md btn--secondary" data-action="print">${t('social_kit.btn_print')}</button>
+        </div>
       </div>
     `;
-    promoWrap.querySelectorAll<HTMLElement>('.btn-promo').forEach((btn) => {
-      btn.onclick = () => {
-        promoTag = btn.getAttribute('data-promo');
-        render();
+
+    controls.querySelector<HTMLSelectElement>('#select-product').onchange = (e) => {
+      const value = (e.target as HTMLSelectElement).value;
+      selected = value === 'ALL' ? 'ALL' : Number(value);
+      ensureLink();
+    };
+    const bindChoice = (attr: string, apply: (value: string) => void) => {
+      const buttons = controls.querySelectorAll<HTMLElement>(`[data-${attr}]`);
+      buttons.forEach((btn) => {
+        btn.onclick = () => {
+          buttons.forEach((b) => {
+            const on = b === btn;
+            b.setAttribute('aria-pressed', String(on));
+            b.classList.toggle('btn--primary', on);
+            b.classList.toggle('btn--secondary', !on);
+          });
+          apply(btn.getAttribute(`data-${attr}`));
+        };
+      });
+    };
+    bindChoice('fmt', (v) => {
+      const before = channel();
+      format = v as Format;
+      if (channel() !== before) ensureLink();
+      else refresh();
+    });
+    bindChoice('thm', (v) => { theme = v as Theme; refresh(); });
+    controls.querySelectorAll<HTMLElement>('[data-promo]').forEach((chip) => {
+      chip.onclick = () => {
+        promo = chip.getAttribute('data-promo') as Promo;
+        controls.querySelectorAll('[data-promo]').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+        refresh();
       };
     });
-    controls.append(promoWrap);
-
-    // Tracked Shortlink Box
-    const linkWrap = document.createElement('div');
-    linkWrap.className = 'p-3.5 bg-surface-1 border border-subtle rounded-xl saler-stack--xs';
-    linkWrap.innerHTML = `
-      <div class="saler-row--between text-xs">
-        <span class="font-bold text-muted uppercase">${t('social_kit.link_box_title')}</span>
-        <span class="badge badge--primary text-[10px] font-mono font-bold">${shortLink?.code || 'exp-7'}</span>
-      </div>
-      <div class="saler-row" style="gap: 8px;">
-        <input
-          type="text"
-          readonly
-          aria-label="${t('social_kit.link_input_label')}"
-          value="${shortLink?.full_url || `${window.location.origin}/s/exp-7`}"
-          class="input input--xs font-mono w-full select-all"
-          style="flex: 1;"
-        />
-        <button id="btn-copy-link" class="btn btn--xs btn--primary shrink-0 font-bold">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('social_kit.btn_copy_link')}
-        </button>
-      </div>
-    `;
-    linkWrap.querySelector<HTMLElement>('#btn-copy-link').onclick = () => {
-      navigator.clipboard.writeText(shortLink?.full_url || '');
-      toast.success(t('social_kit.toast_link_copied'));
-    };
-    controls.append(linkWrap);
-
-    // Instant Share Buttons
-    const shareWrap = document.createElement('div');
-    shareWrap.className = 'saler-stack--xs pt-2 border-t border-subtle';
-    shareWrap.innerHTML = `
-      <label class="block text-xs font-bold text-muted uppercase tracking-wider">${t('social_kit.instant_share_title')}</label>
-      <div class="saler-two-col--equal">
-        <a
-          href="https://api.whatsapp.com/send?text=${encodeURIComponent((isBn ? 'এক্সপ্লোরোতে এই অফারটি দেখুন: ' : 'Check out this special offer on Explooro: ') + (shortLink?.full_url || ''))}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn btn--sm bg-[#25D366] text-white hover:bg-[#1ebc59] font-bold text-xs flex items-center justify-center gap-1.5"
-        >
-          ${t('social_kit.btn_share_whatsapp')}
-        </a>
-        <a
-          href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shortLink?.full_url || '')}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn btn--sm bg-[#1877F2] text-white hover:bg-[#166fe5] font-bold text-xs flex items-center justify-center gap-1.5"
-        >
-          ${t('social_kit.btn_share_facebook')}
-        </a>
-      </div>
-    `;
-    controls.append(shareWrap);
-
-    // Action Download / Print Buttons
-    const actionWrap = document.createElement('div');
-    actionWrap.className = 'flex flex-col gap-2 pt-2';
-    actionWrap.innerHTML = `
-      <button id="btn-download-svg" class="btn btn--primary font-bold btn--sm w-full">
-        ${t('social_kit.btn_download_svg')}
-      </button>
-      <button id="btn-print-flyer" class="btn btn--secondary btn--sm w-full font-semibold">
-        ${t('social_kit.btn_print')}
-      </button>
-    `;
-    actionWrap.querySelector<HTMLElement>('#btn-download-svg').onclick = () => {
-      const svgCode = generateSvg();
-      const blob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `explooro-flyer-${selectedProductId}-${format.toLowerCase()}.svg`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success(t('social_kit.toast_download_started'));
-    };
-    actionWrap.querySelector<HTMLElement>('#btn-print-flyer').onclick = () => {
-      window.print();
-    };
-    controls.append(actionWrap);
-
+    controls.querySelector<HTMLElement>('[data-action="copy"]').onclick = copyLink;
+    controls.querySelector<HTMLElement>('[data-action="retry-link"]').onclick = () => ensureLink();
+    controls.querySelector<HTMLElement>('[data-action="download-svg"]').onclick = downloadSvg;
+    controls.querySelector<HTMLElement>('[data-action="download-png"]').onclick = downloadPng;
+    controls.querySelector<HTMLElement>('[data-action="print"]').onclick = printFlyer;
+    controls.querySelectorAll<HTMLAnchorElement>('[data-share]').forEach((a) => {
+      a.addEventListener('click', (e) => { if (linkState !== 'ready') e.preventDefault(); });
+    });
     grid.append(controls);
 
-    // Right Canvas Preview Column
-    const previewStage = document.createElement('div');
-    previewStage.className = 'saler-flyer-preview-stage';
-    previewStage.innerHTML = `
-      <div class="text-xs font-bold text-muted uppercase tracking-wider mb-4 flex items-center gap-2">
-        <span>👁️</span>
-        <span>${t('social_kit.preview_heading')}</span>
-        <span class="badge badge--neutral text-[10px] font-mono">${format} · ${theme}</span>
+    const stage = document.createElement('div');
+    stage.className = 'saler-flyer-preview-stage social-kit-studio__stage';
+    stage.innerHTML = `
+      <div class="social-kit-studio__stage-head">
+        <span class="social-kit-studio__label">${t('social_kit.preview_heading')}</span>
+        <span class="badge badge--sm badge--neutral" data-slot="preview-tag"></span>
       </div>
-      <div id="flyer-canvas-box" class="saler-flyer-preview-canvas"></div>
-      <div class="text-[11px] text-muted font-mono mt-4 text-center">
-        ✓ Local Zero-Dependency Vector QR Code · Pure SVG Assets
-      </div>
+      <div class="saler-flyer-preview-canvas" data-slot="canvas" role="img" aria-label="${t('social_kit.preview_heading')}"></div>
+      <p class="social-kit-studio__note">${t('social_kit.preview_note')}</p>
     `;
-
-    grid.append(previewStage);
+    grid.append(stage);
     container.append(grid);
 
-    updatePreview();
+    refresh();
   }
 
-  function updatePreview() {
-    const box = container.querySelector<HTMLElement>('#flyer-canvas-box');
-    if (!box) return;
+  /** Updates the link box, share targets, action states and preview without rebuilding the form. */
+  function refresh() {
+    const ready = linkState === 'ready' && !!link;
+    const q = <T extends HTMLElement>(sel: string) => container.querySelector<T>(sel);
+    const code = q('[data-slot="code"]');
+    if (!code) return;
+    code.textContent = ready ? link.code : linkState === 'loading' ? t('social_kit.link_creating') : '—';
+    q<HTMLInputElement>('[data-slot="url"]').value = ready ? link.full_url : '';
+    q('[data-slot="link-error"]').hidden = linkState !== 'error';
+    container.querySelectorAll<HTMLButtonElement>('[data-action="copy"], [data-action="download-svg"], [data-action="download-png"], [data-action="print"]').forEach((b) => { b.disabled = !ready; });
 
-    if (format === 'STORY') {
-      box.style.maxWidth = '280px';
-    } else if (format === 'A4_PRINT') {
-      box.style.maxWidth = '320px';
-    } else if (format === 'BANNER') {
-      box.style.maxWidth = '420px';
+    const pitch = currentItem() ? t('social_kit.share_text_product') : t('social_kit.share_text_store');
+    const wa = q<HTMLAnchorElement>('[data-share="whatsapp"]');
+    const fb = q<HTMLAnchorElement>('[data-share="facebook"]');
+    [wa, fb].forEach((a) => a.setAttribute('aria-disabled', String(!ready)));
+    if (ready) {
+      wa.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${pitch} ${link.full_url}`)}`;
+      fb.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link.full_url)}`;
     } else {
-      box.style.maxWidth = '360px';
+      wa.removeAttribute('href');
+      fb.removeAttribute('href');
     }
 
-    box.innerHTML = generateSvg();
+    q('[data-slot="preview-tag"]').textContent = `${t(FORMATS[format].label)} · ${t(THEMES[theme].label)}`;
+    const canvas = q('[data-slot="canvas"]');
+    canvas.style.maxWidth = FORMATS[format].preview;
+    canvas.innerHTML = generateSvg();
+  }
+
+  async function copyLink() {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link.full_url);
+      toast.success(t('social_kit.toast_link_copied'));
+    } catch {
+      // Clipboard access can be refused (insecure origin, permissions); the field is selectable.
+      const input = container.querySelector<HTMLInputElement>('[data-slot="url"]');
+      input?.select();
+      toast.error(t('social_kit.copy_failed'));
+    }
+  }
+
+  function fileName(ext: string) {
+    return `explooro-flyer-${selected === 'ALL' ? 'store' : selected}-${format.toLowerCase()}.${ext}`;
+  }
+
+  function saveBlob(blob: Blob, name: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    // WHY a delay: revoking in the same tick can cancel the download in some browsers.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function downloadSvg() {
+    saveBlob(new Blob([generateSvg()], { type: 'image/svg+xml;charset=utf-8' }), fileName('svg'));
+    toast.success(t('social_kit.toast_download_started'));
+  }
+
+  function downloadPng() {
+    const { width, height } = FORMATS[format];
+    const url = URL.createObjectURL(new Blob([generateSvg()], { type: 'image/svg+xml;charset=utf-8' }));
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((blob) => {
+        if (!blob) { toast.error(t('social_kit.toast_png_failed')); return; }
+        saveBlob(blob, fileName('png'));
+        toast.success(t('social_kit.toast_download_started'));
+      }, 'image/png');
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      toast.error(t('social_kit.toast_png_failed'));
+    };
+    img.src = url;
+  }
+
+  /** Prints the flyer alone (not the page around it) from a hidden frame. */
+  function printFlyer() {
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+    document.body.append(frame);
+    const doc = frame.contentDocument;
+    const pageSize = format === 'A4_PRINT' ? 'A4' : 'auto';
+    doc.open();
+    doc.write(`<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(fileName('pdf'))}</title><style>@page{size:${pageSize};margin:0}html,body{margin:0}svg{display:block;width:100%;height:auto;max-height:100vh}</style></head><body>${generateSvg()}</body></html>`);
+    doc.close();
+    const run = () => {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+      setTimeout(() => frame.remove(), 1000);
+    };
+    // A data-free document is ready at once, but give layout one frame before printing.
+    requestAnimationFrame(run);
   }
 
   function generateSvg() {
-    const isBn = getLanguage() === 'bn';
-    const prod = products.find((p) => p.id === selectedProductId || p.product_id === selectedProductId) || {
-      title_en: 'Authentic Handloom Dhakai Jamdani Saree',
-      title_bn: 'ঐতিহ্যবাহী ঢাকাই জামদানি শাড়ি',
-      custom_retail_price: 3650.0,
-      default_retail_price: 3500.0,
-      base_wholesale_price: 2800.0,
-    };
+    const { width: W, height: H } = FORMATS[format];
+    const c = THEMES[theme];
+    const item = currentItem();
+    const pad = 60;
+    const store = shopName || t('social_kit.flyer_store_fallback');
+    const primaryTitle = item ? itemTitle(item) : t('social_kit.flyer_store_headline');
+    const secondaryTitle = item
+      ? (isBn() ? item.title_en : item.title_bn)
+      : t('social_kit.flyer_store_sub');
+    const price = item?.price ? formatCurrency(item.price, { symbol: '৳' }) : '';
+    const promoText = t(PROMO_LABEL[promo]);
+    const qrText = linkState === 'ready' && link ? link.full_url : '';
+    const initial = escapeHtml(Array.from(store.trim())[0] || 'E');
 
-    let width = 1080;
-    let height = 1080;
-    if (format === 'STORY') {
-      width = 1080;
-      height = 1920;
-    } else if (format === 'A4_PRINT') {
-      width = 1240;
-      height = 1754;
-    } else if (format === 'BANNER') {
-      width = 1200;
-      height = 630;
+    // Header: store badge, name, promo pill sized to its text.
+    const pillFont = format === 'BANNER' ? 22 : 26;
+    const pillW = Math.round(Array.from(promoText).length * pillFont * 0.62 + 48);
+    const headerH = 110;
+    const header = `
+      <g transform="translate(${pad} ${pad})">
+        <rect width="${W - pad * 2}" height="${headerH}" rx="20" fill="${c.card}"/>
+        <circle cx="55" cy="${headerH / 2}" r="32" fill="${c.accent}"/>
+        <text x="55" y="${headerH / 2 + 11}" font-size="32" font-weight="700" text-anchor="middle" fill="${c.onAccent}">${initial}</text>
+        ${textLines(wrapText(store, W - pad * 2 - 140 - pillW, 30, 1), 105, 50, 30, `font-weight="700" fill="${c.text}"`)}
+        <text x="105" y="84" font-size="20" fill="${c.muted}">${escapeHtml(t('social_kit.flyer_verified'))}</text>
+        <rect x="${W - pad * 2 - pillW - 22}" y="${(headerH - 52) / 2}" width="${pillW}" height="52" rx="26" fill="${c.accent}"/>
+        <text x="${W - pad * 2 - pillW / 2 - 22}" y="${headerH / 2 + pillFont * 0.36}" font-size="${pillFont}" font-weight="700" text-anchor="middle" fill="${c.onAccent}">${escapeHtml(promoText)}</text>
+      </g>`;
+
+    const scanSub = escapeHtml(t('social_kit.scan_qr_subtext'));
+    const shortText = escapeHtml(qrText.replace(/^https?:\/\//, ''));
+
+    let body = '';
+    if (format === 'BANNER') {
+      // Two columns: copy on the left, QR on the right.
+      const qrBox = 260;
+      const qrX = W - pad - qrBox;
+      const qrY = pad + headerH + 30;
+      const textW = qrX - pad - 40;
+      const titleLines = wrapText(primaryTitle, textW, 44, 2);
+      let y = pad + headerH + 80;
+      body += textLines(titleLines, pad, y, 44, `font-weight="700" fill="${c.text}"`);
+      y += titleLines.length * 55 + 10;
+      if (secondaryTitle) {
+        body += textLines(wrapText(secondaryTitle, textW, 28, 1), pad, y, 28, `fill="${c.muted}"`);
+        y += 60;
+      }
+      if (price) body += `<text x="${pad}" y="${y + 20}" font-size="64" font-weight="800" fill="${c.price}">${escapeHtml(price)}</text>`;
+      body += `<rect x="${qrX - 14}" y="${qrY - 14}" width="${qrBox + 28}" height="${H - qrY - pad + 28}" rx="20" fill="${c.card}"/>`;
+      body += qrSvgGroup(qrText, qrX, qrY, qrBox) || `<rect x="${qrX}" y="${qrY}" width="${qrBox}" height="${qrBox}" fill="#ffffff"/>`;
+      body += `<text x="${qrX + qrBox / 2}" y="${H - pad - 4}" font-size="17" font-weight="700" text-anchor="middle" fill="${c.text}">${scanSub}</text>`;
+    } else {
+      const footerH = format === 'SQUARE' ? 230 : 300;
+      const qrBox = footerH - 40;
+      const footerY = H - pad - footerH;
+      const titleFont = format === 'SQUARE' ? 50 : 60;
+      const subFont = format === 'SQUARE' ? 32 : 38;
+      const priceFont = format === 'SQUARE' ? 76 : 92;
+      const textW = W - pad * 2 - 80;
+      const titleLines = wrapText(primaryTitle, textW, titleFont, 2);
+      const subLines = secondaryTitle ? wrapText(secondaryTitle, textW, subFont, 1) : [];
+      const infoH = titleLines.length * titleFont * 1.25 + subLines.length * subFont * 1.4 + (price ? priceFont * 1.3 : 0) + 40;
+      const cardY = pad + headerH + 30;
+      const cardH = footerY - 30 - cardY;
+      const heroH = Math.max(120, cardH - infoH - 80);
+      const heroCx = W / 2;
+      const heroCy = cardY + 40 + heroH / 2;
+      body += `<rect x="${pad}" y="${cardY}" width="${W - pad * 2}" height="${cardH}" rx="28" fill="${c.card}"/>`;
+      body += `<rect x="${pad + 40}" y="${cardY + 40}" width="${W - pad * 2 - 80}" height="${heroH}" rx="20" fill="${c.accent}" fill-opacity="0.14"/>`;
+      body += `<text x="${heroCx}" y="${heroCy + Math.min(140, heroH * 0.4) * 0.35}" font-size="${Math.min(140, heroH * 0.4)}" text-anchor="middle">${item ? '🛍️' : '🏬'}</text>`;
+      let y = cardY + 40 + heroH + 30 + titleFont;
+      body += textLines(titleLines, pad + 40, y, titleFont, `font-weight="700" fill="${c.text}"`);
+      y += (titleLines.length - 1) * titleFont * 1.25 + subFont * 1.5;
+      if (subLines.length) {
+        body += textLines(subLines, pad + 40, y, subFont, `fill="${c.muted}"`);
+        y += priceFont * 1.25;
+      } else {
+        y += priceFont * 0.9;
+      }
+      if (price) body += `<text x="${pad + 40}" y="${y}" font-size="${priceFont}" font-weight="800" fill="${c.price}">${escapeHtml(price)}</text>`;
+
+      body += `<rect x="${pad}" y="${footerY}" width="${W - pad * 2}" height="${footerH}" rx="24" fill="${c.card}"/>`;
+      body += qrSvgGroup(qrText, pad + 20, footerY + 20, qrBox) || `<rect x="${pad + 20}" y="${footerY + 20}" width="${qrBox}" height="${qrBox}" fill="#ffffff"/>`;
+      const tx = pad + 20 + qrBox + 36;
+      const footW = W - pad - 30 - tx;
+      const scanFont = format === 'SQUARE' ? 34 : 40;
+      const scanLines = wrapText(t('social_kit.scan_qr_text'), footW, scanFont, 2);
+      // Centre the block (title lines, Bangla line, short link) in the footer beside the QR.
+      const blockH = scanLines.length * scanFont * 1.25 + scanFont * 0.9 + (shortText ? scanFont * 0.9 : 0);
+      let ty = footerY + (footerH - blockH) / 2 + scanFont * 0.85;
+      body += textLines(scanLines, tx, ty, scanFont, `font-weight="700" fill="${c.text}"`);
+      ty += (scanLines.length - 1) * scanFont * 1.25 + scanFont * 1.1;
+      body += `<text x="${tx}" y="${ty}" font-size="${scanFont * 0.66}" font-weight="600" fill="${c.accent}">${scanSub}</text>`;
+      if (shortText) body += `<text x="${tx}" y="${ty + scanFont * 0.95}" font-size="${scanFont * 0.6}" fill="${c.muted}" font-family="ui-monospace, Consolas, monospace">${shortText}</text>`;
     }
 
-    let bg1 = '#0f172a';
-    let cardBg = '#1e293b';
-    let accent = '#38bdf8';
-    let text = '#f8fafc';
-    let muted = '#94a3b8';
-    let priceColor = '#22c55e';
-
-    if (theme === 'MINIMAL') {
-      bg1 = '#ffffff';
-      cardBg = '#f8fafc';
-      accent = '#2563eb';
-      text = '#0f172a';
-      muted = '#64748b';
-      priceColor = '#16a34a';
-    } else if (theme === 'GOLD') {
-      bg1 = '#1a130b';
-      cardBg = '#2e200e';
-      accent = '#f59e0b';
-      text = '#fef3c7';
-      muted = '#d97706';
-      priceColor = '#fbbf24';
-    } else if (theme === 'FESTIVE') {
-      bg1 = '#450a0a';
-      cardBg = '#7f1d1d';
-      accent = '#fbbf24';
-      text = '#fef2f2';
-      muted = '#fca5a5';
-      priceColor = '#facc15';
-    }
-
-    const titleEn = prod.title_en || 'Handcrafted Artisan Product';
-    const titleBn = prod.title_bn || 'ঐতিহ্যবাহী হস্তশিল্প পণ্য';
-    const price = Number(prod.custom_retail_price || prod.default_retail_price || 3500).toFixed(2);
-    const originalPrice = (Number(price) * 1.25).toFixed(2);
-    const promoLabel = promoTag === 'FLASH_SALE' ? '⚡ FLASH SALE' : promoTag === 'FREE_DELIVERY' ? '🚚 FREE DELIVERY' : promoTag === 'SPECIAL_EID' ? '🌙 EID SPECIAL' : promoTag === 'BEST_SELLER' ? '🔥 BEST SELLER' : '⏳ LIMITED STOCK';
-
-    return `
-      <svg width="100%" height="auto" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="display:block; width:100%;">
-        <rect width="${width}" height="${height}" fill="${bg1}" />
-        <g transform="translate(60, 60)">
-          <rect width="${width - 120}" height="80" rx="16" fill="${cardBg}" opacity="0.9" />
-          <circle cx="50" cy="40" r="24" fill="${accent}" />
-          <text x="50" y="48" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="bold">⚡</text>
-          <text x="90" y="38" font-size="20" fill="${text}" font-weight="bold">Tanvir Trends Store</text>
-          <text x="90" y="58" font-size="13" fill="${muted}">Verified Explooro Shop Partner · Fast Nationwide Courier</text>
-          <rect x="${width - 290}" y="20" width="150" height="40" rx="20" fill="${accent}" />
-          <text x="${width - 215}" y="45" font-size="13" text-anchor="middle" fill="#ffffff" font-weight="bold">${promoLabel}</text>
-        </g>
-        <g transform="translate(60, 170)">
-          <rect width="${width - 120}" height="${height - 380}" rx="24" fill="${cardBg}" />
-          <rect x="30" y="30" width="${width - 180}" height="${format === 'STORY' ? 800 : format === 'A4_PRINT' ? 680 : format === 'BANNER' ? 180 : 420}" rx="16" fill="${accent}" fill-opacity="0.12" />
-          <text x="${(width - 120) / 2}" y="${format === 'STORY' ? 440 : format === 'A4_PRINT' ? 380 : format === 'BANNER' ? 140 : 250}" font-size="80" text-anchor="middle">🛍️</text>
-          <text x="40" y="${format === 'STORY' ? 900 : format === 'A4_PRINT' ? 780 : format === 'BANNER' ? 260 : 510}" font-size="32" font-weight="bold" fill="${text}">${titleEn}</text>
-          <text x="40" y="${format === 'STORY' ? 950 : format === 'A4_PRINT' ? 830 : format === 'BANNER' ? 300 : 560}" font-size="24" font-weight="bold" fill="${muted}">${titleBn}</text>
-          <g transform="translate(40, ${format === 'STORY' ? 1020 : format === 'A4_PRINT' ? 900 : format === 'BANNER' ? 350 : 620})">
-            <text x="0" y="36" font-size="44" font-weight="bold" fill="${priceColor}">৳${price}</text>
-            <text x="210" y="32" font-size="22" text-decoration="line-through" fill="${muted}">৳${originalPrice}</text>
-          </g>
-        </g>
-        <g transform="translate(60, ${height - 180})">
-          <rect width="${width - 120}" height="140" rx="20" fill="${cardBg}" opacity="0.95" />
-          <rect x="20" y="20" width="100" height="100" rx="10" fill="#ffffff" />
-          <text x="70" y="75" font-size="36" text-anchor="middle"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></text>
-          <text x="140" y="60" font-size="24" font-weight="bold" fill="${text}">${t('social_kit.scan_qr_text')}</text>
-          <text x="140" y="90" font-size="16" font-weight="bold" fill="${accent}">${t('social_kit.scan_qr_subtext')}</text>
-        </g>
-      </svg>
-    `;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="${FONT_STACK}" style="display:block;width:100%;height:auto">
+      <rect width="${W}" height="${H}" fill="${c.bg}"/>
+      ${header}
+      ${body}
+    </svg>`;
   }
 
-  unsubscribeLang = subscribeLang(() => render());
+  const unsubscribeLang = subscribeLang(() => render());
 
   loadData();
   root.append(container);
 
   return () => {
-    if (unsubscribeLang) unsubscribeLang();
+    unsubscribeLang?.();
+    linkRequest++;
     container.remove();
   };
 }

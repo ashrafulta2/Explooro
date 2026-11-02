@@ -12,6 +12,8 @@
 import { api } from '../../core/api.ts';
 import { getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import { escapeHtml } from '../../services/html.ts';
+import { qrSvgGroup } from '../../lib/qr.ts';
 import { Modal } from '../ui/Modal.ts';
 import type { ModalElement } from '../ui/Modal.ts';
 
@@ -97,21 +99,15 @@ export class SocialKitModal {
 
   async _generateLink() {
     try {
+      // QR_CODE: one of the channels the short_links CHECK accepts; 'FLYER' was refused.
       const res = await api.post('/saler/social-kit/links', {
         product_id: this.product.id,
-        source_channel: 'FLYER',
-      }).catch(() => ({
-        code: 'demo7x',
-        short_url: '/s/demo7x',
-        full_url: 'https://explooro.com/s/demo7x',
-      }));
-      this.shortLink = res as ShortLink;
+        source_channel: 'QR_CODE',
+      });
+      this.shortLink = res?.code ? (res as unknown as ShortLink) : null;
     } catch {
-      this.shortLink = {
-        code: 'demo7x',
-        short_url: '/s/demo7x',
-        full_url: 'https://explooro.com/s/demo7x',
-      };
+      // WHY no placeholder: a made-up code on a printed flyer sends every scan nowhere.
+      this.shortLink = null;
     }
   }
 
@@ -142,13 +138,13 @@ export class SocialKitModal {
     <div class="social-kit-modal__link">
       <div class="social-kit-modal__link-head">
         <span class="social-kit-modal__label">${isBn ? 'ট্র্যাকড শর্ট লিংক' : 'Tracked Affiliate Link'}</span>
-        <span class="badge badge--sm badge--brand social-kit-modal__code">${this.shortLink?.code || 's/demo'}</span>
+        <span class="badge badge--sm badge--brand social-kit-modal__code">${this.shortLink?.code || '—'}</span>
       </div>
       <div class="social-kit-modal__link-row">
         <input
           type="text"
           readonly
-          value="${this.shortLink?.full_url || 'https://explooro.com/s/demo'}"
+          value="${this.shortLink?.full_url || ''}"
           aria-label="${isBn ? 'ট্র্যাকড শর্ট লিংক' : 'Tracked Affiliate Link'}"
           class="input social-kit-modal__url" />
         <button type="button" id="btn-copy-shortlink" class="btn btn--sm btn--primary">
@@ -314,9 +310,10 @@ export class SocialKitModal {
       priceColor = '#fbbf24';
     }
 
-    const productNameEn = this.product.name_en || 'Handcrafted Saree';
-    const productNameBn = this.product.name_bn || 'ঐতিহ্যবাহী জামদানি শাড়ি';
-    const shopName = this.store.shop_name || 'Dhaka Craft House';
+    // Escaped: an '&' in a product or shop name would otherwise break the whole SVG.
+    const productNameEn = escapeHtml(this.product.name_en || 'Handcrafted Saree');
+    const productNameBn = escapeHtml(this.product.name_bn || 'ঐতিহ্যবাহী জামদানি শাড়ি');
+    const shopName = escapeHtml(this.store.shop_name || 'Dhaka Craft House');
     const price = Number(this.product.base_price || 2450).toFixed(2);
     const originalPrice = (Number(price) * 1.25).toFixed(2);
 
@@ -343,9 +340,8 @@ export class SocialKitModal {
         </g>
         <g transform="translate(60, ${height - 180})">
           <rect width="${width - 120}" height="140" rx="20" fill="${cardBg}" opacity="0.95" />
-          <rect x="20" y="20" width="100" height="100" rx="10" fill="#ffffff" />
-          <text x="70" y="75" font-size="36" text-anchor="middle"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg></text>
-          <text x="140" y="60" font-size="24" font-weight="bold" fill="${text}">Scan QR to Order on WhatsApp</text>
+          ${qrSvgGroup(this.shortLink?.full_url || '', 20, 20, 100) || '<rect x="20" y="20" width="100" height="100" rx="10" fill="#ffffff" />'}
+          <text x="140" y="60" font-size="24" font-weight="bold" fill="${text}">Scan the QR to shop &amp; order</text>
           <text x="140" y="90" font-size="16" font-weight="bold" fill="${accent}">ক্যামেরা দিয়ে স্ক্যান করে অর্ডার করুন</text>
         </g>
       </svg>

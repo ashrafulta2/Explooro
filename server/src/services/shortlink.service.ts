@@ -28,6 +28,17 @@ export function hashIp(ip) {
   return createHash('sha256').update(String(ip)).digest('hex').slice(0, 16);
 }
 
+// The values the short_links.source_channel CHECK accepts (migration 027).
+export const SOURCE_CHANNELS = Object.freeze(['GENERAL', 'WHATSAPP', 'FACEBOOK', 'PRINT_FLYER', 'QR_CODE', 'INSTAGRAM']);
+
+/** The absolute link a shopper opens. */
+export function publicShortUrl(code) {
+  // WHY the env base and not a fixed domain: the QR printed on a flyer must open this deployment;
+  // in development that is the local client, which has its own /s/:code page.
+  const base = String(process.env.PUBLIC_WEB_URL || '').replace(/\/+$/, '');
+  return `${base}/s/${code}`;
+}
+
 /**
  * Creates a tracked affiliate short link for a product or storefront.
  */
@@ -38,6 +49,10 @@ export async function createShortLink(db, {
   sourceChannel = 'GENERAL',
   targetUrl = null,
 }) {
+  // WHY refuse here: an unknown channel used to reach the INSERT and fail the CHECK as a 500.
+  if (!SOURCE_CHANNELS.includes(sourceChannel)) {
+    throw new AppError('VALIDATION_FAILED', `source_channel must be one of ${SOURCE_CHANNELS.join(', ')}.`);
+  }
   let finalTargetUrl = targetUrl;
 
   if (!finalTargetUrl) {
@@ -81,7 +96,7 @@ export async function createShortLink(db, {
     return {
       ...link,
       short_url: `/s/${link.code}`,
-      full_url: `https://explooro.com/s/${link.code}`,
+      full_url: publicShortUrl(link.code),
     };
   });
 }
@@ -169,7 +184,7 @@ export async function getSalerShortLinks(db, salerId) {
     ...l,
     primary_image_url: toPublicImageUrl(imageKey),
     short_url: `/s/${l.code}`,
-    full_url: `https://explooro.com/s/${l.code}`,
+    full_url: publicShortUrl(l.code),
     conversion_rate_pct: l.clicks_count > 0 ? ((l.conversions_count / l.clicks_count) * 100).toFixed(1) : '0.0',
   }));
 }

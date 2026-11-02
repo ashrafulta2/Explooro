@@ -57,7 +57,8 @@ let currentShelves: Record<string, any>[] = [
   {
     name: 'Featured Handloom',
     items: products.slice(0, 4).map((p, idx) => ({
-      product_id: p.id,
+      // The fixture rows carry no id; the catalog mock numbers them by position (products.ts).
+      product_id: idx + 1,
       product_ref: p.ref,
       title_en: p.title_en,
       title_bn: p.title_bn,
@@ -74,7 +75,7 @@ let currentShelves: Record<string, any>[] = [
   {
     name: 'Trending Collection',
     items: products.slice(4, 8).map((p, idx) => ({
-      product_id: p.id,
+      product_id: idx + 5,
       product_ref: p.ref,
       title_en: p.title_en,
       title_bn: p.title_bn,
