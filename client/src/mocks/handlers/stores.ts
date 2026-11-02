@@ -70,6 +70,7 @@ let currentShelves: Record<string, any>[] = [
       display_order: idx,
       store_open: true,
       images: p.images || [],
+      image_url: p.image_url || null,
     })),
   },
   {
@@ -87,6 +88,7 @@ let currentShelves: Record<string, any>[] = [
       display_order: idx,
       store_open: true,
       images: p.images || [],
+      image_url: p.image_url || null,
     })),
   },
 ];

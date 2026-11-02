@@ -33,6 +33,7 @@ interface KitItem {
   title_en: string;
   title_bn: string;
   price: number | null;
+  image_url: string | null;
 }
 
 interface KitLink {
@@ -116,6 +117,31 @@ export default function SocialKitPage(root: HTMLElement, { query }: PageContext 
   let link: KitLink | null = null;
   let linkState: 'loading' | 'ready' | 'error' = 'loading';
   let linkRequest = 0;
+  // Product photos as data: URIs, keyed by URL; null once a fetch failed.
+  // WHY inlined and not linked: an SVG drawn into a canvas (the PNG download) or opened as a file
+  // never loads external images, so a linked photo would vanish from everything but the preview.
+  const photos = new Map<string, string | null>();
+
+  async function loadPhoto(url: string) {
+    if (photos.has(url)) return;
+    photos.set(url, null);
+    try {
+      const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      if (!blob.type.startsWith('image/')) return;
+      const dataUri = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+      photos.set(url, dataUri);
+      if (currentItem()?.image_url === url) refresh();
+    } catch {
+      // A host without CORS keeps the placeholder: same picture in the preview and every download.
+    }
+  }
 
   const isBn = () => getLanguage() === 'bn';
   const itemTitle = (item: KitItem) => (isBn() ? item.title_bn || item.title_en : item.title_en || item.title_bn);
@@ -139,7 +165,7 @@ export default function SocialKitPage(root: HTMLElement, { query }: PageContext 
           if (!id || seen.has(id)) continue;
           seen.add(id);
           const price = Number(it.custom_retail_price ?? it.default_retail_price ?? it.price);
-          items.push({ product_id: id, title_en: it.title_en || '', title_bn: it.title_bn || '', price: Number.isFinite(price) && price > 0 ? price : null });
+          items.push({ product_id: id, title_en: it.title_en || '', title_bn: it.title_bn || '', price: Number.isFinite(price) && price > 0 ? price : null, image_url: typeof it.image_url === 'string' && it.image_url ? it.image_url : null });
         }
       }
       if (selected !== 'ALL' && !items.some((i) => i.product_id === selected)) selected = 'ALL';
@@ -357,6 +383,8 @@ export default function SocialKitPage(root: HTMLElement, { query }: PageContext 
 
   /** Updates the link box, share targets, action states and preview without rebuilding the form. */
   function refresh() {
+    const photoUrl = currentItem()?.image_url;
+    if (photoUrl) loadPhoto(photoUrl);
     const ready = linkState === 'ready' && !!link;
     const q = <T extends HTMLElement>(sel: string) => container.querySelector<T>(sel);
     const code = q('[data-slot="code"]');
@@ -531,7 +559,13 @@ export default function SocialKitPage(root: HTMLElement, { query }: PageContext 
       const heroCy = cardY + 40 + heroH / 2;
       body += `<rect x="${pad}" y="${cardY}" width="${W - pad * 2}" height="${cardH}" rx="28" fill="${c.card}"/>`;
       body += `<rect x="${pad + 40}" y="${cardY + 40}" width="${W - pad * 2 - 80}" height="${heroH}" rx="20" fill="${c.accent}" fill-opacity="0.14"/>`;
-      body += `<text x="${heroCx}" y="${heroCy + Math.min(140, heroH * 0.4) * 0.35}" font-size="${Math.min(140, heroH * 0.4)}" text-anchor="middle">${item ? '🛍️' : '🏬'}</text>`;
+      const photo = item?.image_url ? photos.get(item.image_url) : null;
+      if (photo) {
+        body += `<clipPath id="flyer-hero"><rect x="${pad + 40}" y="${cardY + 40}" width="${W - pad * 2 - 80}" height="${heroH}" rx="20"/></clipPath>`;
+        body += `<image href="${photo}" x="${pad + 40}" y="${cardY + 40}" width="${W - pad * 2 - 80}" height="${heroH}" preserveAspectRatio="xMidYMid slice" clip-path="url(#flyer-hero)"/>`;
+      } else {
+        body += `<text x="${heroCx}" y="${heroCy + Math.min(140, heroH * 0.4) * 0.35}" font-size="${Math.min(140, heroH * 0.4)}" text-anchor="middle">${item ? '🛍️' : '🏬'}</text>`;
+      }
       let y = cardY + 40 + heroH + 30 + titleFont;
       body += textLines(titleLines, pad + 40, y, titleFont, `font-weight="700" fill="${c.text}"`);
       y += (titleLines.length - 1) * titleFont * 1.25 + subFont * 1.5;

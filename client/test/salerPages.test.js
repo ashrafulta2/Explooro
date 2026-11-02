@@ -272,8 +272,15 @@ test('4. Shop Partner Route Registration Invariants in main.ts', async (t) => {
     ];
 
     for (const file of pageFiles) {
-      const fileUrl = pathToFileURL(path.join(clientRoot, 'src/pages/saler', file)).href;
-      const mod = await import(fileUrl);
+      const filePath = path.join(clientRoot, 'src/pages/saler', file);
+      // WHY read instead of import: a page that imports its own stylesheet (to keep it out of the
+      // entry CSS) cannot be loaded by Node, which has no loader for .css.
+      const source = fs.readFileSync(filePath, 'utf8');
+      if (/^import '[^']+\.css';/m.test(source)) {
+        assert.match(source, /^export default function \w+/m, `${file} must export a default function for router mounting`);
+        continue;
+      }
+      const mod = await import(pathToFileURL(filePath).href);
       assert.equal(
         typeof mod.default,
         'function',

@@ -32,6 +32,7 @@ export default async function socialKitRoutes(app) {
   // 3. Render Dynamic Vector Poster / Flyer SVG
   app.get('/saler/social-kit/flyer', {
     preHandler: [requireSocialKit],
+    schema: { querystring: { type: 'object', required: ['code'], properties: { code: { type: 'string', minLength: 1, maxLength: 120 }, format: { type: 'string', maxLength: 20 }, theme: { type: 'string', maxLength: 20 } } } },
   }, socialKitController.renderFlyer);
 
   // 4. Shop Partner Short Link Analytics

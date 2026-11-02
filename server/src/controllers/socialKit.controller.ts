@@ -63,30 +63,10 @@ export async function listTemplates(req, reply) {
 
 export async function renderFlyer(req, reply) {
   const db = req.db || req.server?.db;
-  const { product_id, format, theme } = req.query || {};
-
-  let product = null;
-  if (product_id) {
-    const { rows } = await db.query(
-      `SELECT * FROM products WHERE id = $1`,
-      [parseInt(product_id, 10)]
-    );
-    product = rows[0];
-  }
-
-  const flyerSvg = flyerService.generateFlyerSvg({
-    product: product || {
-      name_en: 'Premium Tangail Silk Saree',
-      name_bn: 'প্রিমিয়াম টাঙ্গাইল সিল্ক শাড়ি',
-      base_price: 2450.00,
-    },
-    store: {
-      shop_name: 'Bengal Loom & Craft',
-    },
-    shortUrl: `https://explooro.com/s/${product_id || 'demo'}`,
-    format: format || 'SQUARE',
-    theme: theme || 'DARK',
-  });
+  const { code, format, theme } = req.query || {};
+  // WHY by link code: the QR must encode a real tracked link. The old renderer took a product id,
+  // drew a demo store and printed `/s/<product id>`, which is not a link that exists.
+  const flyerSvg = await flyerService.renderFlyerForLink(db, { code, format, theme });
 
   return reply
     .header('Content-Type', 'image/svg+xml')

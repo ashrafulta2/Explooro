@@ -8,6 +8,10 @@
  * 4. Multi-style themes (Modern Dark, Minimalist Light, Festive Gold).
  */
 
+import { encodeQr, qrPathData } from '../lib/qr.ts';
+import { AppError } from '../plugins/errorHandler.ts';
+import { publicShortUrl } from './shortlink.service.ts';
+
 function escapeXml(unsafe) {
   if (!unsafe) return '';
   return String(unsafe)
@@ -19,90 +23,17 @@ function escapeXml(unsafe) {
 }
 
 /**
- * Generates a local QR code SVG string using pure JavaScript.
- * Generates standard 25x25 QR matrix (Version 2) with finder patterns, alignment, timing, and data cells.
+ * A real, scannable QR code of `url` as a standalone SVG (lib/qr.ts, encoded locally).
+ * WHY replaced: this used to draw finder patterns around a hash-seeded random fill, which looked
+ * like a QR code but scanned as nothing.
  */
 export function generateLocalQrSvg(url, size = 180, fgColor = '#000000', bgColor = '#ffffff') {
-  const matrixSize = 25; // 25x25 grid
-  const grid = Array.from({ length: matrixSize }, () => Array(matrixSize).fill(0));
-
-  // 1. Draw Finder Pattern (7x7 with 3x3 center)
-  function drawFinderPattern(row, col) {
-    for (let r = 0; r < 7; r++) {
-      for (let c = 0; c < 7; c++) {
-        if (
-          r === 0 || r === 6 || c === 0 || c === 6 || // Outer 7x7 box
-          (r >= 2 && r <= 4 && c >= 2 && c <= 4)     // Inner 3x3 box
-        ) {
-          grid[row + r][col + c] = 1;
-        }
-      }
-    }
-  }
-
-  drawFinderPattern(0, 0);                       // Top-Left
-  drawFinderPattern(0, matrixSize - 7);          // Top-Right
-  drawFinderPattern(matrixSize - 7, 0);          // Bottom-Left
-
-  // 2. Draw Timing Patterns
-  for (let i = 8; i < matrixSize - 8; i++) {
-    grid[6][i] = i % 2 === 0 ? 1 : 0;
-    grid[i][6] = i % 2 === 0 ? 1 : 0;
-  }
-
-  // 3. Draw Alignment Pattern (5x5 at row 18, col 18)
-  const alignRow = 16;
-  const alignCol = 16;
-  for (let r = 0; r < 5; r++) {
-    for (let c = 0; c < 5; c++) {
-      if (r === 0 || r === 4 || c === 0 || c === 4 || (r === 2 && c === 2)) {
-        grid[alignRow + r][alignCol + c] = 1;
-      }
-    }
-  }
-
-  // 4. Deterministic data encoding based on input URL hash
-  let hash = 0;
-  for (let i = 0; i < url.length; i++) {
-    hash = (hash * 31 + url.charCodeAt(i)) & 0xffffffff;
-  }
-
-  let bitIdx = 0;
-  for (let r = 0; r < matrixSize; r++) {
-    for (let c = 0; c < matrixSize; c++) {
-      // Skip finder, timing, and alignment patterns
-      const inTopLeft = r < 9 && c < 9;
-      const inTopRight = r < 9 && c >= matrixSize - 9;
-      const inBottomLeft = r >= matrixSize - 9 && c < 9;
-      const inTiming = r === 6 || c === 6;
-      const inAlign = r >= 15 && r <= 21 && c >= 15 && c <= 21;
-
-      if (!inTopLeft && !inTopRight && !inBottomLeft && !inTiming && !inAlign) {
-        const val = ((hash >> (bitIdx % 30)) ^ (r * c + r + c)) & 1;
-        grid[r][c] = val;
-        bitIdx++;
-      }
-    }
-  }
-
-  // 5. Build SVG Path
-  const cellSize = size / matrixSize;
-  let pathData = '';
-
-  for (let r = 0; r < matrixSize; r++) {
-    for (let c = 0; c < matrixSize; c++) {
-      if (grid[r][c] === 1) {
-        const x = (c * cellSize).toFixed(2);
-        const y = (r * cellSize).toFixed(2);
-        const w = (cellSize + 0.05).toFixed(2);
-        pathData += `M${x},${y}h${w}v${w}h-${w}z `;
-      }
-    }
-  }
-
+  const qr = encodeQr(String(url || ''));
+  const quiet = 4;
+  const cell = size / (qr.size + quiet * 2);
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
     <rect width="${size}" height="${size}" fill="${bgColor}" rx="12" />
-    <path d="${pathData}" fill="${fgColor}" />
+    <path d="${qrPathData(qr)}" transform="translate(${(quiet * cell).toFixed(3)} ${(quiet * cell).toFixed(3)}) scale(${cell.toFixed(4)})" fill="${fgColor}" shape-rendering="crispEdges" />
   </svg>`;
 }
 
@@ -127,13 +58,16 @@ export function generateFlyerSvg({
 }) {
   const { width, height } = FLYER_FORMATS[format] || FLYER_FORMATS.SQUARE;
 
-  const productNameEn = escapeXml(product?.name_en || 'Handcrafted Artisan Saree');
-  const productNameBn = escapeXml(product?.name_bn || 'ঐতিহ্যবাহী সুতি জামদানি শাড়ি');
-  const shopName = escapeXml(store?.shop_name || 'Dhaka Craft House');
-  // WHY default_retail_price: renderFlyer passes a raw `products` row, which has no base_price, so
-  // every real product's flyer printed the 2450 demo price.
-  const priceNum = Number(product?.base_price ?? product?.default_retail_price ?? 2450);
-  const price = priceNum.toFixed(2);
+  // WHY title_*: a `products` row names it title_en/title_bn, so real flyers used to print the demo
+  // name. No product means a whole-store link: the flyer advertises the store, with no price.
+  const productNameEn = escapeXml(product ? product.name_en || product.title_en || '' : 'Shop my full collection');
+  const productNameBn = escapeXml(product ? product.name_bn || product.title_bn || '' : 'আমার পুরো কালেকশন দেখুন');
+  const shopName = escapeXml(store?.shop_name || 'Explooro');
+  // WHY default_retail_price: a raw `products` row has no base_price, so every real product's
+  // flyer used to print the 2450 demo price.
+  const priceNum = Number(product?.base_price ?? product?.default_retail_price);
+  const hasPrice = Number.isFinite(priceNum) && priceNum > 0;
+  const price = hasPrice ? priceNum.toFixed(2) : '';
   // WHY no fallback: a struck price is a claim to the shopper. It is drawn only when the caller
   // passes a real higher price; it used to be invented as price × 1.25 with a fixed 20% saving badge.
   const originalNum = Number(product?.original_price);
@@ -212,7 +146,7 @@ export function generateFlyerSvg({
 
     <!-- Price Section -->
     <g transform="translate(40, ${format === 'STORY' ? 1020 : format === 'A4_PRINT' ? 920 : 620})">
-      <text x="0" y="36" font-size="44" font-weight="900" fill="${priceColor}" class="font-brand">৳${price}</text>
+      <text x="0" y="36" font-size="44" font-weight="900" fill="${priceColor}" class="font-brand">${hasPrice ? `৳${price}` : ''}</text>
 ${hasCompare ? `
       <text x="210" y="32" font-size="22" font-weight="600" text-decoration="line-through" fill="${mutedColor}" class="font-brand">৳${comparePrice}</text>
       <rect x="330" y="6" width="120" height="34" rx="8" fill="#22c55e" fill-opacity="0.2" />
@@ -235,4 +169,29 @@ ${hasCompare ? `
     <text x="${width - 160}" y="76" font-size="15" font-weight="800" fill="${mutedColor}" text-anchor="end" class="font-brand">explooro.com</text>
   </g>
 </svg>`;
+}
+
+/**
+ * The flyer for one tracked short link: its product (if any), the partner's store name, and a QR
+ * of the link itself, so a printed flyer always credits the partner who made it.
+ */
+export async function renderFlyerForLink(db, { code, format = 'SQUARE', theme = 'DARK' }) {
+  const { rows } = await db.query(
+    `SELECT sl.code, p.title_en, p.title_bn, p.default_retail_price, vs.shop_name
+       FROM short_links sl
+       LEFT JOIN products p ON p.id = sl.product_id AND p.deleted_at IS NULL AND p.status = 'ACTIVE'
+       LEFT JOIN virtual_stores vs ON vs.saler_id = sl.saler_id AND vs.deleted_at IS NULL
+      WHERE sl.code = $1
+      LIMIT 1`,
+    [String(code || '').toLowerCase()],
+  );
+  const link = rows[0];
+  if (!link) throw new AppError('SHORTLINK_NOT_FOUND', 'Short link does not exist or has expired.');
+  return generateFlyerSvg({
+    product: link.title_en ? link : null,
+    store: { shop_name: link.shop_name || 'Explooro' },
+    shortUrl: publicShortUrl(link.code),
+    format: FLYER_FORMATS[format] ? format : 'SQUARE',
+    theme: FLYER_THEMES.includes(theme) ? theme : 'DARK',
+  });
 }
