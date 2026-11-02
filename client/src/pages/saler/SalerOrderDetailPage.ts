@@ -104,31 +104,15 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
     `;
     container.append(header);
 
-    // 2. Reward pool contribution callout. WHY: since migration 085 a partner's share of an order
-    // is escrowed to the PARTNER_REWARD_POOL, so this is what the order added to the pool, not pay.
+    // 2. Order total. WHY no pool amount, escrow status, supplier payout or per-item profit (owner,
+    // 2026-11-02): partners are shown no reward pool figures or mechanics, never a per-product
+    // amount, and never the supplier's cost.
     const kpiBox = document.createElement('div');
     kpiBox.className = 'saler-card';
-    kpiBox.style.borderLeftWidth = '4px';
-    kpiBox.style.borderLeftColor = 'var(--success-600, #16a34a)';
     kpiBox.innerHTML = `
-      <div class="saler-row--between">
-        <div class="saler-stack--xs">
-          <div class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_orders.pool_contribution_label')}</div>
-          <div class="text-3xl font-black font-mono text-emerald-600" style="color: var(--success-600, #16a34a);">+${formatCurrency(order.saler_commission_earned)}</div>
-          <div class="text-xs text-muted">
-            ${t('saler_orders.pool_status_label')}: <strong class="${order.escrow_status === 'RELEASED' ? 'text-emerald-600' : 'text-amber-600'}">${order.escrow_status === 'RELEASED' ? t('saler_orders.escrow_released') : `🔒 ${t('saler_orders.pool_locked')}`}</strong>
-          </div>
-        </div>
-        <div class="saler-row text-right" style="gap: 16px;">
-          <div>
-            <div class="text-[10px] text-muted uppercase">${t('saler_orders.customer_total')}</div>
-            <div class="text-lg font-bold font-mono text-foreground">${formatCurrency(order.total_retail_amount)}</div>
-          </div>
-          <div style="border-left: 1px solid var(--border-subtle); padding-left: 16px;">
-            <div class="text-[10px] text-muted uppercase">${t('saler_orders.supplier_payout')}</div>
-            <div class="text-lg font-bold font-mono text-muted">${formatCurrency(order.total_wholesale_cost)}</div>
-          </div>
-        </div>
+      <div class="saler-stack--xs">
+        <div class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_orders.customer_total')}</div>
+        <div class="text-3xl font-black font-mono text-foreground">${formatCurrency(order.total_retail_amount)}</div>
       </div>
     `;
     container.append(kpiBox);
@@ -157,14 +141,10 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
               <div>
                 <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${isBn ? (item.title_bn || item.title_en) : item.title_en}</div>
                 <div class="text-xs text-muted">Quantity: ${item.qty}</div>
-                <div class="text-xs font-mono mt-1 text-muted">
-                  Wholesale Base: ৳${item.wholesale_price} → Your Selling Price: ৳${item.retail_price}
-                </div>
               </div>
             </div>
             <div style="text-align: right;">
-              <div style="font-size: 16px; font-weight: 800; font-family: var(--font-mono); color: var(--success-600, #16a34a);">+${formatCurrency(item.saler_profit)}</div>
-              <div class="text-xs text-muted" style="text-transform: uppercase;">Net Profit</div>
+              <div style="font-size: 16px; font-weight: 800; font-family: var(--font-mono); color: var(--text-primary);">${formatCurrency(item.retail_price)}</div>
             </div>
           </div>
         `).join('')}

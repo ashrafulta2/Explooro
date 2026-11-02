@@ -45,7 +45,7 @@ export default function AnalyticsPage(root: HTMLElement) {
       <span>${t('saler.analytics.title', 'Sales Analytics')}</span>
     </h1>
     <p class="saler-header-row__subtitle">
-      ${t('saler.analytics.subtitle', 'Store sales, what they added to the reward pool, conversion funnels, and traffic sources.')}
+      ${t('saler.analytics.subtitle', 'Store sales, conversion funnels, and traffic sources.')}
     </p>
   `;
 
@@ -89,7 +89,7 @@ export default function AnalyticsPage(root: HTMLElement) {
     tablesSlot.innerHTML = '';
 
     // Skeletons
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 3; i++) {
       kpiSlot.append(Skeleton({ width: '100%', height: '90px' }));
     }
     chartsSlot.append(Skeleton({ width: '100%', height: '320px' }), Skeleton({ width: '100%', height: '320px' }));
@@ -126,11 +126,13 @@ export default function AnalyticsPage(root: HTMLElement) {
 }
 
 /**
- * 1. 4-Card Executive KPI Summary
+ * 1. 3-Card Executive KPI Summary
+ *
+ * WHY no "Added to the reward pool" card, chart line or per-product profit column (owner,
+ * 2026-11-02): partners are shown no pool figures or pool mechanics, and never a per-product amount.
  */
 function renderKpiCards(container, summary: Record<string, any> = {}) {
   const gmv = Number(summary.total_gross_sales || 0);
-  const profit = Number(summary.total_net_profit || 0);
   const orders = Number(summary.total_orders || 0);
   const conversionRate = Number(summary.conversion_rate_pct || 0);
 
@@ -141,13 +143,6 @@ function renderKpiCards(container, summary: Record<string, any> = {}) {
       subtext: t('saler.analytics.gross_desc', 'Customer payments across all store orders'),
       icon: '🛍️',
       color: 'primary',
-    },
-    {
-      title: t('saler.analytics.net_profit', 'Added to the reward pool'),
-      value: formatCurrency(profit),
-      subtext: t('saler.analytics.profit_desc', 'Shared out monthly by points, not paid to you per sale'),
-      icon: '💎',
-      color: 'success',
     },
     {
       title: t('saler.analytics.orders_completed', 'Orders Converted'),
@@ -183,12 +178,9 @@ function renderKpiCards(container, summary: Record<string, any> = {}) {
 }
 
 /**
- * 2. Pure Inline SVG Multi-Line / Area Chart (Gross Sales vs. what was added to the reward pool)
+ * 2. Pure Inline SVG Line / Area Chart (Gross Sales)
  */
 function renderRevenueTrendChart(container, trends = [], summary: Record<string, any> = {}) {
-  // WHY: `net_profit` is the partner share each day's sales added to the reward pool, not money
-  // paid to the partner. Resolved here because the map callbacks below shadow `t`.
-  const poolLabel = t('saler.analytics.net_profit', 'Added to the reward pool');
   const card = document.createElement('div');
   card.className = 'saler-chart-card';
 
@@ -197,16 +189,13 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
   header.innerHTML = `
     <div>
       <h3 class="saler-card__title">
-        📈 ${t('saler.analytics.trend_title', 'Sales & Pool Contribution Trend')}
+        📈 ${t('saler.analytics.trend_title', 'Sales Trend')}
       </h3>
-      <p class="saler-card__subtitle">${t('saler.analytics.trend_desc', 'Daily performance trend line with dual margin breakdown.')}</p>
+      <p class="saler-card__subtitle">${t('saler.analytics.trend_desc', 'Daily gross sales across your store.')}</p>
     </div>
     <div class="saler-row text-xs">
       <span class="saler-row text-muted font-medium" style="gap:6px;">
         <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10B981;"></span> Gross GMV
-      </span>
-      <span class="saler-row text-muted font-medium" style="gap:6px;">
-        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2563EB;"></span> ${poolLabel}
       </span>
     </div>
   `;
@@ -229,17 +218,15 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
   const chartW = width - padLeft - padRight;
   const chartH = height - padTop - padBottom;
 
-  const maxVal = Math.max(...trends.map((t) => Math.max(Number(t.gross_sales), Number(t.net_profit))), 500);
+  const maxVal = Math.max(...trends.map((t) => Number(t.gross_sales)), 500);
 
   const getX = (idx) => padLeft + (idx / Math.max(trends.length - 1, 1)) * chartW;
   const getY = (val) => padTop + chartH - (val / maxVal) * chartH;
 
   // Build SVG Paths
   let grossPoints = trends.map((t, idx) => `${getX(idx)},${getY(Number(t.gross_sales))}`).join(' ');
-  let profitPoints = trends.map((t, idx) => `${getX(idx)},${getY(Number(t.net_profit))}`).join(' ');
 
   let grossArea = `M ${getX(0)},${padTop + chartH} L ${grossPoints} L ${getX(trends.length - 1)},${padTop + chartH} Z`;
-  let profitArea = `M ${getX(0)},${padTop + chartH} L ${profitPoints} L ${getX(trends.length - 1)},${padTop + chartH} Z`;
 
   // Grid lines
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map((frac) => {
@@ -266,12 +253,6 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
     </circle>
   `).join('');
 
-  const profitDots = trends.map((t, idx) => `
-    <circle cx="${getX(idx)}" cy="${getY(Number(t.net_profit))}" r="3" fill="#2563EB" stroke="#fff" stroke-width="1.5">
-      <title>${t.label}: ${poolLabel} ৳${t.net_profit}</title>
-    </circle>
-  `).join('');
-
   const svgWrap = document.createElement('div');
   svgWrap.style.width = '100%';
   svgWrap.style.overflowX = 'auto';
@@ -282,18 +263,11 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
           <stop offset="0%" stop-color="#10B981" stop-opacity="0.25" />
           <stop offset="100%" stop-color="#10B981" stop-opacity="0.0" />
         </linearGradient>
-        <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#2563EB" stop-opacity="0.25" />
-          <stop offset="100%" stop-color="#2563EB" stop-opacity="0.0" />
-        </linearGradient>
       </defs>
       ${gridLines}
       <path d="${grossArea}" fill="url(#grossGrad)" />
-      <path d="${profitArea}" fill="url(#profitGrad)" />
       <polyline fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${grossPoints}" />
-      <polyline fill="none" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${profitPoints}" />
       ${grossDots}
-      ${profitDots}
       ${xLabels}
     </svg>
   `;
@@ -393,7 +367,7 @@ function renderTopProductsTable(container, products = []) {
         <h3 class="saler-card__title">
           🏆 ${t('saler.analytics.top_products', 'Top Performing Products')}
         </h3>
-        <p class="saler-card__subtitle">${t('saler.analytics.top_products_desc', 'Ranked by customer sales volume and total margin earned.')}</p>
+        <p class="saler-card__subtitle">${t('saler.analytics.top_products_desc', 'Ranked by customer sales volume.')}</p>
       </div>
       <a href="/saler/sourcing" class="btn btn--secondary btn--xs font-bold">
         + ${t('saler.analytics.source_more', 'Source More')}
@@ -419,7 +393,6 @@ function renderTopProductsTable(container, products = []) {
           <th>Product Title</th>
           <th style="text-align: right;">Units Sold</th>
           <th style="text-align: right;">Retail Price</th>
-          <th style="text-align: right;">Profit Earned</th>
           <th style="text-align: right;">Stock</th>
         </tr>
       </thead>
@@ -434,9 +407,6 @@ function renderTopProductsTable(container, products = []) {
             </td>
             <td style="text-align: right; font-family: var(--font-mono); color: var(--text-muted);">
               ${formatCurrency(p.custom_retail_price || p.default_retail_price)}
-            </td>
-            <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--success-700, #007f39);">
-              +${formatCurrency(p.total_margin_earned)}
             </td>
             <td style="text-align: right;">
               <span class="badge badge--${p.stock_qty > 10 ? 'success' : p.stock_qty > 0 ? 'warning' : 'danger'} text-xs">

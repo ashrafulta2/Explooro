@@ -120,16 +120,6 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
         <div class="saler-kpi-card__value text-blue-600">${summary.in_transit_count || orders.filter(o => o.fulfillment_status === 'SHIPPED').length}</div>
         <div class="saler-kpi-card__subtext">${isBn ? 'কুরিয়ারে ডেলিভারির পথে' : 'Courier on the road'}</div>
       </div>
-      <div class="saler-kpi-card">
-        <div class="saler-kpi-card__header">
-          <span>${t('saler_orders.kpi_total_commission')}</span>
-          <span>💰</span>
-        </div>
-        <div class="saler-kpi-card__value saler-kpi-card__value--profit">
-          +${formatCurrency(summary.total_commission_earned || orders.reduce((sum, o) => sum + o.saler_commission_earned, 0))}
-        </div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'অর্জিত মোট নিট কমিশন' : 'Total shop partner earnings'}</div>
-      </div>
     `;
     container.append(kpiGrid);
 
@@ -205,17 +195,14 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
           ? '<span class="badge badge--primary text-xs font-bold">🚚 IN TRANSIT</span>'
           : '<span class="badge badge--warning text-xs font-bold">⏳ PROCESSING</span>';
 
-        const escrowBadge = ord.escrow_status === 'RELEASED'
-          ? `<span class="badge badge--success text-[10px]">${t('saler_orders.escrow_released')}</span>`
-          : `<span class="badge badge--neutral text-[10px] font-mono">${t('saler_orders.escrow_locked')}</span>`;
-
+        // WHY no pool amount, escrow badge, wholesale cost or per-item profit (owner, 2026-11-02):
+        // partners are shown no reward pool figures or mechanics, and never a per-product amount.
         card.innerHTML = `
           <!-- Order Card Header -->
           <div class="saler-order-card__header">
             <div class="flex items-center gap-3">
               <span class="font-mono font-bold text-sm text-foreground">${ord.order_ref}</span>
               ${statusBadge}
-              ${escrowBadge}
             </div>
             <div class="text-xs text-muted font-mono">
               📅 ${formatDate(ord.placed_at)}
@@ -239,9 +226,8 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
               <div class="text-xs font-mono text-muted">${ord.tracking_number}</div>
             </div>
             <div>
-              <div class="text-muted font-bold text-[10px] uppercase">${t('saler_orders.commission_earned')}</div>
-              <div class="text-base font-black font-mono text-emerald-600">+${formatCurrency(ord.saler_commission_earned)}</div>
-              <div class="text-[10px] text-muted">${t('saler_orders.retail_total')}: ${formatCurrency(ord.total_retail_amount)}</div>
+              <div class="text-muted font-bold text-[10px] uppercase">${t('saler_orders.retail_total')}</div>
+              <div class="text-base font-black font-mono text-foreground">${formatCurrency(ord.total_retail_amount)}</div>
             </div>
           </div>
 
@@ -253,12 +239,8 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
                   <img src="${item.image_url || '/placeholder-product.png'}" alt="${item.title_en}" class="saler-order-item-thumb" />
                   <div>
                     <div class="font-bold text-sm text-foreground">${isBn ? (item.title_bn || item.title_en) : item.title_en}</div>
-                    <div class="text-xs text-muted">Qty: ${item.qty} × Retail ৳${item.retail_price} (Wholesale Cost: ৳${item.wholesale_price})</div>
+                    <div class="text-xs text-muted">Qty: ${item.qty} × Retail ৳${item.retail_price}</div>
                   </div>
-                </div>
-                <div class="text-right">
-                  <div class="font-mono text-sm font-bold text-emerald-600">+${formatCurrency(item.saler_profit)}</div>
-                  <div class="text-[10px] text-muted uppercase">Shop Partner Profit</div>
                 </div>
               </div>
             `).join('')}
@@ -302,7 +284,7 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
   function exportCsv(data) {
     if (!data.length) return;
     const rows = [
-      ['Order Ref', 'Date', 'Customer Name', 'Phone', 'District', 'Payment Method', 'Status', 'Courier', 'Tracking No', 'Retail Total (BDT)', 'Wholesale Cost (BDT)', 'Shop Partner Commission (BDT)'],
+      ['Order Ref', 'Date', 'Customer Name', 'Phone', 'District', 'Payment Method', 'Status', 'Courier', 'Tracking No', 'Retail Total (BDT)'],
       ...data.map(o => [
         o.order_ref,
         o.placed_at,
@@ -313,9 +295,7 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
         o.fulfillment_status,
         `"${o.courier_name}"`,
         o.tracking_number,
-        o.total_retail_amount,
-        o.total_wholesale_cost,
-        o.saler_commission_earned
+        o.total_retail_amount
       ])
     ];
     const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');

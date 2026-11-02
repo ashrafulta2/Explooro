@@ -44,12 +44,16 @@ describe('PartnerRewardCard', () => {
     assert.equal(mod.isVisible(data), true);
   });
 
-  it('shows the four factors in weight order with points out of each weight', () => {
+  it('shows the amount only: no score, factors, pool share or how the pool is shared (owner, 2026-11-02)', () => {
     assert.deepEqual(mod.FACTOR_ORDER, ['sales', 'social', 'community', 'activity']);
     const card = mod.PartnerRewardCard({ data });
     const html = card.innerHTML;
-    for (const k of mod.FACTOR_ORDER) assert.ok(html.includes(`/ ${data.weights[k]}`), k);
     assert.ok(card.className.includes('partner-reward-card'));
+    for (const k of mod.FACTOR_ORDER) assert.ok(!html.includes(`/ ${data.weights[k]}`), k);
+    const src = read('../src/components/saler/PartnerRewardCard.ts');
+    for (const k of ['score', 'estimate_line', 'no_points_line', 'foot', 'factor_', 'detail_']) {
+      assert.ok(!src.includes(`saler.partner_reward.${k}`), `card must not use ${k}`);
+    }
   });
 
   it('never computes a score itself: the estimate shown is the API figure', () => {
@@ -58,7 +62,7 @@ describe('PartnerRewardCard', () => {
     assert.ok(!/\* *Number\(data\.pool_estimate\)/.test(src), 'no client-side pool arithmetic');
   });
 
-  it('a partner with no points gets the how-to-earn line, not a share', () => {
+  it('a partner with no points gets no stale share', () => {
     const idle = { ...data, score: 0, share_pct: 0, estimated_amount: '0.00', history: [] };
     const html = mod.PartnerRewardCard({ data: idle }).innerHTML;
     assert.ok(!html.includes('39'), 'no stale share');
@@ -84,7 +88,7 @@ describe('partner reward strings and wiring', () => {
     const page = read('../src/pages/admin/AdminPartnerRewardsPage.ts');
     for (const k of used(page, 'admin.partner_rewards')) assert.ok(k in en.admin.partner_rewards, k);
     for (const f of ['sales', 'social', 'community', 'activity']) {
-      assert.ok(en.saler.partner_reward[`factor_${f}`] && en.admin.partner_rewards[`factor_${f}`], f);
+      assert.ok(en.admin.partner_rewards[`factor_${f}`], f);
     }
   });
 

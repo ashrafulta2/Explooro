@@ -962,8 +962,10 @@ function renderPriceBreakdown() {
   const wrap = document.createDocumentFragment();
   wrap.append(subgroup('PriceBreakdown — customer view (retail price only)'));
   wrap.append(specimen('customer', PriceBreakdown({ retailPrice: 1650, pricing: DEMO_PRICING, role: 'customer', modules: DEMO_MODULES, lang: 'en' })));
-  wrap.append(subgroup('PriceBreakdown — saler view (full margin breakdown, sourcing module on)'));
+  wrap.append(subgroup('PriceBreakdown — saler view (retail price only, same as a customer)'));
   wrap.append(specimen('saler', PriceBreakdown({ retailPrice: 1650, pricing: DEMO_PRICING, role: 'saler', modules: DEMO_MODULES, lang: 'en' })));
+  wrap.append(subgroup('PriceBreakdown — admin view (full margin breakdown, sourcing module on)'));
+  wrap.append(specimen('admin', PriceBreakdown({ retailPrice: 1650, pricing: DEMO_PRICING, role: 'admin', modules: DEMO_MODULES, lang: 'en' })));
   return wrap;
 }
 
@@ -3250,7 +3252,7 @@ function renderPartnerScoreCardSpecimen() {
 function renderPartnerRewardCardSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section space-y-4';
-  wrap.append(subgroup('Partner reward: the pool estimate for this month and the points behind it'));
+  wrap.append(subgroup('Partner reward: this month\'s estimate and the last payout (no score or pool mechanics)'));
   const base = {
     period: { start: '2026-10-01', end: '2026-10-31', today: '2026-10-23' },
     closes_on: '2026-11-08',

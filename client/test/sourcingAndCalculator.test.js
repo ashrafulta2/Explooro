@@ -156,6 +156,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(content.includes("const isAdmin = role === 'admin' || role === 'super_admin';"), 'Must gate admin role');
     assert.ok(content.includes('if (isAdmin)'), 'Must condition platform fields on admin role');
     assert.ok(!content.includes("details.append(\n    row('product_detail.price.platform_earning'"), 'Must not append platform earning unconditionally');
+    assert.ok(content.includes('const canViewMargins = isAdmin &&'), 'Shop partners must not see the margin breakdown or a per-product pool amount');
   });
 
   // 9. ProfitCalculator Invariant — Shop Partner only sees wholesale, retail, and their own profit

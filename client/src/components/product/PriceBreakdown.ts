@@ -1,5 +1,9 @@
 /**
- * PriceBreakdown — retail price for everyone, full margin breakdown for Shop Partners only (Prompt 4.6).
+ * PriceBreakdown — retail price for everyone, full margin breakdown for admins only (Prompt 4.6).
+ *
+ * WHY not Shop Partners any more (owner, 2026-11-02): the breakdown showed a partner the supplier's
+ * cost, the margins and "Goes to the partner reward pool ৳X" for each product. A partner never
+ * earns per product, and the owner wants them shown no reward amounts or pool mechanics at all.
  *
  * WHY the margin numbers come from the server's `pricing` object (product.service.ts's
  * calculateProductPricing, backed by pricing.service.ts's split arithmetic) rather than being
@@ -63,7 +67,7 @@ export function PriceBreakdown({
   root.append(retailRow);
 
   const isAdmin = role === 'admin' || role === 'super_admin';
-  const canViewMargins = (role === 'saler' || isAdmin) && modules.sourcing && pricing;
+  const canViewMargins = isAdmin && modules.sourcing && pricing;
   if (!canViewMargins) {
     return root;
   }

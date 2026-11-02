@@ -173,8 +173,8 @@ function renderSimpleMode(container, data, nav) {
     </div>
     <div class="saler-simple-stats">
       <div class="saler-simple-stat">
-        <span class="saler-simple-stat-label">${t('saler.dashboard.today_profit')}</span>
-        <span class="saler-simple-stat-val saler-simple-stat-val--profit">+${formatCurrency(data.metrics?.today_net_profit || 0)}</span>
+        <span class="saler-simple-stat-label">${t('saler.dashboard.today_sales')}</span>
+        <span class="saler-simple-stat-val">${formatCurrency(data.metrics?.today_gross_sales || 0)}</span>
       </div>
       <div style="width: 1px; height: 32px; background: var(--border-subtle);"></div>
       <div class="saler-simple-stat">
@@ -341,18 +341,20 @@ function renderProMode(container, data, nav) {
  */
 function renderProKpiBar(container, data) {
   const m = data.metrics || {};
+  // WHY sales and orders, not "Added to the pool" (owner, 2026-11-02): partners are shown no pool
+  // figures; what reaches them is the monthly reward card above.
   const kpis = [
     {
-      title: t('saler.dashboard.today_profit', 'Added to the pool today'),
-      value: `+${formatCurrency(m.today_net_profit || 0)}`,
-      sub: `${m.today_orders_count || 0} orders today (${formatCurrency(m.today_gross_sales || 0)} GMV)`,
+      title: t('saler.dashboard.today_sales', 'Sales today'),
+      value: formatCurrency(m.today_gross_sales || 0),
+      sub: `${m.today_orders_count || 0} orders today`,
       icon: '💎',
-      isProfit: true,
+      isProfit: false,
     },
     {
-      title: t('saler.dashboard.profit_30d', 'Added to the pool, 30 days'),
-      value: formatCurrency(m.profit_30d || 0),
-      sub: `${m.total_orders || 0} total converted orders`,
+      title: t('saler.dashboard.orders_total', 'Converted orders'),
+      value: String(m.total_orders || 0),
+      sub: `${m.total_link_clicks || 0} link clicks`,
       icon: '📈',
       isProfit: false,
     },

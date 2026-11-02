@@ -26,7 +26,6 @@
 
 .saler-pro__price { margin: 0; font-size: var(--text-2xl, 1.75rem); font-weight: 700; }
 .saler-pro__per { font-size: var(--text-sm, 0.875rem); font-weight: 400; color: var(--text-secondary); }
-.saler-pro__perk { margin: 0; color: var(--text-brand); font-weight: 600; }
 .saler-pro__note { margin: 0; color: var(--text-secondary); }
 .saler-pro__note--warn { color: var(--warning-700, var(--text-primary)); font-weight: 600; }
 

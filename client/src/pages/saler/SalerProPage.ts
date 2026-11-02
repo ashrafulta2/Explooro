@@ -101,7 +101,6 @@ export default function SalerProPage(root: HTMLElement) {
     const sub = data.subscription;
     const card = document.createElement('section');
     card.className = 'card saler-pro__current';
-    const rebate = Number(sub.commission_rebate_pct) || 0;
 
     let note = '';
     if (sub.status === 'PAST_DUE') {
@@ -122,7 +121,6 @@ export default function SalerProPage(root: HTMLElement) {
         </div>
         ${statusBadge(sub)}
       </div>
-      ${rebate > 0 ? `<p class="saler-pro__perk">${escapeHtml(t('saler_pro.perk_rebate', { pct: rebate }))}</p>` : ''}
       ${note ? `<p class="saler-pro__note ${sub.status === 'PAST_DUE' ? 'saler-pro__note--warn' : ''}">${escapeHtml(note)}</p>` : ''}
       <div class="saler-pro__actions"></div>`;
 
@@ -148,13 +146,13 @@ export default function SalerProPage(root: HTMLElement) {
     const card = document.createElement('article');
     card.className = 'card saler-pro__plan';
     const features = (getLanguage() === 'bn' ? plan.features_bn?.length ? plan.features_bn : plan.features_en : plan.features_en?.length ? plan.features_en : plan.features_bn) || [];
-    const rebate = Number(plan.commission_rebate_pct) || 0;
+    // WHY no "+X points added to your share of every sale" line (owner, 2026-11-02): partners are
+    // shown no reward pool mechanics. The plan's own feature list still sells the plan.
     const fee = Number(plan.monthly_fee);
     card.innerHTML = `
       <h3 class="saler-pro__plan-name">${escapeHtml(planName(plan))}</h3>
       <p class="saler-pro__price">${fee > 0 ? escapeHtml(formatCurrency(fee)) : escapeHtml(t('saler_pro.free'))}
         ${fee > 0 ? `<span class="saler-pro__per">${escapeHtml(t('saler_pro.per_period', { days: data.billing_period_days }))}</span>` : ''}</p>
-      ${rebate > 0 ? `<p class="saler-pro__perk">${escapeHtml(t('saler_pro.perk_rebate', { pct: rebate }))}</p>` : ''}
       <ul class="saler-pro__features">${features.map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
       <div class="saler-pro__actions"></div>`;
     const actions = card.querySelector('.saler-pro__actions');
