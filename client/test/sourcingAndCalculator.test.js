@@ -200,7 +200,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(!drawerContent.includes("formatCurrency(wholesaleCost)"), 'AddToStoreDrawer must not display raw wholesale cost');
     assert.ok(!drawerContent.includes("custom_retail_price"), 'AddToStoreDrawer must not offer a price field');
     assert.ok(!drawerContent.includes("customRetailPrice"), 'AddToStoreDrawer must not send a price');
-    assert.ok(drawerContent.includes("sourcing.drawer.pool_explainer"), 'AddToStoreDrawer must explain the monthly reward pool');
+    assert.ok(!drawerContent.includes("pool_explainer"), 'AddToStoreDrawer must not explain the reward pool (owner wants partners left curious)');
     assert.ok(!drawerContent.includes("pool_per_sale"), 'AddToStoreDrawer must not show a per-product reward pool amount');
 
     const myProductsPath = path.resolve(import.meta.dirname, '../src/pages/saler/MyProductsPage.ts');

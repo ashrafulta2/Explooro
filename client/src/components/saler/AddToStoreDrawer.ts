@@ -2,9 +2,10 @@
  * AddToStoreDrawer.ts — 1-click Add to Virtual Store drawer (Prompt 4.7).
  *
  * WHY no price field: since migration 085 the supplier sets every price and the partner's share of
- * each sale goes to the monthly partner reward pool, so a partner chooses only the collection. The
- * drawer explains the pool in words and shows no per-product amount: a "Reward pool / sale" figure
- * read as the partner's own profit on that product, so the owner removed it (2026-11-02).
+ * each sale goes to the monthly partner reward pool, so a partner chooses only the collection.
+ * WHY no reward amount and no explanation of the pool (owner, 2026-11-02): a "Reward pool / sale"
+ * figure read as the partner's own profit on that product, and the owner wants partners left
+ * curious about how rewards work rather than walked through it here.
  */
 import { Drawer } from '../ui/Drawer.ts';
 import type { DrawerElement } from '../ui/Drawer.ts';
@@ -62,9 +63,9 @@ export function AddToStoreDrawer({ onSuccess = null }: { onSuccess?: ((item: unk
     size: 'md',
   }) as AddToStoreDrawerElement;
 
-  function row(label: string, value: string, highlight = false) {
+  function row(label: string, value: string) {
     const el = document.createElement('div');
-    el.className = highlight ? 'add-store-calc-row add-store-calc-row--highlight' : 'add-store-calc-row';
+    el.className = 'add-store-calc-row';
     const l = document.createElement('span');
     l.textContent = label;
     const v = document.createElement('strong');
@@ -130,10 +131,6 @@ export function AddToStoreDrawer({ onSuccess = null }: { onSuccess?: ((item: unk
     const calcBox = document.createElement('div');
     calcBox.className = 'add-store-calc-preview';
     calcBox.append(row(t('sourcing.drawer.price_locked'), formatCurrency(price)));
-    const explainer = document.createElement('p');
-    explainer.className = 'add-store-pool-note';
-    explainer.textContent = t('sourcing.drawer.pool_explainer');
-    calcBox.append(explainer);
 
     const actions = document.createElement('div');
     actions.className = 'add-store-actions';
