@@ -23,10 +23,24 @@ export default async function productRoutes(app) {
       if (!req.user) throw new AppError('AUTH_REQUIRED', 'Sign in required.', 'সাইন ইন করা প্রয়োজন।');
     });
 
+  // Public, but the owning supplier and admins also read cost fields here (productVisibility.service.ts),
+  // so a signed-in caller is identified when a token is sent.
+  // WHY AUTH_EXPIRED is rethrown: an admin whose 15-minute token lapsed must not silently get the
+  // shopper shape, or the catalog editor loads no supplier price and saves a wrong one; the 401
+  // makes the client refresh and retry. A revoked or garbled token is nobody, so it reads as a guest.
+  const identifyViewer = async (req) => {
+    if (!app.authenticateOptional) return;
+    try {
+      await app.authenticateOptional(req);
+    } catch (err) {
+      if (err?.code === 'AUTH_EXPIRED') throw err;
+    }
+  };
+
   // Public Catalog & Product Detail
-  app.get('/products', productController.listProducts);
+  app.get('/products', { preHandler: [identifyViewer] }, productController.listProducts);
   app.get('/catalog/categories', productController.listCategories);
-  app.get('/products/:id', productController.getProduct);
+  app.get('/products/:id', { preHandler: [identifyViewer] }, productController.getProduct);
   app.post('/pricing/preview', productController.previewPricing);
   app.get('/pricing/markup', { preHandler: [authenticate] }, productController.getMarkupPolicy);
 

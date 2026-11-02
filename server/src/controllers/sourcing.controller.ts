@@ -3,6 +3,7 @@
  */
 
 import * as productService from '../services/product.service.ts';
+import { productsForViewer } from '../services/productVisibility.service.ts';
 import { getSalerView as getSalerIncentiveView } from '../services/volumeIncentive.service.ts';
 import { getSalerView as getSalerTierView } from '../services/salerTier.service.ts';
 import { getOwnScore as getOwnPartnerScore } from '../services/partnerScore.service.ts';
@@ -34,7 +35,9 @@ export async function getSourcingCatalog(req, reply) {
     offset: offset ? parseInt(offset, 10) : 0,
   });
 
-  return reply.send({ catalog: items });
+  // WHY only here: the AI sourcing agent reads listSourcingCatalog in-process and still filters by
+  // margin; the public response carries the retail price only (the route has no auth).
+  return reply.send({ catalog: productsForViewer(items, req.user || null) });
 }
 
 export async function getSalerIncentives(req, reply) {

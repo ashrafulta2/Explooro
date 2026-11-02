@@ -7,6 +7,8 @@ import { resolveMockMediaUrl } from './media.ts';
 import { markupForCategory, retailFromSupplierPrice } from '../../services/retailMarkup.ts';
 import { VARIANT_DIMENSIONS } from '../../config/variantDimensions.ts';
 import { mockOptionsForCategory } from './variantOptions.ts';
+import { getMockSessionUser } from './auth.ts';
+import { productForViewer } from '../productVisibility.ts';
 
 /**
  * The markup policy (live: pricing.markup + category_markups, retailMarkup.service.ts). Exported so the
@@ -412,10 +414,12 @@ export default [
       const page = filtered.slice(start, start + limit);
       const nextIndex = start + limit;
       const hasMore = nextIndex < filtered.length;
+      // Same per-row rule as live: only admins and the owning supplier read cost fields.
+      const viewer = getMockSessionUser();
       return {
         status: 200,
         body: {
-          data: { products: page },
+          data: { products: page.map((p) => productForViewer(p, viewer)) },
           meta: {
             cursor: { next: hasMore ? encodeCursor(nextIndex) : null, has_more: hasMore },
             count: page.length,
@@ -446,7 +450,7 @@ export default [
       if (!product) {
         return notFound(`No product with ref "${params.id}".`, `"${params.id}" নামে কোনো পণ্য নেই।`);
       }
-      return { status: 200, body: { data: { product: toDetailShape(product) } } };
+      return { status: 200, body: { data: { product: productForViewer(toDetailShape(product), getMockSessionUser()) } } };
     },
   },
   {
@@ -980,7 +984,7 @@ export default [
       return {
         status: 200,
         body: {
-          data: { catalog: paged, total: filtered.length },
+          data: { catalog: paged.map((p) => productForViewer(p, getMockSessionUser())), total: filtered.length },
           meta: { total: filtered.length, limit, offset },
         },
       };
@@ -1210,7 +1214,7 @@ export default [
         status: 200,
         body: {
           data: {
-            catalog,
+            catalog: catalog.map((p) => productForViewer(p, getMockSessionUser())),
           },
           meta: {
             total: catalog.length,

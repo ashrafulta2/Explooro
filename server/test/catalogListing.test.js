@@ -301,6 +301,11 @@ describe('GET /products — min_margin', () => {
       makeRow(2, { default_retail_price: '100.00', price: '100.00' }), // no margin at all
     ]);
     app = buildApp(db);
+    // WHY an admin: margins are cost-derived, so a guest's rows no longer carry them
+    // (productVisibility.test.js); the filter itself is checked through the rows an admin sees.
+    app.addHook('onRequest', async (req) => {
+      req.user = { id: 1, roles: ['admin'] };
+    });
     await app.register(productRoutes, { prefix: '/api/v1' });
     await app.ready();
   });

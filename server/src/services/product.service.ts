@@ -14,6 +14,7 @@ import { attachToProducts as attachSupplierScorecards } from './supplierScorecar
 import { runAuction as runAdAuction } from './ads.service.ts';
 import { PLACEMENT as SPONSORED_SOURCING_PLACEMENT } from './sponsoredSourcing.service.ts';
 import { getReservedForProduct, withAvailableStock } from './teamStockReservation.service.ts';
+import { productForViewer } from './productVisibility.service.ts';
 
 /**
  * WHY it swallows errors: the scorecard is decoration on the catalog, not the catalog. A missing
@@ -510,7 +511,11 @@ export async function deleteProduct(db, idOrRef, supplierId, isStaff = false) {
   return { success: true, message: 'Product deleted successfully.' };
 }
 
-export async function getProductDetail(db, idOrRefOrSlug) {
+/**
+ * `viewer` is req.user, or null for a guest. Only the owning supplier and admins get the cost and
+ * margin fields (their catalog editor reads them); see productVisibility.service.ts.
+ */
+export async function getProductDetail(db, idOrRefOrSlug, viewer = null) {
   let product = null;
   if (/^\d+$/.test(idOrRefOrSlug)) {
     product = await productRepo.getProductById(db, parseInt(idOrRefOrSlug, 10));
@@ -566,7 +571,10 @@ export async function getProductDetail(db, idOrRefOrSlug) {
     response_time_bn: RESPONSE_TIME_BY_TIER[tier]?.hours_bn,
   };
 
-  return { ...product, reserved_qty: reservedQty, available_qty: availableQty, pricing, variants, images, supplier: supplierInfo };
+  return productForViewer(
+    { ...product, reserved_qty: reservedQty, available_qty: availableQty, pricing, variants, images, supplier: supplierInfo },
+    viewer
+  );
 }
 
 /**

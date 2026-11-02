@@ -6,6 +6,7 @@ import * as productService from '../services/product.service.ts';
 import * as pricingService from '../services/pricing.service.ts';
 import { loadMarkupPolicy } from '../services/retailMarkup.service.ts';
 import { saveVariants as saveProductVariants } from '../services/productVariant.service.ts';
+import { productsForViewer } from '../services/productVisibility.service.ts';
 
 export async function createProduct(req, reply) {
   const db = req.db || req.server?.db;
@@ -122,7 +123,7 @@ export async function getProduct(req, reply) {
   const db = req.db || req.server?.db;
   const { id } = req.params;
 
-  const product = await productService.getProductDetail(db, id);
+  const product = await productService.getProductDetail(db, id, req.user || null);
   return reply.send({ data: { product }, product });
 }
 
@@ -194,7 +195,7 @@ export async function listProducts(req, reply) {
   // sort dropdown most visibly, since an unread `sort` fell through to `newest`.
   const startOffset = cursor ? decodeCatalogCursor(cursor) : parseInt(offset, 10) || 0;
 
-  const { products, hasMore, limit: pageSize, total } = await productService.listCatalogPage(db, {
+  const { products: rows, hasMore, limit: pageSize, total } = await productService.listCatalogPage(db, {
     categoryId: category_id ? parseInt(category_id, 10) : undefined,
     categorySlug: category_slug,
     categoryRef: category && category !== 'all' ? category : undefined,
@@ -219,6 +220,8 @@ export async function listProducts(req, reply) {
     district,
     q,
   });
+  // Per row: the admin catalog and a supplier's own rows keep cost fields; everyone else's do not.
+  const products = productsForViewer(rows, req.user || null);
 
   return reply.send({
     data: { products },

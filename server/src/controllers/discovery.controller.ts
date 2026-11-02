@@ -10,6 +10,7 @@
 
 import * as discoveryService from '../services/discoveryFeed.service.ts';
 import * as homeRailsService from '../services/homeRails.service.ts';
+import { productsForViewer } from '../services/productVisibility.service.ts';
 
 // A guest actor id: an opaque token the browser persists and sends back. Never trusted for auth —
 // it only scopes anonymous ranking history to one browser.
@@ -70,7 +71,8 @@ export async function getFeed(req, reply) {
     cache: req.server?.cache,
   });
 
-  return reply.send({ data: { products: result.products }, meta: result.meta });
+  // WHY a guest's view for everyone: the feed is a shopper surface; no screen reads costs from it.
+  return reply.send({ data: { products: productsForViewer(result.products) }, meta: result.meta });
 }
 
 export async function getRails(req, reply) {
@@ -86,7 +88,8 @@ export async function getRails(req, reply) {
     cache: req.server?.cache,
   });
 
-  return reply.send({ data: { rails: result.rails }, meta: result.meta });
+  const rails = (result.rails || []).map((rail) => ({ ...rail, products: productsForViewer(rail.products) }));
+  return reply.send({ data: { rails }, meta: result.meta });
 }
 
 export async function recordEvents(req, reply) {

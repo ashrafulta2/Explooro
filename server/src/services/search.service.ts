@@ -5,6 +5,7 @@
 import { postgresSearchDriver } from './search-drivers/postgres.ts';
 import { meilisearchDriver } from './search-drivers/meilisearch.ts';
 import { withAvailableStock } from './teamStockReservation.service.ts';
+import { productsForViewer } from './productVisibility.service.ts';
 
 export function getSearchDriver() {
   const driverType = (process.env.SEARCH_DRIVER || 'postgres').toLowerCase().trim();
@@ -44,6 +45,8 @@ export async function executeSearch(db, cache, { query = '', filters = {}, limit
   } catch {
     // Reservation lookup is a refinement; a failure must not lose the search results.
   }
+  // Before the cache write: the driver selects p.*, and search is public, so no cost is kept.
+  results.products = productsForViewer(results.products);
 
   // Telemetry: Record zero-result queries to inform catalog merchandising
   if (rawQuery && results.products.length === 0 && results.stores.length === 0) {
