@@ -370,8 +370,16 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
     loading = true;
     render();
     try {
-      const res = await salerApi.getProducts();
-      products = res?.data?.products || [];
+      // WHY every page: the KPI strip, filters and sorts work on the whole shelf in the browser, and
+      // the endpoint is paginated. The empty-page check stops a loop if the shelf shrinks meanwhile.
+      const loaded = [];
+      for (;;) {
+        const res = await salerApi.getProducts({ offset: loaded.length });
+        const page = res?.data?.products || [];
+        loaded.push(...page);
+        if (page.length === 0 || loaded.length >= Number(res?.data?.total_count || 0)) break;
+      }
+      products = loaded;
     } catch (err) {
       toast.error(err.message || 'Failed to load store products');
     } finally {

@@ -62,16 +62,17 @@ export const salerApi = {
   },
 
   /**
-   * Fetches curated products in the shop partner's store.
-   * @param {{ category?: string, in_stock?: boolean, sort?: string, search?: string }} [params]
+   * Fetches one page of the curated products in the shop partner's store, hidden ones included.
+   * @param {{ limit?: number, offset?: number }} [params]
    */
   async getProducts(params: Params = {}) {
     return api.get('/saler/products', { query: params });
   },
 
   /**
-   * Updates a curated product's custom retail price, markup, or visibility.
-   * @param {number|string} id
+   * Shows or hides a curated item on the storefront. Only `is_active` may change: a price is refused
+   * with 422 PRICE_LOCKED (the supplier sets every price).
+   * @param {number|string} id the store item's id (`products[].id`), not the product id
    * @param {object} payload
    */
   async updateProduct(id: number | string, payload: Params) {
@@ -80,7 +81,7 @@ export const salerApi = {
 
   /**
    * Removes a product from the shop partner's curated store.
-   * @param {number|string} id
+   * @param {number|string} id the store item's id (`products[].id`), not the product id
    */
   async removeProduct(id: number | string) {
     return api.delete(`/saler/products/${id}`);

@@ -112,15 +112,26 @@ test('3. Shop Partner Mock Endpoints & Business Logic', async (t) => {
     const res = h.handler({ query: {} });
     assert.equal(res.status, 200);
     assert.ok(Array.isArray(res.body?.data?.products), 'Products is an array');
-    assert.ok(res.body?.data?.summary?.avg_margin_pct, 'Summary has avg_margin_pct');
+    assert.equal(typeof res.body?.data?.summary?.total_curated, 'number', 'Summary counts the shelf');
+    assert.equal(typeof res.body?.data?.total_count, 'number', 'Paged list carries total_count');
+    // Mirrors the server (server/test/salerMyProducts.test.js): nothing behind the shopper's price.
+    for (const p of res.body.data.products) {
+      for (const key of ['partner_profit', 'base_wholesale_price', 'custom_retail_price', 'min_retail_price']) {
+        assert.equal(key in p, false, `${key} must not reach a shop partner`);
+      }
+    }
   });
 
-  await t.test('PATCH /saler/products/:id updates retail price and margin', () => {
+  await t.test('PATCH /saler/products/:id toggles visibility and refuses a partner price', () => {
     const h = findHandler('PATCH', '/saler/products/:id');
     assert.ok(h, 'Handler for PATCH /saler/products/:id exists');
-    const res = h.handler({ params: { id: 1 }, body: { custom_retail_price: 3800.0 } });
+    const priced = h.handler({ params: { id: 1 }, body: { custom_retail_price: 3800.0 } });
+    assert.equal(priced.status, 422);
+    assert.equal(priced.body?.error?.code, 'PRICE_LOCKED');
+    const res = h.handler({ params: { id: 1 }, body: { is_active: false } });
     assert.equal(res.status, 200);
-    assert.equal(res.body?.data?.product?.custom_retail_price, 3800.0);
+    assert.equal(res.body?.data?.product?.is_active, false);
+    h.handler({ params: { id: 1 }, body: { is_active: true } });
   });
 
   await t.test('GET & PATCH /saler/store-status controls physical shop open hours', () => {

@@ -632,44 +632,41 @@ export default [
   },
 
   // 4. Shop Partner Curated Products (My Products)
+  // Mirrors the server (store.service.ts listMyProducts / updateMyProduct / removeMyProduct): `:id` is
+  // the store item's id, the list is paged, and nothing behind the shopper's price is sent — no
+  // supplier cost, no `partner_profit` (the per-product reward pool amount), no custom price.
   {
     method: 'GET',
     path: '/saler/products',
     handler: ({ query }) => {
-      let filtered = [...mockSalerProducts];
-      if (query?.category && query.category !== 'all') {
-        filtered = filtered.filter((p) => p.category.toLowerCase() === query.category.toLowerCase());
-      }
-      if (query?.search) {
-        const q = query.search.toLowerCase();
-        filtered = filtered.filter(
-          (p) => p.title_en.toLowerCase().includes(q) || (p.title_bn && p.title_bn.includes(q))
-        );
-      }
-      if (query?.in_stock === 'true' || query?.in_stock === true) {
-        filtered = filtered.filter((p) => p.stock_qty > 0);
-      }
-      const sanitized = filtered.map((p) => {
-        const wholesale = Number(p.base_wholesale_price || 0);
-        const minRetail = p.min_retail_price || Math.round(wholesale * 1.1);
-        const defRetail = p.default_retail_price || Math.round(wholesale * 1.3);
-        return {
-          ...p,
-          min_retail_price: minRetail,
-          default_retail_price: defRetail,
-        };
-      });
+      const limit = Math.min(Math.max(Number.parseInt(query?.limit, 10) || 100, 1), 200);
+      const offset = Math.max(Number.parseInt(query?.offset, 10) || 0, 0);
+      const inStock = mockSalerProducts.filter((p) => p.stock_qty > 0).length;
       return {
         status: 200,
         body: {
           data: {
-            products: sanitized,
-            total_count: sanitized.length,
+            products: mockSalerProducts.slice(offset, offset + limit).map((p) => ({
+              id: p.id,
+              product_id: p.product_id,
+              title_en: p.title_en,
+              title_bn: p.title_bn,
+              category: p.category,
+              supplier_name: p.supplier_name,
+              default_retail_price: p.default_retail_price,
+              stock_qty: p.stock_qty,
+              is_active: p.is_active,
+              shelf_name: p.shelf_name,
+              image_url: p.image_url,
+              sales_count: p.sales_count,
+            })),
+            total_count: mockSalerProducts.length,
+            limit,
+            offset,
             summary: {
               total_curated: mockSalerProducts.length,
-              in_stock_count: mockSalerProducts.filter((p) => p.stock_qty > 0).length,
-              out_of_stock_count: mockSalerProducts.filter((p) => p.stock_qty === 0).length,
-              avg_margin_pct: '24.8',
+              in_stock_count: inStock,
+              out_of_stock_count: mockSalerProducts.length - inStock,
             },
           },
         },
@@ -680,23 +677,38 @@ export default [
     method: 'PATCH',
     path: '/saler/products/:id',
     handler: ({ params, body }) => {
-      const id = Number(params.id);
-      const idx = mockSalerProducts.findIndex((p) => p.id === id || p.product_id === id);
-      if (idx === -1) {
-        return { status: 404, body: { error: 'Product not found in curated store' } };
+      if (body?.custom_retail_price !== undefined && body?.custom_retail_price !== null && body?.custom_retail_price !== '') {
+        return {
+          status: 422,
+          body: {
+            error: {
+              code: 'PRICE_LOCKED',
+              message_en: 'Prices are set by the supplier. Shop partners cannot change them.',
+              message_bn: 'দাম supplier ঠিক করেন। Shop partner দাম পরিবর্তন করতে পারবেন না।',
+            },
+          },
+        };
       }
-      mockSalerProducts[idx] = {
-        ...mockSalerProducts[idx],
-        ...body,
-      };
+      if (typeof body?.is_active !== 'boolean') {
+        return {
+          status: 400,
+          body: {
+            error: {
+              code: 'VALIDATION_FAILED',
+              message_en: 'is_active (true or false) is the only field a shop partner can change on a store item.',
+              message_bn: 'স্টোর আইটেমে shop partner শুধু is_active (true বা false) পরিবর্তন করতে পারবেন।',
+            },
+          },
+        };
+      }
+      const item = mockSalerProducts.find((p) => p.id === Number(params.id));
+      if (!item) {
+        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Product not found in your store.' } } };
+      }
+      item.is_active = body.is_active;
       return {
         status: 200,
-        body: {
-          data: {
-            product: mockSalerProducts[idx],
-            message: 'Product updated successfully',
-          },
-        },
+        body: { data: { product: { id: item.id, product_id: item.product_id, is_active: item.is_active } } },
       };
     },
   },
@@ -704,11 +716,14 @@ export default [
     method: 'DELETE',
     path: '/saler/products/:id',
     handler: ({ params }) => {
-      const id = Number(params.id);
-      mockSalerProducts = mockSalerProducts.filter((p) => p.id !== id && p.product_id !== id);
+      const item = mockSalerProducts.find((p) => p.id === Number(params.id));
+      if (!item) {
+        return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'Product not found in your store.' } } };
+      }
+      mockSalerProducts = mockSalerProducts.filter((p) => p !== item);
       return {
         status: 200,
-        body: { data: { success: true, message: 'Product removed from store' } },
+        body: { data: { success: true, id: item.id, product_id: item.product_id } },
       };
     },
   },

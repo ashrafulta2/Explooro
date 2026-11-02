@@ -164,7 +164,7 @@ describe('Route guard enforcement (structural)', () => {
     );
   });
 
-  test('every /saler/store route is gated by its module AND shop partner.store.manage via preHandler', async () => {
+  test('every /saler/store and /saler/products route is gated by its module AND shop partner.store.manage via preHandler', async () => {
     const { default: storeRoutes } = await import('../src/routes/store.routes.ts');
 
     const routes = [];
@@ -202,6 +202,9 @@ describe('Route guard enforcement (structural)', () => {
       { method: 'PUT', url: '/saler/store', module: 'virtual_storefront' },
       { method: 'PATCH', url: '/saler/store/status', module: 'physical_shop_status' },
       { method: 'PUT', url: '/saler/store/shelves', module: 'virtual_storefront' },
+      { method: 'GET', url: '/saler/products', module: 'virtual_storefront' },
+      { method: 'PATCH', url: '/saler/products/:id', module: 'virtual_storefront' },
+      { method: 'DELETE', url: '/saler/products/:id', module: 'virtual_storefront' },
     ];
 
     // Every shop partner route the plugin registers must be one we expect to be gated — a new one added

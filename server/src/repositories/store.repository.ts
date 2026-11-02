@@ -215,7 +215,18 @@ export async function updateStorePhysicalStatus(db, storeId, { physicalOpenStatu
   return rows[0] ?? null;
 }
 
-export async function listStoreItems(db, storeId) {
+/**
+ * The curated items of one store. With no options it is the storefront's view: visible items only,
+ * every one of them. My Products (`GET /saler/products`) passes `includeHidden` and a page, because
+ * the partner must still see — and be able to re-show — an item they hid.
+ */
+export async function listStoreItems(db, storeId, { includeHidden = false, limit = null, offset = 0 }: { includeHidden?: boolean; limit?: number | null; offset?: number } = {}) {
+  const params: any[] = [storeId];
+  let page = '';
+  if (limit !== null && limit !== undefined) {
+    params.push(limit, offset);
+    page = `LIMIT $2 OFFSET $3`;
+  }
   const { rows } = await db.query(
     `SELECT ssi.id as item_id,
             ssi.store_id,
@@ -267,11 +278,70 @@ export async function listStoreItems(db, storeId) {
      JOIN users u ON u.id = p.supplier_id
      LEFT JOIN user_profiles up ON up.user_id = u.id
      LEFT JOIN trust_scores ts ON ts.user_id = u.id
-     WHERE ssi.store_id = $1 AND ssi.is_active = true AND p.deleted_at IS NULL AND p.status = 'ACTIVE'
-     ORDER BY ssi.collection_name ASC, ssi.display_order ASC, ssi.added_at DESC`,
+     WHERE ssi.store_id = $1 ${includeHidden ? '' : 'AND ssi.is_active = true'} AND p.deleted_at IS NULL AND p.status = 'ACTIVE'
+     ORDER BY ssi.collection_name ASC, ssi.display_order ASC, ssi.added_at DESC, ssi.id DESC
+     ${page}`,
+    params
+  );
+  return rows;
+}
+
+/**
+ * Product id and raw stock of every item on the shelf, hidden ones included — the cheap read behind
+ * My Products' summary, which counts the whole shelf while the list is one page of it. The filter
+ * is listStoreItems'; if the two disagree the summary and the list contradict each other.
+ */
+export async function listStoreItemStock(db, storeId) {
+  const { rows } = await db.query(
+    `SELECT ssi.product_id, p.stock_qty
+     FROM saler_store_items ssi
+     JOIN products p ON p.id = ssi.product_id
+     WHERE ssi.store_id = $1 AND p.deleted_at IS NULL AND p.status = 'ACTIVE'`,
     [storeId]
   );
   return rows;
+}
+
+/**
+ * Units of each product this partner sold, lifetime, from sub-orders that were not cancelled,
+ * refunded or returned. Map(productId -> units).
+ */
+export async function getPartnerUnitsSold(db, salerId, productIds) {
+  const ids = [...new Set((productIds || []).map(Number))];
+  const map = new Map(ids.map((id) => [id, 0]));
+  if (ids.length === 0) return map;
+  const { rows } = await db.query(
+    `SELECT oi.product_id, COALESCE(SUM(oi.qty), 0)::int AS units
+     FROM sub_orders so
+     JOIN order_items oi ON oi.sub_order_id = so.id
+     WHERE so.saler_id = $1
+       AND so.status NOT IN ('CANCELLED', 'REFUNDED', 'RETURNED')
+       AND oi.product_id = ANY($2::bigint[])
+     GROUP BY oi.product_id`,
+    [salerId, ids]
+  );
+  for (const r of rows) map.set(Number(r.product_id), Number(r.units) || 0);
+  return map;
+}
+
+/** Shows or hides one item on the storefront; scoped to the store so a partner can only touch their own. */
+export async function setStoreItemActive(db, storeId, itemId, isActive) {
+  const { rows } = await db.query(
+    `UPDATE saler_store_items SET is_active = $3
+     WHERE store_id = $1 AND id = $2
+     RETURNING id, product_id, is_active`,
+    [storeId, itemId, Boolean(isActive)]
+  );
+  return rows[0] ?? null;
+}
+
+/** Takes one item off the shelf by its own id; scoped to the store like setStoreItemActive. */
+export async function removeStoreItemById(db, storeId, itemId) {
+  const { rows } = await db.query(
+    `DELETE FROM saler_store_items WHERE store_id = $1 AND id = $2 RETURNING id, product_id`,
+    [storeId, itemId]
+  );
+  return rows[0] ?? null;
 }
 
 export async function batchUpdateStoreItems(db, storeId, items) {

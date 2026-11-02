@@ -63,6 +63,28 @@ export async function updateShelves(req, reply) {
   return reply.send({ data: { success: true } });
 }
 
+export async function listMyProducts(req, reply) {
+  const db = req.db || req.server?.db;
+  const { limit, offset } = req.query || {};
+
+  const data = await storeService.listMyProducts(db, req.user?.id, { limit, offset });
+  return reply.send({ data });
+}
+
+export async function updateMyProduct(req, reply) {
+  const db = req.db || req.server?.db;
+
+  const data = await storeService.updateMyProduct(db, req.user?.id, req.params?.id, req.body);
+  return reply.send({ data });
+}
+
+export async function removeMyProduct(req, reply) {
+  const db = req.db || req.server?.db;
+
+  const data = await storeService.removeMyProduct(db, req.user?.id, req.params?.id);
+  return reply.send({ data });
+}
+
 export async function getStoreOgImage(req, reply) {
   const db = req.db || req.server?.db;
   const { slug } = req.params;

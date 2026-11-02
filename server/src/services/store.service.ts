@@ -7,6 +7,8 @@ import { isReservedStoreSlug } from '../config/reservedSlugs.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { withAvailableStock } from './teamStockReservation.service.ts';
 import { assertNoPartnerPrice } from './product.service.ts';
+import { getStorageDriver } from '../integrations/storage/index.ts';
+import { toPublicImageUrl } from '../lib/productImage.ts';
 
 export const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -277,6 +279,8 @@ export async function getSalerStore(db, salerId) {
       collection_name: shelfName,
       display_order: item.display_order,
       images: item.images || [],
+      // The primary photo as a URL (images[] is ordered primary first and carries only storage keys).
+      image_url: toPublicImageUrl(item.images?.[0]?.storage_key),
     });
   }
 
@@ -391,6 +395,132 @@ export async function updateShelves(db, salerId, items) {
   for (const item of items || []) assertNoPartnerPrice(item?.custom_retail_price);
   await storeRepo.batchUpdateStoreItems(db, store.id, items || []);
   return { success: true };
+}
+
+/**
+ * Page bounds for My Products. WHY a large default: the page counts and filters the whole shelf in
+ * the browser, so it pages through until it has every item; a bigger page means fewer round trips.
+ */
+export const MY_PRODUCTS_PAGE = { defaultLimit: 100, maxLimit: 200 };
+
+function pageParam(value, fallback, max) {
+  const n = Number.parseInt(value, 10);
+  if (!Number.isFinite(n) || n < 0) return fallback;
+  return Math.min(n, max);
+}
+
+function parseItemId(id) {
+  const n = Number(id);
+  if (!Number.isInteger(n) || n <= 0) {
+    throw new AppError('NOT_FOUND', 'Product not found in your store.', 'আপনার স্টোরে প্রোডাক্টটি পাওয়া যায়নি।');
+  }
+  return n;
+}
+
+/**
+ * My Products (`GET /saler/products`): one page of the partner's curated items, hidden ones included,
+ * plus a summary of the whole shelf.
+ *
+ * WHY this shape and no more: the partner sees the price the shopper pays and nothing behind it. No
+ * supplier cost or margin (45271c6), and no `partner_profit` — since migration 085 that figure is
+ * what a sale puts into the reward pool, and a per-product pool amount reads as the partner's own
+ * profit, which they never earn (owner, 2026-11-02). `custom_retail_price` is gone too: it is held
+ * NULL by a CHECK, so there is nothing to show.
+ * WHY no in-stock filter here: available stock is the raw count minus what open teams hold, which
+ * is only known after the read, so a SQL filter would page on the wrong number.
+ */
+export async function listMyProducts(db, salerId, { limit, offset }: { limit?: any; offset?: any } = {}) {
+  const pageLimit = pageParam(limit, MY_PRODUCTS_PAGE.defaultLimit, MY_PRODUCTS_PAGE.maxLimit) || MY_PRODUCTS_PAGE.defaultLimit;
+  const pageOffset = pageParam(offset, 0, Number.MAX_SAFE_INTEGER);
+  const emptySummary = { total_curated: 0, in_stock_count: 0, out_of_stock_count: 0 };
+
+  const store = await storeRepo.getStoreBySalerId(db, salerId);
+  if (!store) {
+    return { products: [], total_count: 0, limit: pageLimit, offset: pageOffset, summary: emptySummary };
+  }
+
+  // WHY net of team reservations, for the list and the summary alike: units an open team holds
+  // cannot be sold, and the partner decides what to promote from this count.
+  const [rawItems, shelfStock] = await Promise.all([
+    storeRepo.listStoreItems(db, store.id, { includeHidden: true, limit: pageLimit, offset: pageOffset }),
+    storeRepo.listStoreItemStock(db, store.id),
+  ]);
+  const [items, shelf] = await Promise.all([
+    withAvailableStock(db, rawItems, { idKey: 'product_id' }),
+    withAvailableStock(db, shelfStock, { idKey: 'product_id' }),
+  ]);
+  const unitsSold = await storeRepo.getPartnerUnitsSold(db, salerId, items.map((i) => i.product_id));
+  const storage = getStorageDriver();
+
+  const inStock = shelf.filter((s) => Number(s.stock_qty) > 0).length;
+  return {
+    products: items.map((item) => {
+      const image = (item.images || [])[0];
+      return {
+        id: Number(item.item_id),
+        product_id: Number(item.product_id),
+        product_ref: item.product_ref,
+        slug: item.product_slug,
+        title_en: item.title_en,
+        title_bn: item.title_bn,
+        category: item.category_name_en,
+        category_bn: item.category_name_bn,
+        supplier_name: item.supplier_name_en || '',
+        default_retail_price: Number(item.default_retail_price),
+        stock_qty: Number(item.stock_qty) || 0,
+        is_active: Boolean(item.is_active),
+        shelf_name: item.collection_name || null,
+        image_url: image?.storage_key ? storage.getPublicUrl(image.storage_key) : null,
+        sales_count: unitsSold.get(Number(item.product_id)) || 0,
+      };
+    }),
+    total_count: shelf.length,
+    limit: pageLimit,
+    offset: pageOffset,
+    summary: {
+      total_curated: shelf.length,
+      in_stock_count: inStock,
+      out_of_stock_count: shelf.length - inStock,
+    },
+  };
+}
+
+/**
+ * Shows or hides one curated item on the partner's storefront (`PATCH /saler/products/:id`, where
+ * `:id` is the item's own id from listMyProducts, not the product id). A price in the body is refused
+ * with PRICE_LOCKED rather than dropped, so an old client cannot believe it took.
+ */
+export async function updateMyProduct(db, salerId, id, body) {
+  const payload = body || {};
+  assertNoPartnerPrice(payload.custom_retail_price);
+  const itemId = parseItemId(id);
+  if (typeof payload.is_active !== 'boolean') {
+    throw new AppError(
+      'VALIDATION_FAILED',
+      'is_active (true or false) is the only field a shop partner can change on a store item.',
+      'স্টোর আইটেমে shop partner শুধু is_active (true বা false) পরিবর্তন করতে পারবেন।'
+    );
+  }
+
+  const store = await storeRepo.getStoreBySalerId(db, salerId);
+  const updated = store ? await storeRepo.setStoreItemActive(db, store.id, itemId, payload.is_active) : null;
+  if (!updated) {
+    throw new AppError('NOT_FOUND', 'Product not found in your store.', 'আপনার স্টোরে প্রোডাক্টটি পাওয়া যায়নি।');
+  }
+  return {
+    product: { id: Number(updated.id), product_id: Number(updated.product_id), is_active: Boolean(updated.is_active) },
+  };
+}
+
+/** Takes one curated item off the partner's store (`DELETE /saler/products/:id`, the item's own id). */
+export async function removeMyProduct(db, salerId, id) {
+  const itemId = parseItemId(id);
+  const store = await storeRepo.getStoreBySalerId(db, salerId);
+  const removed = store ? await storeRepo.removeStoreItemById(db, store.id, itemId) : null;
+  if (!removed) {
+    throw new AppError('NOT_FOUND', 'Product not found in your store.', 'আপনার স্টোরে প্রোডাক্টটি পাওয়া যায়নি।');
+  }
+  return { success: true, id: Number(removed.id), product_id: Number(removed.product_id) };
 }
 
 /**

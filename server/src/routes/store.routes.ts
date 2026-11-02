@@ -56,5 +56,27 @@ export default async function storeRoutes(fastify) {
       { preHandler: [requireVirtualStorefront, requireStoreManage] },
       storeController.updateShelves
     );
+
+    // My Products (/saler/products): the partner's curated items, hidden ones included. `:id` is the
+    // store item's id, not the product id. Same guards as /saler/store, since it is the same shelf.
+    // WHY no `config: { page }`: the inbox's "send a product card" picker (/saler/inbox) reads this
+    // list too, so parking My Products must not break the inbox (middlewares/requirePage.ts scope).
+    salerScope.get(
+      '/saler/products',
+      { preHandler: [requireVirtualStorefront, requireStoreManage] },
+      storeController.listMyProducts
+    );
+
+    salerScope.patch(
+      '/saler/products/:id',
+      { preHandler: [requireVirtualStorefront, requireStoreManage] },
+      storeController.updateMyProduct
+    );
+
+    salerScope.delete(
+      '/saler/products/:id',
+      { preHandler: [requireVirtualStorefront, requireStoreManage] },
+      storeController.removeMyProduct
+    );
   });
 }
