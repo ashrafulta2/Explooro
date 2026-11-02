@@ -1,12 +1,13 @@
 /**
  * BundleProfitBreakdown.ts — Live Multi-Party Profit & Margin Breakdown Component (Prompt 10.5).
  *
- * Displays a live, transparent financial breakdown for cross-seller combos:
+ * Displays a live price breakdown for cross-seller combos:
  * - Original Sum of Parts vs Bundle Price vs Discount
- * - Per-Supplier Guaranteed Wholesale Payouts
- * - Shop Partner Profit Split & Commission
- * - Platform Share
  * - Itemized discount apportionment & effective retail prices
+ * - Platform Share, only when a caller passes showPlatformShare (none does on a partner page)
+ *
+ * WHY no partner profit, wholesale cost or supplier payouts (owner, 2026-11-02): the shop partner
+ * building the bundle is shown no per-product profit and never the supplier's cost.
  */
 
 import { t } from '../../services/i18n.ts';
@@ -73,15 +74,10 @@ export function createBundleProfitBreakdown({
       bundle_price,
       discount_amount,
       discount_pct,
-      total_wholesale_cost,
-      total_net_margin,
-      total_saler_commission,
       total_platform_margin,
-      saler_margin_pct,
       is_multi_supplier,
       supplier_count,
       items = [],
-      suppliers = [],
     } = data;
 
     container.innerHTML = `
@@ -101,7 +97,7 @@ export function createBundleProfitBreakdown({
         </div>
 
         <!-- Top Level Metric Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div class="grid grid-cols-2 gap-3 mb-4">
           <div class="stat-pill p-3 border rounded">
             <span class="text-xs text-muted block uppercase">${t('bundle.sum_of_parts')}</span>
             <span class="text-base font-bold font-mono line-through text-muted">${formatCurrency(sum_of_parts)}</span>
@@ -109,36 +105,6 @@ export function createBundleProfitBreakdown({
           <div class="stat-pill p-3 border rounded bg-surface-hover">
             <span class="text-xs text-muted block uppercase">${t('bundle.bundle_price')}</span>
             <span class="text-lg font-bold font-mono text-primary">${formatCurrency(bundle_price)}</span>
-          </div>
-          <div class="stat-pill p-3 border rounded bg-success-soft">
-            <span class="text-xs text-muted block uppercase">${t('bundle.saler_earning')}</span>
-            <span class="text-base font-bold font-mono text-success">${formatCurrency(total_saler_commission)} (${saler_margin_pct}%)</span>
-          </div>
-          <div class="stat-pill p-3 border rounded">
-            <span class="text-xs text-muted block uppercase">${t('bundle.wholesale_cost')}</span>
-            <span class="text-base font-bold font-mono">${formatCurrency(total_wholesale_cost)}</span>
-          </div>
-        </div>
-
-        <!-- Per-Supplier Guaranteed Payouts -->
-        <div class="supplier-payouts-section mb-4">
-          <h5 class="text-sm font-semibold mb-2 text-muted uppercase tracking-wider">${t('bundle.supplier_payouts_heading')}</h5>
-          <div class="space-y-2">
-            ${suppliers.map((supp) => `
-              <div class="flex-between p-2 rounded border bg-surface-subtle text-sm">
-                <div class="flex items-center gap-2">
-                  <span class="supplier-icon">🏭</span>
-                  <div>
-                    <span class="font-medium">${supp.supplier_name}</span>
-                    <span class="text-xs text-muted block">${t('bundle.supplier_items_count', { count: supp.item_count })}</span>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="font-mono font-semibold">${formatCurrency(supp.total_wholesale_payout)}</span>
-                  <span class="text-xs text-muted block">${t('bundle.guaranteed_wholesale')}</span>
-                </div>
-              </div>
-            `).join('')}
           </div>
         </div>
 
@@ -154,7 +120,6 @@ export function createBundleProfitBreakdown({
                   <th class="py-2 text-right">${t('bundle.original_retail')}</th>
                   <th class="py-2 text-right">${t('bundle.discount_share')}</th>
                   <th class="py-2 text-right">${t('bundle.effective_price')}</th>
-                  <th class="py-2 text-right">${t('bundle.saler_share')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -168,7 +133,6 @@ export function createBundleProfitBreakdown({
                     <td class="py-2 text-right font-mono text-muted line-through">${formatCurrency(it.originalRetailPrice)}</td>
                     <td class="py-2 text-right font-mono text-danger">-${formatCurrency(it.discountShare)}</td>
                     <td class="py-2 text-right font-mono font-semibold">${formatCurrency(it.effectiveUnitPrice)}</td>
-                    <td class="py-2 text-right font-mono text-success font-semibold">${formatCurrency(it.salerCommission)}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -176,10 +140,7 @@ export function createBundleProfitBreakdown({
           </div>
         </div>
 
-        <div class="mt-4 pt-3 border-t flex-between text-xs text-muted">
-          <span>🔒 ${t('bundle.zero_drift_guarantee')}</span>
-          ${showPlatformShare && total_platform_margin !== undefined ? `<span>${t('bundle.platform_share_tag', { amount: formatCurrency(total_platform_margin) })}</span>` : ''}
-        </div>
+        ${showPlatformShare && total_platform_margin !== undefined ? `<div class="mt-4 pt-3 border-t flex-between text-xs text-muted"><span>${t('bundle.platform_share_tag', { amount: formatCurrency(total_platform_margin) })}</span></div>` : ''}
       </div>
     `;
   }

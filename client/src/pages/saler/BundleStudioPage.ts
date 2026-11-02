@@ -5,8 +5,10 @@
  *
  * Capabilities:
  * 1. Multi-Merchant Combo Builder: Select products from multiple distinct suppliers.
- * 2. Real-Time Profit Split Breakdown: Live breakdown showing sum of parts, discount share per item,
- *    guaranteed wholesale payouts to suppliers, shop partner commission, and platform share.
+ * 2. Real-Time Price Breakdown: Live breakdown showing sum of parts and the discount share per item.
+ *    WHY no partner profit, wholesale cost or supplier payouts, and why the page never holds or sends
+ *    a product's cost (owner, 2026-11-02): partners are shown no per-product profit and never the
+ *    supplier's cost. The server reads the real costs itself when the bundle is created.
  * 3. Validation: Enforces price floors and minimum 2 items.
  * 4. Published Bundles Manager: List and manage active bundle combos.
  * 5. Dynamic Demand Surge Radar: View advisory surge price recommendations and opt-in/dismiss.
@@ -356,8 +358,6 @@ export default function BundleStudioPage(root: HTMLElement, ctx: PageContext) {
             productTitleEn: it.title_en,
             productTitleBn: it.title_bn,
             retailPrice: it.retail_price,
-            baseCost: it.base_cost,
-            wholesaleMargin: it.wholesale_margin,
             supplierId: it.supplier_id,
             supplierName: it.supplier_name,
             qty: it.qty,
@@ -401,8 +401,6 @@ export default function BundleStudioPage(root: HTMLElement, ctx: PageContext) {
             productTitleEn: it.title_en,
             productTitleBn: it.title_bn,
             retailPrice: it.retail_price,
-            baseCost: it.base_cost,
-            wholesaleMargin: it.wholesale_margin,
             supplierId: it.supplier_id,
             qty: it.qty,
           })),
@@ -626,24 +624,22 @@ export default function BundleStudioPage(root: HTMLElement, ctx: PageContext) {
           title_en: it.title_en || it.product_title_en || `Product #${it.product_id}`,
           title_bn: it.title_bn || it.product_title_bn || `পণ্য #${it.product_id}`,
           retail_price: parseFloat(it.retail_price || it.current_product_retail_price || 1200),
-          base_cost: parseFloat(it.base_cost || it.base_price || 700),
-          wholesale_margin: parseFloat(it.wholesale_margin || 100),
           supplier_id: it.supplier_id || 1,
           supplier_name: it.supplier_name || 'Walton Bangladesh',
         }));
       } else {
         // Fallback default sample multi-supplier catalog for preview
         availableProducts = [
-          { product_id: 1, title_en: 'Walton Formal Cotton Shirt', title_bn: 'ওয়ালটন ফর্মাল সুতি শার্ট', retail_price: 1200, base_cost: 700, wholesale_margin: 100, supplier_id: 5, supplier_name: 'Walton Apparel' },
-          { product_id: 2, title_en: 'Apex Executive Trousers', title_bn: 'এপেক্স এক্সিকিউটিভ ট্রাউজার', retail_price: 1800, base_cost: 1100, wholesale_margin: 150, supplier_id: 6, supplier_name: 'Apex Footwear & Textiles' },
-          { product_id: 3, title_en: 'Bata Leather Dress Belt', title_bn: 'বাটা লেদার ড্রেস বেল্ট', retail_price: 650, base_cost: 350, wholesale_margin: 50, supplier_id: 7, supplier_name: 'Bata Bangladesh' },
-          { product_id: 4, title_en: 'Aarong Silk Tie & Cufflinks', title_bn: 'আড়ং সিল্ক টাই ও কাফলিংক', retail_price: 850, base_cost: 450, wholesale_margin: 80, supplier_id: 8, supplier_name: 'Aarong Crafts' },
+          { product_id: 1, title_en: 'Walton Formal Cotton Shirt', title_bn: 'ওয়ালটন ফর্মাল সুতি শার্ট', retail_price: 1200, supplier_id: 5, supplier_name: 'Walton Apparel' },
+          { product_id: 2, title_en: 'Apex Executive Trousers', title_bn: 'এপেক্স এক্সিকিউটিভ ট্রাউজার', retail_price: 1800, supplier_id: 6, supplier_name: 'Apex Footwear & Textiles' },
+          { product_id: 3, title_en: 'Bata Leather Dress Belt', title_bn: 'বাটা লেদার ড্রেস বেল্ট', retail_price: 650, supplier_id: 7, supplier_name: 'Bata Bangladesh' },
+          { product_id: 4, title_en: 'Aarong Silk Tie & Cufflinks', title_bn: 'আড়ং সিল্ক টাই ও কাফলিংক', retail_price: 850, supplier_id: 8, supplier_name: 'Aarong Crafts' },
         ];
       }
     } catch {
       availableProducts = [
-        { product_id: 1, title_en: 'Walton Formal Cotton Shirt', title_bn: 'ওয়ালটন ফর্মাল সুতি শার্ট', retail_price: 1200, base_cost: 700, wholesale_margin: 100, supplier_id: 5, supplier_name: 'Walton Apparel' },
-        { product_id: 2, title_en: 'Apex Executive Trousers', title_bn: 'এপেক্স এক্সিকিউটিভ ট্রাউজার', retail_price: 1800, base_cost: 1100, wholesale_margin: 150, supplier_id: 6, supplier_name: 'Apex Footwear & Textiles' },
+        { product_id: 1, title_en: 'Walton Formal Cotton Shirt', title_bn: 'ওয়ালটন ফর্মাল সুতি শার্ট', retail_price: 1200, supplier_id: 5, supplier_name: 'Walton Apparel' },
+        { product_id: 2, title_en: 'Apex Executive Trousers', title_bn: 'এপেক্স এক্সিকিউটিভ ট্রাউজার', retail_price: 1800, supplier_id: 6, supplier_name: 'Apex Footwear & Textiles' },
       ];
     }
   }
