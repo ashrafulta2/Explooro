@@ -62,6 +62,11 @@ describe('PartnerRewardCard', () => {
     assert.ok(!/\* *Number\(data\.pool_estimate\)/.test(src), 'no client-side pool arithmetic');
   });
 
+  it('the dashboard shows no commission tier and the leaderboard no profit (owner, 2026-11-02)', () => {
+    assert.ok(!read('../src/pages/saler/SalerDashboardPage.ts').includes('CommissionTierCard('), 'tier card must not be mounted');
+    assert.ok(!read('../src/pages/saler/SalerQuestsPage.ts').includes('net_profit'), 'leaderboard must not show profit');
+  });
+
   it('a partner with no points gets no stale share', () => {
     const idle = { ...data, score: 0, share_pct: 0, estimated_amount: '0.00', history: [] };
     const html = mod.PartnerRewardCard({ data: idle }).innerHTML;

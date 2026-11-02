@@ -22,7 +22,6 @@ import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
-import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
 import type { PageContext } from '../types.ts';
@@ -286,22 +285,13 @@ function renderProMode(container, data, nav) {
   // 1. KPI Telemetry Bar
   renderProKpiBar(wrap, data);
 
-  // 1b. Earned commission tier. Loaded on its own so a slow or failed lookup never holds up the
-  // dashboard; with tiers switched off (or on any error) the slot simply stays empty.
-  const tierSlot = document.createElement('div');
-  wrap.append(tierSlot);
-  salerApi
-    .getCommissionTier()
-    .then((res) => {
-      const card = CommissionTierCard({ data: res?.data });
-      if (card && tierSlot.isConnected) tierSlot.replaceChildren(card);
-    })
-    .catch(() => {});
-
-  // 1b'. This month's reward pool estimate: what a partner is paid at month end (migration 086).
-  // First, because it is the partner's income now; same loading rule as the tier card above.
+  // 1b. This month's reward estimate: what a partner is paid at month end (migration 086). Loaded
+  // on its own so a slow or failed lookup never holds up the dashboard; on any error the slot
+  // simply stays empty.
+  // WHY no commission tier card any more (owner, 2026-11-02): "+1% on every sale" told partners
+  // they earn per sale, which they never do, and partners are shown no reward mechanics.
   const rewardSlot = document.createElement('div');
-  wrap.insertBefore(rewardSlot, tierSlot);
+  wrap.append(rewardSlot);
   salerApi
     .getPartnerReward()
     .then((res) => {
@@ -310,7 +300,7 @@ function renderProMode(container, data, nav) {
     })
     .catch(() => {});
 
-  // 1c. Partner Score: how well they promote and sell. Same loading rule as the tier card above.
+  // 1c. Partner Score: how well they promote and sell. Same loading rule as the reward card above.
   const scoreSlot = document.createElement('div');
   wrap.append(scoreSlot);
   salerApi

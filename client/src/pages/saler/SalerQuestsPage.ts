@@ -228,6 +228,8 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
   }
 
   function renderLeaderboardTab(slot, isBn) {
+    // WHY sales and GMV only, no "+৳X profit" (owner, 2026-11-02): partners never earn per sale,
+    // and a profit figure per partner read as exactly that.
     // 1. Top 3 Podium Cards
     const podiumWrap = document.createElement('div');
     podiumWrap.className = 'saler-leaderboard-podium';
@@ -245,7 +247,6 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
           <div class="font-black text-base text-foreground mt-1">${top2.saler_name}</div>
           <div class="text-xs text-muted font-mono">@${top2.store_slug}</div>
           <div class="text-sm font-extrabold text-foreground font-mono mt-2">${top2.sales_count} Sales · ৳${formatNumber(top2.gmv)}</div>
-          <div class="text-xs font-bold text-emerald-600 font-mono">+৳${formatNumber(top2.net_profit)} profit</div>
         </div>
 
         <!-- 1st Place Gold -->
@@ -255,7 +256,6 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
           <div class="font-black text-lg text-foreground mt-1">${top1.saler_name}</div>
           <div class="text-xs text-muted font-mono">@${top1.store_slug}</div>
           <div class="text-base font-extrabold text-foreground font-mono mt-2">${top1.sales_count} Sales · ৳${formatNumber(top1.gmv)}</div>
-          <div class="text-sm font-bold text-emerald-600 font-mono">+৳${formatNumber(top1.net_profit)} profit</div>
         </div>
 
         <!-- 3rd Place Bronze -->
@@ -265,7 +265,6 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
           <div class="font-black text-base text-foreground mt-1">${top3.saler_name}</div>
           <div class="text-xs text-muted font-mono">@${top3.store_slug}</div>
           <div class="text-sm font-extrabold text-foreground font-mono mt-2">${top3.sales_count} Sales · ৳${formatNumber(top3.gmv)}</div>
-          <div class="text-xs font-bold text-emerald-600 font-mono">+৳${formatNumber(top3.net_profit)} profit</div>
         </div>
       `;
     }
@@ -285,7 +284,6 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
           <th>${t('saler_quests.th_merchant')}</th>
           <th>${t('saler_quests.th_sales')}</th>
           <th>${t('saler_quests.th_gmv')}</th>
-          <th>${t('saler_quests.th_net_profit')}</th>
           <th class="text-right">${t('saler_quests.th_tier')}</th>
         </tr>
       </thead>
@@ -318,7 +316,6 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
         </td>
         <td class="font-mono text-sm text-foreground">${item.sales_count}</td>
         <td class="font-mono text-sm font-bold text-foreground">${formatCurrency(item.gmv)}</td>
-        <td class="font-mono text-sm font-bold text-emerald-600">+${formatCurrency(item.net_profit)}</td>
         <td class="text-right">
           <span class="badge ${item.tier_badge.includes('PLATINUM') ? 'badge--primary' : item.tier_badge.includes('GOLD') ? 'badge--warning' : 'badge--neutral'} text-xs font-mono">
             ${item.tier_badge}

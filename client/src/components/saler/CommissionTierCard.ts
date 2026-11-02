@@ -7,6 +7,10 @@
  *
  * Returns null while the platform has tiers switched off, so a shop partner is never shown a ladder that
  * pays nothing.
+ *
+ * WHY no page mounts it (owner, 2026-11-02): "+X% on every sale" told partners they earn per sale,
+ * which they never do, so the shop partner dashboard dropped it. It stays for the gallery, and
+ * `esc` and its card classes are shared by PartnerRewardCard and PartnerScoreCard.
  */
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { t } from '../../services/i18n.ts';
