@@ -6352,7 +6352,10 @@
     "toast_removed": "Product removed from your store.",
     "toast_price_invalid": "Retail price cannot be lower than supplier wholesale cost (৳{{min}}).",
     "sort_label": "Sort products",
-    "retail_price_label": "Retail price"
+    "retail_price_label": "Retail price",
+    "stock_in": "{{count}} in stock",
+    "stock_left": "Only {{count}} left",
+    "confirm_remove": "Remove this product from your store shelves?"
   },
   "saler_store_status": {
     "title": "Physical Shop & Showroom Status",

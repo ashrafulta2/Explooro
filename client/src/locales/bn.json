@@ -6352,7 +6352,10 @@
     "toast_removed": "পণ্যটি আপনার স্টোর থেকে সরানো হয়েছে।",
     "toast_price_invalid": "বিক্রয়মূল্য সাপ্লায়ারের পাইকারি খরচের (৳{{min}}) চেয়ে কম হতে পারবে না।",
     "sort_label": "পণ্য সাজান",
-    "retail_price_label": "খুচরা মূল্য"
+    "retail_price_label": "খুচরা মূল্য",
+    "stock_in": "স্টকে {{count}}টি",
+    "stock_left": "মাত্র {{count}}টি বাকি",
+    "confirm_remove": "এই পণ্যটি আপনার স্টোর থেকে সরাবেন?"
   },
   "saler_store_status": {
     "title": "শারীরিক দোকান ও শোরুম স্ট্যাটাস",

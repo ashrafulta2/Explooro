@@ -16,6 +16,7 @@
 
 import { salerApi } from '../../services/saler.api.ts';
 import { formatCurrency } from '../../services/format.ts';
+import { escapeHtml } from '../../services/html.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
@@ -36,7 +37,6 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
   container.className = 'saler-page-container';
 
   let products = [];
-  let summary: Record<string, any> = {};
   let loading = true;
   let searchQuery = '';
   let selectedCategory = 'all';
@@ -78,33 +78,9 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
     // 2. KPI Summary Strip
     const kpiGrid = document.createElement('div');
     kpiGrid.className = 'saler-kpi-grid';
-    kpiGrid.innerHTML = `
-      <div class="saler-kpi-card">
-        <div class="saler-kpi-card__header">
-          <span>${t('saler_products.kpi_total_curated')}</span>
-          <span>🏷️</span>
-        </div>
-        <div class="saler-kpi-card__value">${summary.total_curated || products.length}</div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'আপনার স্টোরে সক্রিয় আইটেম' : 'Items across shelves'}</div>
-      </div>
-      <div class="saler-kpi-card">
-        <div class="saler-kpi-card__header">
-          <span>${t('saler_products.kpi_in_stock')}</span>
-          <span>🟢</span>
-        </div>
-        <div class="saler-kpi-card__value text-success">${summary.in_stock_count || products.filter(p => p.stock_qty > 0).length}</div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'সাপ্লায়ার স্টকে অর্ডারযোগ্য' : 'Ready for fast dispatch'}</div>
-      </div>
-      <div class="saler-kpi-card">
-        <div class="saler-kpi-card__header">
-          <span>${t('saler_products.kpi_out_of_stock')}</span>
-          <span>⚠️</span>
-        </div>
-        <div class="saler-kpi-card__value text-danger">${summary.out_of_stock_count || products.filter(p => p.stock_qty === 0).length}</div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'সাপ্লায়ার স্টক খালি' : 'Needs catalog swap'}</div>
-      </div>
-    `;
+    kpiGrid.id = 'products-kpis';
     container.append(kpiGrid);
+    renderKpis();
 
     // 3. Toolbar & Filters
     const toolbar = document.createElement('div');
@@ -124,9 +100,7 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
       <div class="saler-toolbar__filters">
         <select id="category-filter" class="select select--sm" aria-label="${t('saler_products.filter_all_categories')}">
           <option value="all">${t('saler_products.filter_all_categories')}</option>
-          <option value="Clothing">Clothing</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Home & Kitchen">Home & Kitchen</option>
+          ${categoryOptions().map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('')}
         </select>
         <select id="stock-filter" class="select select--sm" aria-label="${t('saler_products.filter_all_stock')}">
           <option value="all">${t('saler_products.filter_all_stock')}</option>
@@ -177,6 +151,46 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
     container.append(tableWrap);
 
     renderTableBody();
+  }
+
+  function categoryOptions(): string[] {
+    return [...new Set(products.map((p) => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  }
+
+  function renderKpis() {
+    const grid = container.querySelector('#products-kpis');
+    if (!grid) return;
+    const isBn = getLanguage() === 'bn';
+    // WHY counted here, not taken from the response summary: the list is the whole shelf, and a
+    // removal or visibility change must move these figures without a refetch.
+    const value = (n: number) => (loading ? '—' : String(n));
+    const inStock = products.filter((p) => Number(p.stock_qty) > 0).length;
+    grid.innerHTML = `
+      <div class="saler-kpi-card">
+        <div class="saler-kpi-card__header">
+          <span>${t('saler_products.kpi_total_curated')}</span>
+          <span aria-hidden="true">🏷️</span>
+        </div>
+        <div class="saler-kpi-card__value">${value(products.length)}</div>
+        <div class="saler-kpi-card__subtext">${isBn ? 'আপনার স্টোরে সক্রিয় আইটেম' : 'Items across shelves'}</div>
+      </div>
+      <div class="saler-kpi-card">
+        <div class="saler-kpi-card__header">
+          <span>${t('saler_products.kpi_in_stock')}</span>
+          <span aria-hidden="true">🟢</span>
+        </div>
+        <div class="saler-kpi-card__value text-success">${value(inStock)}</div>
+        <div class="saler-kpi-card__subtext">${isBn ? 'সাপ্লায়ার স্টকে অর্ডারযোগ্য' : 'Ready for fast dispatch'}</div>
+      </div>
+      <div class="saler-kpi-card">
+        <div class="saler-kpi-card__header">
+          <span>${t('saler_products.kpi_out_of_stock')}</span>
+          <span aria-hidden="true">⚠️</span>
+        </div>
+        <div class="saler-kpi-card__value text-danger">${value(products.length - inStock)}</div>
+        <div class="saler-kpi-card__subtext">${isBn ? 'সাপ্লায়ার স্টক খালি' : 'Needs catalog swap'}</div>
+      </div>
+    `;
   }
 
   function renderTableBody() {
@@ -239,18 +253,21 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
       return;
     }
 
+    // WHY own classes, not utility names: this table used Tailwind-style names (w-12, line-clamp-1,
+    // btn--xs, …) that no stylesheet defines, so the photo rendered at full size and the title
+    // was squeezed into one word per line over the category column.
     const table = document.createElement('table');
-    table.className = 'saler-table';
+    table.className = 'saler-table sp-table';
     table.innerHTML = `
       <thead>
         <tr>
           <th>${t('saler_products.th_product')}</th>
           <th>${t('saler_products.th_category')}</th>
-          <th>${t('saler_products.th_retail_price')}</th>
-          <th>${t('saler_products.th_pool_share')}</th>
+          <th class="sp-num">${t('saler_products.th_retail_price')}</th>
+          <th class="sp-num">${t('saler_products.th_pool_share')}</th>
           <th>${t('saler_products.th_stock')}</th>
           <th>${t('saler_products.th_status')}</th>
-          <th class="text-right">${t('saler_products.th_actions')}</th>
+          <th class="sp-num">${t('saler_products.th_actions')}</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -261,50 +278,53 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
     filtered.forEach((p) => {
       const retail = Number(p.default_retail_price || 0);
       const poolShare = Number(p.partner_profit || 0);
-      const title = isBn ? (p.title_bn || p.title_en) : p.title_en;
+      const title = escapeHtml(isBn ? (p.title_bn || p.title_en) : p.title_en);
+      const stock = Number(p.stock_qty || 0);
+      const stockBadge =
+        stock > 10
+          ? ['success', t('saler_products.stock_in', { count: stock })]
+          : stock > 0
+          ? ['warning', t('saler_products.stock_left', { count: stock })]
+          : ['danger', t('saler_products.badge_out_of_stock')];
 
       const tr = document.createElement('tr');
+      if (!p.is_active) tr.className = 'sp-row--hidden';
       tr.innerHTML = `
-        <td>
-          <div class="flex items-center gap-3">
-            <img src="${p.image_url || '/placeholder-product.png'}" alt="${title}" class="w-12 h-12 rounded-lg object-cover border border-subtle" />
-            <div>
-              <div class="font-bold text-foreground text-sm line-clamp-1">${title}</div>
-              <div class="text-xs text-muted">🏭 ${p.supplier_name}</div>
+        <td class="sp-cell-product">
+          <div class="sp-product">
+            <img src="${escapeHtml(p.image_url || '/placeholder-product.png')}" alt="" class="sp-product__thumb" loading="lazy" width="56" height="56" />
+            <div class="sp-product__text">
+              <div class="sp-product__title" title="${title}">${title}</div>
+              <div class="sp-product__supplier">${escapeHtml(p.supplier_name || '')}</div>
             </div>
           </div>
         </td>
-        <td>
-          <span class="badge badge--neutral text-xs">${p.category}</span>
+        <td data-label="${t('saler_products.th_category')}">
+          <span class="sp-chip">${escapeHtml(p.category || '')}</span>
         </td>
-        <td class="font-mono text-sm font-semibold" title="${t('saler_products.price_locked_hint')}">
-          ${formatCurrency(retail)}
+        <td class="sp-num" data-label="${t('saler_products.th_retail_price')}">
+          <span class="sp-price" title="${t('saler_products.price_locked_hint')}">${formatCurrency(retail)}</span>
         </td>
-        <td>
-          <div class="font-mono text-sm font-bold text-emerald-600">+${formatCurrency(poolShare)}</div>
-          <div class="text-[10px] text-muted">${t('saler_products.pool_share_hint')}</div>
+        <td class="sp-num" data-label="${t('saler_products.th_pool_share')}">
+          <div class="sp-pool">+${formatCurrency(poolShare)}</div>
+          <div class="sp-pool__hint">${t('saler_products.pool_share_hint')}</div>
         </td>
-        <td>
-          ${
-            p.stock_qty > 10
-              ? `<span class="badge badge--success text-xs">🟢 ${p.stock_qty} in stock</span>`
-              : p.stock_qty > 0
-              ? `<span class="badge badge--warning text-xs">⚠️ ${p.stock_qty} left</span>`
-              : `<span class="badge badge--danger text-xs">🔴 Out of Stock</span>`
-          }
+        <td data-label="${t('saler_products.th_stock')}">
+          <span class="badge badge--md badge--${stockBadge[0]} sp-stock"><span class="sp-dot" aria-hidden="true"></span>${stockBadge[1]}</span>
         </td>
-        <td>
-          <button class="btn-toggle-active badge ${p.is_active ? 'badge--primary' : 'badge--neutral'} cursor-pointer text-xs" data-id="${p.id}">
-            ${p.is_active ? t('saler_products.badge_active') : t('saler_products.badge_hidden')}
+        <td data-label="${t('saler_products.th_status')}">
+          <button type="button" class="btn-toggle-active sp-visibility" aria-pressed="${p.is_active ? 'true' : 'false'}" data-id="${p.id}">
+            <span class="sp-visibility__track" aria-hidden="true"></span>
+            <span>${p.is_active ? t('saler_products.badge_active') : t('saler_products.badge_hidden')}</span>
           </button>
         </td>
-        <td>
-          <div class="flex items-center justify-end gap-2">
-            <button class="btn-flyer btn btn--secondary btn--xs" data-id="${p.id}" data-pid="${p.product_id}">
+        <td class="sp-num sp-cell-actions">
+          <div class="sp-actions">
+            <button type="button" class="btn-flyer btn btn--secondary btn--sm" data-id="${p.id}" data-pid="${p.product_id}">
               ${t('saler_products.btn_create_flyer')}
             </button>
-            <button class="btn-remove-product text-danger hover:text-danger-dark text-xs p-1" data-id="${p.id}">
-              🗑️
+            <button type="button" class="btn-remove-product btn btn--ghost btn--sm sp-remove" data-id="${p.id}" aria-label="${t('saler_products.btn_remove')}" title="${t('saler_products.btn_remove')}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
             </button>
           </div>
         </td>
@@ -318,6 +338,7 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
           await salerApi.updateProduct(p.id, { is_active: nextState });
           p.is_active = nextState;
           toast.success(t('saler_products.toast_status_updated'));
+          renderKpis();
           renderTableBody();
         } catch (err) {
           toast.error(err.message || 'Failed to update visibility');
@@ -333,11 +354,12 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
       // Remove handler
       const removeBtn = tr.querySelector<HTMLElement>('.btn-remove-product');
       removeBtn.onclick = async () => {
-        if (!confirm('Remove this product from your curated store shelves?')) return;
+        if (!confirm(t('saler_products.confirm_remove'))) return;
         try {
           await salerApi.removeProduct(p.id);
           products = products.filter((item) => item.id !== p.id);
           toast.success(t('saler_products.toast_removed'));
+          renderKpis();
           renderTableBody();
         } catch (err) {
           toast.error(err.message || 'Failed to remove product');
@@ -357,12 +379,13 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
     try {
       const res = await salerApi.getProducts();
       products = res?.data?.products || [];
-      summary = res?.data?.summary || {};
     } catch (err) {
       toast.error(err.message || 'Failed to load store products');
     } finally {
       loading = false;
-      renderTableBody();
+      // WHY render(), not renderTableBody(): the KPI strip and the category list are drawn from
+      // the loaded products, and were left showing the loading state's zeros.
+      render();
     }
   }
 
