@@ -2491,7 +2491,6 @@
       "sort_by": "Sort By"
     },
     "card": {
-      "pool_per_sale": "Reward pool / sale",
       "price": "Price",
       "margin": "Margin",
       "dispatch": "Dispatch",
@@ -2543,7 +2542,6 @@
     },
     "drawer": {
       "pool_explainer": "You do not earn per sale. Every sale through your store adds to the monthly partner reward pool, which is shared at month end by your store sales, social shares, community posts and activity.",
-      "pool_per_sale": "Adds to the reward pool per sale",
       "price_locked": "Price (set by supplier)",
       "price": "Price",
       "title": "Add Product to My Store",

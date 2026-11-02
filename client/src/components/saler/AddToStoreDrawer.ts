@@ -3,7 +3,8 @@
  *
  * WHY no price field: since migration 085 the supplier sets every price and the partner's share of
  * each sale goes to the monthly partner reward pool, so a partner chooses only the collection. The
- * drawer shows what one sale adds to that pool instead of a per-sale profit.
+ * drawer explains the pool in words and shows no per-product amount: a "Reward pool / sale" figure
+ * read as the partner's own profit on that product, so the owner removed it (2026-11-02).
  */
 import { Drawer } from '../ui/Drawer.ts';
 import type { DrawerElement } from '../ui/Drawer.ts';
@@ -27,9 +28,7 @@ export interface StoreProduct {
   default_retail_price?: number | string;
   stock?: number;
   stock_qty?: number;
-  partner_profit?: number | string | null;
-  pricing?: { retail_price?: number | string; saler_earning?: number | string };
-  sourcing_opportunity?: { pool_contribution?: number | string };
+  pricing?: { retail_price?: number | string };
   [field: string]: unknown;
 }
 
@@ -44,17 +43,6 @@ const COLLECTIONS = [
   { value: 'Trending', label_en: 'Trending', label_bn: 'জনপ্রিয়' },
   { value: 'New Arrival', label_en: 'New Arrivals', label_bn: 'নতুন আগমন' },
 ];
-
-/**
- * What one sale of this product adds to the partner reward pool, from whichever shape the caller has.
- */
-export function poolContributionOf(product: StoreProduct | null | undefined): number | null {
-  const raw = product?.sourcing_opportunity?.pool_contribution
-    ?? product?.partner_profit
-    ?? product?.pricing?.saler_earning;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : null;
-}
 
 /**
  * Creates the Add to Store Drawer instance. `onSuccess` is called with the added store item.
@@ -92,7 +80,6 @@ export function AddToStoreDrawer({ onSuccess = null }: { onSuccess?: ((item: unk
     const isBn = getLanguage() === 'bn';
     const title = (isBn && activeProduct.title_bn) ? activeProduct.title_bn : (activeProduct.title_en || activeProduct.title);
     const price = Number(activeProduct.pricing?.retail_price ?? activeProduct.default_retail_price ?? activeProduct.price ?? 0);
-    const contribution = poolContributionOf(activeProduct);
 
     const previewBox = document.createElement('div');
     previewBox.className = 'add-store-product-preview';
@@ -143,9 +130,6 @@ export function AddToStoreDrawer({ onSuccess = null }: { onSuccess?: ((item: unk
     const calcBox = document.createElement('div');
     calcBox.className = 'add-store-calc-preview';
     calcBox.append(row(t('sourcing.drawer.price_locked'), formatCurrency(price)));
-    if (contribution != null) {
-      calcBox.append(row(t('sourcing.drawer.pool_per_sale'), formatCurrency(contribution), true));
-    }
     const explainer = document.createElement('p');
     explainer.className = 'add-store-pool-note';
     explainer.textContent = t('sourcing.drawer.pool_explainer');

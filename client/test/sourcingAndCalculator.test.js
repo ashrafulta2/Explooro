@@ -192,7 +192,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const cardContent = fs.readFileSync(cardPath, 'utf8');
     assert.ok(!cardContent.includes("sourcing.card.wholesale_cost"), 'Sourcing catalog cards must not display raw wholesale cost');
     assert.ok(cardContent.includes("sourcing.card.price"), 'Sourcing catalog cards must display the supplier price');
-    assert.ok(cardContent.includes("sourcing.card.pool_per_sale"), 'Sourcing catalog cards must show the reward pool share');
+    assert.ok(!cardContent.includes("pool_per_sale"), 'Sourcing catalog cards must not show a per-product reward pool amount (it reads as partner profit)');
     assert.ok(!cardContent.includes("ProfitCalculator"), 'Partners have no per-sale profit to calculate');
 
     const drawerPath = path.resolve(import.meta.dirname, '../src/components/saler/AddToStoreDrawer.ts');
@@ -201,6 +201,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(!drawerContent.includes("custom_retail_price"), 'AddToStoreDrawer must not offer a price field');
     assert.ok(!drawerContent.includes("customRetailPrice"), 'AddToStoreDrawer must not send a price');
     assert.ok(drawerContent.includes("sourcing.drawer.pool_explainer"), 'AddToStoreDrawer must explain the monthly reward pool');
+    assert.ok(!drawerContent.includes("pool_per_sale"), 'AddToStoreDrawer must not show a per-product reward pool amount');
   });
 
   // 12. Tiered Shop Partner Pricing Engine Client Math

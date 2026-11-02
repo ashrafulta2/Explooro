@@ -233,28 +233,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.sourcing-card__pricing-row--profit {
-  padding-top: var(--space-2);
-  margin-top: 2px;
-  border-top: 1px dashed var(--border-subtle);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sourcing-card__pricing-label--profit {
-  font-weight: 700;
-  color: var(--success);
-  font-size: var(--text-xs);
-}
-
-.sourcing-card__profit-val {
-  font-size: var(--text-sm);
-  font-weight: 800;
-  color: var(--success); /* WHY: role token, not --success-700 — it is 700 in light (5.1:1 on white) and 300 in dark. */
-  font-variant-numeric: tabular-nums;
-}
-
 /* Actions */
 .sourcing-card__actions {
   display: flex;

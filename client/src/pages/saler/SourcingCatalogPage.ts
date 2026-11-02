@@ -6,10 +6,12 @@
  *
  * WHY no profit calculator or margin filters: since migration 085 the supplier sets the price and a
  * partner is paid monthly from the partner reward pool by score, so there is no per-sale profit to
- * calculate. A card shows the supplier's price and what one sale adds to the pool.
+ * calculate. A card shows only the supplier's price. It used to add "Reward pool / sale", but the
+ * owner removed it (2026-11-02): a per-product figure read as the partner's own profit on that
+ * product, which a partner never earns.
  */
 import { listSourcingCatalog } from '../../services/catalog.api.ts';
-import { AddToStoreDrawer, poolContributionOf } from '../../components/saler/AddToStoreDrawer.ts';
+import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.ts';
 import { fetchSponsored, trackImpression, clickReporter } from '../../services/sponsoredSourcing.ts';
@@ -375,7 +377,6 @@ function createSourcingCard(product, { onAddToStore, isSellRestricted = false, s
   const isBn = getLanguage() === 'bn';
   const title = (isBn && product.title_bn) ? product.title_bn : (product.title_en || product.title);
   const price = parseFloat(product.price ?? product.pricing?.retail_price ?? product.default_retail_price ?? 0);
-  const poolShare = poolContributionOf(product);
   const tier = product.supplier_tier || 'standard';
 
   // Media
@@ -451,7 +452,7 @@ function createSourcingCard(product, { onAddToStore, isSellRestricted = false, s
     header.append(cat, hTitle, SupplierScorecardBadge(product.supplier_scorecard));
   }
 
-  // Pricing Matrix: the supplier's fixed price and what one sale adds to the partner reward pool
+  // Pricing Matrix: the supplier's fixed price
   const matrix = document.createElement('div');
   matrix.className = 'sourcing-card__pricing-matrix';
 
@@ -460,11 +461,6 @@ function createSourcingCard(product, { onAddToStore, isSellRestricted = false, s
       <span class="sourcing-card__pricing-label">${t('sourcing.card.price')}</span>
       <span class="sourcing-card__pricing-val">${formatCurrency(price)}</span>
     </div>
-    ${poolShare == null ? '' : `
-    <div class="sourcing-card__pricing-row sourcing-card__pricing-row--profit">
-      <span class="sourcing-card__pricing-label sourcing-card__pricing-label--profit">${t('sourcing.card.pool_per_sale')}</span>
-      <span class="sourcing-card__profit-val">+${formatCurrency(poolShare)}</span>
-    </div>`}
   `;
 
   // Actions
