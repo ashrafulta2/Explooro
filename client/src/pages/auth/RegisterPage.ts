@@ -110,8 +110,9 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
   rolesGrid.append(...roleCards);
   roleSection.append(roleLabel, rolesGrid);
 
-  // Business type — asked only of a supplier, and required then, so every new supplier starts with
-  // one. It can be changed later on /account/profile. Mirrors profile.service.ts SUPPLIER_TYPES.
+  // Business type — asked only of a supplier, and optional: the server stores NULL when it is left
+  // blank, and it can be set later on /account/profile. Mirrors profile.service.ts SUPPLIER_TYPES.
+  // WHY: the placeholder stays selectable so a supplier who picked a type can go back to blank.
   const SUPPLIER_TYPES = ['MANUFACTURER', 'DISTRIBUTOR', 'TRADER'];
   const supplierTypeField = document.createElement('div');
   supplierTypeField.className = 'auth-field';
@@ -125,7 +126,6 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
   const supplierTypePlaceholder = document.createElement('option');
   supplierTypePlaceholder.value = '';
   supplierTypePlaceholder.textContent = t('auth.register.supplier_type_placeholder');
-  supplierTypePlaceholder.disabled = true;
   supplierTypePlaceholder.selected = true;
   supplierTypeSelect.append(supplierTypePlaceholder);
   SUPPLIER_TYPES.forEach((type) => {
@@ -139,7 +139,6 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
   function updateSupplierTypeUi() {
     const isSupplier = selectedRole === 'supplier';
     supplierTypeField.style.display = isSupplier ? 'flex' : 'none';
-    supplierTypeSelect.required = isSupplier;
   }
   updateSupplierTypeUi();
 

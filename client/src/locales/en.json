@@ -910,7 +910,7 @@
       "role_saler_desc": "Sell products, run marketing, earn a monthly reward",
       "role_supplier": "Supplier",
       "role_supplier_desc": "Supply wholesale inventory and manage warehouses",
-      "supplier_type_label": "What kind of supplier are you?",
+      "supplier_type_label": "What kind of supplier are you? (optional)",
       "supplier_type_placeholder": "Select your business type",
       "terms": "I agree to the Terms of Service and Privacy Policy",
       "submit": "Create Account & Verify OTP",
