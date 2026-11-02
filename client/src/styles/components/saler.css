@@ -203,8 +203,6 @@
 .sp-product__supplier { font-size: var(--text-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp-chip { display: inline-block; padding: 4px 10px; border-radius: var(--radius-full); background: var(--surface-2); color: var(--text-secondary); font-size: var(--text-xs); font-weight: var(--weight-semibold, 600); }
 .sp-price { font-family: var(--font-mono); font-weight: var(--weight-semibold, 600); font-variant-numeric: tabular-nums; }
-.sp-pool { font-family: var(--font-mono); font-weight: var(--weight-bold); color: var(--success); font-variant-numeric: tabular-nums; }
-.sp-pool__hint { font-size: var(--text-2xs, 11px); color: var(--text-muted); margin-top: 2px; white-space: normal; max-width: 120px; margin-left: auto; }
 .sp-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .sp-visibility { display: inline-flex; align-items: center; gap: var(--space-2); padding: 4px 10px 4px 4px; border: 1px solid var(--border-subtle); border-radius: var(--radius-full); background: var(--surface-1); color: var(--text-secondary); font: inherit; font-size: var(--text-xs); font-weight: var(--weight-semibold, 600); cursor: pointer; }
 .sp-visibility:hover { border-color: var(--border-interactive); }
@@ -225,7 +223,6 @@
   .sp-table tr { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--border-subtle); }
   .sp-table td { padding: 0; border: 0; white-space: normal; text-align: left; }
   .sp-table .sp-num { text-align: left; }
-  .sp-pool__hint { margin-left: 0; max-width: none; }
   .sp-table .sp-cell-product, .sp-table .sp-cell-actions { grid-column: 1 / -1; width: auto; min-width: 0; }
   .sp-table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; font-size: var(--text-2xs, 11px); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); }
   .sp-actions { display: flex; }

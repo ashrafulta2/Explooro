@@ -202,6 +202,10 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(!drawerContent.includes("customRetailPrice"), 'AddToStoreDrawer must not send a price');
     assert.ok(drawerContent.includes("sourcing.drawer.pool_explainer"), 'AddToStoreDrawer must explain the monthly reward pool');
     assert.ok(!drawerContent.includes("pool_per_sale"), 'AddToStoreDrawer must not show a per-product reward pool amount');
+
+    const myProductsPath = path.resolve(import.meta.dirname, '../src/pages/saler/MyProductsPage.ts');
+    const myProductsContent = fs.readFileSync(myProductsPath, 'utf8');
+    assert.ok(!myProductsContent.includes("partner_profit"), 'My Products must not show or sort by a per-product reward pool amount');
   });
 
   // 12. Tiered Shop Partner Pricing Engine Client Math

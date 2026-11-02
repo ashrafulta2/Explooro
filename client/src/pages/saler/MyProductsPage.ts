@@ -4,14 +4,16 @@
  * Route: /saler/products
  * Implements:
  * 1. Curated products list with live supplier stock levels.
- * 2. The supplier's fixed price and what one sale adds to the partner reward pool.
+ * 2. The supplier's fixed price.
  * 3. Product visibility toggle (Active / Hidden on storefront) & Featured pin.
  * 4. 1-Click "Create Social Flyer" deep-link to Social Kit.
- * 5. Search, Category, Stock & pool-share sorters.
+ * 5. Search, Category, Stock & price sorters.
  * 6. Quick CTA to Sourcing Catalog (/saler/sourcing).
  *
  * WHY no price editor or profit column: since migration 085 the supplier sets the price and partners
  * are paid monthly from the reward pool by score, so a partner has no price to set and no per-sale profit.
+ * WHY no "Reward pool / sale" column or pool sort either (owner, 2026-11-02): a per-product pool
+ * figure read as the partner's own profit on that product, which a partner never earns.
  */
 
 import { salerApi } from '../../services/saler.api.ts';
@@ -41,7 +43,7 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
   let searchQuery = '';
   let selectedCategory = 'all';
   let stockFilter = 'all';
-  let sortBy = 'pool_desc';
+  let sortBy = 'newest';
   let unsubscribeLang = null;
 
   function render() {
@@ -107,10 +109,9 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
           <option value="in_stock">${t('saler_products.filter_in_stock_only')}</option>
         </select>
         <select id="sort-filter" class="select select--sm" aria-label="${t('saler_products.sort_label', 'Sort products')}">
-          <option value="pool_desc">${t('saler_products.sort_pool_desc')}</option>
+          <option value="newest">${t('saler_products.sort_newest')}</option>
           <option value="price_asc">${t('saler_products.sort_price_asc')}</option>
           <option value="price_desc">${t('saler_products.sort_price_desc')}</option>
-          <option value="newest">${t('saler_products.sort_newest')}</option>
         </select>
       </div>
     `;
@@ -228,9 +229,7 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
       );
     }
 
-    if (sortBy === 'pool_desc') {
-      filtered.sort((a, b) => Number(b.partner_profit || 0) - Number(a.partner_profit || 0));
-    } else if (sortBy === 'price_asc') {
+    if (sortBy === 'price_asc') {
       filtered.sort((a, b) => a.default_retail_price - b.default_retail_price);
     } else if (sortBy === 'price_desc') {
       filtered.sort((a, b) => b.default_retail_price - a.default_retail_price);
@@ -264,7 +263,6 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
           <th>${t('saler_products.th_product')}</th>
           <th>${t('saler_products.th_category')}</th>
           <th class="sp-num">${t('saler_products.th_retail_price')}</th>
-          <th class="sp-num">${t('saler_products.th_pool_share')}</th>
           <th>${t('saler_products.th_stock')}</th>
           <th>${t('saler_products.th_status')}</th>
           <th class="sp-num">${t('saler_products.th_actions')}</th>
@@ -277,7 +275,6 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
 
     filtered.forEach((p) => {
       const retail = Number(p.default_retail_price || 0);
-      const poolShare = Number(p.partner_profit || 0);
       const title = escapeHtml(isBn ? (p.title_bn || p.title_en) : p.title_en);
       const stock = Number(p.stock_qty || 0);
       const stockBadge =
@@ -304,10 +301,6 @@ export default function MyProductsPage(root: HTMLElement, { navigate }: PageCont
         </td>
         <td class="sp-num" data-label="${t('saler_products.th_retail_price')}">
           <span class="sp-price" title="${t('saler_products.price_locked_hint')}">${formatCurrency(retail)}</span>
-        </td>
-        <td class="sp-num" data-label="${t('saler_products.th_pool_share')}">
-          <div class="sp-pool">+${formatCurrency(poolShare)}</div>
-          <div class="sp-pool__hint">${t('saler_products.pool_share_hint')}</div>
         </td>
         <td data-label="${t('saler_products.th_stock')}">
           <span class="badge badge--md badge--${stockBadge[0]} sp-stock"><span class="sp-dot" aria-hidden="true"></span>${stockBadge[1]}</span>

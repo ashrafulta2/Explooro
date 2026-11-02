@@ -6308,10 +6308,7 @@
     "toast_error": "Failed to save address. Please try again."
   },
   "saler_products": {
-    "pool_share_hint": "Added to the monthly pool",
     "price_locked_hint": "Set by the supplier",
-    "th_pool_share": "Reward pool / sale",
-    "sort_pool_desc": "Biggest pool share",
     "title": "My Curated Products & Pricing",
     "subtitle": "Manage products on your digital shelves, adjust retail markups, track supplier stock, and create marketing flyers.",
     "kpi_total_curated": "Curated Products",
