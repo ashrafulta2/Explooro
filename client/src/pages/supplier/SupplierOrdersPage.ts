@@ -13,6 +13,7 @@ import { supplierApi } from '../../services/supplier.api.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { toast } from '../../services/toast.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
@@ -311,9 +312,10 @@ export default function SupplierOrdersPage(root: HTMLElement) {
         consignBtn.onclick = async () => {
           const carrier = order.district === 'Dhaka' ? 'PATHAO' : 'STEADFAST';
           try {
-            const res = await supplierApi.bookConsignment({ subOrderId: order.id, carrier });
-            toast.success(res.data?.message || t('supplier.consignment_booked_success', 'Consignment booked successfully.'));
+            await supplierApi.bookConsignment({ subOrderId: order.id, carrier });
             loadOrders();
+            // Prompt 13.3: shipping ends on a result panel (follow the parcel), not a toast.
+            showActionResult(root, 'order_shipped');
           } catch (err) {
             toast.error(t('supplier.consignment_failed', 'Failed to book courier consignment.'));
           }

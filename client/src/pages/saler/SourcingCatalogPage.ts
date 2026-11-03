@@ -12,6 +12,7 @@
  */
 import { listSourcingCatalog } from '../../services/catalog.api.ts';
 import { AddToStoreDrawer } from '../../components/saler/AddToStoreDrawer.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import { SupplierScorecardBadge } from '../../components/saler/SupplierScorecardBadge.ts';
 import { SponsoredTag } from '../../components/saler/SponsoredTag.ts';
 import { fetchSponsored, trackImpression, clickReporter } from '../../services/sponsoredSourcing.ts';
@@ -81,8 +82,9 @@ export default function SourcingCatalogPage(root: HTMLElement) {
 
   // AddToStore Drawer instance
   const addToStoreDrawer = AddToStoreDrawer({
+    // Prompt 13.3: adding a product ends on a result panel with the next step, not a toast.
     onSuccess: () => {
-      // Re-fetch or update stats if needed
+      showActionResult(root, 'product_added_saler');
     },
   });
 

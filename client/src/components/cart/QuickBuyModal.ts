@@ -274,12 +274,14 @@ export function openQuickBuyModal({
             };
 
             const result = await placeCheckout(payload);
-            toast.success(t('quick_buy.success') || 'Quick order placed successfully!');
             modal.closeModal();
 
             if (onSuccess) onSuccess(result.order);
+            // Prompt 13.3: the order page opens with the result panel; without a navigate the toast stays.
             if (navigate && result.order?.ref) {
-              navigate(`/orders/${result.order.ref}`);
+              navigate(`/orders/${result.order.ref}?placed=1`);
+            } else {
+              toast.success(t('quick_buy.success') || 'Quick order placed successfully!');
             }
           } catch (err) {
             if (err.code === 'COD_OTP_REQUIRED') {

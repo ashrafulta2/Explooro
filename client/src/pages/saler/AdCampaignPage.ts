@@ -22,6 +22,8 @@
 import { api } from '../../core/api.ts';
 import { getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
+import { getCurrentUser } from '../../services/session.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { ALL_BD_DISTRICTS } from '../../data/bangladeshGeo.ts';
 import { loadAdStoreStyles } from '../../styles/loadAdStoreStyles.ts';
@@ -1250,11 +1252,14 @@ export class AdCampaignPage {
 
     try {
       await api.post('/ads/campaigns', payload);
-      toast.success(isBn ? 'বিজ্ঞাপন তৈরি হয়েছে!' : 'Your ad is created!');
       this.closeWizard();
       this.tab = 'campaigns';
       await this.loadAll();
       this.render();
+      // Prompt 13.3: ends on a result panel (it runs once reviewed; what to do meanwhile). Suppliers
+      // use this page too, and their follow-up is their own ad list.
+      const role = getCurrentUser()?.roles?.[0];
+      showActionResult(this.rootEl, role === 'supplier' ? 'ad_boosted_supplier' : 'ad_created_saler');
     } catch (err) {
       if (w) {
         w.submitting = false;

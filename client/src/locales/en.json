@@ -8485,7 +8485,16 @@
       "product_added_saler": "Added to your store. Share it so shoppers can find it.",
       "product_added_supplier": "Product saved. A moderator checks it before it goes live; check its stock meanwhile.",
       "withdrawal_requested": "Request sent. You can follow it from your vault.",
-      "order_shipped": "Shipped. Follow the parcel until it is delivered."
+      "order_shipped": "Shipped. Follow the parcel until it is delivered.",
+      "store_published": "Your store is saved. Share it so shoppers can find it.",
+      "withdrawal_requested_supplier": "Request sent. It is checked before the money goes out; follow it from your vault.",
+      "return_approved_moderator": "Return approved. The courier picks the item up, and the refund follows once it is checked.",
+      "return_approved_admin": "Return approved. The courier picks the item up, and the refund follows once it is checked.",
+      "sample_requested": "Request sent. The supplier will reply; keep choosing products meanwhile.",
+      "ad_created_saler": "Your ad is created. Share your store meanwhile, so more shoppers find it.",
+      "ad_boosted_saler": "Your ad is in. You can follow it from your ads.",
+      "ad_boosted_supplier": "Your ad is in. You can follow it from your ads.",
+      "ad_boosted_customer": "Your ad is in. You can follow it below."
     },
     "card": {
       "label": "Your next step",
@@ -8514,6 +8523,82 @@
       "toast_on": "Next-step tips are on.",
       "toast_off": "Next-step tips are off.",
       "load_failed": "Could not load this setting. Try again later."
+    },
+    "result": {
+      "next_step": "Next: {{step}}",
+      "dismiss": "Close",
+      "checkout": {
+        "title": "Order placed",
+        "follow_up": "Track my order"
+      },
+      "address_saved": {
+        "title": "Address saved",
+        "follow_up": "Start shopping"
+      },
+      "become_saler": {
+        "title": "Your store is ready",
+        "follow_up": "Name my store"
+      },
+      "kyc_saler": {
+        "title": "Documents sent",
+        "follow_up": "Set up my store"
+      },
+      "kyc_supplier": {
+        "title": "Documents sent",
+        "follow_up": "Fill in shop details"
+      },
+      "product_added_saler": {
+        "title": "Added to your store",
+        "follow_up": "Share my store"
+      },
+      "product_added_supplier": {
+        "title": "Product saved",
+        "follow_up": "Check stock"
+      },
+      "withdrawal_requested": {
+        "title": "Withdrawal requested",
+        "follow_up": "Open my vault"
+      },
+      "order_shipped": {
+        "title": "Order shipped",
+        "follow_up": "Follow the parcel"
+      },
+      "store_published": {
+        "title": "Store saved",
+        "follow_up": "Share my store"
+      },
+      "withdrawal_requested_supplier": {
+        "title": "Withdrawal requested",
+        "follow_up": "Open my vault"
+      },
+      "return_approved_moderator": {
+        "title": "Return approved",
+        "follow_up": "Next return"
+      },
+      "return_approved_admin": {
+        "title": "Return approved",
+        "follow_up": "Next return"
+      },
+      "sample_requested": {
+        "title": "Sample requested",
+        "follow_up": "Keep choosing products"
+      },
+      "ad_created_saler": {
+        "title": "Ad created",
+        "follow_up": "Share my store"
+      },
+      "ad_boosted_saler": {
+        "title": "Ad created",
+        "follow_up": "See all my ads"
+      },
+      "ad_boosted_supplier": {
+        "title": "Ad created",
+        "follow_up": "See all my ads"
+      },
+      "ad_boosted_customer": {
+        "title": "Ad created",
+        "follow_up": "See my ads"
+      }
     }
   }
 }

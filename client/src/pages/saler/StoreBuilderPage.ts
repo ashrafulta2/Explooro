@@ -15,6 +15,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { formatExplooroBrandText, ICONS } from '../../components/ui/icons.ts';
 import { toast } from '../../services/toast.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import type { PageContext } from '../types.ts';
 
@@ -192,7 +193,8 @@ export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageCo
           if (pendingShelfItems.length > 0) {
             await updateStoreShelves(pendingShelfItems);
           }
-          toast.success(t('store_builder.save_success', 'Store settings and shelves updated successfully!'));
+          // Prompt 13.3: saving the store ends on a result panel with the next step (share it).
+          showActionResult(root, 'store_published');
         } catch (e) {
           toast.error(e.message || t('store_builder.save_error', 'Failed to save store changes.'));
         } finally {

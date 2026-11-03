@@ -158,9 +158,12 @@ export function AddToStoreDrawer({ onSuccess = null }: { onSuccess?: ((item: unk
             collectionName: collection,
           });
 
-          toast.success(t('sourcing.drawer.add_success'));
+          // WHY only without onSuccess: the caller then ends the action itself (the sourcing page shows
+          // its Prompt 13.3 result panel), and a toast on top would say the same thing twice.
           if (typeof onSuccess === 'function') {
             onSuccess(item);
+          } else {
+            toast.success(t('sourcing.drawer.add_success'));
           }
           drawer.closeDrawer(true);
         } catch (err) {

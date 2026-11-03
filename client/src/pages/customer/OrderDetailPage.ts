@@ -21,13 +21,14 @@ import { expectedDeliveryWindow } from '../../services/deliveryZones.ts';
 import { knownDeliveryPolicy, loadDeliveryPolicy } from '../../services/deliveryCharge.ts';
 import { escapeHtml } from '../../services/html.ts';
 import '../../styles/components/customer-orders.css';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import type { PageContext } from '../types.ts';
 
 // The same names the checkout's payment picker shows, so a shopper never reads a code like WALLET.
 const METHOD_LABEL_KEY = { BKASH: 'checkout.bkash', NAGAD: 'checkout.nagad', ROCKET: 'checkout.rocket', CARD: 'checkout.card', COD: 'checkout.cod', WALLET: 'checkout.vault' };
 const methodLabel = (m) => (METHOD_LABEL_KEY[String(m || '').toUpperCase()] ? t(METHOD_LABEL_KEY[String(m).toUpperCase()]) : m || '');
 
-export default function OrderDetailPage(root: HTMLElement, { params = {}, navigate }: PageContext = {}) {
+export default function OrderDetailPage(root: HTMLElement, { params = {}, query = {}, navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'order-detail-page container';
 
@@ -40,6 +41,13 @@ export default function OrderDetailPage(root: HTMLElement, { params = {}, naviga
   }
 
   root.append(container);
+
+  // Prompt 13.3: checkout lands here with ?placed=1. The flag is dropped from the address bar so a
+  // reload or a shared link does not announce the order again.
+  if (orderIdOrRef && query.placed === '1') {
+    history.replaceState(history.state, '', window.location.pathname);
+    showActionResult(root, 'checkout');
+  }
 
   return () => {
     container.innerHTML = '';

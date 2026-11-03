@@ -17,6 +17,7 @@ import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { toast } from '../../services/toast.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
@@ -248,9 +249,10 @@ export default function FulfilmentPage(root: HTMLElement) {
         consignBtn.onclick = async () => {
           const carrier = order.district === 'Dhaka' ? 'PATHAO' : 'STEADFAST';
           try {
-            const res = await supplierApi.bookConsignment({ subOrderId: order.id, carrier });
-            toast.success(res.data?.message || t('supplier.consignment_booked_success', 'Consignment booked successfully.'));
+            await supplierApi.bookConsignment({ subOrderId: order.id, carrier });
             loadQueue();
+            // Prompt 13.3: shipping ends on a result panel (follow the parcel), not a toast.
+            showActionResult(root, 'order_shipped');
           } catch (err) {
             toast.error(t('supplier.consignment_failed', 'Failed to book courier consignment.'));
           }
@@ -332,9 +334,9 @@ export default function FulfilmentPage(root: HTMLElement) {
           tracking_number: trackingNumber,
           ...(note ? { note } : {}),
         });
-        toast.success(t('supplier.manual_ship.success', { ref: order.ref }));
         modal.close(false);
         loadQueue();
+        showActionResult(root, 'order_shipped');
       } catch (err) {
         toast.error(err?.message || t('supplier.consignment_failed', 'Failed to book courier consignment.'));
         confirmBtn.disabled = false;

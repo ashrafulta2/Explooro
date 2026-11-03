@@ -14,6 +14,7 @@ import { salerApi } from '../../services/saler.api.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
@@ -357,9 +358,10 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
           account_name: accName,
           bank_name: selectedMethod === 'BANK' ? bankName : undefined,
         });
-        toast.success(t('saler_withdrawals.toast_submitted'));
         modal.close();
-        loadData();
+        await loadData();
+        // Prompt 13.3: ends on a result panel (it is checked before the money goes out), not a toast.
+        showActionResult(root, 'withdrawal_requested');
       } catch (err) {
         toast.error(err.message || 'Failed to submit withdrawal request');
       }

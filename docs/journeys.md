@@ -140,24 +140,39 @@ always exists. An audit row proves someone actually chose the value.
 
 ## 3. Dead-end backlog
 
-Actions that today finish on a bare toast or a plain list, with no suggested next action. Prompt
-13.3 must clear every one. Until a journey step says otherwise, its result panel offers the
-follow-up below. Each row is also data (`DEAD_ENDS` in `journeys.ts`, hint `journey.dead_end.<id>`).
+Actions that used to finish on a bare toast or a plain list, with no suggested next action. Each
+row is also data (`DEAD_ENDS` in `journeys.ts`, hint `journey.dead_end.<id>`), and since Prompt 13.3
+it is the data of the action's result panel (`components/guide/ActionResult.ts`): heading
+`journey.result.<id>.title`, body the hint, and a button to the follow-up labelled
+`journey.result.<id>.follow_up`. The panel's **primary** button is the user's next journey step when
+that step can be done now. Otherwise it is the follow-up, and a blocked step's reason (for example,
+"waiting for an admin") is shown as a waiting line. `client/test/actionResult.test.js` checks the
+choice and that every cleared row is really shown by a page.
 
-| # | Id | Role | Action | Ends today in | Today | Intended follow-up |
-| :- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `checkout` | Customer | Order placed | `pages/CheckoutPage.ts` | Toast, then the order page with nothing on what happens next | `/account/orders`: "we will tell you when it ships" |
-| 2 | `address_saved` | Customer | Address saved | `pages/customer/AddressesPage.ts` | Toast; stays on the list | `/`: find something to buy |
-| 3 | `become_saler` | Shop Partner (was a customer) | Became a Shop Partner | `pages/customer/BecomeSalerPage.ts` | Toast "your digital store is active"; stays on the upgrade page | `/saler/store-builder`: name the store |
-| 4 | `kyc_saler` | Shop Partner | KYC submitted | `pages/seller/KycSubmissionPage.ts` | Toast; stays on the form | `/saler/store-builder`: set up the store while the admin checks |
-| 5 | `kyc_supplier` | Supplier | KYC submitted | `pages/seller/KycSubmissionPage.ts` | Toast; nothing says listing waits on approval | `/supplier/store-status`: shop details while waiting |
-| 6 | `product_added_saler` | Shop Partner | Product added to store | `components/saler/AddToStoreDrawer.ts` | Toast; drawer closes on the sourcing list | `/saler/social-kit`: share it |
-| 7 | `product_added_supplier` | Supplier | Product added | `pages/admin/CatalogProductsPage.ts` | Toast "Product registered in catalog!"; nothing says it waits on review | `/supplier/inventory`: check stock while it is reviewed |
-| 8 | `withdrawal_requested` | Shop Partner | Withdrawal requested | `pages/saler/WithdrawalsPage.ts` | Toast; stays on the form | `/saler/vault`: follow the request |
-| 9 | `order_shipped` | Supplier | Order shipped | `pages/supplier/FulfilmentPage.ts` | Toast "consignment booked"; stays on the list | `/supplier/shipments`: follow the parcel |
+| # | Id | Role | Action | Ended in | Before 13.3 | Follow-up | Cleared |
+| :- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | `checkout` | Customer | Order placed | `pages/CheckoutPage.ts` (and `components/cart/QuickBuyModal.ts`) | Toast, then the order page with nothing on what happens next | `/account/orders`: "we will tell you when it ships" | 13.3: the order page opens with `?placed=1` and shows the panel |
+| 2 | `address_saved` | Customer | Address saved | `pages/customer/AddressesPage.ts` | Toast; stays on the list | `/`: find something to buy | Open: not one of 13.3's nine actions; 13.4's checklist prompts for it |
+| 3 | `become_saler` | Shop Partner (was a customer) | Became a Shop Partner | `pages/customer/BecomeSalerPage.ts` | Toast "your digital store is active"; stays on the upgrade page | `/saler/store-builder`: name the store | Open: not one of 13.3's nine actions |
+| 4 | `kyc_saler` | Shop Partner | KYC submitted | `pages/seller/KycSubmissionPage.ts` | Toast; stays on the form | `/saler/store-builder`: set up the store while the admin checks | 13.3 |
+| 5 | `kyc_supplier` | Supplier | KYC submitted | `pages/seller/KycSubmissionPage.ts` | Toast; nothing says listing waits on approval | `/supplier/store-status`: shop details while waiting | 13.3 |
+| 6 | `product_added_saler` | Shop Partner | Product added to store | `components/saler/AddToStoreDrawer.ts` | Toast; drawer closes on the sourcing list | `/saler/social-kit`: share it | 13.3 (the sourcing page shows it) |
+| 7 | `product_added_supplier` | Supplier | Product added | `pages/admin/CatalogProductsPage.ts` | Toast "Product registered in catalog!"; nothing says it waits on review | `/supplier/inventory`: check stock while it is reviewed | 13.3 (supplier view only; an admin keeps the toast) |
+| 8 | `withdrawal_requested` | Shop Partner | Withdrawal requested | `pages/saler/WithdrawalsPage.ts` (and `/saler/vault`) | Toast; stays on the form | `/saler/vault`: follow the request | 13.3 |
+| 9 | `order_shipped` | Supplier | Order shipped | `pages/supplier/FulfilmentPage.ts` (and `SupplierOrdersPage.ts`) | Toast "consignment booked"; stays on the list | `/supplier/shipments`: follow the parcel | 13.3 (courier booking and hand delivery) |
+| 10 | `store_published` | Shop Partner | Store published | `pages/saler/StoreBuilderPage.ts` | Toast "Store settings and shelves updated"; stays on the builder | `/saler/social-kit`: share it | 13.3 |
+| 11 | `withdrawal_requested_supplier` | Supplier | Withdrawal requested | `components/vault/PayoutRequestModal.ts` | Toast; the modal closes on the vault | `/supplier/vault`: follow the request | 13.3 |
+| 12 | `return_approved_moderator` | Moderator | Return approved | `pages/admin/ReturnsQueuePage.ts` | Toast; the queue reloads with nothing on what happens next | `/moderator/returns`: the next return | 13.3 |
+| 13 | `return_approved_admin` | Admin | Return approved | `pages/admin/ReturnsQueuePage.ts` | Same page as row 12 | `/admin/returns`: the next return | 13.3 |
+| 14 | `sample_requested` | Shop Partner | Sample requested | `pages/saler/SalerSamplesPage.ts` | Toast; stays on the samples list | `/saler/sourcing`: keep choosing products | 13.3 |
+| 15 | `ad_created_saler` | Shop Partner | Ad campaign created | `pages/saler/AdCampaignPage.ts` | Toast "Your ad is created!"; back on the campaign list | `/saler/social-kit`: share the store meanwhile | 13.3 |
+| 16 | `ad_boosted_saler` | Shop Partner | Ad campaign created | `pages/AdvertisePage.ts` | A done card with only "create another" | `/saler/ads`: all their ads | 13.3 |
+| 17 | `ad_boosted_supplier` | Supplier | Ad campaign created | `pages/AdvertisePage.ts` (and `AdCampaignPage.ts`) | Same as row 16 | `/saler/ads`: all their ads | 13.3 |
+| 18 | `ad_boosted_customer` | Customer | Ad campaign created | `pages/AdvertisePage.ts` | Same as row 16 | `/advertise`: the list below | 13.3 |
 
-Not yet inspected, and 13.3 must check them before applying `ActionResult`: store published, return
-approved, sample requested, ad campaign created (the other four of 13.3's nine actions).
+Rows 10–18 are the four actions 13.1 left uninspected. The ad action needs four rows because three
+roles buy ads and the follow-up differs per role. Every panel goes on the page root, above the page's
+own container, because several of these pages redraw their container right after the action.
 
 ## 4. Findings
 

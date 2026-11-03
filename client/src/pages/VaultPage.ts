@@ -14,6 +14,7 @@ import { t } from '../services/i18n.ts';
 import { BalanceSummary } from '../components/vault/BalanceSummary.ts';
 import { EscrowTimeline } from '../components/vault/EscrowTimeline.ts';
 import { LedgerTable } from '../components/vault/LedgerTable.ts';
+import { showActionResult } from '../components/guide/ActionResult.ts';
 
 export default function VaultPage(root: HTMLElement) {
   const container = document.createElement('div');
@@ -89,8 +90,14 @@ export default function VaultPage(root: HTMLElement) {
         summarySlot.appendChild(
           BalanceSummary({
             wallet,
-            onPayoutRequested: () => {
-              loadVaultData();
+            onPayoutRequested: async () => {
+              await loadVaultData();
+              // Prompt 13.3: the withdrawal ends on a result panel for the two roles with a journey
+              // through it; the generic /vault keeps the toast.
+              const path = window.location.pathname;
+              if (path.startsWith('/supplier/')) showActionResult(root, 'withdrawal_requested_supplier');
+              else if (path.startsWith('/saler/')) showActionResult(root, 'withdrawal_requested');
+              else toast.success(t('payout.request_submitted'));
             },
           })
         );

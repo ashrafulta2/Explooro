@@ -91,6 +91,8 @@ import { createMilestoneProgressStepper } from '../../components/b2b/MilestonePr
 import { ShoppableReels } from '../../components/content/ShoppableReels.ts';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
 import { NextStepCard } from '../../components/guide/NextStepCard.ts';
+import { ActionResult } from '../../components/guide/ActionResult.ts';
+import { t } from '../../services/i18n.ts';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
@@ -1593,6 +1595,7 @@ export function buildGalleryEntries(detachedNodes) {
     // Prompt 11.2 — Shop Partner Prescriptive AI Growth Assistant
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
     { id: 'next-step-card', label: 'NextStepCard', group: 'Guidance', render: renderNextStepCardSpecimen },
+    { id: 'action-result', label: 'ActionResult', group: 'Guidance', render: renderActionResultSpecimen },
     { id: 'commission-tier-card', label: 'CommissionTierCard', group: 'AI & Intelligence', render: renderCommissionTierCardSpecimen },
     { id: 'partner-score-card', label: 'PartnerScoreCard', group: 'AI & Intelligence', render: renderPartnerScoreCardSpecimen },
     { id: 'partner-reward-card', label: 'PartnerRewardCard', group: 'AI & Intelligence', render: renderPartnerRewardCardSpecimen },
@@ -3098,6 +3101,35 @@ function renderSupplierStoreStatusSpecimen() {
     <div style="font-size: 12px; color: var(--text-secondary);">Tejgaon Industrial Area Showroom (09:00 AM - 08:00 PM)</div>
   `;
   wrap.append(specimen('Physical Store & Showroom Walk-in Availability', box));
+  return wrap;
+}
+
+function renderActionResultSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  const nextLabel = (stepKey) => t('journey.result.next_step', { step: t(stepKey) });
+  wrap.append(
+    subgroup('Next journey step as the primary, the follow-up as the secondary (Prompt 13.3)'),
+    ActionResult({
+      title: t('journey.result.product_added_saler.title'),
+      body: t('journey.dead_end.product_added_saler'),
+      primaryAction: { label: nextLabel('journey.saler.share_store.title'), route: '/saler/social-kit' },
+      secondaryAction: { label: t('journey.result.checkout.follow_up'), route: '/account/orders' },
+    }),
+    subgroup('Next step blocked: who it waits on, and what to do meanwhile'),
+    ActionResult({
+      title: t('journey.result.kyc_supplier.title'),
+      body: t('journey.dead_end.kyc_supplier'),
+      waiting: t('journey.block.kyc_review'),
+      primaryAction: { label: t('journey.result.kyc_supplier.follow_up'), route: '/supplier/store-status' },
+    }),
+    subgroup('No next step: the follow-up only'),
+    ActionResult({
+      title: t('journey.result.order_shipped.title'),
+      body: t('journey.dead_end.order_shipped'),
+      primaryAction: { label: t('journey.result.order_shipped.follow_up'), route: '/supplier/shipments' },
+    })
+  );
   return wrap;
 }
 

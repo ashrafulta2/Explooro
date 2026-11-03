@@ -29,6 +29,7 @@ import { optionsForCategory } from '../../services/variantOptions.ts';
 import { can } from '../../services/permissions.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import type { PageContext } from '../types.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 
 // Mirrors MAX_PRODUCT_IMAGES in server/src/services/product.service.ts — the API rejects more.
 const MAX_PRODUCT_PHOTOS = 8;
@@ -1158,9 +1159,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
               toast.error(t('admin_catalog.variants.save_failed', { message: err.message || '' }));
             }
           }
-          toast.success(t('admin_catalog.product_created_success', 'Product registered in catalog!'));
           closeCreatePage();
           await loadData();
+          // Prompt 13.3: a supplier's new product ends on a result panel (it waits on review; check
+          // stock meanwhile). Admins create products as an operator task, so they keep the toast.
+          if (isSupplierView) showActionResult(root, 'product_added_supplier');
+          else toast.success(t('admin_catalog.product_created_success', 'Product registered in catalog!'));
         } catch (err) {
           toast.error(err.message || 'Failed to create product.');
         } finally {

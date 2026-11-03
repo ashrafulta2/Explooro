@@ -1,5 +1,6 @@
 /**
- * next-step-card.css — the Next-Step card (components/guide/NextStepCard.ts, Prompt 13.2).
+ * next-step-card.css — the Next-Step card (NextStepCard.ts, Prompt 13.2) and the action result panel
+ * (ActionResult.ts, Prompt 13.3), both in components/guide/.
  * Solid surface, brand accent on the left edge; amber edge while the step waits on someone else.
  */
 .next-step-card { position: relative; display: flex; flex-direction: column; gap: var(--space-2); background: var(--surface-0); border: 1px solid var(--border-subtle); border-left: 4px solid var(--brand); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); margin-bottom: var(--space-4); }
@@ -15,3 +16,15 @@
 .next-step-card--done .next-step-card__bar-fill { background: var(--success); }
 .next-step-card__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-1); }
 @media (prefers-reduced-motion: reduce) { .next-step-card__bar-fill { transition: none; } }
+
+/* Result panel that ends a key action (components/guide/ActionResult.ts, Prompt 13.3). It sits on the
+   page root, above the page's own container, so it carries its own width and gutter. */
+.action-result { box-sizing: border-box; max-width: 1280px; margin: var(--space-4) auto; scroll-margin-top: calc(var(--topbar-h, 56px) + var(--space-3)); display: flex; flex-direction: column; gap: var(--space-3); background: var(--surface-0); border: 1px solid var(--border-subtle); border-left: 4px solid var(--success); border-radius: var(--radius-xl); padding: var(--space-4) var(--space-5); }
+.action-result__title { margin: 0 0 var(--space-1); font-size: var(--text-lg); font-weight: 800; color: var(--text-primary); line-height: 1.3; }
+.action-result__title:focus { outline: none; }
+.action-result__title:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: var(--radius-sm); }
+.action-result__body { margin: 0; font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; }
+.action-result__waiting { margin: var(--space-2) 0 0; padding: var(--space-2) var(--space-3); font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); background: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: var(--radius-md); }
+.action-result__actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.action-result__link { text-decoration: none; }
+@media (max-width: 640px) { .action-result { margin: var(--space-3) var(--space-3); } }

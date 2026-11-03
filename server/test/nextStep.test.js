@@ -311,7 +311,8 @@ describe('next step — cache', () => {
     ];
     for (const [method, statusCode, kept] of cases) {
       cache.store.set(key, '{}');
-      await invalidateOnWrite(req(method), { statusCode });
+      // An onSend hook must hand the payload back unchanged, or the response body is lost.
+      assert.equal(await invalidateOnWrite(req(method), { statusCode }, 'body'), 'body');
       assert.equal(cache.store.has(key), kept, `${method} ${statusCode}`);
     }
     // A guest write has no user id and must not throw.

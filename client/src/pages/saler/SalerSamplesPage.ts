@@ -15,6 +15,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { toast } from '../../services/toast.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
@@ -118,7 +119,8 @@ export default function SalerSamplesPage(root: HTMLElement) {
         });
         modal.closeModal(true);
         await load();
-        toast.success(t('sample.requested'));
+        // Prompt 13.3: ends on a result panel (the supplier replies; keep choosing meanwhile).
+        showActionResult(root, 'sample_requested');
       } catch (err) {
         toast.error(pickMessage(err) || t('sample.request_failed'));
       } finally {

@@ -197,9 +197,11 @@ export function openPayoutRequestModal({
           amount: numAmount,
         });
 
-        toast.success(t('payout.request_submitted'));
         modal.close();
-        onSuccess?.(res.data?.payout);
+        // WHY only without onSuccess: the caller then ends the action itself (the supplier vault shows
+        // its Prompt 13.3 result panel), and a toast on top would say the same thing twice.
+        if (onSuccess) onSuccess(res.data?.payout);
+        else toast.success(t('payout.request_submitted'));
       } catch (err) {
         toast.error(err.message || t('payout.request_failed'));
         isSubmitting = false;

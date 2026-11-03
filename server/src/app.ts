@@ -185,8 +185,9 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   // Idempotency-Key support (CLAUDE.md constraint 11).
   app.register(idempotencyPlugin);
   // A user's successful write may complete a journey step, so their cached next step is dropped
-  // (services/nextStep.service.ts). Added before the routes so it applies to all of them.
-  app.addHook('onResponse', invalidateNextStepOnWrite);
+  // (services/nextStep.service.ts). Added before the routes so it applies to all of them; onSend so
+  // the entry is gone before the client can ask again.
+  app.addHook('onSend', invalidateNextStepOnWrite);
 
   await app.register(helmet, { global: true });
 

@@ -12,6 +12,7 @@ import { api } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { formatDate } from '../../services/format.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 
 export default function KycSubmissionPage(root: HTMLElement) {
   const container = document.createElement('div');
@@ -71,7 +72,9 @@ export default function KycSubmissionPage(root: HTMLElement) {
         documents: formData.documents,
       });
 
-      toast.success(isFinal ? t('kyc.submitted_success') : t('kyc.step_saved'));
+      // Prompt 13.3: the final submit ends on a result panel that says who reviews it and what to do
+      // meanwhile; a saved middle step keeps its toast.
+      if (!isFinal) toast.success(t('kyc.step_saved'));
       const statusRes = await api.get('/kyc/status');
       kycStatus = statusRes.data;
 
@@ -79,6 +82,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
         currentStep++;
       }
       render();
+      if (isFinal) showActionResult(root, userRole === 'supplier' ? 'kyc_supplier' : 'kyc_saler');
     } catch (err) {
       toast.error(err.message || 'Submission failed.');
     }

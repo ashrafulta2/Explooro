@@ -440,12 +440,13 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
             } catch {
               toast.warning(t('checkout.payment_failed_after_order'));
             }
-          } else {
-            toast.success(t('checkout.order_success') || 'Order placed successfully!');
           }
 
+          // Prompt 13.3: the order page opens with a result panel (what happens next), not a toast.
           if (navigate && result.order?.ref) {
-            navigate(`/orders/${result.order.ref}`);
+            navigate(`/orders/${result.order.ref}?placed=1`);
+          } else {
+            toast.success(t('checkout.order_success') || 'Order placed successfully!');
           }
         } catch (err) {
           if (err.code === 'COD_OTP_REQUIRED') {

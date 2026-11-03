@@ -15,6 +15,7 @@ import { api } from '../../core/api.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import { showActionResult } from '../../components/guide/ActionResult.ts';
 import '../../styles/components/returns.css';
 
 export default function ReturnsQueuePage(root: HTMLElement) {
@@ -55,8 +56,10 @@ export default function ReturnsQueuePage(root: HTMLElement) {
   async function handleApprove(returnId) {
     try {
       await api.post(`/admin/returns/${returnId}/review`, { action: 'APPROVE' });
-      toast.success(t('returns.approve_success', 'Return approved & reverse courier pickup scheduled.'));
       await fetchQueue();
+      // Prompt 13.3: approval ends on a result panel that says what the courier and refund do next.
+      // The same page serves /moderator/returns and /admin/returns, so the role comes from the path.
+      showActionResult(root, window.location.pathname.startsWith('/moderator') ? 'return_approved_moderator' : 'return_approved_admin');
     } catch (err) {
       toast.error(err.message || 'Failed to approve return.');
     }

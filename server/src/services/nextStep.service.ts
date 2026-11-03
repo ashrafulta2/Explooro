@@ -72,15 +72,19 @@ export async function invalidateNextStep(cache, userId: number | string): Promis
 }
 
 /**
- * onResponse hook: a successful write by a signed-in user may have completed a step, so their cached
+ * onSend hook: a successful write by a signed-in user may have completed a step, so their cached
  * answer is dropped. WHY every write and not a list of "step-completing" endpoints: a list would have
  * to name ~20 routes across a dozen services and would silently go stale when one is added; dropping
  * one small cache key on every write costs almost nothing.
+ * WHY onSend and not onResponse: onSend runs before the response leaves, so the result panel
+ * (Prompt 13.3), which asks for the next step the moment the write answers, can never read the stale
+ * entry. The payload is passed through untouched.
  */
-export async function invalidateOnWrite(req, reply): Promise<void> {
-  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return;
-  if (reply.statusCode >= 400 || !req.user?.id) return;
+export async function invalidateOnWrite(req, reply, payload?: unknown): Promise<unknown> {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return payload;
+  if (reply.statusCode >= 400 || !req.user?.id) return payload;
   await invalidateNextStep(req.server?.cache, req.user.id);
+  return payload;
 }
 
 function cacheSeconds(moduleRow): number {

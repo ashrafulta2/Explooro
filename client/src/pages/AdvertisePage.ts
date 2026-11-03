@@ -18,6 +18,8 @@ import { Button } from '../components/ui/Button.ts';
 import { Input } from '../components/ui/Input.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { toast } from '../services/toast.ts';
+import { showActionResult } from '../components/guide/ActionResult.ts';
+import { getCurrentUser } from '../services/session.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { formatCurrency, formatNumber } from '../services/format.ts';
 import { STEPS, buildCampaignBody, stepComplete } from './advertiseWizard.ts';
@@ -386,6 +388,10 @@ export default function AdvertisePage(root: HTMLElement) {
       submitted = await adsApi.createCampaign(buildCampaignBody(state));
       campaigns = await adsApi.listCampaigns().catch(() => campaigns);
       render();
+      // Prompt 13.3: the done card says whether the ad waits on review; the result panel above it
+      // adds the next step. Customers, shop partners and suppliers all buy here, each with a journey.
+      const role = getCurrentUser()?.roles?.[0];
+      showActionResult(root, role === 'saler' ? 'ad_boosted_saler' : role === 'supplier' ? 'ad_boosted_supplier' : 'ad_boosted_customer');
     } catch (err) {
       toast.error((isBn ? err?.message_bn : null) || err?.message || t('common.error_generic'));
       nextBtn.disabled = false;
