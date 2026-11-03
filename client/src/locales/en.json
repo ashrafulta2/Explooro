@@ -8288,5 +8288,204 @@
     "manufacturer": "Manufacturer",
     "distributor": "Distributor",
     "trader": "Trader"
+  },
+  "journey": {
+    "customer": {
+      "verify_phone": {
+        "title": "Verify your phone number",
+        "next": "We send order updates and delivery calls to this number."
+      },
+      "add_address": {
+        "title": "Save a delivery address",
+        "next": "Next time checkout fills it in for you."
+      },
+      "fill_cart": {
+        "title": "Add something to your cart",
+        "next": "Find a product you like and tap Add to cart."
+      },
+      "place_order": {
+        "title": "Place your first order",
+        "next": "Choose cash on delivery or pay online, then confirm."
+      },
+      "receive_order": {
+        "title": "Receive your order",
+        "next": "The supplier packs it and the courier brings it. You can follow it from My orders."
+      },
+      "write_review": {
+        "title": "Review what you bought",
+        "next": "Your review helps other shoppers choose."
+      }
+    },
+    "saler": {
+      "verify_phone": {
+        "title": "Verify your phone number",
+        "next": "Shoppers and suppliers reach you on this number."
+      },
+      "submit_kyc": {
+        "title": "Verify your identity",
+        "next": "Submit your NID once. An admin checks it, and you can set up your store meanwhile."
+      },
+      "name_store": {
+        "title": "Name your store",
+        "next": "Pick a store name and link so shoppers can find you."
+      },
+      "add_products": {
+        "title": "Add 3 products to your store",
+        "next": "Pick products from suppliers. They hold the stock and ship for you."
+      },
+      "share_store": {
+        "title": "Share your store",
+        "next": "Make a link or flyer and post it on Facebook or WhatsApp."
+      },
+      "first_order": {
+        "title": "Get your first order",
+        "next": "Keep sharing. When a shopper orders, you will see it here."
+      },
+      "first_withdrawal": {
+        "title": "Make your first withdrawal",
+        "next": "Send money from your vault to bKash or Nagad."
+      }
+    },
+    "supplier": {
+      "verify_phone": {
+        "title": "Verify your phone number",
+        "next": "Shop partners and couriers reach you on this number."
+      },
+      "submit_kyc": {
+        "title": "Verify your business",
+        "next": "Submit your NID and trade licence. You can list products once an admin approves."
+      },
+      "add_product": {
+        "title": "Add your first product",
+        "next": "Add photos, a price and the stock you hold."
+      },
+      "stock_product": {
+        "title": "Get a product live with stock",
+        "next": "A moderator checks each new product. Keep its stock above zero so it can sell."
+      },
+      "first_order": {
+        "title": "Get your first order",
+        "next": "Shop partners sell your products. New orders show up here."
+      },
+      "ship_order": {
+        "title": "Ship your first order",
+        "next": "Pack it and book a courier, or record that you sent it by hand."
+      },
+      "first_withdrawal": {
+        "title": "Make your first withdrawal",
+        "next": "Once an order is delivered and settled, send the money to bKash or Nagad."
+      }
+    },
+    "moderator": {
+      "enable_2fa": {
+        "title": "Turn on two-step sign-in",
+        "next": "Staff accounts need a code from your phone app at sign-in."
+      },
+      "claim_item": {
+        "title": "Claim an item from the queue",
+        "next": "Claiming it stops another moderator working on the same item."
+      },
+      "decide_item": {
+        "title": "Approve or reject it",
+        "next": "Give a reason when you reject, so the seller knows what to fix."
+      },
+      "decide_dispute": {
+        "title": "Settle a dispute",
+        "next": "Read both sides, then decide who gets the money."
+      },
+      "decide_return": {
+        "title": "Decide a return",
+        "next": "Check the photos and the reason, then approve or reject."
+      }
+    },
+    "editor": {
+      "enable_2fa": {
+        "title": "Turn on two-step sign-in",
+        "next": "Staff accounts need a code from your phone app at sign-in."
+      },
+      "publish_banner": {
+        "title": "Put a banner live",
+        "next": "The home page shows active banners to every shopper."
+      },
+      "publish_story": {
+        "title": "Publish a story",
+        "next": "Stories show products in use and link straight to them."
+      },
+      "publish_whats_new": {
+        "title": "Publish a What's New note",
+        "next": "Tell users what changed in plain words."
+      },
+      "save_translation": {
+        "title": "Fix a translation",
+        "next": "Make sure the Bangla and English say the same thing."
+      }
+    },
+    "admin": {
+      "enable_2fa": {
+        "title": "Turn on two-step sign-in",
+        "next": "Staff accounts need a code from your phone app at sign-in."
+      },
+      "review_kyc": {
+        "title": "Review an identity check",
+        "next": "Suppliers cannot list products until you approve their KYC."
+      },
+      "review_product": {
+        "title": "Review a new product",
+        "next": "Approved products go live for shoppers right away."
+      },
+      "review_payout": {
+        "title": "Review a withdrawal",
+        "next": "Sellers wait on this to get their money."
+      },
+      "decide_return": {
+        "title": "Decide a return",
+        "next": "Check the photos and the reason, then approve or reject."
+      }
+    },
+    "super_admin": {
+      "enable_2fa": {
+        "title": "Turn on two-step sign-in",
+        "next": "The owner account guards every setting. Protect it first."
+      },
+      "choose_language": {
+        "title": "Choose the default language",
+        "next": "New visitors see the site in this language first."
+      },
+      "set_delivery": {
+        "title": "Set delivery charges",
+        "next": "Shoppers see this charge at checkout, per delivery zone."
+      },
+      "set_operations": {
+        "title": "Choose how payouts and deliveries run",
+        "next": "Start by hand, and switch to automatic once a gateway and courier are connected."
+      },
+      "add_category": {
+        "title": "Add a product category",
+        "next": "Suppliers file every product under a category."
+      },
+      "invite_staff": {
+        "title": "Invite your first staff member",
+        "next": "Hand day-to-day reviews to a moderator or admin."
+      },
+      "verify_supplier": {
+        "title": "Approve your first supplier",
+        "next": "A verified supplier can start listing products."
+      },
+      "first_product_live": {
+        "title": "Get the first product live",
+        "next": "Once one product is live, shoppers can start buying."
+      }
+    },
+    "dead_end": {
+      "checkout": "Your order is placed. Follow it from My orders; we will tell you when it ships.",
+      "address_saved": "Address saved. Now find something you like.",
+      "become_saler": "Your store is ready. Give it a name next.",
+      "kyc_saler": "Documents sent. An admin will check them; set up your store meanwhile.",
+      "kyc_supplier": "Documents sent. You can list products once an admin approves them; set up your shop details meanwhile.",
+      "product_added_saler": "Added to your store. Share it so shoppers can find it.",
+      "product_added_supplier": "Product saved. A moderator checks it before it goes live; check its stock meanwhile.",
+      "withdrawal_requested": "Request sent. You can follow it from your vault.",
+      "order_shipped": "Shipped. Follow the parcel until it is delivered."
+    }
   }
 }
