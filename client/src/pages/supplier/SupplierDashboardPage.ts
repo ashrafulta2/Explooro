@@ -17,10 +17,17 @@ import { toast } from '../../services/toast.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
+import type { PageContext } from '../types.ts';
 
-export default function SupplierDashboardPage(root: HTMLElement) {
+export default function SupplierDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'supplier-page-container';
+
+  // Prompt 13.2: the one thing to do next. WHY outside render(): render() empties the container, so
+  // the slot is kept here and put back under the header each time.
+  const guideSlot = document.createElement('div');
+  mountNextStepCard(guideSlot, { navigate });
 
   let isSimpleMode = localStorage.getItem('supplier_simple_mode') === 'true';
   let overviewData = null;
@@ -97,6 +104,7 @@ export default function SupplierDashboardPage(root: HTMLElement) {
 
     header.querySelector<HTMLElement>('#refresh-dashboard-btn').onclick = loadData;
     container.appendChild(header);
+    container.appendChild(guideSlot);
 
     if (loading && !overviewData) {
       const loader = document.createElement('div');

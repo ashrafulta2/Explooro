@@ -24,6 +24,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
+import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
 import type { PageContext } from '../types.ts';
 
 const SALER_MODE_KEY = 'explooro:saler_mode_preference';
@@ -84,6 +85,11 @@ export default function SalerDashboardPage(root: HTMLElement, { navigate }: Page
   toggleBox.append(simpleBtn, proBtn);
   header.append(titleBox, toggleBox);
   container.append(header);
+
+  // Prompt 13.2: the one thing to do next, decided by the server.
+  const guideSlot = document.createElement('div');
+  container.append(guideSlot);
+  mountNextStepCard(guideSlot, { navigate: nav });
 
   // Dynamic Workspace View Slot
   const viewSlot = document.createElement('div');

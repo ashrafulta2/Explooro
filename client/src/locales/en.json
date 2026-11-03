@@ -8486,6 +8486,34 @@
       "product_added_supplier": "Product saved. A moderator checks it before it goes live; check its stock meanwhile.",
       "withdrawal_requested": "Request sent. You can follow it from your vault.",
       "order_shipped": "Shipped. Follow the parcel until it is delivered."
+    },
+    "card": {
+      "label": "Your next step",
+      "progress": "Step {{done}} of {{total}}",
+      "progress_label": "{{done}} of {{total}} steps done",
+      "go": "Do it now",
+      "view": "Open the page",
+      "later": "Later",
+      "done_title": "You're all set",
+      "done_body": "You finished every first step. Keep going from your dashboard."
+    },
+    "block": {
+      "kyc_review": "Waiting for an admin to approve your documents. We will notify you.",
+      "product_review": "Waiting for a moderator to approve your product.",
+      "waiting_for_buyer": "Waiting for a shopper to order.",
+      "waiting_for_delivery": "On its way. The supplier and courier are delivering it.",
+      "balance_empty": "Nothing to withdraw yet. Money shows in your vault once it is ready.",
+      "no_permission": "Your account cannot do this yet. Ask the platform team for access."
+    },
+    "settings": {
+      "title": "Next-step tips",
+      "subtitle": "A card on your dashboard that says what to do next.",
+      "toggle": "Show next-step tips",
+      "on_note": "The card shows on your dashboard until every first step is done.",
+      "off_note": "The card is hidden. Turn this on to see it again.",
+      "toast_on": "Next-step tips are on.",
+      "toast_off": "Next-step tips are off.",
+      "load_failed": "Could not load this setting. Try again later."
     }
   }
 }

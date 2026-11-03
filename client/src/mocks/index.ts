@@ -51,6 +51,7 @@ import { gamificationHandlers } from './handlers/gamification.ts';
 import { referralHandlers } from './handlers/referral.ts';
 import { customerHandlers } from './handlers/customer.ts';
 import { homeSummaryHandlers } from './handlers/homeSummary.ts';
+import { nextStepHandlers } from './handlers/nextStep.ts';
 import { notificationHandlers } from './handlers/notifications.ts';
 import chatHandlers from './handlers/chat.ts';
 import meHandlers from './handlers/me.ts';
@@ -107,6 +108,7 @@ const handlers: (Omit<MockRoute, 'method'> & { method: string })[] = [
   ...referralHandlers,
   ...customerHandlers,
   ...homeSummaryHandlers,
+  ...nextStepHandlers,
   ...notificationHandlers,
   ...chatHandlers,
   ...meHandlers,

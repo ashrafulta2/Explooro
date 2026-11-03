@@ -13,11 +13,18 @@ import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { EmptyState } from '../../components/ui/EmptyState.ts';
+import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
+import type { PageContext } from '../types.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
 
-export default function EditorDashboardPage(root: HTMLElement) {
+export default function EditorDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'editor-page-container';
+
+  // Prompt 13.2: the one thing to do next. WHY outside render(): render() empties the container, so
+  // the slot is kept here and put back under the header each time.
+  const guideSlot = document.createElement('div');
+  mountNextStepCard(guideSlot, { navigate });
 
   let activeConsoleTab = 'banners'; // 'banners' | 'stories' | 'whats_new' | 'academy'
   let banners = [];
@@ -426,6 +433,7 @@ export default function EditorDashboardPage(root: HTMLElement) {
     header.querySelector<HTMLElement>('#refresh-dashboard-btn').onclick = loadData;
 
     container.appendChild(header);
+    container.appendChild(guideSlot);
 
     if (loading) {
       const loader = document.createElement('div');

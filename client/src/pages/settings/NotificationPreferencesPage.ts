@@ -20,6 +20,7 @@ import {
   isPersonalizationEnabled,
   setPersonalizationEnabled,
 } from '../../services/signals.ts';
+import { getShowNextSteps, setShowNextSteps } from '../../services/nextStep.ts';
 import type { PageContext } from '../types.ts';
 
 // WHY the channel list is data, not markup: every category renders the same four toggles, and a
@@ -356,6 +357,58 @@ export default function NotificationPreferencesPage(root: HTMLElement, { navigat
     privacyGrid.className = 'notif-prefs-grid';
     privacyGrid.append(buildPersonalizationCard());
     container.append(privacyGrid);
+  }
+
+  // ── Next-step tips opt-out (Prompt 13.2) ──────────────────────────────────
+  // Saved on the server (user_profiles.show_next_steps) so the choice follows the user to every
+  // device. Same rule as above: hidden only when the module is explicitly off.
+  function buildGuidanceCard() {
+    const body = document.createElement('div');
+    body.className = 'notif-prefs-card__body';
+    const note = document.createElement('p');
+    note.className = 'notif-prefs-locked-note';
+    note.setAttribute('aria-live', 'polite');
+    const renderNote = (on) => {
+      note.textContent = t(on ? 'journey.settings.on_note' : 'journey.settings.off_note');
+    };
+    const slot = document.createElement('div');
+    slot.append(Skeleton({ variant: 'text', lines: 1 }));
+    body.append(slot, note);
+
+    getShowNextSteps()
+      .then((on) => {
+        slot.replaceChildren(
+          Switch({
+            label: t('journey.settings.toggle'),
+            checked: on,
+            onChange: async (checked) => {
+              try {
+                const saved = await setShowNextSteps(checked);
+                renderNote(saved);
+                toast.info(t(saved ? 'journey.settings.toast_on' : 'journey.settings.toast_off'));
+              } catch (err) {
+                toast.error(err.message || String(err));
+              }
+            },
+          })
+        );
+        renderNote(on);
+      })
+      .catch(() => {
+        slot.replaceChildren();
+        note.textContent = t('journey.settings.load_failed');
+      });
+
+    const card = Card({ title: `🧭  ${t('journey.settings.title')}`, subtitle: t('journey.settings.subtitle'), body });
+    card.classList.add('notif-prefs-card');
+    return card;
+  }
+
+  if (appStore.get().modules?.guided_experience !== false) {
+    const guidanceGrid = document.createElement('div');
+    guidanceGrid.className = 'notif-prefs-grid';
+    guidanceGrid.append(buildGuidanceCard());
+    container.append(guidanceGrid);
   }
 
   root.append(container);

@@ -10,6 +10,13 @@ A journey is the ordered list of steps that takes one role from first login to i
 success**. The Next-Step engine (Prompt 13.2) answers "what should this user do now?" by walking
 the list and returning the first step whose fact is still false.
 
+The server keeps its own copy in
+[`server/src/config/journeys.ts`](../server/src/config/journeys.ts), adding each page's permission and
+module. Each fact is one SQL statement in `server/src/repositories/nextStep.repository.ts`, and
+`server/test/nextStep.test.js` fails if the two copies disagree. The current step is always the
+*first* step not done, even when later steps are done. On the seeded local database the dev
+customer has orders and a review but no saved address, so their card asks for the address first.
+
 ## 1. Rules
 
 **Done is a fact, never a tick.** Every step names one fact (`doneWhen`) that the server checks
@@ -93,7 +100,7 @@ mechanics (owner decision, 2026-11-02).
 | 2 | `moderator.claim_item` | `/moderator/queue` | `moderation.item_claimed`: `moderation_queue.claimed_by` or `decided_by` is them | No one else works the same item | `module_off`, `not_delegated` |
 | 3 | `moderator.decide_item` | `/moderator/queue` | `moderation.item_decided`: `decided_by` is them | Give a reason on reject | `module_off`, `not_delegated` |
 | 4 | `moderator.decide_dispute` | `/moderator/disputes` | `moderation.dispute_decided`: audit `orders.dispute.arbitrate*` by them | Decide who gets the money | `module_off`, `not_delegated` |
-| 5 | `moderator.decide_return` | `/moderator/returns` | `moderation.return_decided`: audit `returns.request.approve/reject` by them | Check photos and reason | `module_off`, `not_delegated` |
+| 5 | `moderator.decide_return` | `/moderator/returns` | `staff.return_decided`: audit `returns.request.approve/reject` by them | Check photos and reason | `module_off`, `not_delegated` |
 
 ### 2.5 Editor: first published content
 
@@ -111,9 +118,9 @@ mechanics (owner decision, 2026-11-02).
 | :- | :--- | :--- | :--- | :--- | :--- |
 | 1 | `admin.enable_2fa` | `/auth/2fa` | `staff.two_factor_enrolled` | Sign-in asks for a code | |
 | 2 | `admin.review_kyc` | `/admin/verification` | `admin.kyc_reviewed`: `kyc_verifications.reviewed_by` is them | Suppliers cannot list until approved | `module_off`, `not_delegated` |
-| 3 | `admin.review_product` | `/admin/catalog/moderation` | `admin.product_reviewed`: a `PRODUCT` queue row decided by them | Approved products go live | `module_off`, `not_delegated` |
+| 3 | `admin.review_product` | `/admin/catalog/moderation` | `admin.product_reviewed`: a `PRODUCT_NEW`/`PRODUCT_EDIT` queue row decided by them | Approved products go live | `module_off`, `not_delegated` |
 | 4 | `admin.review_payout` | `/admin/finance/payouts` | `admin.payout_reviewed`: audit `finance.payout.approve_request/reject` by them | Sellers wait on this for their money | `not_delegated` |
-| 5 | `admin.decide_return` | `/admin/returns` | `admin.return_decided`: audit `returns.request.approve/reject` by them | Check photos and reason | `module_off`, `not_delegated` |
+| 5 | `admin.decide_return` | `/admin/returns` | `staff.return_decided`: audit `returns.request.approve/reject` by them | Check photos and reason | `module_off`, `not_delegated` |
 
 ### 2.7 Super Admin: platform set-up, then the first live product
 

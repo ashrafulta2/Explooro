@@ -99,6 +99,18 @@ describe('journeys', () => {
     assert.deepEqual(missing, []);
   });
 
+  it('every block reason and every journey string the card and settings use exists in both locales', () => {
+    const literal = (file) => [...readFileSync(join(src, file), 'utf8').matchAll(/t\('(journey\.[a-z_.]+)'/g)].map((m) => m[1]);
+    const keys = [
+      ...Object.keys(BLOCK_REASONS).map((r) => `journey.block.${r}`),
+      ...literal('components/guide/NextStepCard.ts'),
+      ...literal('pages/settings/NotificationPreferencesPage.ts'),
+    ];
+    assert.ok(keys.length > Object.keys(BLOCK_REASONS).length, 'the card uses journey strings');
+    const missing = keys.filter((k) => typeof resolve(en, k) !== 'string' || !/[ঀ-৿]/.test(resolve(bn, k) || ''));
+    assert.deepEqual(missing, []);
+  });
+
   it('every dead end has a reachable follow-up and names a file that exists', () => {
     const bad = DEAD_ENDS.filter((d) => !registered.has(d.followUp) || !reachable(d.role, d.followUp) || !existsSync(join(src, d.where)))
       .map((d) => d.id);

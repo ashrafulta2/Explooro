@@ -9,6 +9,7 @@
  */
 
 import { getInsightsForUser } from './ai/prescriptiveInsights.ts';
+import * as nextStepService from './nextStep.service.ts';
 
 /**
  * Aggregates high-level telemetry and status for the Shop Partner Dashboard overview.
@@ -128,17 +129,26 @@ export async function getSalerOverview(db, salerId) {
   const referralCount = refRows[0]?.count || 0;
 
   // 5. Onboarding status checklist
-  const hasCurated = store.curated_products_count > 0;
-  const hasStoreCustomized = Boolean(store.slug && store.shop_name);
-  const hasSharedSocial = totalLinkClicks > 0;
-  const hasFirstSale = metrics.total_orders > 0;
+  // WHY the journey's facts (Prompt 13.2): this checklist used to decide "done" on its own, and
+  // disagreed with the Next-Step card (sharing counted only once a shopper clicked a link, which the
+  // partner does not control). Both now read the same facts from nextStep.service.
+  const facts = await nextStepService.factsFor(db, parsedSalerId, [
+    'saler.three_products',
+    'saler.store_named',
+    'saler.link_created',
+    'saler.order_received',
+  ]);
+  const hasCurated = facts['saler.three_products'];
+  const hasStoreCustomized = facts['saler.store_named'];
+  const hasSharedSocial = facts['saler.link_created'];
+  const hasFirstSale = facts['saler.order_received'];
   const isBrandNew = !hasFirstSale && store.curated_products_count === 0;
 
   const onboardingSteps = [
     {
       id: 'step_curate',
-      title_en: 'Curate your first wholesale product',
-      title_bn: 'আপনার প্রথম পাইকারি পণ্য নির্বাচন করুন',
+      title_en: 'Add 3 products to your store',
+      title_bn: 'স্টোরে ৩টি পণ্য যোগ করুন',
       desc_en: 'Browse the supplier catalog and add products to your storefront.',
       desc_bn: 'সাপ্লায়ার ক্যাটালগ থেকে পণ্য বাছাই করে আপনার স্টোরে যুক্ত করুন।',
       action_url: '/saler/sourcing',

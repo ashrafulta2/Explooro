@@ -90,6 +90,7 @@ import { createBundleProfitBreakdown } from '../../components/bundle/BundleProfi
 import { createMilestoneProgressStepper } from '../../components/b2b/MilestoneProgressStepper.ts';
 import { ShoppableReels } from '../../components/content/ShoppableReels.ts';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
+import { NextStepCard } from '../../components/guide/NextStepCard.ts';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
@@ -1389,6 +1390,7 @@ export const GALLERY_GROUPS = [
   { name: 'Referral & Loyalty', blurb: 'Referral network, coins, quests and leaderboards.' },
   { name: 'Conversion & Social Selling', blurb: 'Group buying, abandoned-cart recovery and the social shop partner kit.' },
   { name: 'AI & Intelligence', blurb: 'Conversational and prescriptive assistants.' },
+  { name: 'Guidance', blurb: 'What to do next: the Next-Step card and, from Phase 13, the result panels and checklists.' },
 ];
 
 /**
@@ -1590,6 +1592,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'assistant-panel-sourcing', label: 'AssistantPanel (Sourcing)', group: 'AI & Intelligence', render: renderAssistantPanelSourcingSpecimen },
     // Prompt 11.2 — Shop Partner Prescriptive AI Growth Assistant
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
+    { id: 'next-step-card', label: 'NextStepCard', group: 'Guidance', render: renderNextStepCardSpecimen },
     { id: 'commission-tier-card', label: 'CommissionTierCard', group: 'AI & Intelligence', render: renderCommissionTierCardSpecimen },
     { id: 'partner-score-card', label: 'PartnerScoreCard', group: 'AI & Intelligence', render: renderPartnerScoreCardSpecimen },
     { id: 'partner-reward-card', label: 'PartnerRewardCard', group: 'AI & Intelligence', render: renderPartnerRewardCardSpecimen },
@@ -3095,6 +3098,60 @@ function renderSupplierStoreStatusSpecimen() {
     <div style="font-size: 12px; color: var(--text-secondary);">Tejgaon Industrial Area Showroom (09:00 AM - 08:00 PM)</div>
   `;
   wrap.append(specimen('Physical Store & Showroom Walk-in Availability', box));
+  return wrap;
+}
+
+function renderNextStepCardSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  const step = (id, route, status: 'todo' | 'blocked' = 'todo', blocked_by = null) => ({
+    id,
+    order: 3,
+    route,
+    title_key: `journey.saler.${id}.title`,
+    next_key: `journey.saler.${id}.next`,
+    status,
+    blocked_by,
+  });
+  const data = (current, done = 2, total = 7, journey = 'saler') => ({
+    enabled: true,
+    reason: null,
+    journey,
+    progress: { done, total },
+    current,
+    upcoming: [],
+  });
+  const noop = () => {};
+  const supplierBlocked = {
+    ...data(null, 2, 7, 'supplier'),
+    current: {
+      id: 'add_product',
+      order: 3,
+      route: null,
+      title_key: 'journey.supplier.add_product.title',
+      next_key: 'journey.supplier.add_product.next',
+      status: 'blocked' as const,
+      blocked_by: { reason: 'kyc_review', message_key: 'journey.block.kyc_review' },
+    },
+  };
+  wrap.append(
+    subgroup('Next step to do (Prompt 13.2)'),
+    NextStepCard({ data: data(step('name_store', '/saler/store-builder')), navigate: noop }),
+    subgroup('Blocked on an admin: the reason, no button'),
+    NextStepCard({ data: supplierBlocked, navigate: noop }),
+    subgroup('Waiting for a shopper: the page stays on offer'),
+    NextStepCard({ data: data(step('first_order', '/saler/orders', 'blocked', { reason: 'waiting_for_buyer', message_key: 'journey.block.waiting_for_buyer' }), 5), navigate: noop }),
+    subgroup('All done'),
+    NextStepCard({ data: data(null, 7, 7) }),
+    subgroup('Loading'),
+    NextStepCard({ loading: true }),
+    subgroup('Empty (a role without a journey renders nothing)')
+  );
+  const empty = NextStepCard({ data: { ...data(null, 0, 0), journey: null } });
+  const note = document.createElement('p');
+  note.className = 'text-sm text-muted';
+  note.textContent = `Rendered element is hidden: ${empty.hidden}`;
+  wrap.append(empty, note);
   return wrap;
 }
 

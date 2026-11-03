@@ -53,7 +53,8 @@ export const JOURNEY_FACTS: Record<string, JourneyFact> = {
   'moderation.item_claimed': { scope: 'user', proof: 'a moderation_queue row with claimed_by or decided_by = the user' },
   'moderation.item_decided': { scope: 'user', proof: 'a moderation_queue row with decided_by = the user' },
   'moderation.dispute_decided': { scope: 'user', proof: "an audit_logs row by the user with action 'orders.dispute.arbitrate' or 'orders.dispute.arbitrate_proposed'" },
-  'moderation.return_decided': { scope: 'user', proof: "an audit_logs row by the user with action 'returns.request.approve' or 'returns.request.reject'" },
+  // Moderators and admins decide returns through the same actions, so they share one fact.
+  'staff.return_decided': { scope: 'user', proof: "an audit_logs row by the user with action 'returns.request.approve' or 'returns.request.reject'" },
   // WHY platform scope: banners and release notes carry no author column, so "this editor did it"
   // cannot be proven; "the platform has one" can. See docs/journeys.md §4 finding F3.
   'content.banner_live': { scope: 'platform', proof: 'a banners row with is_active true' },
@@ -61,9 +62,8 @@ export const JOURNEY_FACTS: Record<string, JourneyFact> = {
   'content.release_note_published': { scope: 'platform', proof: 'a release_notes row with published_at set' },
   'content.translation_saved': { scope: 'user', proof: "an audit_logs row by the user with action 'translation.upsert'" },
   'admin.kyc_reviewed': { scope: 'user', proof: 'a kyc_verifications row with reviewed_by = the user' },
-  'admin.product_reviewed': { scope: 'user', proof: 'a moderation_queue row with item_type PRODUCT and decided_by = the user' },
+  'admin.product_reviewed': { scope: 'user', proof: 'a moderation_queue row with item_type PRODUCT_NEW or PRODUCT_EDIT and decided_by = the user' },
   'admin.payout_reviewed': { scope: 'user', proof: "an audit_logs row by the user with action 'finance.payout.approve_request' or 'finance.payout.reject'" },
-  'admin.return_decided': { scope: 'user', proof: "an audit_logs row by the user with action 'returns.request.approve' or 'returns.request.reject'" },
   // WHY an audit row and not the settings row: migrations seed defaults, so the row always exists;
   // an audit row proves someone actually chose the value.
   'platform.language_chosen': { scope: 'platform', proof: "an audit_logs row with action 'platform.localization.update'" },
@@ -82,6 +82,8 @@ export const BLOCK_REASONS = {
   waiting_for_buyer: 'Only a shopper can complete this; the user can promote meanwhile.',
   waiting_for_delivery: 'The supplier and courier must deliver first.',
   balance_empty: 'There is nothing to withdraw until money reaches the vault.',
+  // Never written on a step: the engine reports it when the user lacks the step page's permission.
+  no_permission: "The user's account cannot open this step's page yet.",
 } as const;
 export type BlockReason = keyof typeof BLOCK_REASONS;
 
@@ -161,7 +163,7 @@ export const JOURNEYS: JourneyStep[] = [
   step('moderator', 2, 'claim_item', '/moderator/queue', 'moderation.item_claimed', { skipWhen: ['module_off', 'not_delegated'] }),
   step('moderator', 3, 'decide_item', '/moderator/queue', 'moderation.item_decided', { skipWhen: ['module_off', 'not_delegated'] }),
   step('moderator', 4, 'decide_dispute', '/moderator/disputes', 'moderation.dispute_decided', { skipWhen: ['module_off', 'not_delegated'] }),
-  step('moderator', 5, 'decide_return', '/moderator/returns', 'moderation.return_decided', { skipWhen: ['module_off', 'not_delegated'] }),
+  step('moderator', 5, 'decide_return', '/moderator/returns', 'staff.return_decided', { skipWhen: ['module_off', 'not_delegated'] }),
 
   // Editor: first real success is published content shoppers can see.
   step('editor', 1, 'enable_2fa', '/auth/2fa', 'staff.two_factor_enrolled'),
@@ -175,7 +177,7 @@ export const JOURNEYS: JourneyStep[] = [
   step('admin', 2, 'review_kyc', '/admin/verification', 'admin.kyc_reviewed', { skipWhen: ['module_off', 'not_delegated'] }),
   step('admin', 3, 'review_product', '/admin/catalog/moderation', 'admin.product_reviewed', { skipWhen: ['module_off', 'not_delegated'] }),
   step('admin', 4, 'review_payout', '/admin/finance/payouts', 'admin.payout_reviewed', { skipWhen: ['not_delegated'] }),
-  step('admin', 5, 'decide_return', '/admin/returns', 'admin.return_decided', { skipWhen: ['module_off', 'not_delegated'] }),
+  step('admin', 5, 'decide_return', '/admin/returns', 'staff.return_decided', { skipWhen: ['module_off', 'not_delegated'] }),
 
   // Super Admin: platform set-up, then the first verified supplier and the first live product.
   step('super_admin', 1, 'enable_2fa', '/auth/2fa', 'staff.two_factor_enrolled'),

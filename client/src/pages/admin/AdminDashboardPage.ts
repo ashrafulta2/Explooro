@@ -59,6 +59,7 @@ import {
   validateCustomRange,
 } from '../../services/adminDashboard.model.ts';
 import type { PageContext } from '../types.ts';
+import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
 
 const AUTO_REFRESH_KEY = 'explooro:admin-dashboard:auto-refresh';
 const PERM_ROLLUP = 'admin.analytics.rollup';
@@ -410,6 +411,11 @@ export default function AdminDashboardPage(root: HTMLElement, { navigate }: Page
       </div>
     `;
     root.append(page);
+
+    // Prompt 13.2: the one thing to do next, under the header and above the alerts.
+    const guideSlot = document.createElement('div');
+    page.querySelector('[data-region="banner"]')?.before(guideSlot);
+    mountNextStepCard(guideSlot, { navigate });
 
     const q = (sel) => page.querySelector(sel);
     els.meta = q('[data-region="meta"]');

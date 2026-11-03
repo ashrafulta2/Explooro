@@ -27,6 +27,8 @@ import requirePagePlugin from './middlewares/requirePage.ts';
 import idempotencyPlugin from './middlewares/idempotency.ts';
 import authRoutes from './routes/auth.routes.ts';
 import meRoutes from './routes/me.routes.ts';
+import nextStepRoutes from './routes/nextStep.routes.ts';
+import { invalidateOnWrite as invalidateNextStepOnWrite } from './services/nextStep.service.ts';
 import delegationRoutes from './routes/delegation.routes.ts';
 import restrictionRoutes from './routes/restriction.routes.ts';
 import auditRoutes from './routes/audit.routes.ts';
@@ -182,6 +184,9 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   // Same rule: its onRoute hook must be registered before the route plugins. Gives every write route
   // Idempotency-Key support (CLAUDE.md constraint 11).
   app.register(idempotencyPlugin);
+  // A user's successful write may complete a journey step, so their cached next step is dropped
+  // (services/nextStep.service.ts). Added before the routes so it applies to all of them.
+  app.addHook('onResponse', invalidateNextStepOnWrite);
 
   await app.register(helmet, { global: true });
 
@@ -213,6 +218,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
 
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(meRoutes, { prefix: '/api/v1/me' });
+  await app.register(nextStepRoutes, { prefix: '/api/v1/me' });
   await app.register(delegationRoutes, { prefix: '/api/v1' });
   await app.register(restrictionRoutes, { prefix: '/api/v1' });
   await app.register(auditRoutes, { prefix: '/api/v1' });

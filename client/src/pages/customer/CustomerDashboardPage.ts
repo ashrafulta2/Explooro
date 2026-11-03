@@ -19,6 +19,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.ts';
+import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
 import type { PageContext } from '../types.ts';
 
 export default function CustomerDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
@@ -75,6 +76,11 @@ export default function CustomerDashboardPage(root: HTMLElement, { navigate }: P
 
   renderHeader();
   container.append(header);
+
+  // Prompt 13.2: the one thing to do next, decided by the server.
+  const guideSlot = document.createElement('div');
+  container.append(guideSlot);
+  mountNextStepCard(guideSlot, { navigate: nav });
 
   // Dynamic Content Slot
   const contentSlot = document.createElement('div');

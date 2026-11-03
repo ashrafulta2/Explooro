@@ -16,10 +16,16 @@ import { formatDate } from '../../services/format.ts';
 import WorkloadSummary from '../../components/moderator/WorkloadSummary.ts';
 import SlaMonitor from '../../components/moderator/SlaMonitor.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
+import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
+import type { PageContext } from '../types.ts';
 
-export default function ModeratorDashboardPage(root: HTMLElement) {
+export default function ModeratorDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'moderator-dashboard-page';
+  // Prompt 13.2: the one thing to do next. WHY outside render(): render() rewrites the container,
+  // so the slot is kept here and put back under the header each time.
+  const guideSlot = document.createElement('div');
+  mountNextStepCard(guideSlot, { navigate });
   container.style.cssText = `
     max-width: 1280px;
     margin: 0 auto;
@@ -533,6 +539,7 @@ export default function ModeratorDashboardPage(root: HTMLElement) {
         ${renderMakerCheckerSubmissionsPanel()}
       </div>
     `;
+    container.firstElementChild?.after(guideSlot);
 
     // Mount child widgets
     const workloadMount = container.querySelector('#workload-summary-mount');
