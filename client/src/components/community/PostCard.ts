@@ -5,8 +5,10 @@
  * about, then actions. Only the middle differs by type:
  *   REVIEW        rating + facet bars, liked / could be better, usability tip
  *   UPDATE        stock facts and price tiers (supplier → shop partners)
- *   IDEA          numbered steps (shop partner)
- *   ANNOUNCEMENT  title and message (admin, can be pinned)
+ *   IDEA          numbered steps (any member)
+ *   ANNOUNCEMENT  title and message: a staff notice (can be pinned) or a member's News post
+ *
+ * The kind tag carries one light colour per type (community.css), so the feed sorts itself at a glance.
  *
  * Invariants:
  *  - All member-typed text goes in through textContent (see dom.ts).
@@ -246,11 +248,16 @@ export function PostCard({ post, viewerRole, canModerate = false, openComments =
   } else if (post.type === 'UPDATE') {
     content = updateBody(post);
     product = productRow(post, { cta: viewerRole === 'saler' ? t('community.card.add_to_store') : t('community.card.view_product') });
-  } else if (post.type === 'IDEA') {
+  } else if (post.type === 'IDEA' && post.author.role === 'saler') {
+    // Only a shop partner's idea credits the sale to their store.
     content = ideaBody(post);
     product = productRow(post, { cta: t('community.card.shop_this'), note: t('community.card.credit_note', { name: post.author.name }) });
+  } else if (post.type === 'IDEA') {
+    content = ideaBody(post);
+    product = productRow(post, { cta: t('community.card.view_product') });
   } else {
     content = announceBody(post);
+    product = productRow(post, { cta: t('community.card.view_product') });
   }
   root.append(content);
   const gallery = mediaGallery(post);

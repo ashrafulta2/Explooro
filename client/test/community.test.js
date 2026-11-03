@@ -18,7 +18,7 @@ import path from 'node:path';
 
 import { handleMockRequest } from '../src/mocks/index.ts';
 import { appStore, setMockRole, logOutMock } from '../src/state/appStore.ts';
-import { ROLE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.ts';
+import { ROLE_KINDS, ROLE_COMPOSE, COMPOSE_KINDS, REPORT_REASONS, AUDIENCES, POST_MEDIA, COMMENT_MAX } from '../src/services/community.api.ts';
 import { checkNewFile } from '../src/components/community/MediaPicker.ts';
 import { MOCK_COMMUNITY_TEMPLATES } from '../src/mocks/handlers/community.ts';
 import { navItems } from '../src/config/navigation.ts';
@@ -71,8 +71,9 @@ test('the keys built at run time resolve for every role, kind, reason, audience 
   const need = [];
   for (const role of ['customer', 'supplier', 'saler', 'admin']) need.push(`community.role.${role}`, `community.from.${role}`);
   for (const role of ['customer', 'supplier', 'saler', 'admin', 'super_admin']) need.push(`community.composer.placeholder.${role}`);
-  for (const key of ['review', 'update', 'idea', 'announce']) need.push(`community.composer.title.${key}`, `community.composer.sub.${key}`);
-  for (const key of ['review', 'update', 'idea']) need.push(`community.composer.no_products.${key}`);
+  for (const key of ['review', 'update', 'idea', 'news', 'announce']) need.push(`community.composer.title.${key}`, `community.composer.sub.${key}`);
+  for (const key of ['review', 'update', 'optional']) need.push(`community.composer.no_products.${key}`);
+  for (const choice of new Set(Object.values(ROLE_COMPOSE).flat())) if (choice !== 'ANNOUNCEMENT') need.push(`community.composer.choice.${choice}`);
   for (const kinds of new Set(Object.values(ROLE_KINDS))) for (const k of kinds) need.push(`community.kind.${k}`);
   for (const r of REPORT_REASONS) need.push(`community.report.reason.${r}`);
   for (const a of AUDIENCES) need.push(`community.audience.${a}`);
@@ -521,4 +522,36 @@ test('the mock notices are the migration templates, and the settings page and dr
   assert.match(page, /params\.get\('post'\)/);
   assert.match(page, /params\.get\('comments'\) === '1'/);
   assert.match(read('components', 'community', 'PostCard.ts'), /\/community\?post=\$\{post\.id\}/);
+});
+
+// ── 7. Ideas and news for every member ────────────────────────────────────────────────────────
+
+test('the composer kinds mirror the server: each kind is stored as the type the server derives', () => {
+  const server = fs.readFileSync(path.resolve(src, '../../server/src/services/communityPost.service.ts'), 'utf8');
+  for (const [choice, kinds] of Object.entries(COMPOSE_KINDS)) {
+    const type = choice === 'NEWS' ? 'ANNOUNCEMENT' : choice;
+    for (const kind of kinds) assert.match(server, new RegExp(`\\b${kind}: '${type}'`), `${kind} is not stored as ${type}`);
+  }
+  for (const role of ['customer', 'supplier', 'saler']) {
+    assert.ok(ROLE_COMPOSE[role].includes('IDEA') && ROLE_COMPOSE[role].includes('NEWS'), `${role} cannot post ideas and news`);
+  }
+});
+
+test('mock: every member may post an idea or news; news is for everyone and lands on the News tab', () => {
+  setMockRole('supplier');
+  const idea = call('POST', '/community/posts', { kind: 'CREATIVE_IDEA', title: 'Bundle it', details: { steps: ['Pair with a cap'] } });
+  assert.equal(idea.status, 201);
+  assert.equal(idea.body.data.post.type, 'IDEA');
+  assert.equal(idea.body.data.post.product, null, 'an idea without a product is fine');
+  const news = call('POST', '/community/posts', { kind: 'NEWS', title: 'Eid stock', body: 'Arriving Friday', audience: 'SUPPLIERS', is_pinned: true });
+  assert.equal(news.status, 201);
+  assert.equal(news.body.data.post.type, 'ANNOUNCEMENT');
+  assert.equal(news.body.data.post.is_pinned, false, 'only staff pin');
+  assert.equal(call('POST', '/community/posts', { kind: 'POLICY_NOTICE', title: 'x', body: 'y' }).status, 400, 'staff notices stay staff-only');
+
+  setMockRole('customer');
+  const tip = call('POST', '/community/posts', { kind: 'USABILITY_TIP', product_id: 101, title: 'Iron inside out', details: { steps: ['Low heat'] } });
+  assert.equal(tip.status, 201);
+  assert.equal(tip.body.data.post.product, null, "a customer's idea is never tied to a product");
+  assert.ok(ids(call('GET', '/community/posts', null, { type: 'ANNOUNCEMENT' })).includes(news.body.data.post.id), 'news shows on the News tab');
 });

@@ -1,10 +1,12 @@
 /**
- * PostComposer — the window a member writes a post in. One window per role, numbered sections, so
- * the form is clear at a glance and says what each part is for:
- *   customer      Product → Rating → Experience                       (a verified-purchase review)
- *   supplier      Type → Product → Stock and pricing → Highlights     (an update for shop partners)
- *   shop partner  Type → Product → Idea → Tags                        (a usability tip or idea)
- *   admin         Type → Message → Audience                           (an announcement)
+ * PostComposer — the window a member writes a post in. A member first picks what they are posting
+ * (their role's own type, an Idea or News — ROLE_COMPOSE), then fills numbered sections, so the form
+ * is clear at a glance and says what each part is for:
+ *   Review        Product → Rating → Experience                (customer, a verified-purchase review)
+ *   Update        Type → Product → Stock and pricing → Highlights   (supplier, for shop partners)
+ *   Idea          Type → Product (optional) → Idea → Tags      (every member)
+ *   News          Product (optional) → Headline and story      (every member, for everyone)
+ *   Announcement  Type → Message → Audience                    (staff)
  *
  * Invariants:
  *  - The choices of product come from the API (delivered purchases, own products, own store items),
@@ -21,7 +23,7 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { formatNumber } from '../../services/format.ts';
 import {
-  ROLE_KINDS, AUDIENCES, getComposerProducts, createPost, createAnnouncement, errorText,
+  COMPOSE_KINDS, ROLE_COMPOSE, AUDIENCES, getComposerProducts, createPost, createAnnouncement, errorText,
 } from '../../services/community.api.ts';
 import type { CommunityPost } from '../../services/community.api.ts';
 import type { MediaPickerElement } from './MediaPicker.ts';
@@ -112,7 +114,7 @@ function growList<R extends { node: HTMLElement }>(makeRow: (index: number) => R
   return { node: el('div', '', [list, addBtn]), rows };
 }
 
-const roleTitle: Record<string, string> = { customer: 'review', supplier: 'update', saler: 'idea', admin: 'announce', super_admin: 'announce' };
+const choiceTitle: Record<string, string> = { REVIEW: 'review', UPDATE: 'update', IDEA: 'idea', NEWS: 'news', ANNOUNCEMENT: 'announce' };
 
 export interface PostComposerOptions {
   /** 'customer' | 'supplier' | 'saler' | 'admin' | 'super_admin' */
@@ -143,17 +145,21 @@ interface ComposerFields {
 
 export function PostComposer({ role, authorName, onPublished, onCancel }: PostComposerOptions): HTMLFormElement {
   const isAdmin = role === 'admin' || role === 'super_admin';
-  const kinds = ROLE_KINDS[role] ?? [];
+  const choices: string[] = ROLE_COMPOSE[role] ?? [];
+  // A customer's products are delivered purchases, which only a review can name; a supplier or shop
+  // partner may tie an idea or news to one of their own products, or to none.
+  const ownsProducts = role === 'supplier' || role === 'saler';
   const lang = getLanguage();
-  const state: { kind: string; productId: number | string | null; orderItemId: number | string | null; rating: number; audience: string; pinned: boolean } = { kind: kinds[0], productId: null, orderItemId: null, rating: 4, audience: 'EVERYONE', pinned: true };
+  const state: { choice: string; kind: string; productId: number | string | null; orderItemId: number | string | null; rating: number; audience: string; pinned: boolean } = {
+    choice: choices[0], kind: COMPOSE_KINDS[choices[0]]?.[0], productId: null, orderItemId: null, rating: 4, audience: 'EVERYONE', pinned: true,
+  };
   const read: ComposerFields = {};
-  const root = el('form', 'cm-composer', null, { novalidate: true, 'aria-label': t(`community.composer.title.${roleTitle[role]}`) });
+  const root = el('form', 'cm-composer', null, { novalidate: true });
+  const title = el('h3', 'cm-composer__title', '');
+  const sub = el('p', 'cm-composer__sub', '');
 
   root.append(el('header', 'cm-composer__head', [
-    el('div', '', [
-      el('h3', 'cm-composer__title', t(`community.composer.title.${roleTitle[role]}`)),
-      el('p', 'cm-composer__sub', t(`community.composer.sub.${roleTitle[role]}`, { name: authorName })),
-    ]),
+    el('div', '', [title, sub]),
     Button({ label: t('community.composer.close'), variant: 'ghost', size: 'sm', onClick: onCancel }),
   ]));
 
@@ -162,115 +168,172 @@ export function PostComposer({ role, authorName, onPublished, onCancel }: PostCo
   const status = el('p', 'cm-composer__error', '', { role: 'alert' });
   let n = 0;
   let publish: HTMLButtonElement | null = null;
+  // Built once and moved between layouts, so switching what you post keeps the files already uploaded.
   const picker: MediaPickerElement = MediaPicker({ onBusyChange: (busy) => { if (publish) publish.disabled = busy; } });
   const mediaSection = () => section(++n, t('community.media.title'), t('community.composer.optional'), picker);
 
   const typeSection = () => section(++n, t('community.composer.type'), t('community.composer.pick_one'),
-    chips(kinds.map((k) => ({ value: k, label: t(`community.kind.${k}`) })), state.kind, (v) => { state.kind = v; }));
+    chips(COMPOSE_KINDS[state.choice].map((k) => ({ value: k, label: t(`community.kind.${k}`) })), state.kind, (v) => { state.kind = v; }));
 
   // The product picker fills in once the API answers; the rest of the form is already usable.
-  const productSlot = el('div', 'cm-products', el('p', 'cm-muted', t('community.composer.loading')));
+  const productSlot = el('div', 'cm-products');
+  let products: Record<string, any>[] | null = null;
+  let productError = '';
+
+  function paintProducts() {
+    const optional = state.choice === 'IDEA' || state.choice === 'NEWS';
+    state.productId = null;
+    state.orderItemId = null;
+    productSlot.replaceChildren();
+    if (productError) {
+      productSlot.append(el('p', 'cm-composer__error', productError));
+      return;
+    }
+    if (!products) {
+      productSlot.append(el('p', 'cm-muted', t('community.composer.loading')));
+      return;
+    }
+    if (!products.length) {
+      productSlot.append(el('p', 'cm-empty-note', t(`community.composer.no_products.${optional ? 'optional' : choiceTitle[state.choice]}`)));
+      return;
+    }
+    const select = el('select', 'select', null, { 'aria-label': t('community.composer.product') });
+    if (optional) select.append(el('option', '', t('community.composer.no_product'), { value: '' }));
+    products.forEach((it, i) => {
+      const label = role === 'customer'
+        ? `${productTitle(it, lang)} · ${it.order_ref}${it.shop_name ? ` · ${it.shop_name}` : ''}`
+        : productTitle(it, lang);
+      select.append(el('option', '', label, { value: String(i) }));
+    });
+    const apply = () => {
+      const it = select.value === '' ? null : products[Number(select.value)];
+      state.productId = it?.product_id ?? null;
+      state.orderItemId = it?.order_item_id ?? null;
+    };
+    select.addEventListener('change', apply);
+    apply();
+    productSlot.append(select);
+  }
 
   async function loadProducts() {
     try {
-      const { items } = await getComposerProducts();
-      productSlot.replaceChildren();
-      if (!items.length) {
-        productSlot.append(el('p', 'cm-empty-note', t(`community.composer.no_products.${roleTitle[role]}`)));
-        return;
-      }
-      const select = el('select', 'select', null, { 'aria-label': t('community.composer.product') });
-      items.forEach((it, i) => {
-        const label = role === 'customer'
-          ? `${productTitle(it, lang)} · ${it.order_ref}${it.shop_name ? ` · ${it.shop_name}` : ''}`
-          : productTitle(it, lang);
-        select.append(el('option', '', label, { value: String(i) }));
-      });
-      const apply = () => {
-        const it = items[Number(select.value)];
-        state.productId = it.product_id;
-        state.orderItemId = it.order_item_id ?? null;
-      };
-      select.addEventListener('change', apply);
-      apply();
-      productSlot.append(select);
+      products = (await getComposerProducts()).items;
     } catch (err) {
-      productSlot.replaceChildren(el('p', 'cm-composer__error', errorText(err) || t('community.error.generic')));
+      productError = errorText(err) || t('community.error.generic');
+    }
+    paintProducts();
+  }
+
+  const choiceChips = chips(choices.map((c) => ({ value: c, label: t(`community.composer.choice.${c}`) })), state.choice, (v) => {
+    state.choice = v;
+    state.kind = COMPOSE_KINDS[v][0];
+    status.textContent = '';
+    build();
+  });
+
+  /** Lays out the sections for the chosen post type. */
+  function build() {
+    n = 0;
+    for (const key of Object.keys(read) as (keyof ComposerFields)[]) delete read[key];
+    title.textContent = t(`community.composer.title.${choiceTitle[state.choice]}`);
+    sub.textContent = t(`community.composer.sub.${choiceTitle[state.choice]}`, { name: authorName });
+    root.setAttribute('aria-label', title.textContent);
+    body.replaceChildren();
+    if (choices.length > 1) body.append(section(++n, t('community.composer.post_as'), t('community.composer.pick_one'), choiceChips));
+    paintProducts();
+
+    if (state.choice === 'REVIEW') {
+      body.append(section(++n, t('community.composer.product'), t('community.composer.product_hint.customer'), productSlot));
+      const q = slider(t('community.card.facet.quality'), 4);
+      const v = slider(t('community.card.facet.value'), 3);
+      const d = slider(t('community.card.facet.delivery'), 5);
+      Object.assign(read, { quality: q.input, value: v.input, delivery: d.input });
+      body.append(section(++n, t('community.composer.rating'), t('community.composer.required'),
+        starPicker(state.rating, (x) => { state.rating = x; }), q.row, v.row, d.row));
+      read.liked = textArea(t('community.composer.ph.liked'), 1000);
+      read.improve = textArea(t('community.composer.ph.could_improve'), 1000);
+      read.tip = textInput(t('community.composer.ph.tip'), { max: 300 });
+      body.append(section(++n, t('community.composer.experience'), t('community.composer.experience_hint'),
+        el('div', 'cm-grid2', [field(t('community.card.liked'), read.liked), field(t('community.card.could_improve'), read.improve)]),
+        field(t('community.composer.tip_label'), read.tip)));
+      body.append(mediaSection());
+    }
+
+    if (state.choice === 'UPDATE') {
+      body.append(typeSection());
+      body.append(section(++n, t('community.composer.product'), t('community.composer.product_hint.supplier'), productSlot));
+      read.stock = textInput('500', { type: 'number' });
+      read.minOrder = textInput('10', { type: 'number' });
+      read.price = textInput('780', { type: 'number' });
+      read.ships = textInput(t('community.composer.ph.ships_from'), { max: 40 });
+      const tiers = growList(() => {
+        const qty = textInput(t('community.composer.ph.tier_qty'), { type: 'number' });
+        const price = textInput(t('community.composer.ph.tier_price'), { type: 'number' });
+        // No visible label per tier row, so each input names itself.
+        qty.setAttribute('aria-label', t('community.composer.ph.tier_qty'));
+        price.setAttribute('aria-label', t('community.composer.ph.tier_price'));
+        return { qty, price, node: el('div', 'cm-grid2', [qty, price]) };
+      }, MAX_TIERS, t('community.composer.add_tier'));
+      read.tiers = tiers.rows;
+      body.append(section(++n, t('community.composer.stock_pricing'), t('community.composer.shown_on_card'),
+        el('div', 'cm-grid2', [field(t('community.card.stock'), read.stock), field(t('community.card.min_order'), read.minOrder),
+          field(t('community.composer.wholesale_price'), read.price), field(t('community.card.ships_from'), read.ships)]),
+        el('p', 'cm-field__label', t('community.card.price_tiers')), tiers.node));
+      read.body = textArea(t('community.composer.ph.highlights'), 2000, 4);
+      read.body.setAttribute('aria-label', t('community.composer.highlights'));
+      body.append(section(++n, t('community.composer.highlights'), t('community.composer.highlights_hint'), read.body));
+      body.append(mediaSection());
+    }
+
+    if (state.choice === 'IDEA') {
+      body.append(typeSection());
+      if (ownsProducts) body.append(section(++n, t('community.composer.product'), t('community.composer.optional'), productSlot));
+      read.title = textInput(t('community.composer.ph.headline'), { max: 120 });
+      const steps = growList((i) => {
+        const input = textInput(t('community.composer.ph.step', { n: formatNumber(i + 1) }), { max: 200 });
+        input.setAttribute('aria-label', t('community.composer.ph.step', { n: formatNumber(i + 1) }));
+        return { input, node: input };
+      }, MAX_STEPS, t('community.composer.add_step'));
+      read.steps = steps.rows;
+      read.body = textArea(t('community.composer.ph.caption'), 2000);
+      body.append(section(++n, t('community.composer.idea'), t('community.composer.idea_hint'),
+        field(t('community.composer.headline'), read.title),
+        el('p', 'cm-field__label', t('community.composer.steps')), steps.node,
+        field(t('community.composer.caption'), read.body)));
+      body.append(mediaSection());
+      read.tags = textInput(t('community.composer.ph.tags'), { max: 150 });
+      read.tags.setAttribute('aria-label', t('community.composer.tags'));
+      // WHY only for a shop partner: the Shop this button credits the sale to the author's store,
+      // and only a shop partner has one.
+      body.append(section(++n, t('community.composer.tags'), t('community.composer.optional'), read.tags,
+        role === 'saler' ? el('p', 'cm-callout', t('community.composer.shop_button_note')) : null));
+    }
+
+    if (state.choice === 'NEWS') {
+      if (ownsProducts) body.append(section(++n, t('community.composer.product'), t('community.composer.optional'), productSlot));
+      read.title = textInput(t('community.composer.ph.news_title'), { max: 120 });
+      read.body = textArea(t('community.composer.ph.news_body'), 2000, 4);
+      body.append(section(++n, t('community.composer.news'), t('community.composer.news_hint'),
+        field(t('community.composer.title_label'), read.title), field(t('community.composer.details'), read.body)));
+      body.append(mediaSection());
+    }
+
+    if (state.choice === 'ANNOUNCEMENT') {
+      body.append(typeSection());
+      read.title = textInput(t('community.composer.ph.announce_title'), { max: 120 });
+      read.body = textArea(t('community.composer.ph.announce_body'), 2000, 4);
+      body.append(section(++n, t('community.composer.message'), t('community.composer.message_hint'),
+        field(t('community.composer.title_label'), read.title), field(t('community.composer.details'), read.body)));
+      body.append(mediaSection());
+      const pin = el('input', '', null, { type: 'checkbox', checked: state.pinned });
+      pin.addEventListener('change', () => { state.pinned = pin.checked; });
+      body.append(section(++n, t('community.composer.audience'), t('community.composer.who_sees'),
+        chips(AUDIENCES.map((a) => ({ value: a, label: t(`community.audience.${a}`) })), state.audience, (v) => { state.audience = v; }),
+        el('label', 'cm-check', [pin, t('community.composer.pin')])));
     }
   }
 
-  if (role === 'customer') {
-    body.append(section(++n, t('community.composer.product'), t('community.composer.product_hint.customer'), productSlot));
-    const q = slider(t('community.card.facet.quality'), 4);
-    const v = slider(t('community.card.facet.value'), 3);
-    const d = slider(t('community.card.facet.delivery'), 5);
-    Object.assign(read, { quality: q.input, value: v.input, delivery: d.input });
-    body.append(section(++n, t('community.composer.rating'), t('community.composer.required'),
-      starPicker(state.rating, (x) => { state.rating = x; }), q.row, v.row, d.row));
-    read.liked = textArea(t('community.composer.ph.liked'), 1000);
-    read.improve = textArea(t('community.composer.ph.could_improve'), 1000);
-    read.tip = textInput(t('community.composer.ph.tip'), { max: 300 });
-    body.append(section(++n, t('community.composer.experience'), t('community.composer.experience_hint'),
-      el('div', 'cm-grid2', [field(t('community.card.liked'), read.liked), field(t('community.card.could_improve'), read.improve)]),
-      field(t('community.composer.tip_label'), read.tip)));
-    body.append(mediaSection());
-  }
-
-  if (role === 'supplier') {
-    body.append(typeSection());
-    body.append(section(++n, t('community.composer.product'), t('community.composer.product_hint.supplier'), productSlot));
-    read.stock = textInput('500', { type: 'number' });
-    read.minOrder = textInput('10', { type: 'number' });
-    read.price = textInput('780', { type: 'number' });
-    read.ships = textInput(t('community.composer.ph.ships_from'), { max: 40 });
-    const tiers = growList(() => {
-      const qty = textInput(t('community.composer.ph.tier_qty'), { type: 'number' });
-      const price = textInput(t('community.composer.ph.tier_price'), { type: 'number' });
-      return { qty, price, node: el('div', 'cm-grid2', [qty, price]) };
-    }, MAX_TIERS, t('community.composer.add_tier'));
-    read.tiers = tiers.rows;
-    body.append(section(++n, t('community.composer.stock_pricing'), t('community.composer.shown_on_card'),
-      el('div', 'cm-grid2', [field(t('community.card.stock'), read.stock), field(t('community.card.min_order'), read.minOrder),
-        field(t('community.composer.wholesale_price'), read.price), field(t('community.card.ships_from'), read.ships)]),
-      el('p', 'cm-field__label', t('community.card.price_tiers')), tiers.node));
-    read.body = textArea(t('community.composer.ph.highlights'), 2000, 4);
-    body.append(section(++n, t('community.composer.highlights'), t('community.composer.highlights_hint'), read.body));
-    body.append(mediaSection());
-  }
-
-  if (role === 'saler') {
-    body.append(typeSection());
-    body.append(section(++n, t('community.composer.product'), t('community.composer.product_hint.saler'), productSlot));
-    read.title = textInput(t('community.composer.ph.headline'), { max: 120 });
-    const steps = growList((i) => {
-      const input = textInput(t('community.composer.ph.step', { n: formatNumber(i + 1) }), { max: 200 });
-      return { input, node: input };
-    }, MAX_STEPS, t('community.composer.add_step'));
-    read.steps = steps.rows;
-    read.body = textArea(t('community.composer.ph.caption'), 2000);
-    body.append(section(++n, t('community.composer.idea'), t('community.composer.idea_hint'),
-      field(t('community.composer.headline'), read.title),
-      el('p', 'cm-field__label', t('community.composer.steps')), steps.node,
-      field(t('community.composer.caption'), read.body)));
-    body.append(mediaSection());
-    read.tags = textInput(t('community.composer.ph.tags'), { max: 150 });
-    body.append(section(++n, t('community.composer.tags'), t('community.composer.optional'), read.tags,
-      el('p', 'cm-callout', t('community.composer.shop_button_note'))));
-  }
-
-  if (isAdmin) {
-    body.append(typeSection());
-    read.title = textInput(t('community.composer.ph.announce_title'), { max: 120 });
-    read.body = textArea(t('community.composer.ph.announce_body'), 2000, 4);
-    body.append(section(++n, t('community.composer.message'), t('community.composer.message_hint'),
-      field(t('community.composer.title_label'), read.title), field(t('community.composer.details'), read.body)));
-    body.append(mediaSection());
-    const pin = el('input', '', null, { type: 'checkbox', checked: true });
-    pin.addEventListener('change', () => { state.pinned = pin.checked; });
-    body.append(section(++n, t('community.composer.audience'), t('community.composer.who_sees'),
-      chips(AUDIENCES.map((a) => ({ value: a, label: t(`community.audience.${a}`) })), state.audience, (v) => { state.audience = v; }),
-      el('label', 'cm-check', [pin, t('community.composer.pin')])));
-  }
+  build();
 
   publish = Button({ label: t('community.composer.publish'), type: 'submit' });
   root.append(status, el('footer', 'cm-composer__foot', [
@@ -285,9 +348,11 @@ export function PostComposer({ role, authorName, onPublished, onCancel }: PostCo
   };
 
   const num = (input: HTMLInputElement) => (input.value === '' ? null : Number(input.value));
+  // An idea or news names a product only when the author picked one.
+  const withProduct = (payload: Record<string, unknown>) => (state.productId == null ? payload : { ...payload, product_id: state.productId });
 
   function payload() {
-    if (role === 'customer') {
+    if (state.choice === 'REVIEW') {
       return {
         kind: 'REVIEW', order_item_id: state.orderItemId,
         details: {
@@ -296,7 +361,7 @@ export function PostComposer({ role, authorName, onPublished, onCancel }: PostCo
         },
       };
     }
-    if (role === 'supplier') {
+    if (state.choice === 'UPDATE') {
       return {
         kind: state.kind, product_id: state.productId, body: read.body.value,
         details: {
@@ -305,14 +370,15 @@ export function PostComposer({ role, authorName, onPublished, onCancel }: PostCo
         },
       };
     }
-    if (role === 'saler') {
-      return {
-        kind: state.kind, product_id: state.productId, title: read.title.value, body: read.body.value,
+    if (state.choice === 'IDEA') {
+      return withProduct({
+        kind: state.kind, title: read.title.value, body: read.body.value,
         details: {
           steps: read.steps.map((r) => r.input.value), tags: read.tags.value.split(/[\s,]+/).filter(Boolean),
         },
-      };
+      });
     }
+    if (state.choice === 'NEWS') return withProduct({ kind: 'NEWS', title: read.title.value, body: read.body.value });
     return { kind: state.kind, title: read.title.value, body: read.body.value, audience: state.audience, is_pinned: state.pinned };
   }
 

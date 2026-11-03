@@ -25,11 +25,19 @@ import type { MockRoute } from '../types.ts';
 const THRESHOLD_LIMITS = { min: 2, max: 50 };
 let autoHideThreshold = 5;
 
+// Mirror ROLE_POST and KIND_TYPE in server/src/services/communityPost.service.ts: every member may
+// also write an idea or a news post; the stored type follows from the kind.
+const SHARED_KINDS = ['USABILITY_TIP', 'CREATIVE_IDEA', 'PRODUCT_STORY', 'NEWS'];
 const ROLE_POST = {
-  customer: { type: 'REVIEW', kinds: ['REVIEW'] },
-  supplier: { type: 'UPDATE', kinds: ['NEW_ARRIVAL', 'RESTOCK', 'BULK_OFFER'] },
-  saler: { type: 'IDEA', kinds: ['USABILITY_TIP', 'CREATIVE_IDEA', 'PRODUCT_STORY'] },
+  customer: { type: 'REVIEW', kinds: ['REVIEW', ...SHARED_KINDS] },
+  supplier: { type: 'UPDATE', kinds: ['NEW_ARRIVAL', 'RESTOCK', 'BULK_OFFER', ...SHARED_KINDS] },
+  saler: { type: 'IDEA', kinds: SHARED_KINDS },
   admin: { type: 'ANNOUNCEMENT', kinds: ['ANNOUNCEMENT', 'POLICY_NOTICE', 'FEATURED_PICK'] },
+};
+const KIND_TYPE = {
+  REVIEW: 'REVIEW', NEW_ARRIVAL: 'UPDATE', RESTOCK: 'UPDATE', BULK_OFFER: 'UPDATE',
+  USABILITY_TIP: 'IDEA', CREATIVE_IDEA: 'IDEA', PRODUCT_STORY: 'IDEA',
+  ANNOUNCEMENT: 'ANNOUNCEMENT', POLICY_NOTICE: 'ANNOUNCEMENT', FEATURED_PICK: 'ANNOUNCEMENT', NEWS: 'ANNOUNCEMENT',
 };
 const STAFF = ['admin', 'super_admin', 'moderator', 'editor'];
 const AUDIENCE_OF = { customer: 'CUSTOMERS', supplier: 'SUPPLIERS', saler: 'SHOP_PARTNERS' };
@@ -244,18 +252,19 @@ function buildDraft(role, body) {
   const spec = ROLE_POST[role];
   const kind = String(body.kind || spec.kinds[0]).toUpperCase();
   if (!spec.kinds.includes(kind)) return { error: fail(400, 'VALIDATION_FAILED', 'This post kind is not available for your account.', 'এই ধরনের পোস্ট আপনার অ্যাকাউন্টের জন্য নয়।', 'kind') };
+  const type = KIND_TYPE[kind];
   const d = body.details || {};
-  if (spec.type === 'REVIEW') {
+  if (type === 'REVIEW') {
     const rating = Number(d.rating);
     if (!Number.isInteger(rating) || rating < 1 || rating > 5) return { error: fail(400, 'VALIDATION_FAILED', 'Choose a rating from 1 to 5.', '১ থেকে ৫ এর মধ্যে রেটিং দিন।', 'rating') };
     const liked = str(d.liked, 1000);
     const improve = str(d.could_improve, 1000);
     if (!liked && !improve) return { error: fail(400, 'VALIDATION_FAILED', 'Tell other buyers what you liked or what could be better.', 'কী ভালো লেগেছে বা কী ভালো হতে পারত, অন্তত একটি লিখুন।', 'liked') };
     const sub = (v) => (Number.isInteger(Number(v)) && Number(v) >= 1 && Number(v) <= 5 ? Number(v) : null);
-    return { draft: { kind, title: null, body: null, audience: 'EVERYONE', pinned: false,
+    return { draft: { type, kind, title: null, body: null, audience: 'EVERYONE', pinned: false,
       details: { rating, quality: sub(d.quality), value: sub(d.value), delivery: sub(d.delivery), liked: liked || null, could_improve: improve || null, tip: str(d.tip, 300) || null } } };
   }
-  if (spec.type === 'UPDATE') {
+  if (type === 'UPDATE') {
     const text = str(body.body, 2000);
     const stock = Number(d.stock);
     const minOrder = Number(d.min_order);
@@ -266,22 +275,24 @@ function buildDraft(role, body) {
     if (!Number.isFinite(price) || price < 0) return { error: fail(400, 'VALIDATION_FAILED', 'Enter the wholesale price.', 'পাইকারি দাম লিখুন।', 'wholesale_price') };
     const tiers = (Array.isArray(d.tiers) ? d.tiers : []).slice(0, 5).map((t) => ({ min_qty: Number(t.min_qty), price: Number(t.price) }))
       .filter((t) => t.min_qty >= 1 && t.price >= 0);
-    return { draft: { kind, title: null, body: text, audience: 'SHOP_PARTNERS', pinned: false,
+    return { draft: { type, kind, title: null, body: text, audience: 'SHOP_PARTNERS', pinned: false,
       details: { stock, min_order: minOrder, wholesale_price: price, best_price: Math.min(price, ...tiers.map((t) => t.price)), ships_from: str(d.ships_from, 40) || null, tiers } } };
   }
-  if (spec.type === 'IDEA') {
+  if (type === 'IDEA') {
     const title = str(body.title, 120);
     const steps = (Array.isArray(d.steps) ? d.steps : []).map((s) => str(s, 200)).filter(Boolean).slice(0, 8);
     if (!title) return { error: fail(400, 'VALIDATION_FAILED', 'Add a headline.', 'একটি শিরোনাম দিন।', 'title') };
     if (!steps.length) return { error: fail(400, 'VALIDATION_FAILED', 'Add at least one step or idea.', 'অন্তত একটি ধাপ বা আইডিয়া যোগ করুন।', 'steps') };
     const tags = (Array.isArray(d.tags) ? d.tags : []).map((s) => str(s, 30).replace(/^#/, '')).filter(Boolean).slice(0, 5);
-    return { draft: { kind, title, body: str(body.body, 2000) || null, audience: 'EVERYONE', pinned: false, details: { steps, tags } } };
+    return { draft: { type, kind, title, body: str(body.body, 2000) || null, audience: 'EVERYONE', pinned: false, details: { steps, tags } } };
   }
   const title = str(body.title, 120);
   const text = str(body.body, 2000);
   if (!title || !text) return { error: fail(400, 'VALIDATION_FAILED', 'Add a title and a message.', 'শিরোনাম ও বার্তা লিখুন।', 'title') };
+  // A member's news is for everyone and never pinned; audience and pinning are staff powers.
+  if (role !== 'admin') return { draft: { type, kind, title, body: text, audience: 'EVERYONE', pinned: false, details: {} } };
   const audience = String(body.audience || 'EVERYONE').toUpperCase();
-  return { draft: { kind, title, body: text, audience, pinned: body.is_pinned === true, details: {} } };
+  return { draft: { type, kind, title, body: text, audience, pinned: body.is_pinned === true, details: {} } };
 }
 
 /** The post this viewer may read and comment on, or null: published, in their audience, or their own. */
@@ -426,9 +437,10 @@ export const communityHandlers = [
       if (error) return error;
       const taken = takeMedia(body.media_ids, user.id);
       if (taken.error) return taken.error;
-      let product = PRODUCT;
+      let product: Record<string, any> | null = PRODUCT;
       let orderItem: number | null = null;
-      if (role === 'customer') {
+      const named = body.product_id !== undefined && body.product_id !== null && body.product_id !== '';
+      if (draft.type === 'REVIEW') {
         orderItem = Number(body.order_item_id);
         if (![4821, 4822, 4830].includes(orderItem) || posts.some((p) => p.type === 'REVIEW' && p.orderItem === orderItem)) {
           return fail(orderItem && posts.some((p) => p.orderItem === orderItem) ? 409 : 400, orderItem && posts.some((p) => p.orderItem === orderItem) ? 'CONFLICT' : 'VALIDATION_FAILED',
@@ -436,11 +448,13 @@ export const communityHandlers = [
         }
         if (orderItem === 4830) product = { id: 102, ref: 'PRD-LEATHER-BAG', slug: 'leather-crossbody-bag', price: 2450, title_en: 'Leather crossbody bag', title_bn: 'চামড়ার ক্রসবডি ব্যাগ',
           image_url: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&auto=format&fit=crop&q=60' };
+      } else if (draft.type !== 'UPDATE' && (role === 'customer' || !named)) {
+        product = null;
       } else if (Number(body.product_id) !== PRODUCT.id) {
         return fail(403, 'PERMISSION_DENIED', 'Pick a product that is yours to post about.', 'যে পণ্যটি আপনার, শুধু সেটি নিয়েই পোস্ট করতে পারবেন।', 'product_id');
       }
       const post = {
-        id: nextId++, type: ROLE_POST[role].type, kind: draft.kind, authorRole: role, authorId: user.id, authorName: user.name,
+        id: nextId++, type: draft.type, kind: draft.kind, authorRole: role, authorId: user.id, authorName: user.name,
         title: draft.title, body: draft.body, details: draft.details, audience: draft.audience, pinned: false,
         product, orderItem, createdAt: new Date().toISOString(), likes: new Set(), status: 'PUBLISHED', hiddenReason: null,
         media: taken.media,

@@ -76,14 +76,32 @@ export function errorText(err: unknown): string {
 /** Post type keys, as the API sends them. The tab filter and the composer both use these. */
 export const POST_TYPES = ['REVIEW', 'UPDATE', 'IDEA', 'ANNOUNCEMENT'];
 
-/** What each role may post: the API `kind` values, in composer order. Mirrors ROLE_POST in the server service. */
-export const ROLE_KINDS = Object.freeze({
-  customer: ['REVIEW'],
-  supplier: ['NEW_ARRIVAL', 'RESTOCK', 'BULK_OFFER'],
-  saler: ['USABILITY_TIP', 'CREATIVE_IDEA', 'PRODUCT_STORY'],
-  admin: ['ANNOUNCEMENT', 'POLICY_NOTICE', 'FEATURED_PICK'],
-  super_admin: ['ANNOUNCEMENT', 'POLICY_NOTICE', 'FEATURED_PICK'],
+/**
+ * The composer's "what are you posting?" choices and their API `kind` values. NEWS is a member's news
+ * post: the API stores it as type ANNOUNCEMENT, kind NEWS, so it shows on the News tab. Mirrors
+ * KIND_TYPE in the server service (client/test/community.test.js pins them).
+ */
+export const COMPOSE_KINDS = Object.freeze({
+  REVIEW: ['REVIEW'],
+  UPDATE: ['NEW_ARRIVAL', 'RESTOCK', 'BULK_OFFER'],
+  IDEA: ['USABILITY_TIP', 'CREATIVE_IDEA', 'PRODUCT_STORY'],
+  NEWS: ['NEWS'],
+  ANNOUNCEMENT: ['ANNOUNCEMENT', 'POLICY_NOTICE', 'FEATURED_PICK'],
 });
+
+/** What each role may post, its own type first. Ideas and news are open to every member. */
+export const ROLE_COMPOSE = Object.freeze({
+  customer: ['REVIEW', 'IDEA', 'NEWS'],
+  supplier: ['UPDATE', 'IDEA', 'NEWS'],
+  saler: ['IDEA', 'NEWS'],
+  admin: ['ANNOUNCEMENT'],
+  super_admin: ['ANNOUNCEMENT'],
+});
+
+/** What each role may post: the API `kind` values, in composer order. Mirrors ROLE_POST in the server service. */
+export const ROLE_KINDS = Object.freeze(Object.fromEntries(
+  Object.entries(ROLE_COMPOSE).map(([role, types]) => [role, types.flatMap((x) => COMPOSE_KINDS[x])]),
+)) as Readonly<Record<string, string[]>>;
 
 /**
  * What a post may carry. Mirrors server/src/services/communityPost.service.ts (LIMITS.media / .videos),

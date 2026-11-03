@@ -365,7 +365,8 @@
       "PRODUCT_STORY": "Product story",
       "ANNOUNCEMENT": "Announcement",
       "POLICY_NOTICE": "Policy notice",
-      "FEATURED_PICK": "Featured pick"
+      "FEATURED_PICK": "Featured pick",
+      "NEWS": "News"
     },
     "loading": "Loading posts…",
     "load_more": "Show more",
@@ -445,23 +446,25 @@
     },
     "composer": {
       "placeholder": {
-        "customer": "Review a product you bought…",
-        "supplier": "Share a new arrival or restock…",
-        "saler": "Share a usability tip or creative idea…",
+        "customer": "Review a product, or share an idea or news…",
+        "supplier": "Share a new arrival, an idea or news…",
+        "saler": "Share a tip, an idea or news…",
         "admin": "Post an announcement…",
         "super_admin": "Post an announcement…"
       },
       "title": {
         "review": "Write a review",
         "update": "Share a product update",
-        "idea": "Create a post",
-        "announce": "Post as Explooro Team"
+        "idea": "Share an idea",
+        "announce": "Post as Explooro Team",
+        "news": "Share news"
       },
       "sub": {
         "review": "Share how this product worked for you, {{name}}",
         "update": "Reach shop partners who can sell your stock",
-        "idea": "Show customers what your products can do",
-        "announce": "Everyone in the chosen audience will see this"
+        "idea": "A tip or idea that helps other members",
+        "announce": "Everyone in the chosen audience will see this",
+        "news": "Tell the community what is new"
       },
       "close": "Close",
       "cancel": "Cancel",
@@ -482,7 +485,7 @@
       "no_products": {
         "review": "You can review a product once it has been delivered to you.",
         "update": "You have no active products to post about yet.",
-        "idea": "Add a product to your store first, then you can post about it."
+        "optional": "You have no products to attach. You can post without one."
       },
       "rating": "Your rating",
       "rating_word": {
@@ -529,8 +532,20 @@
         "caption": "Why this idea works and who it is for",
         "tags": "#eid #styling",
         "announce_title": "Eid delivery cut-off dates",
-        "announce_body": "What members need to know"
-      }
+        "announce_body": "What members need to know",
+        "news_title": "Eid collection arrives this week",
+        "news_body": "What happened and why it matters to members"
+      },
+      "post_as": "What are you posting?",
+      "choice": {
+        "REVIEW": "Review",
+        "UPDATE": "Product update",
+        "IDEA": "Idea",
+        "NEWS": "News"
+      },
+      "no_product": "No product",
+      "news": "Your news",
+      "news_hint": "A headline and the story"
     },
     "mod": {
       "title": "Moderation queue",

@@ -2,9 +2,13 @@
  * communityPost.service.ts — the community timeline: role-specific posts, likes, reports, moderation.
  *
  * Rules this file owns:
- *   - What each role may post is decided here, from the account's roles, never from the request:
- *     customer → REVIEW (verified purchase only), supplier → UPDATE, shop partner → IDEA,
- *     admin → ANNOUNCEMENT. A body that names another type is refused.
+ *   - What each role may post is decided here, from the account's roles, never from the request.
+ *     Each role has its own type — customer → REVIEW (verified purchase only), supplier → UPDATE,
+ *     shop partner → IDEA, admin → ANNOUNCEMENT — and every member may also write an Idea or a
+ *     News post. A body that names a kind outside the role's list is refused.
+ *   - The stored type comes from the kind (KIND_TYPE), never from the request. A member's News post
+ *     is stored as ANNOUNCEMENT with kind NEWS, so it lands on the News tab beside staff notices,
+ *     but it is always for everyone and never pinned: audience and pinning stay staff-only.
  *   - A post goes live at once. A post that reaches the auto-hide threshold (configuration:
  *     `community.auto_hide_report_threshold`) is hidden until a moderator decides.
  *   - One report per person per post, and nobody reports their own post.
@@ -33,10 +37,25 @@ export const LIMITS = Object.freeze({
   shipsFrom: 40, media: 4, videos: 1, comment: 1000,
 });
 
+/** Every kind belongs to exactly one stored post type, so the type is derived and never sent. */
+export const KIND_TYPE = Object.freeze({
+  REVIEW: 'REVIEW',
+  NEW_ARRIVAL: 'UPDATE', RESTOCK: 'UPDATE', BULK_OFFER: 'UPDATE',
+  USABILITY_TIP: 'IDEA', CREATIVE_IDEA: 'IDEA', PRODUCT_STORY: 'IDEA',
+  ANNOUNCEMENT: 'ANNOUNCEMENT', POLICY_NOTICE: 'ANNOUNCEMENT', FEATURED_PICK: 'ANNOUNCEMENT',
+  NEWS: 'ANNOUNCEMENT',
+});
+
+const IDEA_KINDS = ['USABILITY_TIP', 'CREATIVE_IDEA', 'PRODUCT_STORY'];
+// WHY: ideas and news are open to every member (owner decision 2026-11-03); only reviews, supplier
+// updates and staff notices stay tied to one role.
+const SHARED_KINDS = [...IDEA_KINDS, 'NEWS'];
+
+/** `type` is the role's own post type; `kinds` is everything it may write, its own first (the default). */
 export const ROLE_POST = Object.freeze({
-  customer: { type: 'REVIEW', kinds: ['REVIEW'] },
-  supplier: { type: 'UPDATE', kinds: ['NEW_ARRIVAL', 'RESTOCK', 'BULK_OFFER'] },
-  saler: { type: 'IDEA', kinds: ['USABILITY_TIP', 'CREATIVE_IDEA', 'PRODUCT_STORY'] },
+  customer: { type: 'REVIEW', kinds: ['REVIEW', ...SHARED_KINDS] },
+  supplier: { type: 'UPDATE', kinds: ['NEW_ARRIVAL', 'RESTOCK', 'BULK_OFFER', ...SHARED_KINDS] },
+  saler: { type: 'IDEA', kinds: SHARED_KINDS },
   admin: { type: 'ANNOUNCEMENT', kinds: ['ANNOUNCEMENT', 'POLICY_NOTICE', 'FEATURED_PICK'] },
 });
 
@@ -103,15 +122,16 @@ export function validateDraft(authorRole, input: Record<string, any> = {}) {
   if (!spec.kinds.includes(kind)) {
     throw fail('kind', 'This post kind is not available for your account.', 'এই ধরনের পোস্ট আপনার অ্যাকাউন্টের জন্য নয়।');
   }
+  const type = KIND_TYPE[kind];
   const d = input.details && typeof input.details === 'object' ? input.details : {};
 
-  if (spec.type === 'REVIEW') {
+  if (type === 'REVIEW') {
     const liked = text(d.liked, 'liked', LIMITS.text);
     const improve = text(d.could_improve, 'could_improve', LIMITS.text);
     if (!liked && !improve) {
       throw fail('liked', 'Tell other buyers what you liked or what could be better.', 'কী ভালো লেগেছে বা কী ভালো হতে পারত, অন্তত একটি লিখুন।');
     }
-    return { kind, title: null, body: null, audience: 'EVERYONE', isPinned: false, details: {
+    return { type, kind, title: null, body: null, audience: 'EVERYONE', isPinned: false, details: {
       rating: int(d.rating, 'rating', 1, 5, { required: true }),
       quality: int(d.quality, 'quality', 1, 5),
       value: int(d.value, 'value', 1, 5),
@@ -120,13 +140,13 @@ export function validateDraft(authorRole, input: Record<string, any> = {}) {
     } };
   }
 
-  if (spec.type === 'UPDATE') {
+  if (type === 'UPDATE') {
     const tiers = (Array.isArray(d.tiers) ? d.tiers : []).slice(0, LIMITS.tiers).map((t, i) => ({
       min_qty: int(t?.min_qty, `tiers[${i}].min_qty`, 1, 1_000_000, { required: true }),
       price: money(t?.price, `tiers[${i}].price`, { required: true }),
     }));
     const wholesale = money(d.wholesale_price, 'wholesale_price', { required: true });
-    return { kind, title: null, body: text(input.body, 'body', LIMITS.body, { required: true }),
+    return { type, kind, title: null, body: text(input.body, 'body', LIMITS.body, { required: true }),
       audience: 'SHOP_PARTNERS', isPinned: false, details: {
         stock: int(d.stock, 'stock', 0, 10_000_000, { required: true }),
         min_order: int(d.min_order, 'min_order', 1, 1_000_000, { required: true }),
@@ -137,7 +157,7 @@ export function validateDraft(authorRole, input: Record<string, any> = {}) {
       } };
   }
 
-  if (spec.type === 'IDEA') {
+  if (type === 'IDEA') {
     const steps = (Array.isArray(d.steps) ? d.steps : [])
       .map((s) => (typeof s === 'string' ? s.trim() : '')).filter(Boolean);
     if (!steps.length) throw fail('steps', 'Add at least one step or idea.', 'অন্তত একটি ধাপ বা আইডিয়া যোগ করুন।');
@@ -149,14 +169,22 @@ export function validateDraft(authorRole, input: Record<string, any> = {}) {
     if (tags.length > LIMITS.tags || tags.some((s) => s.length > LIMITS.tag)) {
       throw fail('tags', `Use at most ${LIMITS.tags} short tags.`, `সর্বোচ্চ ${LIMITS.tags}টি ছোট ট্যাগ দিন।`);
     }
-    return { kind, title: text(input.title, 'title', LIMITS.title, { required: true }),
+    return { type, kind, title: text(input.title, 'title', LIMITS.title, { required: true }),
       body: text(input.body, 'body', LIMITS.body), audience: 'EVERYONE', isPinned: false,
       details: { steps, tags } };
   }
 
+  // A member's News: a headline and the story, for everyone. Choosing an audience or pinning is a
+  // staff power, so a member's audience and is_pinned are ignored rather than trusted.
+  if (authorRole !== 'admin') {
+    return { type, kind, title: text(input.title, 'title', LIMITS.title, { required: true }),
+      body: text(input.body, 'body', LIMITS.body, { required: true }), audience: 'EVERYONE',
+      isPinned: false, details: {} };
+  }
+
   const audience = String(input.audience || 'EVERYONE').toUpperCase();
   if (!AUDIENCES.includes(audience)) throw fail('audience', 'Choose who can see this.', 'কারা দেখবে তা বেছে নিন।');
-  return { kind, title: text(input.title, 'title', LIMITS.title, { required: true }),
+  return { type, kind, title: text(input.title, 'title', LIMITS.title, { required: true }),
     body: text(input.body, 'body', LIMITS.body, { required: true }), audience,
     isPinned: input.is_pinned === true, details: {} };
 }
@@ -372,7 +400,12 @@ export async function createPost(db, user, input: Record<string, any> = {}) {
 
   let productId = null;
   let orderItemId = null;
-  if (role === 'customer') {
+  // The product a post is about: a review's comes from the delivered line, an update must name one,
+  // and an idea or news may name one. A customer has no products of their own, so their idea or news
+  // is never tied to one.
+  const wantsProduct = draft.type === 'UPDATE'
+    || (role !== 'customer' && input.product_id !== undefined && input.product_id !== null && input.product_id !== '');
+  if (draft.type === 'REVIEW') {
     const item = await repo.findDeliveredItem(db, user.id, Number(input.order_item_id));
     if (!item) {
       throw new AppError('VALIDATION_FAILED', 'You can review a product after it is delivered to you.',
@@ -380,7 +413,7 @@ export async function createPost(db, user, input: Record<string, any> = {}) {
     }
     productId = item.product_id;
     orderItemId = item.order_item_id;
-  } else {
+  } else if (wantsProduct) {
     productId = int(input.product_id, 'product_id', 1, Number.MAX_SAFE_INTEGER, { required: true });
     const ok = role === 'supplier'
       ? await repo.supplierOwnsProduct(db, user.id, productId)
@@ -396,7 +429,7 @@ export async function createPost(db, user, input: Record<string, any> = {}) {
     // One transaction: the post and its files go in together or not at all.
     id = await withTransaction(db, async (client) => {
       const postId = await repo.insertPost(client, {
-        ref: generateRef('POST'), authorId: user.id, authorRole: role, postType: ROLE_POST[role].type,
+        ref: generateRef('POST'), authorId: user.id, authorRole: role, postType: draft.type,
         kind: draft.kind, productId, orderItemId, title: draft.title, body: draft.body,
         details: draft.details, audience: draft.audience, isPinned: draft.isPinned,
       });

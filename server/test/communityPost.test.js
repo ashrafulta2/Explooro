@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   validateDraft, resolveAuthorRole, visibleAudiences, serializePost, reportPost, moderatePost,
-  getAutoHideThreshold, ROLE_POST, REPORT_REASONS, MODERATE_ACTIONS, THRESHOLD_LIMITS,
+  getAutoHideThreshold, ROLE_POST, KIND_TYPE, REPORT_REASONS, MODERATE_ACTIONS, THRESHOLD_LIMITS,
   validateMediaIds, mediaKind, createPost, createAnnouncement, LIMITS,
   validateThreshold, updateAutoHideThreshold,
   validateCommentBody, serializeComment, addComment, listPostComments, deleteOwnComment, removeCommentAsStaff,
@@ -31,7 +31,7 @@ const read = (...p) => readFileSync(path.join(ROOT, ...p), 'utf8');
 /** An in-memory stand-in for the pool: just the queries reportPost / moderatePost make. */
 function makeDb({ postRow = {}, threshold = null, post = { id: 1, status: 'PUBLISHED', author_id: 10, post_type: 'REVIEW', hidden_reason: null }, media = [] } = {}) {
   // `media` is the uploads that exist: { id, mime_type, storage_key, owner_id, purpose, used }.
-  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [], comments: [], saves: new Set(), listSql: [], unreadCommentNotice: false, muted: false };
+  const state = { post: { ...post }, reports: [], audit: [], calls: [], media: media.map((m) => ({ ...m })), attached: [], inserted: 0, threshold, upserts: [], insertedRows: [], comments: [], saves: new Set(), listSql: [], unreadCommentNotice: false, muted: false };
   const query = async (sql, params = []) => {
     const q = sql.replace(/\s+/g, ' ').trim();
     state.calls.push(q.slice(0, 40));
@@ -64,7 +64,7 @@ function makeDb({ postRow = {}, threshold = null, post = { id: 1, status: 'PUBLI
       for (const r of state.reports) if (r.postId === params[0] && r.status === 'OPEN') { r.status = params[1]; n += 1; }
       return { rows: [], rowCount: n };
     }
-    if (q.startsWith('INSERT INTO community_posts')) { state.inserted += 1; return { rows: [{ id: 7 }] }; }
+    if (q.startsWith('INSERT INTO community_posts')) { state.inserted += 1; state.insertedRows.push(params); return { rows: [{ id: 7 }] }; }
     if (q.includes('FROM products WHERE id = $1 AND supplier_id')) return { rows: [{}] };
     if (q.includes('FROM media_assets a')) {
       const [ids, userId] = params;
@@ -186,6 +186,27 @@ test('an announcement needs a title, a message and a known audience; only it can
   assert.throws(() => validateDraft('admin', { title: 'x', body: 'y', audience: 'NOBODY' }), { code: 'VALIDATION_FAILED' });
   assert.throws(() => validateDraft('admin', { title: 'x' }), { code: 'VALIDATION_FAILED' });
   assert.equal(validateDraft('customer', { details: { rating: 3, liked: 'ok' }, is_pinned: true }).isPinned, false);
+});
+
+test('every member may write an idea or news, and the stored type follows from the kind', () => {
+  for (const role of ['customer', 'supplier', 'saler']) {
+    assert.equal(validateDraft(role, { kind: 'CREATIVE_IDEA', title: 'Try this', details: { steps: ['One'] } }).type, 'IDEA');
+    assert.equal(validateDraft(role, { kind: 'NEWS', title: 'Eid stock', body: 'Arriving Friday' }).type, 'ANNOUNCEMENT');
+    assert.throws(() => validateDraft(role, { kind: 'POLICY_NOTICE', title: 'x', body: 'y' }), { code: 'VALIDATION_FAILED' }, 'staff notices stay staff-only');
+  }
+  for (const [role, spec] of Object.entries(ROLE_POST)) {
+    for (const kind of spec.kinds) assert.ok(KIND_TYPE[kind], `${role} may write ${kind}, which has no stored type`);
+    assert.equal(KIND_TYPE[spec.kinds[0]], spec.type, `${role}'s default kind is its own type`);
+  }
+});
+
+test("a member's news needs a headline and a story, and is for everyone and unpinned whatever the request says", () => {
+  const d = validateDraft('supplier', { kind: 'NEWS', title: ' Eid stock ', body: 'Arriving Friday', audience: 'SHOP_PARTNERS', is_pinned: true });
+  assert.equal(d.title, 'Eid stock');
+  assert.equal(d.audience, 'EVERYONE');
+  assert.equal(d.isPinned, false);
+  assert.throws(() => validateDraft('customer', { kind: 'NEWS', title: 'x' }), { code: 'VALIDATION_FAILED' });
+  assert.throws(() => validateDraft('customer', { kind: 'NEWS', body: 'x' }), { code: 'VALIDATION_FAILED' });
 });
 
 // ── Visibility and serialisation ────────────────────────────────────────────────────────────
@@ -605,6 +626,21 @@ test('a post with no files still saves and lists no media; announcements can car
   const ann = await createAnnouncement(db, { id: 2, roles: ['admin'] }, { title: 'Eid', body: 'Dates', media_ids: [1] });
   assert.equal(ann.media.length, 1);
   assert.equal(db.audit.at(-1).after.media, 1);
+});
+
+test("an idea or news may name the author's own product or none; a customer's never names one", async () => {
+  const db = makeDb();
+  // insertPost params: ref, author, author_role, post_type, kind, product, order_item, title, body, details, audience, pinned
+  const stored = () => { const r = db.insertedRows.at(-1); return [r[2], r[3], r[4], r[5], r[10], r[11]]; };
+  await createPost(db, SUPPLIER, { kind: 'NEWS', title: 'Eid stock', body: 'Arriving Friday' });
+  assert.deepEqual(stored(), ['supplier', 'ANNOUNCEMENT', 'NEWS', null, 'EVERYONE', false]);
+  await createPost(db, SUPPLIER, { kind: 'USABILITY_TIP', product_id: 1, title: 'Tip', details: { steps: ['x'] } });
+  assert.deepEqual(stored(), ['supplier', 'IDEA', 'USABILITY_TIP', 1, 'EVERYONE', false]);
+  await createPost(db, { id: 30, roles: ['customer'] }, { kind: 'CREATIVE_IDEA', product_id: 5, title: 'Gift idea', details: { steps: ['Wrap it'] } });
+  assert.deepEqual(stored(), ['customer', 'IDEA', 'CREATIVE_IDEA', null, 'EVERYONE', false]);
+  await assert.rejects(() => createPost(db, { id: 20, roles: ['saler'] }, { kind: 'NEWS', product_id: 9, title: 'x', body: 'y' }),
+    { code: 'PERMISSION_DENIED' }, "a named product must still be the author's");
+  await assert.rejects(() => createPost(db, SUPPLIER, { ...UPDATE, product_id: undefined }), { code: 'VALIDATION_FAILED' }, 'an update still needs its product');
 });
 
 // ── Migration, catalog and module agree with the code ──────────────────────────────────────
