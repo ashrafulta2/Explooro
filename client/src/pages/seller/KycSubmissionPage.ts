@@ -8,7 +8,7 @@
  * 4. Appeal workflow for rejected submissions.
  */
 
-import { api } from '../../core/api.ts';
+import { api, pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { formatDate } from '../../services/format.ts';
@@ -46,7 +46,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
         currentStep = kycStatus.current_step;
       }
     } catch (err) {
-      toast.error('Failed to load KYC status.');
+      toast.error(t('kyc.plain.load_failed'));
     } finally {
       loading = false;
       render();
@@ -57,7 +57,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
     try {
       // Validate current step
       if (stepNum === 1 && !formData.nid_number && !kycStatus?.id) {
-        toast.error('National ID number is required.');
+        toast.error(t('kyc.plain.nid_required'));
         return;
       }
 
@@ -84,7 +84,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
       render();
       if (isFinal) showActionResult(root, userRole === 'supplier' ? 'kyc_supplier' : 'kyc_saler');
     } catch (err) {
-      toast.error(err.message || 'Submission failed.');
+      toast.error(pickMessage(err) || t('kyc.plain.submit_failed'));
     }
   }
 
@@ -101,13 +101,14 @@ export default function KycSubmissionPage(root: HTMLElement) {
           <div>
             <label class="font-semibold block mb-1">${t('kyc.rejection_reason_received')}:</label>
             <p class="p-2 rounded bg-rose-subtle text-rose-dark border border-rose font-medium">
-              ${kycStatus?.rejection_reason || 'Information mismatch.'}
+              ${kycStatus?.rejection_reason || t('kyc.plain.reason_mismatch')}
             </p>
           </div>
 
           <div>
             <label class="font-semibold block mb-1">${t('kyc.appeal_explanation')}:</label>
-            <textarea id="txt-appeal-note" class="form-textarea w-full" rows="3" placeholder="Explain the corrections made or reason for appeal..."></textarea>
+            <textarea id="txt-appeal-note" class="form-textarea w-full" rows="3" placeholder="${t('kyc.plain.appeal_placeholder')}"></textarea>
+            <p class="field__hint">${t('kyc.plain.appeal_help')}</p>
           </div>
         </div>
 
@@ -136,7 +137,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
         kycStatus = statusRes.data;
         render();
       } catch (err) {
-        toast.error(err.message || 'Appeal submission failed.');
+        toast.error(pickMessage(err) || t('kyc.plain.appeal_failed'));
       }
     });
   }
@@ -149,7 +150,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
       mime_type: 'image/jpeg',
       size_bytes: 245000,
     });
-    toast.success(`Uploaded ${fileName || docType}`);
+    toast.success(t('kyc.plain.uploaded', { name: fileName || docType }));
     render();
   }
 
@@ -163,9 +164,9 @@ export default function KycSubmissionPage(root: HTMLElement) {
             <span class="text-2xl">🛡️</span>
             <div>
               <h3 class="font-bold text-emerald-dark flex items-center gap-2">
-                ${t('kyc.verified_title')} <span class="badge badge--emerald">✓ Verified Blue-Tick</span>
+                ${t('kyc.verified_title')} <span class="badge badge--emerald" title="${t('kyc.plain.verified_badge_tip')}">✓ ${t('kyc.plain.verified_badge')}</span>
               </h3>
-              <p class="text-xs text-emerald-dark opacity-90">${t('kyc.verified_desc')} • Verified on ${formatDate(kycStatus.verified_at)}</p>
+              <p class="text-xs text-emerald-dark opacity-90">${t('kyc.verified_desc')} • ${t('kyc.plain.verified_on', { date: formatDate(kycStatus.verified_at) })}</p>
             </div>
           </div>
         </div>
@@ -191,8 +192,8 @@ export default function KycSubmissionPage(root: HTMLElement) {
             <span class="text-2xl">❌</span>
             <div>
               <h3 class="font-bold text-rose-dark">${t('kyc.rejected_title')}</h3>
-              <p class="text-xs text-rose-dark opacity-90 mb-1">Reason: ${kycStatus.rejection_reason || 'Documents unclear.'}</p>
-              <span class="text-xs text-secondary">You can submit an appeal or update your documents.</span>
+              <p class="text-xs text-rose-dark opacity-90 mb-1">${t('kyc.plain.reason_label', { reason: kycStatus.rejection_reason || t('kyc.plain.reason_unclear') })}</p>
+              <span class="text-xs text-secondary">${t('kyc.plain.rejected_next')}</span>
             </div>
           </div>
           <button class="btn btn--danger btn--sm" id="btn-open-appeal">📜 ${t('kyc.btn_appeal')}</button>
@@ -261,26 +262,27 @@ export default function KycSubmissionPage(root: HTMLElement) {
           <div class="space-y-3">
             <div>
               <label class="font-semibold block mb-1">${t('kyc.nid_number_label')} *</label>
-              <input type="text" id="inp-nid-number" class="form-input w-full" placeholder="e.g. 19942692518000123" value="${formData.nid_number}"/>
+              <input type="text" id="inp-nid-number" class="form-input w-full" inputmode="numeric" placeholder="${t('kyc.plain.nid_placeholder')}" value="${formData.nid_number}"/>
+              <p class="field__hint">${t('kyc.plain.nid_help')}</p>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-nid-front">
                 <span class="text-2xl block mb-1">🪪</span>
                 <span class="font-semibold block">${t('kyc.upload_nid_front')}</span>
-                <span class="text-tertiary text-xxs">JPG/PNG up to 5MB</span>
+                <span class="text-tertiary text-xxs">${t('kyc.plain.photo_hint')}</span>
               </div>
               <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-nid-back">
                 <span class="text-2xl block mb-1">🪪</span>
                 <span class="font-semibold block">${t('kyc.upload_nid_back')}</span>
-                <span class="text-tertiary text-xxs">JPG/PNG up to 5MB</span>
+                <span class="text-tertiary text-xxs">${t('kyc.plain.photo_hint')}</span>
               </div>
             </div>
 
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-selfie">
               <span class="text-2xl block mb-1">🤳</span>
               <span class="font-semibold block">${t('kyc.upload_selfie')}</span>
-              <span class="text-tertiary text-xxs">Clear live photo of your face holding NID</span>
+              <span class="text-tertiary text-xxs">${t('kyc.plain.selfie_hint')}</span>
             </div>
           </div>
 
@@ -303,24 +305,27 @@ export default function KycSubmissionPage(root: HTMLElement) {
           <div class="space-y-3">
             <div>
               <label class="font-semibold block mb-1">${t('kyc.business_name_label')} *</label>
-              <input type="text" id="inp-business-name" class="form-input w-full" placeholder="e.g. Rahim Textiles Ltd." value="${formData.business_name}"/>
+              <input type="text" id="inp-business-name" class="form-input w-full" placeholder="${t('kyc.plain.business_name_placeholder')}" value="${formData.business_name}"/>
+              <p class="field__hint">${t('kyc.plain.business_name_help')}</p>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="font-semibold block mb-1">${t('kyc.trade_license_no_label')} *</label>
-                <input type="text" id="inp-trade-license" class="form-input w-full" placeholder="e.g. TRAD/DNCC/019283" value="${formData.trade_license_no}"/>
+                <input type="text" id="inp-trade-license" class="form-input w-full" placeholder="${t('kyc.plain.licence_placeholder')}" value="${formData.trade_license_no}"/>
+                <p class="field__hint">${t('kyc.plain.licence_help')}</p>
               </div>
               <div>
-                <label class="font-semibold block mb-1">${t('kyc.vat_tin_label')} (Optional)</label>
-                <input type="text" id="inp-vat-tin" class="form-input w-full" placeholder="e.g. 1829304819" value="${formData.vat_tin}"/>
+                <label class="font-semibold block mb-1">${t('kyc.vat_tin_label')} ${t('kyc.plain.optional')}</label>
+                <input type="text" id="inp-vat-tin" class="form-input w-full" inputmode="numeric" placeholder="${t('kyc.plain.tin_placeholder')}" value="${formData.vat_tin}"/>
+                <p class="field__hint">${t('kyc.plain.tin_help')}</p>
               </div>
             </div>
 
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-trade-license">
               <span class="text-2xl block mb-1">📄</span>
               <span class="font-semibold block">${t('kyc.upload_trade_license_doc')}</span>
-              <span class="text-tertiary text-xxs">Official scanned copy (PDF or High-res JPG)</span>
+              <span class="text-tertiary text-xxs">${t('kyc.plain.licence_doc_hint')}</span>
             </div>
           </div>
 
@@ -342,13 +347,14 @@ export default function KycSubmissionPage(root: HTMLElement) {
           <div class="space-y-3">
             <div>
               <label class="font-semibold block mb-1">${t('kyc.business_address_label')} *</label>
-              <textarea id="inp-business-address" class="form-textarea w-full" rows="2" placeholder="Factory / Warehouse physical address in Bangladesh...">${formData.business_address}</textarea>
+              <textarea id="inp-business-address" class="form-textarea w-full" rows="2" placeholder="${t('kyc.plain.address_placeholder')}">${formData.business_address}</textarea>
+              <p class="field__hint">${t('kyc.plain.address_help')}</p>
             </div>
 
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-facility">
               <span class="text-2xl block mb-1">🏭</span>
               <span class="font-semibold block">${t('kyc.upload_facility_photos')}</span>
-              <span class="text-tertiary text-xxs">Warehouse inventory and production facility</span>
+              <span class="text-tertiary text-xxs">${t('kyc.plain.facility_hint')}</span>
             </div>
           </div>
 
@@ -369,14 +375,14 @@ export default function KycSubmissionPage(root: HTMLElement) {
 
           <div class="space-y-3">
             <div class="p-3 bg-surface-subtle border rounded space-y-2">
-              <span class="font-semibold block text-primary">⚠️ Bank/MFS Account Name Match Policy</span>
-              <p class="text-secondary">Payouts can only be disbursed to accounts matching your NID name.</p>
+              <span class="font-semibold block text-primary">⚠️ ${t('kyc.plain.name_match_title')}</span>
+              <p class="text-secondary">${t('kyc.plain.name_match_body')}</p>
             </div>
 
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-bank-statement">
               <span class="text-2xl block mb-1">🏦</span>
               <span class="font-semibold block">${t('kyc.upload_bank_cheque')}</span>
-              <span class="text-tertiary text-xxs">Voided cheque or MFS statement</span>
+              <span class="text-tertiary text-xxs">${t('kyc.plain.bank_doc_hint')}</span>
             </div>
           </div>
 

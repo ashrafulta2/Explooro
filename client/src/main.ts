@@ -229,7 +229,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/fast-payout',
-        title: 'Fast Payout — Explooro',
+        title: 'Early Withdrawal — Explooro',
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
@@ -321,7 +321,7 @@ async function bootRouterDemo() {
       // Prompt 10.6: B2B Wholesale Escrow & Milestone Settlement
       {
         path: '/supplier/b2b-escrow',
-        title: 'B2B Wholesale Escrow — Explooro',
+        title: 'Protected Bulk Deals — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
@@ -329,7 +329,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/b2b-escrow',
-        title: 'B2B Wholesale Escrow — Explooro',
+        title: 'Protected Bulk Deals — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
@@ -337,7 +337,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/b2b-escrow',
-        title: 'B2B Wholesale Escrow — Explooro',
+        title: 'Protected Bulk Deals — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
@@ -610,7 +610,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/supplier/batches',
-        title: 'FEFO Batch Manager — Explooro',
+        title: 'Batches & Expiry — Explooro',
         requiresAuth: true,
         permission: 'catalog.batch.manage',
         module: 'fefo_batches',
@@ -698,7 +698,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/supplier/fast-payout',
-        title: 'Fast Payout — Explooro',
+        title: 'Early Withdrawal — Explooro',
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
@@ -1099,7 +1099,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/finance/b2b-escrow',
-        title: 'B2B Wholesale Escrow — Explooro Admin',
+        title: 'Protected Bulk Deals — Explooro Admin',
         requiresAuth: true,
         permission: 'finance.b2b_escrow.manage',
         module: 'b2b_escrow',
@@ -1552,7 +1552,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/vault/payouts',
-        title: 'Withdrawals & Payouts — Explooro',
+        title: 'Withdrawals — Explooro',
         requiresAuth: true,
         permission: 'finance.payout.request',
         module: 'core',
@@ -1725,7 +1725,7 @@ async function bootRouterDemo() {
       // Prompt 7.5: KYC Verification, Blue-Tick & Trust Tiers
       {
         path: '/seller/kyc',
-        title: 'KYC Identity Verification — Explooro',
+        title: 'Identity Check — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'supplier_verification',
@@ -1733,7 +1733,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/account/kyc',
-        title: 'KYC Identity Verification — Explooro',
+        title: 'Identity Check — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'supplier_verification',

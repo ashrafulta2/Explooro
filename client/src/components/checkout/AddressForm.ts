@@ -149,6 +149,7 @@ export function AddressForm({
     <label class="form-label" for="recipient-name">${t('checkout.recipient_name')} *</label>
     <input type="text" id="recipient-name" class="form-input" placeholder="${t('checkout.recipient_name_placeholder')}" value="${state.recipient_name}" required />
     <span class="form-error" id="err-recipient-name"></span>
+    <span class="field__hint">${t('checkout.plain.name_help')}</span>
   `;
   const nameInput = nameGroup.querySelector('input')!;
   nameInput.addEventListener('input', (e) => {
@@ -164,6 +165,7 @@ export function AddressForm({
     <label class="form-label" for="recipient-phone">${t('checkout.recipient_phone')} *</label>
     <input type="tel" id="recipient-phone" class="form-input" placeholder="${t('checkout.recipient_phone_placeholder')}" value="${state.recipient_phone}" required />
     <span class="form-error" id="err-recipient-phone"></span>
+    <span class="field__hint">${t('checkout.plain.phone_help')}</span>
   `;
   const phoneInput = phoneGroup.querySelector('input')!;
   phoneInput.addEventListener('input', (e) => {
@@ -181,6 +183,7 @@ export function AddressForm({
       <option value="">-- ${t('checkout.select_division')} --</option>
     </select>
     <span class="form-error" id="err-address-division"></span>
+    <span class="field__hint">${t('checkout.plain.division_help')}</span>
   `;
   const divSelect = divGroup.querySelector('select')!;
   BANGLADESH_DIVISIONS.forEach((div) => {
@@ -201,6 +204,7 @@ export function AddressForm({
       <option value="">-- ${t('checkout.select_district')} --</option>
     </select>
     <span class="form-error" id="err-address-district"></span>
+    <span class="field__hint">${t('checkout.plain.district_help')}</span>
   `;
   const distSelect = distGroup.querySelector('select')!;
   grid.append(distGroup);
@@ -213,6 +217,7 @@ export function AddressForm({
     <select id="address-upazila" class="form-select">
       <option value="">-- ${t('checkout.select_upazila')} --</option>
     </select>
+    <span class="field__hint">${t('checkout.plain.upazila_help')}</span>
   `;
   const upaSelect = upaGroup.querySelector('select')!;
   grid.append(upaGroup);
@@ -271,6 +276,7 @@ export function AddressForm({
     <label class="form-label" for="address-line">${t('checkout.address_line')} *</label>
     <textarea id="address-line" class="form-textarea" rows="2" placeholder="${t('checkout.address_line_placeholder')}" required>${state.address_line}</textarea>
     <span class="form-error" id="err-address-line"></span>
+    <span class="field__hint">${t('checkout.plain.address_help')}</span>
   `;
   const addrInput = addrGroup.querySelector('textarea')!;
   addrInput.addEventListener('input', (e) => {
@@ -285,6 +291,7 @@ export function AddressForm({
   notesGroup.innerHTML = `
     <label class="form-label" for="delivery-notes">${t('checkout.delivery_notes')}</label>
     <input type="text" id="delivery-notes" class="form-input" placeholder="${t('checkout.delivery_notes_placeholder')}" value="${state.delivery_notes}" />
+    <span class="field__hint">${t('checkout.plain.notes_help')}</span>
   `;
   const notesInput = notesGroup.querySelector('input')!;
   notesInput.addEventListener('input', (e) => {

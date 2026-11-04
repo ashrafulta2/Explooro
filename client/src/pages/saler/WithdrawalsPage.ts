@@ -12,8 +12,9 @@
 
 import { salerApi } from '../../services/saler.api.ts';
 import { formatCurrency, formatDate } from '../../services/format.ts';
-import { t, getLanguage, subscribe as subscribeLang } from '../../services/i18n.ts';
+import { t, subscribe as subscribeLang } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import { pickMessage } from '../../core/api.ts';
 import { showActionResult } from '../../components/guide/ActionResult.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { Modal } from '../../components/ui/Modal.ts';
@@ -47,7 +48,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
       payouts = res?.data?.payouts || [];
       summary = res?.data?.summary || {};
     } catch (err) {
-      toast.error(err.message || 'Failed to load payouts');
+      toast.error(pickMessage(err) || t('saler_withdrawals.plain_load_failed'));
     } finally {
       loading = false;
       render();
@@ -55,8 +56,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
   }
 
   function render() {
-    container.innerHTML = '';
-    const isBn = getLanguage() === 'bn';
+    container.innerHTML = '';
 
     // 1. Header
     const header = document.createElement('div');
@@ -98,9 +98,9 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
           <span>🟢</span>
         </div>
         <div class="saler-kpi-card__value saler-kpi-card__value--profit">
-          ${formatCurrency(summary.available_balance || 24500.0)}
+          ${formatCurrency(summary.available_balance ?? 0)}
         </div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'তাত্ক্ষণিক উত্তোলনের জন্য তৈরি' : 'Ready for instant payout'}</div>
+        <div class="saler-kpi-card__subtext">${t('saler_withdrawals.plain_kpi_available_sub')}</div>
       </div>
       <div class="saler-kpi-card">
         <div class="saler-kpi-card__header">
@@ -110,7 +110,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
         <div class="saler-kpi-card__value text-amber-600">
           ${formatCurrency(summary.pending_payout_amount || 0)}
         </div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'ব্যাংক বা এমএফএস প্রসেসিং' : 'Settling to your account'}</div>
+        <div class="saler-kpi-card__subtext">${t('saler_withdrawals.plain_kpi_pending_sub')}</div>
       </div>
       <div class="saler-kpi-card">
         <div class="saler-kpi-card__header">
@@ -118,9 +118,9 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
           <span>✓</span>
         </div>
         <div class="saler-kpi-card__value text-foreground">
-          ${formatCurrency(summary.lifetime_withdrawn_amount || 17000.0)}
+          ${formatCurrency(summary.lifetime_withdrawn_amount ?? 0)}
         </div>
-        <div class="saler-kpi-card__subtext">${isBn ? 'সফলভাবে উত্তোলিত মোট অর্থ' : 'Delivered to your wallet'}</div>
+        <div class="saler-kpi-card__subtext">${t('saler_withdrawals.plain_kpi_withdrawn_sub')}</div>
       </div>
     `;
     container.append(kpiGrid);
@@ -177,8 +177,8 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
         tableWrap.append(
           EmptyState({
             icon: '💸',
-            title: 'No Payout Requests',
-            description: 'No withdrawal requests match your filter selection.',
+            title: t(payouts.length ? 'saler_withdrawals.plain_empty_filter_title' : 'saler_withdrawals.plain_empty_title'),
+            description: t(payouts.length ? 'saler_withdrawals.plain_empty_filter_desc' : 'saler_withdrawals.plain_empty_desc'),
           })
         );
       } else {
@@ -202,11 +202,12 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
         const tbody = table.querySelector('tbody');
 
         filtered.forEach((p) => {
+          // Prompt 13.6: every status says what happens next, in its tooltip.
           const statusBadge = p.status === 'COMPLETED'
-            ? '<span class="badge badge--success text-xs font-bold">✓ COMPLETED</span>'
+            ? `<span class="badge badge--success text-xs font-bold" title="${t('saler_withdrawals.plain_status_completed_tip')}">✓ ${t('saler_withdrawals.tab_completed')}</span>`
             : p.status === 'PROCESSING' || p.status === 'PENDING'
-            ? '<span class="badge badge--warning text-xs font-bold">⏳ PROCESSING</span>'
-            : '<span class="badge badge--neutral text-xs font-mono">CANCELLED</span>';
+            ? `<span class="badge badge--warning text-xs font-bold" title="${t('saler_withdrawals.plain_status_processing_tip')}">⏳ ${t('saler_withdrawals.tab_processing')}</span>`
+            : `<span class="badge badge--neutral text-xs" title="${t('saler_withdrawals.plain_status_cancelled_tip')}">${t('saler_withdrawals.tab_cancelled')}</span>`;
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
@@ -216,7 +217,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
             </td>
             <td>
               <div class="font-mono text-sm text-foreground font-bold">${p.account_number}</div>
-              <div class="text-xs text-muted">${p.account_name || 'Shop Partner Account'} ${p.bank_name ? `(${p.bank_name})` : ''}</div>
+              <div class="text-xs text-muted">${p.account_name || t('saler_withdrawals.plain_account_fallback')} ${p.bank_name ? `(${p.bank_name})` : ''}</div>
             </td>
             <td class="font-mono text-base font-extrabold text-foreground">
               ${formatCurrency(p.amount)}
@@ -243,7 +244,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
                 toast.success(t('saler_withdrawals.toast_cancelled'));
                 loadData();
               } catch (err) {
-                toast.error(err.message || 'Failed to cancel payout');
+                toast.error(pickMessage(err) || t('saler_withdrawals.plain_cancel_failed'));
               }
             };
           }
@@ -260,7 +261,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
 
   function openPayoutModal() {
     let modal;
-    const maxAvailable = summary.available_balance || 24500.0;
+    const maxAvailable = Number(summary.available_balance ?? 0);
     const body = document.createElement('div');
     body.className = 'saler-stack';
 
@@ -274,21 +275,25 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
             <button type="button" class="btn btn--sm btn--neutral font-bold btn-method" data-m="ROCKET">Rocket</button>
             <button type="button" class="btn btn--sm btn--neutral font-bold btn-method" data-m="BANK">Bank</button>
           </div>
+          <div class="field__hint">${t('saler_withdrawals.plain_method_help')}</div>
         </div>
 
         <div class="saler-stack--xs">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_account_number')}</label>
-          <input type="text" id="payout-acc-num" required class="input input--sm w-full font-mono" placeholder="017XXXXXXXX" value="01711223344" />
+          <input type="text" id="payout-acc-num" required inputmode="numeric" class="input input--sm w-full font-mono" placeholder="017XXXXXXXX" />
+          <div class="field__hint">${t('saler_withdrawals.plain_account_number_help')}</div>
         </div>
 
         <div class="saler-stack--xs">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_account_name')}</label>
-          <input type="text" id="payout-acc-name" required class="input input--sm w-full" placeholder="Account Holder Full Name" value="Tanvir Ahmed" />
+          <input type="text" id="payout-acc-name" required class="input input--sm w-full" placeholder="${t('saler_withdrawals.plain_account_name_placeholder')}" />
+          <div class="field__hint">${t('saler_withdrawals.plain_account_name_help')}</div>
         </div>
 
         <div id="bank-field-wrap" class="saler-stack--xs hidden">
           <label class="text-xs font-bold text-muted uppercase tracking-wider">${t('saler_withdrawals.field_bank_name')}</label>
-          <input type="text" id="payout-bank-name" class="input input--sm w-full" placeholder="e.g. Dutch-Bangla Bank PLC, City Bank" />
+          <input type="text" id="payout-bank-name" class="input input--sm w-full" placeholder="${t('saler_withdrawals.plain_bank_placeholder')}" />
+          <div class="field__hint">${t('saler_withdrawals.plain_bank_help')}</div>
         </div>
 
         <div class="saler-stack--xs">
@@ -303,8 +308,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
               max="${maxAvailable}"
               class="input input--sm w-full font-mono font-bold text-base"
               style="padding-left: 28px;"
-              placeholder="e.g. 5000"
-              value="5000"
+              placeholder="5000"
             />
           </div>
           <div class="text-xs text-muted mt-1">
@@ -313,7 +317,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
         </div>
 
         <div class="saler-row" style="padding-top: 12px; border-top: 1px solid var(--border-subtle); justify-content: flex-end; gap: 8px;">
-          <button type="button" class="btn btn--secondary btn--sm" id="btn-cancel-modal">Cancel</button>
+          <button type="button" class="btn btn--secondary btn--sm" id="btn-cancel-modal">${t('common.cancel')}</button>
           <button type="submit" class="btn btn--primary btn--sm font-bold">${t('saler_withdrawals.btn_submit_payout')}</button>
         </div>
       </form>
@@ -363,7 +367,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
         // Prompt 13.3: ends on a result panel (it is checked before the money goes out), not a toast.
         showActionResult(root, 'withdrawal_requested');
       } catch (err) {
-        toast.error(err.message || 'Failed to submit withdrawal request');
+        toast.error(pickMessage(err) || t('saler_withdrawals.plain_submit_failed'));
       }
     };
 

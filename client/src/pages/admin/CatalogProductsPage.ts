@@ -16,7 +16,7 @@ import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
-import { api } from '../../core/api.ts';
+import { api, pickMessage } from '../../core/api.ts';
 import { previewPricing } from '../../services/catalog.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
@@ -1022,10 +1022,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_title_en', 'Product Title (English)')} *</label>
           <input type="text" name="title_en" class="catalog-form-input" aria-label="e.g. Traditional Handloom Jamdani" placeholder="e.g. Traditional Handloom Jamdani" required />
+          <span class="catalog-form-hint">${t('admin_catalog.plain.title_en_help')}</span>
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_title_bn', 'Product Title (Bangla)')}</label>
           <input type="text" name="title_bn" class="catalog-form-input" aria-label="যেমন: ঐতিহ্যবাহী তাঁতের জামদানি" placeholder="যেমন: ঐতিহ্যবাহী তাঁতের জামদানি" />
+          <span class="catalog-form-hint">${t('admin_catalog.plain.title_bn_help')}</span>
         </div>
       </div>
 
@@ -1035,10 +1037,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           <select name="category_id" class="catalog-form-select" required>
             <option value="">${t('common.loading', 'Loading…')}</option>
           </select>
+          <span class="catalog-form-hint">${t('admin_catalog.plain.category_help')}</span>
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="add-brand">${t('admin_catalog.field_brand', 'Brand')}</label>
           <input type="text" id="add-brand" name="brand" class="catalog-form-input" maxlength="120" placeholder="${t('admin_catalog.field_brand_placeholder', 'e.g. Aarong (optional)')}" />
+          <span class="catalog-form-hint">${t('admin_catalog.plain.brand_help')}</span>
         </div>
       </div>
 
@@ -1046,10 +1050,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="add-supplier-price">${t('admin_catalog.field_supplier_price')} *</label>
           <input type="number" step="0.01" min="0.01" id="add-supplier-price" name="supplier_price" class="catalog-form-input" placeholder="1000.00" required />
+          <span class="catalog-form-hint">${t('admin_catalog.plain.supplier_price_help')}</span>
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label">${t('admin_catalog.field_stock', 'Initial Stock Quantity')} *</label>
           <input type="number" name="stock" class="catalog-form-input" aria-label="50" placeholder="50" value="50" required />
+          <span class="catalog-form-hint">${t('admin_catalog.plain.stock_help')}</span>
         </div>
       </div>
       <p class="catalog-form-payout" data-slot="payout" aria-live="polite"></p>
@@ -1064,10 +1070,12 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="add-desc-en">${t('admin_catalog.field_description_en', 'Description (English)')}</label>
           <textarea id="add-desc-en" name="description_en" class="catalog-form-textarea" rows="8" placeholder="${t('admin_catalog.field_description_placeholder', 'Materials, sizing and quality guarantee…')}"></textarea>
+          <span class="catalog-form-hint">${t('admin_catalog.plain.description_en_help')}</span>
         </div>
         <div class="catalog-form-group">
           <label class="catalog-form-label" for="add-desc-bn">${t('admin_catalog.field_description_bn', 'Description (Bangla)')}</label>
           <textarea id="add-desc-bn" name="description_bn" class="catalog-form-textarea" rows="8" placeholder="যেমন: কাপড়, মাপ ও মানের নিশ্চয়তা…"></textarea>
+          <span class="catalog-form-hint">${t('admin_catalog.plain.description_bn_help')}</span>
         </div>
       </div>
     `;
@@ -1194,7 +1202,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           if (isSupplierView) showActionResult(root, 'product_added_supplier');
           else toast.success(t('admin_catalog.product_created_success', 'Product registered in catalog!'));
         } catch (err) {
-          toast.error(err.message || 'Failed to create product.');
+          toast.error(pickMessage(err) || t('admin_catalog.plain.create_failed'));
         } finally {
           submitBtn.setLoading(false);
         }
@@ -1491,7 +1499,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
           closeEditPage();
           await loadData();
         } catch (err) {
-          toast.error(err.message || 'Failed to update product.');
+          toast.error(pickMessage(err) || t('admin_catalog.plain.update_failed'));
         } finally {
           saveBtn.setLoading(false);
         }
@@ -1832,7 +1840,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       toast.success(t('admin_catalog.product_deleted_success', 'Product removed from catalog.'));
       await loadData();
     } catch (err) {
-      toast.error(err.message || 'Failed to delete product.');
+      toast.error(pickMessage(err) || t('admin_catalog.plain.delete_failed'));
     }
   }
 

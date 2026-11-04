@@ -16,7 +16,7 @@ import { Input } from '../ui/Input.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
-import { api } from '../../core/api.ts';
+import { api, pickMessage } from '../../core/api.ts';
 
 export interface PayoutRequestModalOptions {
   availableBalance?: number;
@@ -69,7 +69,7 @@ export function openPayoutRequestModal({
           </button>
           <button type="button" class="payout-modal__method-btn ${selectedMethod === 'BANK' ? 'is-active' : ''}" data-method="BANK">
             <span class="payout-modal__method-icon">🏦</span>
-            <span>Bank Transfer</span>
+            <span>${t('payout.plain.bank_transfer')}</span>
           </button>
         </div>
       </div>
@@ -79,9 +79,10 @@ export function openPayoutRequestModal({
           <div class="payout-modal__amount-input-wrap">
             <label class="form-label" for="payout-amount">${t('payout.amount_label')} (৳)</label>
             <div class="payout-modal__input-row">
-              <input type="number" id="payout-amount" class="input" placeholder="Min 100" min="100" max="${availableBalance}" value="${amount}" step="any" />
+              <input type="number" id="payout-amount" class="input" placeholder="100" min="100" max="${availableBalance}" value="${amount}" step="any" />
               <button type="button" class="btn btn--secondary btn--sm payout-modal__max-btn">${t('payout.max_btn')}</button>
             </div>
+            <p class="field__hint">${t('payout.plain.amount_help')}</p>
           </div>
         </div>
 
@@ -89,18 +90,21 @@ export function openPayoutRequestModal({
           <label class="form-label" for="payout-account-num">
             ${selectedMethod === 'BANK' ? t('payout.bank_account_num') : t('payout.mfs_number')}
           </label>
-          <input type="text" id="payout-account-num" class="input" placeholder="${selectedMethod === 'BANK' ? 'e.g. 1029384756' : '+8801XXXXXXXXX'}" value="${accountNumber}" />
+          <input type="text" id="payout-account-num" class="input" inputmode="numeric" placeholder="${selectedMethod === 'BANK' ? '1029384756' : '017XXXXXXXX'}" value="${accountNumber}" />
+          <p class="field__hint">${t('payout.plain.account_number_help')}</p>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="payout-account-name">${t('payout.account_name')}</label>
           <input type="text" id="payout-account-name" class="input" placeholder="${t('payout.account_name_placeholder')}" value="${accountName}" />
+          <p class="field__hint">${t('payout.plain.account_name_help')}</p>
         </div>
 
         ${selectedMethod === 'BANK' ? `
           <div class="form-group">
             <label class="form-label" for="payout-bank-name">${t('payout.bank_name')}</label>
-            <input type="text" id="payout-bank-name" class="input" placeholder="e.g. BRAC Bank Ltd." value="${bankName}" />
+            <input type="text" id="payout-bank-name" class="input" placeholder="${t('payout.plain.bank_placeholder')}" value="${bankName}" />
+            <p class="field__hint">${t('payout.plain.bank_help')}</p>
           </div>
         ` : ''}
 
@@ -203,7 +207,7 @@ export function openPayoutRequestModal({
         if (onSuccess) onSuccess(res.data?.payout);
         else toast.success(t('payout.request_submitted'));
       } catch (err) {
-        toast.error(err.message || t('payout.request_failed'));
+        toast.error(pickMessage(err) || t('payout.request_failed'));
         isSubmitting = false;
         render();
       }
