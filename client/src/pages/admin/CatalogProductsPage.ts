@@ -63,6 +63,22 @@ function attachImageFallback(img, title, ref, placeholderClassName) {
 }
 
 /**
+ * The supplier's own price per unit — what the supplier form calls "Your price per unit" and what
+ * the supplier is paid: base cost + any wholesale margin. A list row without cost fields (older mock
+ * fixtures) falls back to retail minus its margin %. Returns 0 when neither is known.
+ * WHY one helper: the inspection popup and the edit form each worked this out on their own, and the
+ * popup sent a missing base_cost to the pricing preview as 0 — so it showed ৳0.00 while Edit showed
+ * the real price for the same product.
+ */
+function supplierPriceOf(p): number {
+  if (p.base_cost !== undefined && p.base_cost !== null) {
+    return Math.round((parseFloat(p.base_cost) + (parseFloat(p.wholesale_margin) || 0)) * 100) / 100;
+  }
+  const retail = parseFloat(p.default_retail_price ?? p.price) || 0;
+  return Math.round(retail * (1 - (parseFloat(p.margin_pct) || 0) / 100) * 100) / 100;
+}
+
+/**
  * The markup policy the retail quote is drawn from. WHY fetched per form, not cached for the session:
  * an admin may change a markup and open this form in the same session, and a stale quote would show
  * a retail price the save does not store.
@@ -888,22 +904,34 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     const splitRow = (label, value, mod = '') =>
       `<div class="catalog-drawer__row${mod}"><dt>${label}</dt><dd>${value}</dd></div>`;
     splitEl.innerHTML = splitRow(t('admin_catalog.suggested_retail', 'Suggested Retail Price'), formatCurrency(retail), ' catalog-drawer__row--strong');
+    // WHY no request when the price is unknown: the preview would treat the missing cost as ৳0 and
+    // report a ৳0 supplier price and a split built on it. Saying "could not be calculated" is honest.
+    const supplierPrice = supplierPriceOf(product);
+    const hasCost = product.base_cost !== undefined && product.base_cost !== null;
+    const pricingRequest = supplierPrice > 0
+      ? previewPricing({
+          baseCost: hasCost ? product.base_cost : supplierPrice,
+          wholesaleMargin: hasCost ? (product.wholesale_margin ?? 0) : 0,
+          retailPrice: retail,
+          categoryId: product.category_id,
+          productId: product.id,
+          mode: 'split',
+        })
+      : Promise.reject(new Error('supplier price unknown'));
     splitEl.insertAdjacentHTML('beforeend', `<p class="catalog-drawer__empty">${t('common.loading', 'Loading…')}</p>`);
-    previewPricing({
-      baseCost: product.base_cost,
-      wholesaleMargin: product.wholesale_margin ?? 0,
-      retailPrice: retail,
-      categoryId: product.category_id,
-      productId: product.id,
-      mode: 'split',
-    })
+    pricingRequest
       .then((pr) => {
         // WHY the supplier gate: the Shop Partner's earning and the platform's escrow fee are the
         // downstream settlement split — none of the supplier's business. A supplier sees only the
-        // retail price and their own wholesale cost; the full split stays admin-only.
+        // retail price and their own price per unit; the full split stays admin-only.
+        // WHY these labels: the supplier form names this figure "Your price per unit", so the popup
+        // uses the same words. It used to say "Supplier Wholesale Cost", which no form field matched.
+        const priceLabel = isSupplierView
+          ? t('admin_catalog.your_price_row', 'Your price per unit')
+          : t('admin_catalog.supplier_price_row', 'Supplier price per unit');
         splitEl.innerHTML =
           splitRow(t('admin_catalog.suggested_retail', 'Suggested Retail Price'), formatCurrency(retail), ' catalog-drawer__row--strong') +
-          splitRow(t('admin_catalog.wholesale_cost', 'Supplier Wholesale Cost'), formatCurrency(pr.wholesale_cost)) +
+          splitRow(priceLabel, formatCurrency(pr.wholesale_cost ?? supplierPrice)) +
           (isSupplierView
             ? ''
             : splitRow(`💰 ${t('admin_catalog.saler_earning', { pct: formatNumber(pr.pool_share_pct ?? pr.saler_split_pct) })}`, formatCurrency(pr.saler_earning), ' catalog-drawer__row--earn') +
@@ -1292,15 +1320,6 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     // Values are assigned as properties, never interpolated into the markup: a title containing a
     // quote (e.g. 42" TV) used to break out of value="…" and truncate the field.
     const field = (name) => form.querySelector<HTMLInputElement>(`[name="${name}"]`);
-    // The supplier's own price is what they are paid per unit: base cost + any wholesale margin. A list
-    // row without cost fields (older fixtures) falls back to retail minus its margin %.
-    const supplierPriceOf = (p) => {
-      if (p.base_cost !== undefined && p.base_cost !== null) {
-        return Math.round((parseFloat(p.base_cost) + (parseFloat(p.wholesale_margin) || 0)) * 100) / 100;
-      }
-      const retail = parseFloat(p.default_retail_price ?? p.price) || 0;
-      return Math.round(retail * (1 - (parseFloat(p.margin_pct) || 0) / 100) * 100) / 100;
-    };
     let detail = product;
     const fillFields = (p) => {
       field('title_en').value = p.title_en || '';
