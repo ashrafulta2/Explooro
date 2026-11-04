@@ -35,6 +35,8 @@
  *    a module ON in the first place.
  */
 
+import { DASHBOARD_ROUTES, JOURNEY_ROLES, journeyFor, type JourneyRole } from './journeys.ts';
+
 /** One sidebar group. `role` is the single role a group was first written for; `roles` is who sees it. */
 export interface NavGroup {
   key: string;
@@ -335,33 +337,72 @@ export function homePathForRoles(roles: string[] = []): string {
   return '/';
 }
 
-/** Roles whose sidebar has a Simple/Advanced mode split (ia-sitemap.md §4). */
-export const PROGRESSIVE_DISCLOSURE_ROLES = ['saler', 'supplier'];
+/**
+ * Roles whose sidebar has a Simple/Advanced mode split. Since Prompt 13.5 that is every role with a
+ * journey (ia-sitemap.md §4 first gave it to shop partners and suppliers only). Simple shows the
+ * role's core items, the user's pins and a "More" group with everything else; Advanced shows the
+ * full grouped tree. Which one a user starts in is `defaultUiMode` below.
+ */
+export const PROGRESSIVE_DISCLOSURE_ROLES: string[] = [...JOURNEY_ROLES];
+
+/** Prompt 13.5 REQUIREMENT 1: a new user's sidebar shows at most this many items before "More". */
+export const CORE_NAV_LIMIT = 7;
+
+/** The nav items a role's sidebar draws, by the same rule Sidebar.ts groups them with. */
+export function navItemsForRole(role: string): NavItemDef[] {
+  return navItems.filter((item) => item.roles?.includes(role) || item.role === role || (role === 'admin' && item.roles?.includes('super_admin')));
+}
 
 /**
- * Simple Mode's exact 6 items per ia-sitemap.md §4 — a hand-picked subset, not derived from
- * `simpleMode: false` alone, because Simple Mode also drops groups entirely (flat list) and the
- * §4 lists are shorter/reworded ("My Orders" not "Orders") rather than a strict filter of the
- * Advanced tree.
+ * The role's core paths (Prompt 13.5 REQUIREMENT 2), derived and never hand-picked, so the sidebar and
+ * the journey cannot disagree: the dashboard first, then every journey step's page that is a sidebar
+ * item of the role, in journey order, without repeats, capped at CORE_NAV_LIMIT. A journey page that
+ * is not a sidebar item (KYC, checkout, the OTP screen) is reached from the setup checklist instead.
  */
-export const SIMPLE_MODE_ITEMS = {
-  saler: [
-    { key: 'saler.simple.add_product', label_i18n_key: 'nav.simple.saler.add_product', path: '/saler/products', permission: 'saler.store.manage', module: 'virtual_storefront' },
-    { key: 'saler.simple.share_store', label_i18n_key: 'nav.simple.saler.share_store', path: '/saler/store-builder', permission: 'saler.store.manage', module: 'virtual_storefront' },
-    { key: 'saler.simple.my_orders', label_i18n_key: 'nav.simple.saler.my_orders', path: '/saler/orders', permission: 'saler.order.view', module: 'core' },
-    { key: 'saler.simple.my_earnings', label_i18n_key: 'nav.simple.saler.my_earnings', path: '/saler/vault', permission: 'finance.wallet.view_own', module: 'core' },
-    { key: 'saler.simple.messages', label_i18n_key: 'nav.simple.messages', path: '/saler/inbox', permission: 'chat.thread.view_own', module: 'whatsapp_bridge' },
-    { key: 'saler.simple.help', label_i18n_key: 'nav.simple.help', path: '/saler/academy', permission: null, module: 'seller_academy' },
-  ],
-  supplier: [
-    { key: 'supplier.simple.add_product', label_i18n_key: 'nav.simple.supplier.add_product', path: '/supplier/products', permission: 'catalog.product.create', module: 'core' },
-    { key: 'supplier.simple.stock', label_i18n_key: 'nav.supplier.stock', path: '/supplier/inventory', permission: 'catalog.inventory.manage', module: 'core' },
-    { key: 'supplier.simple.orders_to_pack', label_i18n_key: 'nav.simple.supplier.orders_to_pack', path: '/supplier/orders', permission: 'supplier.order.view', module: 'core' },
-    { key: 'supplier.simple.print_labels', label_i18n_key: 'nav.simple.supplier.print_labels', path: '/supplier/fulfilment', permission: 'logistics.consignment.create', module: 'courier_hub' },
-    { key: 'supplier.simple.my_earnings', label_i18n_key: 'nav.simple.supplier.my_earnings', path: '/supplier/vault', permission: 'finance.wallet.view_own', module: 'core' },
-    { key: 'supplier.simple.help', label_i18n_key: 'nav.simple.help', path: '/supplier/help', permission: null, module: 'core' },
-  ],
-};
+export function corePathsFor(role: string): string[] {
+  if (!JOURNEY_ROLES.includes(role as JourneyRole)) return [];
+  const visible = new Set(navItemsForRole(role).map((item) => item.path));
+  const wanted = [DASHBOARD_ROUTES[role as JourneyRole], ...journeyFor(role as JourneyRole).map((step) => step.route)];
+  const core: string[] = [];
+  for (const path of wanted) {
+    if (visible.has(path) && !core.includes(path)) core.push(path);
+  }
+  return core.slice(0, CORE_NAV_LIMIT);
+}
+
+/**
+ * An item's tier for one role (REQUIREMENT 1). WHY a function and not a `tier` field on each item:
+ * admin and super admin share every /admin item but walk different journeys, so the same item is core
+ * for one and "more" for the other.
+ */
+export function navTier(item: Pick<NavItemDef, 'path'>, role: string): 'core' | 'more' {
+  return corePathsFor(role).includes(item.path) ? 'core' : 'more';
+}
+
+/** The role's core items in core order: Simple mode's list. */
+export function coreNavItems(role: string): NavItemDef[] {
+  const items = navItemsForRole(role);
+  return corePathsFor(role).map((path) => items.find((item) => item.path === path)).filter(Boolean);
+}
+
+/**
+ * Simple mode's items per role. Before Prompt 13.5 these were six hand-picked items per role
+ * (ia-sitemap.md §4); the owner chose on 2026-11-04 to derive them from the journey instead, so this
+ * is now `coreNavItems` for every role with a journey.
+ */
+export const SIMPLE_MODE_ITEMS: Record<string, NavItemDef[]> = Object.fromEntries(JOURNEY_ROLES.map((role) => [role, coreNavItems(role)]));
+
+/**
+ * The mode a user starts in when they have not chosen one this session. A user whose journey is not
+ * finished starts in Simple; one who finished it starts in Advanced. While the journey is not known
+ * yet (guidance off, opted out, still loading) shop partners and suppliers keep Simple and every other
+ * role keeps Advanced, which is how the sidebar behaved before Prompt 13.5.
+ */
+export function defaultUiMode(role: string, journeyState: 'unknown' | 'new' | 'done'): 'simple' | 'advanced' {
+  if (journeyState === 'new') return 'simple';
+  if (journeyState === 'done') return 'advanced';
+  return role === 'saler' || role === 'supplier' ? 'simple' : 'advanced';
+}
 
 /** Bottom tab bar per role — ia-sitemap.md §6, max 5 including the always-present "More" sentinel. */
 export const MOBILE_TABS = {

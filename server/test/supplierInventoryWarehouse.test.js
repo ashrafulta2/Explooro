@@ -337,21 +337,17 @@ describe('Prompt 11.1 — Supplier / Manufacturer Dashboard, FEFO & Warehouse Ro
   // ---------------------------------------------------------------------------
   // 4. Simple Mode Constraint (Acceptance 4)
   // ---------------------------------------------------------------------------
-  test('Acceptance 4: Simple Mode shows at most 6 primary actions', () => {
+  // WHY these paths: since Prompt 13.5 (owner decision 2026-11-04) Simple Mode is derived from the
+  // supplier's journey, the dashboard first, instead of ia-sitemap §4's six hand-picked items.
+  test('Acceptance 4: Simple Mode shows the supplier journey, at most 7 items', () => {
     const supplierSimpleItems = SIMPLE_MODE_ITEMS.supplier;
 
     assert.ok(Array.isArray(supplierSimpleItems), 'SIMPLE_MODE_ITEMS.supplier must be an array');
-    assert.ok(
-      supplierSimpleItems.length <= 6,
-      `Simple Mode must show at most 6 primary actions, found ${supplierSimpleItems.length}`
+    assert.ok(supplierSimpleItems.length <= 7, `Simple Mode must show at most 7 items, found ${supplierSimpleItems.length}`);
+    assert.deepEqual(
+      supplierSimpleItems.map((item) => item.path),
+      ['/supplier', '/supplier/products', '/supplier/inventory', '/supplier/orders', '/supplier/fulfilment', '/supplier/vault']
     );
-    assert.equal(supplierSimpleItems.length, 6, 'Supplier Simple Mode has exactly 6 primary actions per ia-sitemap §4');
-
-    const keys = supplierSimpleItems.map((item) => item.key);
-    assert.ok(keys.includes('supplier.simple.orders_to_pack'), 'Must contain orders to pack (pending orders)');
-    assert.ok(keys.includes('supplier.simple.stock'), 'Must contain stock (low stock alerts)');
-    assert.ok(keys.includes('supplier.simple.my_earnings'), 'Must contain my earnings');
-    assert.ok(keys.includes('supplier.simple.print_labels'), 'Must contain print labels');
   });
 
   // ---------------------------------------------------------------------------

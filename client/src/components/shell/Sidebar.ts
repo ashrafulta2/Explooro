@@ -16,12 +16,13 @@
  * guards with, per docs/super-admin-audit.md §5 invariant 1 ("the nav guard must equal the route
  * guard"). Never re-implement the four states here.
  */
-import { navGroups, navItems, SIMPLE_MODE_ITEMS, PROGRESSIVE_DISCLOSURE_ROLES } from '../../config/navigation.ts';
+import { navGroups, navItems, PROGRESSIVE_DISCLOSURE_ROLES, coreNavItems, navItemsForRole, defaultUiMode } from '../../config/navigation.ts';
 import { t } from '../../services/i18n.ts';
 import { resolvePageAccess } from '../../services/pageAccess.ts';
+import { togglePin } from '../../services/navPrefs.ts';
 import { LockedNavItem } from './LockedNavItem.ts';
 import { Badge } from '../ui/Badge.ts';
-import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode } from '../../state/appStore.ts';
+import { toggleGroupCollapsed, expandSidebarToGroup, setUiMode, toggleNavMoreOpen, openNavMore } from '../../state/appStore.ts';
 import { ICONS, getGroupIcon, getItemIcon } from '../ui/icons.ts';
 
 /** What the shell knows about the signed-in viewer when it draws navigation. */
@@ -57,6 +58,11 @@ export interface SidebarOptions {
   sidebarCollapsed?: boolean;
   collapsedGroups?: string[];
   onOpenPalette?: (() => void) | null;
+  /** Prompt 13.5: picks the starting mode when the user has not chosen one. */
+  journeyState?: 'unknown' | 'new' | 'done';
+  /** Prompt 13.5: paths the user pinned above "More". */
+  navPins?: string[];
+  navMoreOpen?: boolean;
 }
 
 function hasModule(modules: Record<string, boolean>, key?: string | null) {
@@ -129,17 +135,99 @@ function renderItem({ item, ctx, currentPath, navigate }) {
   });
 }
 
-function renderSimpleMode({ role, ctx, currentPath, navigate }) {
+/**
+ * A row holding the item's link and a pin toggle. WHY a sibling button and not one inside the link:
+ * a button inside <a> is invalid HTML and its click would also navigate.
+ */
+function pinRow(node: HTMLElement, item, pinned: boolean) {
+  const row = document.createElement('div');
+  row.className = 'nav-row';
+  const label = t(item.label_i18n_key);
+  const pin = document.createElement('button');
+  pin.type = 'button';
+  pin.className = `nav-pin${pinned ? ' nav-pin--on' : ''}`;
+  pin.setAttribute('aria-pressed', String(pinned));
+  pin.setAttribute('aria-label', t(pinned ? 'nav.tiers.unpin' : 'nav.tiers.pin', { item: label }));
+  pin.title = pin.getAttribute('aria-label');
+  pin.textContent = '📌';
+  pin.addEventListener('click', () => togglePin(item.path));
+  row.append(node, pin);
+  return row;
+}
+
+/**
+ * Simple mode (Prompt 13.5): the role's core items (derived from its journey, never hand-picked), then
+ * the user's pins, then one "More" group holding every other item of the full tree, so no page is
+ * more than one click away. Locked, hidden and coming-soon states are renderItem's, as in Advanced.
+ */
+function renderSimpleMode({ role, ctx, currentPath, navigate, collapsedGroups, sidebarCollapsed, navPins, navMoreOpen }) {
+  const wrap = document.createElement('div');
+  wrap.className = 'sidebar__simple';
   const list = document.createElement('div');
   list.className = 'sidebar__simple-list';
-  for (const item of SIMPLE_MODE_ITEMS[role] ?? []) {
+
+  const core = coreNavItems(role);
+  const corePaths = new Set(core.map((item) => item.path));
+  for (const item of core) {
     const node = renderItem({ item, ctx, currentPath, navigate });
     if (node) list.append(node);
   }
-  return list;
+  const all = navItemsForRole(role);
+  const pinned = navPins.map((path) => all.find((item) => item.path === path)).filter((item) => item && !corePaths.has(item.path));
+  for (const item of pinned) {
+    const node = renderItem({ item, ctx, currentPath, navigate });
+    if (node) list.append(sidebarCollapsed ? node : pinRow(node, item, true));
+  }
+  wrap.append(list);
+
+  const shown = new Set([...corePaths, ...pinned.map((item) => item.path)]);
+  const more = renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups, sidebarCollapsed, exclude: shown, pinnable: !sidebarCollapsed });
+  if (!more.childElementCount) return wrap;
+
+  const section = document.createElement('div');
+  section.className = 'sidebar__group sidebar__more';
+  const header = document.createElement('button');
+  header.type = 'button';
+  header.className = 'sidebar__group-header sidebar__more-header';
+  const open = navMoreOpen && !sidebarCollapsed;
+  header.setAttribute('aria-expanded', String(open));
+  header.innerHTML = '<span class="sidebar__group-icon" aria-hidden="true">⋯</span>';
+  const headerLabel = document.createElement('span');
+  headerLabel.className = 'sidebar__group-label';
+  headerLabel.textContent = t('nav.tiers.more');
+  const chevron = document.createElement('span');
+  chevron.className = 'sidebar__group-chevron';
+  chevron.setAttribute('aria-hidden', 'true');
+  chevron.textContent = open ? '▾' : '▸';
+  header.append(headerLabel, chevron);
+  header.addEventListener('click', () => (sidebarCollapsed ? openNavMore() : toggleNavMoreOpen()));
+  section.append(header);
+  if (open) section.append(more);
+  wrap.append(section);
+  return wrap;
 }
 
-function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups, sidebarCollapsed }) {
+function renderAdvancedMode({
+  role,
+  ctx,
+  currentPath,
+  navigate,
+  collapsedGroups,
+  sidebarCollapsed,
+  exclude = null,
+  pinnable = false,
+}: {
+  role: string;
+  ctx: NavContext;
+  currentPath: string;
+  navigate: (path: string) => void;
+  collapsedGroups: string[];
+  sidebarCollapsed?: boolean;
+  /** Paths already drawn above "More" (Simple mode); left out of the tree. */
+  exclude?: Set<string> | null;
+  /** Inside "More": each item gets a pin toggle. */
+  pinnable?: boolean;
+}) {
   const wrap = document.createElement('div');
   wrap.className = 'sidebar__groups';
 
@@ -149,9 +237,15 @@ function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups,
   for (const group of groups) {
     const items = navItems
       .filter((item) => item.group === group.key && (item.roles?.includes(role) || item.role === role || (role === 'admin' && item.roles?.includes('super_admin'))))
+      .filter((item) => !exclude?.has(item.path))
       .sort((a, b) => a.order - b.order);
 
-    const nodes = items.map((item) => renderItem({ item, ctx, currentPath, navigate })).filter(Boolean);
+    const nodes = items
+      .map((item) => {
+        const node = renderItem({ item, ctx, currentPath, navigate });
+        return node && pinnable ? pinRow(node, item, false) : node;
+      })
+      .filter(Boolean);
     if (nodes.length === 0) continue; // every item in this group was module-hidden
 
     const section = document.createElement('div');
@@ -198,7 +292,19 @@ function renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups,
   return wrap;
 }
 
-export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarCollapsed, collapsedGroups, onOpenPalette }: SidebarOptions): HTMLElement {
+export function Sidebar({
+  role,
+  ctx,
+  currentPath,
+  navigate,
+  uiMode,
+  sidebarCollapsed,
+  collapsedGroups = [],
+  onOpenPalette,
+  journeyState = 'unknown',
+  navPins = [],
+  navMoreOpen = false,
+}: SidebarOptions): HTMLElement {
   const nav = document.createElement('nav');
   nav.className = 'sidebar';
   nav.id = 'sidebar-nav';
@@ -231,7 +337,8 @@ export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarColla
   }
 
   const isProgressive = PROGRESSIVE_DISCLOSURE_ROLES.includes(role);
-  const mode = isProgressive ? uiMode[role] ?? 'simple' : 'advanced';
+  // Prompt 13.5: the user's own toggle wins; otherwise a user mid-journey starts in Simple.
+  const mode = isProgressive ? uiMode[role] ?? defaultUiMode(role, journeyState) : 'advanced';
 
   if (isProgressive) {
     const modeToggle = document.createElement('div');
@@ -269,7 +376,7 @@ export function Sidebar({ role, ctx, currentPath, navigate, uiMode, sidebarColla
 
   nav.append(
     mode === 'simple' && isProgressive
-      ? renderSimpleMode({ role, ctx, currentPath, navigate })
+      ? renderSimpleMode({ role, ctx, currentPath, navigate, collapsedGroups, sidebarCollapsed, navPins, navMoreOpen })
       : renderAdvancedMode({ role, ctx, currentPath, navigate, collapsedGroups, sidebarCollapsed })
   );
 

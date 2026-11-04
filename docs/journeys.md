@@ -223,3 +223,12 @@ the page is shown again. A step finished in another tab, or by someone else (an 
 therefore shows the next time the user looks, without a reload. The 15-second walkthroughs the
 old widget offered were a placeholder player with no video behind it, so they were not carried
 over. The checklist shows a walkthrough only where one really exists, and none does yet.
+
+## 6. The sidebar follows the journey (Prompt 13.5)
+
+Simple mode, which every role now has, shows the role's **core** items, the user's pins, and one
+**More** group with every other page. The core set is not hand-picked. `corePathsFor(role)` in
+`client/src/config/navigation.ts` takes the dashboard plus each step's page above that is a sidebar
+item of the role, in this document's order, capped at 7. Changing a journey therefore changes the
+sidebar, and `client/test/navTiers.test.js` fails if the two drift. A user whose journey is
+unfinished starts in Simple; one who finished starts in Advanced (the full tree).

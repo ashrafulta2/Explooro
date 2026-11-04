@@ -28,6 +28,7 @@ import { initSession, isUserAuthenticated } from './services/session.ts';
 
 // Prompt 3.2 — live feature flags and DOM module scanner.
 import { initFeatureFlags, scanDomForModuleGates } from './services/featureFlags.ts';
+import { initNavPrefs } from './services/navPrefs.ts';
 
 // Per-page availability — the layer beside the module system (services/pageAccess.js).
 import { initPageAccess, resolvePageAccess } from './services/pageAccess.ts';
@@ -136,6 +137,10 @@ async function bootRouterDemo() {
   // Which pages the super admin has parked. Awaited alongside the flags because the very first
   // route render consults it — resolving it late would flash the real page before replacing it.
   await initPageAccess();
+
+  // Prompt 13.5: the sidebar's tiers follow the user's journey and pins. Never awaited: until the
+  // journey answers, the sidebar draws as it did before 13.5.
+  initNavPrefs();
 
   // AppShell needs `navigate` before the router that provides it exists (the router, in turn,
   // needs AppShell's `pageOutlet` as its mount root) — a proxy breaks the cycle. Every real call

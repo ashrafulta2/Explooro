@@ -3,8 +3,9 @@
  * caps every role at 5, "More" included), 44px targets via --control-height under (pointer:
  * coarse) same as every other control (design-system.md §9), safe-area inset in shell.css.
  *
- * The 5th "More" slot opens a bottom sheet with the full grouped tree — reuses Sidebar's advanced
- * render rather than duplicating the group/lock/badge logic a second time.
+ * The 5th "More" slot opens a bottom sheet with the Sidebar itself, in the user's own mode (Prompt
+ * 13.5: Simple shows core items, pins and "More"; Advanced the full grouped tree), rather than
+ * duplicating the group/lock/badge logic a second time.
  */
 import { MOBILE_TABS } from '../../config/navigation.ts';
 import { t } from '../../services/i18n.ts';
@@ -13,6 +14,7 @@ import { Drawer } from '../ui/Drawer.ts';
 import { Sidebar } from './Sidebar.ts';
 import type { NavContext } from './Sidebar.ts';
 import { openCart } from '../../services/cart.ts';
+import { appStore } from '../../state/appStore.ts';
 
 // Non-navigation tab actions — a tab with `action` opens UI in place instead of routing.
 const TAB_ACTIONS = {
@@ -75,32 +77,61 @@ export interface MobileNavOptions {
   collapsedGroups?: string[];
 }
 
-export function MobileNav({ role, ctx, currentPath, navigate, collapsedGroups }: MobileNavOptions): HTMLElement {
+export function MobileNav({ role, ctx, currentPath, navigate }: MobileNavOptions): HTMLElement {
   const tabs = MOBILE_TABS[role] ?? [];
   const nav = document.createElement('nav');
   nav.className = 'mobile-nav';
   nav.setAttribute('aria-label', 'Primary');
 
   let sheet = null;
+  let stopWatching = null;
 
   function openMoreSheet(trigger) {
     if (sheet) {
       sheet.remove();
       sheet = null;
     }
-    const content = Sidebar({
-      role,
-      ctx,
-      currentPath,
-      navigate: (path) => {
-        sheet.closeDrawer(false);
-        navigate(path);
+    // Prompt 13.5: the sheet follows the same tiers as the desktop sidebar (Simple: core items, pins
+    // and "More"; Advanced: the full tree), read from the store each time it draws.
+    const draw = () => {
+      const { shell } = appStore.get();
+      return Sidebar({
+        role,
+        ctx,
+        currentPath,
+        navigate: (path) => {
+          sheet.closeDrawer(false);
+          navigate(path);
+        },
+        uiMode: shell.uiMode,
+        sidebarCollapsed: false,
+        collapsedGroups: shell.collapsedGroups,
+        journeyState: shell.journeyState,
+        navPins: shell.navPins,
+        navMoreOpen: shell.navMoreOpen,
+      });
+    };
+    let content = draw();
+    // WHY watch the store: the sheet is appended to <body> and outlives the tab bar's rebuilds, so
+    // without this a pin, a mode switch or opening "More" inside it would change nothing on screen.
+    stopWatching?.();
+    stopWatching = appStore.selector(
+      (s) => ({ mode: s.shell.uiMode, pins: s.shell.navPins, more: s.shell.navMoreOpen, groups: s.shell.collapsedGroups, journey: s.shell.journeyState }),
+      () => {
+        const next = draw();
+        content.replaceWith(next);
+        content = next;
+      }
+    );
+    sheet = Drawer({
+      title: t('shell.more_sheet_title'),
+      side: 'bottom',
+      content,
+      onClose: () => {
+        stopWatching?.();
+        stopWatching = null;
       },
-      uiMode: { [role]: 'advanced' }, // the sheet always shows the full tree, regardless of Simple Mode
-      sidebarCollapsed: false,
-      collapsedGroups,
     });
-    sheet = Drawer({ title: t('shell.more_sheet_title'), side: 'bottom', content });
     document.body.append(sheet);
     sheet.openDrawer(trigger);
   }

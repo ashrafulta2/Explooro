@@ -212,6 +212,9 @@ export function createAppShell({ container, navigate }: { container: HTMLElement
         sidebarCollapsed: s.shell.sidebarCollapsed,
         collapsedGroups: s.shell.collapsedGroups,
         onOpenPalette: () => palette.open(),
+        journeyState: s.shell.journeyState,
+        navPins: s.shell.navPins,
+        navMoreOpen: s.shell.navMoreOpen,
       })
     );
 

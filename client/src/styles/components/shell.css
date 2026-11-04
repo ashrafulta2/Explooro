@@ -60,6 +60,15 @@
 .sidebar[data-collapsed='true'] .sidebar__mode-compact-btn { display: inline-flex; }
 
 .sidebar__simple-list { display: flex; flex-direction: column; gap: 2px; }
+/* Prompt 13.5: Simple mode's "More" group and the pin toggle beside each item. */
+.sidebar__more { margin-top: var(--space-3); padding-top: var(--space-2); border-top: 1px solid var(--border-subtle); }
+.nav-row { display: flex; align-items: center; gap: 2px; }
+.nav-row > .nav-item, .nav-row > :first-child { flex: 1; min-width: 0; }
+.nav-pin { flex: none; width: 28px; height: 28px; border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; font-size: 12px; opacity: 0; filter: grayscale(1); }
+.nav-row:hover .nav-pin, .nav-pin:focus-visible, .nav-pin--on { opacity: 1; }
+.nav-pin--on { filter: none; }
+.nav-pin:hover { background: var(--surface-2); }
+@media (hover: none) { .nav-pin { opacity: 0.6; } }
 .sidebar__group-items { display: flex; flex-direction: column; gap: 2px; margin-left: var(--space-2); padding-left: var(--space-2); border-left: 1px solid var(--border-subtle); }
 .sidebar__group + .sidebar__group { margin-top: var(--space-3); }
 .sidebar__group-header { display: flex; align-items: center; gap: var(--space-2); width: 100%; padding: var(--space-2); border-radius: var(--radius-sm); color: var(--sidebar-text, var(--text-secondary)); cursor: pointer; transition: background-color var(--dur-fast) var(--ease-standard), color var(--dur-fast) var(--ease-standard); }

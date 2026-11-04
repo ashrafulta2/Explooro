@@ -37,8 +37,15 @@ export interface ElevatedGrantState {
 export interface ShellState {
   sidebarCollapsed: boolean;
   collapsedGroups: string[];
+  /** A user's Simple/Advanced choice this session; absent means `defaultUiMode` decides (Prompt 13.5). */
   uiMode: Record<string, string>;
   elevatedGrant: ElevatedGrantState | null;
+  /** Whether the signed-in user finished their journey, as GET /me/next-step last said (Prompt 13.5). */
+  journeyState: 'unknown' | 'new' | 'done';
+  /** Sidebar paths the signed-in user pinned above "More" for their role (services/navPrefs.ts). */
+  navPins: string[];
+  /** Whether Simple mode's "More" group is open. */
+  navMoreOpen: boolean;
 }
 
 /** The whole shared store. */
@@ -154,8 +161,13 @@ export const appStore = createStore<AppState>({
   shell: {
     sidebarCollapsed: false,
     collapsedGroups: [],
-    uiMode: { saler: 'simple', supplier: 'simple' },
+    // WHY empty: since Prompt 13.5 the starting mode follows the user's journey (defaultUiMode in
+    // config/navigation.ts); an entry here is only ever the user's own toggle.
+    uiMode: {},
     elevatedGrant: null, // { feature, permission, expiresAt } while a JIT window is active
+    journeyState: 'unknown',
+    navPins: [],
+    navMoreOpen: false,
   },
 });
 
@@ -199,6 +211,25 @@ export function expandSidebarToGroup(groupKey: string) {
 
 export function setUiMode(role: string, mode: string) {
   appStore.update((s) => ({ shell: { ...s.shell, uiMode: { ...s.shell.uiMode, [role]: mode } } }));
+}
+
+export function setJourneyState(journeyState: ShellState['journeyState']) {
+  // WHY the early return: update() always notifies, and every notify rebuilds the whole shell.
+  if (appStore.get().shell.journeyState === journeyState) return;
+  appStore.update((s) => ({ shell: { ...s.shell, journeyState } }));
+}
+
+export function setNavPins(navPins: string[]) {
+  appStore.update((s) => ({ shell: { ...s.shell, navPins } }));
+}
+
+export function toggleNavMoreOpen() {
+  appStore.update((s) => ({ shell: { ...s.shell, navMoreOpen: !s.shell.navMoreOpen } }));
+}
+
+/** From the icon rail: open the sidebar with "More" expanded, like a group header click does. */
+export function openNavMore() {
+  appStore.update((s) => ({ shell: { ...s.shell, sidebarCollapsed: false, navMoreOpen: true } }));
 }
 
 /** Grants a mock JIT window — the real grant/expiry comes from the server in Prompt 2.8. */

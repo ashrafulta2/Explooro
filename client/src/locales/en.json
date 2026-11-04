@@ -825,6 +825,11 @@
         "my_earnings": "My Earnings",
         "help": "Help"
       }
+    },
+    "tiers": {
+      "more": "More",
+      "pin": "Pin {{item}} to the top",
+      "unpin": "Unpin {{item}}"
     }
   },
   "access": {

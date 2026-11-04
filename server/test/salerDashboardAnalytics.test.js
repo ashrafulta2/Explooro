@@ -189,20 +189,18 @@ describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI
   // ---------------------------------------------------------------------------
   // 4. Simple Mode Constraints (Acceptance 4)
   // ---------------------------------------------------------------------------
-  test('Acceptance 4: Simple Mode shows at most 6 primary actions (Add Product, Share Store, Check Earnings, Messages, Orders, Help)', () => {
+  // WHY these paths: since Prompt 13.5 (owner decision 2026-11-04) Simple Mode is derived from the
+  // shop partner's journey, the dashboard first, instead of ia-sitemap §4's six hand-picked items.
+  // Everything else is one click away under "More" (client/test/navTiers.test.js).
+  test('Acceptance 4: Simple Mode shows the shop partner journey, at most 7 items', () => {
     const salerSimpleItems = SIMPLE_MODE_ITEMS.saler;
 
     assert.ok(Array.isArray(salerSimpleItems), 'SIMPLE_MODE_ITEMS.saler must be an array');
-    assert.ok(salerSimpleItems.length <= 6, `Simple Mode must show at most 6 primary actions, found ${salerSimpleItems.length}`);
-    assert.equal(salerSimpleItems.length, 6, 'Shop Partner Simple Mode must have exactly 6 actions per ia-sitemap §4');
-
-    const paths = salerSimpleItems.map((item) => item.path);
-    assert.ok(paths.includes('/saler/products'), 'Must include Add Product');
-    assert.ok(paths.includes('/saler/store-builder'), 'Must include Share Store');
-    assert.ok(paths.includes('/saler/orders'), 'Must include Customer Orders');
-    assert.ok(paths.includes('/saler/vault'), 'Must include Check Earnings');
-    assert.ok(paths.includes('/saler/inbox'), 'Must include Customer Messages');
-    assert.ok(paths.includes('/saler/academy'), 'Must include Help & Academy');
+    assert.ok(salerSimpleItems.length <= 7, `Simple Mode must show at most 7 items, found ${salerSimpleItems.length}`);
+    assert.deepEqual(
+      salerSimpleItems.map((item) => item.path),
+      ['/saler', '/saler/store-builder', '/saler/sourcing', '/saler/social-kit', '/saler/orders', '/saler/vault/payouts']
+    );
   });
 
   // ---------------------------------------------------------------------------
