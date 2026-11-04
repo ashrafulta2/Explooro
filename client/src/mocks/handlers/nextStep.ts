@@ -77,7 +77,7 @@ export const nextStepHandlers = [
       if (modules.guided_experience === false) return moduleOff();
       const user = getMockSessionUser();
       const role = (user?.roles?.[0] || user?.role || 'customer') as JourneyRole;
-      const empty = { enabled: true, reason: null, journey: null, progress: { done: 0, total: 0 }, current: null, upcoming: [] };
+      const empty = { enabled: true, reason: null, journey: null, progress: { done: 0, total: 0 }, current: null, upcoming: [], steps: [] };
       if (!JOURNEY_ROLES.includes(role)) return { data: empty };
       if (optedOut(user?.id)) return { data: { ...empty, enabled: false, reason: 'opted_out', journey: role } };
 
@@ -85,10 +85,12 @@ export const nextStepHandlers = [
       const done = new Set(MOCK_DONE[role]);
       const kycGateOn = modules.supplier_verification !== false;
       const pending = steps.filter((s) => !done.has(s.doneWhen));
-      const views = pending.map((s) => {
+      const all = steps.map((s) => {
+        if (done.has(s.doneWhen)) return { ...view(s, null), status: 'done' };
         const block = (s.blockedBy || []).find((b) => MOCK_ACTIVE_BLOCKS.has(b) && (b !== 'kyc_review' || kycGateOn)) || null;
         return view(s, block);
       });
+      const views = all.filter((v) => v.status !== 'done');
       return {
         data: {
           enabled: true,
@@ -97,6 +99,7 @@ export const nextStepHandlers = [
           progress: { done: steps.length - pending.length, total: steps.length },
           current: views[0] || null,
           upcoming: views.slice(1),
+          steps: all,
         },
       };
     },

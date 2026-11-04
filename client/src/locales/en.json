@@ -8614,6 +8614,22 @@
         "title": "Ad created",
         "follow_up": "See my ads"
       }
+    },
+    "checklist": {
+      "title": "Get started",
+      "almost": "Almost there",
+      "progress": "{{done}} of {{total}} steps done",
+      "next": "Next: {{step}}",
+      "do_it": "Do it now",
+      "go": "Go",
+      "open": "Open",
+      "show_all": "Show all steps",
+      "hide": "Hide steps",
+      "status_done": "done",
+      "status_waiting": "waiting",
+      "all_done_title": "Setup complete",
+      "all_done_body": "You finished every first step. This list stays here if you want to look back.",
+      "reopen": "Show my setup checklist"
     }
   }
 }

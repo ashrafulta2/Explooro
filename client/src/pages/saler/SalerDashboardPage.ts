@@ -24,12 +24,12 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
 import { PartnerRewardCard } from '../../components/saler/PartnerRewardCard.ts';
-import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
+import { mountSetupChecklist } from '../../components/guide/SetupChecklist.ts';
 import type { PageContext } from '../types.ts';
 
 const SALER_MODE_KEY = 'explooro:saler_mode_preference';
 
-export default function SalerDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
+export default function SalerDashboardPage(root: HTMLElement, { navigate, query = {} }: PageContext = {}) {
   const nav = (url) => {
     if (typeof navigate === 'function') navigate(url);
     else {
@@ -86,10 +86,10 @@ export default function SalerDashboardPage(root: HTMLElement, { navigate }: Page
   header.append(titleBox, toggleBox);
   container.append(header);
 
-  // Prompt 13.2: the one thing to do next, decided by the server.
+  // Prompt 13.4: the setup checklist (every journey step; ?setup=1 re-opens it when all are done), decided by the server.
   const guideSlot = document.createElement('div');
   container.append(guideSlot);
-  mountNextStepCard(guideSlot, { navigate: nav });
+  mountSetupChecklist(guideSlot, { forceOpen: query.setup === '1' });
 
   // Dynamic Workspace View Slot
   const viewSlot = document.createElement('div');
@@ -317,10 +317,8 @@ function renderProMode(container, data, nav) {
     })
     .catch(() => {});
 
-  // 2. First-Run Onboarding Checklist (if brand new or incomplete)
-  if (data.onboarding && data.onboarding.completed_steps_count < data.onboarding.total_steps) {
-    renderOnboardingWidget(wrap, data.onboarding, nav);
-  }
+  // 2. The first-run checklist moved to the SetupChecklist at the top of the page (Prompt 13.4),
+  // which reads the same journey facts as GET /saler/onboarding.
 
   // 3. Embedded Prescriptive Growth Assistant
   const growth = GrowthAssistant({ onNavigate: nav });
@@ -392,140 +390,6 @@ function renderProKpiBar(container, data) {
   });
 
   container.append(grid);
-}
-
-/**
- * First-Run Onboarding Checklist with 15-second Interactive Video Walkthrough Modals
- */
-function renderOnboardingWidget(container, onboarding, nav) {
-  const card = document.createElement('div');
-  card.className = 'saler-onboarding-card';
-
-  const progressPct = Math.round((onboarding.completed_steps_count / onboarding.total_steps) * 100);
-
-  card.innerHTML = `
-    <div class="saler-onboarding-header">
-      <div>
-        <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg> ${t('saler.onboarding.title', 'Quick Start Guide: Road to Your First Sale')}
-          <span class="badge badge--primary text-[10px]">${onboarding.completed_steps_count}/${onboarding.total_steps} Completed</span>
-        </h3>
-        <p data-page-info style="margin: 2px 0 0; font-size: 12px; color: var(--text-muted);">
-          ${t('saler.onboarding.desc', 'Follow these 4 simple steps to launch your virtual business and make your first profit deposit.')}
-        </p>
-      </div>
-      <div class="saler-onboarding-progress-track">
-        <div class="saler-onboarding-progress-fill" style="width: ${progressPct}%;"></div>
-      </div>
-    </div>
-  `;
-
-  const stepsList = document.createElement('div');
-  stepsList.className = 'saler-onboarding-steps';
-
-  onboarding.steps.forEach((step, idx) => {
-    const item = document.createElement('div');
-    item.className = step.completed ? 'saler-onboarding-step saler-onboarding-step--completed' : 'saler-onboarding-step';
-
-    item.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 6px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <span class="saler-onboarding-step__label">
-            ${step.completed ? '✓ Done' : `Step ${idx + 1}`}
-          </span>
-          <button type="button" class="video-btn saler-onboarding-step__video" data-step="${step.id}">
-            🎬 ${step.video_duration} Video
-          </button>
-        </div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--text-primary);">${step.title_en}</div>
-        <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">${step.desc_en}</div>
-      </div>
-    `;
-
-    const actionBtn = Button({
-      label: step.completed ? 'Revisit →' : step.action_label_en,
-      variant: step.completed ? 'secondary' : 'primary',
-      size: 'xs',
-      onClick: () => nav(step.action_url),
-    });
-
-    item.append(actionBtn);
-
-    // Video Walkthrough Trigger
-    item.querySelector<HTMLElement>('.video-btn').onclick = (e) => {
-      e.stopPropagation();
-      openVideoWalkthroughModal(step, nav);
-    };
-
-    stepsList.append(item);
-  });
-
-  card.append(stepsList);
-  container.append(card);
-}
-
-/**
- * 15-Second Interactive Video Walkthrough Simulator Modal
- */
-function openVideoWalkthroughModal(step, nav) {
-  let modal;
-  const body = document.createElement('div');
-  body.style.display = 'flex';
-  body.style.flexDirection = 'column';
-  body.style.gap = '16px';
-
-  body.innerHTML = `
-    <div style="position: relative; width: 100%; aspect-ratio: 16/9; border-radius: var(--radius-xl, 16px); background: #0f172a; border: 1px solid var(--border-subtle); overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; padding: 24px; text-align: center; gap: 12px;">
-      <div style="width: 48px; height: 48px; border-radius: 9999px; background: var(--brand-500, #ecae00); color: #000; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;">
-        ▶
-      </div>
-      <div>
-        <div style="font-size: 14px; font-weight: 700;">${step.video_title_en}</div>
-        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">15-Second Express Masterclass (Zero Fluff)</div>
-      </div>
-      <div style="width: 100%; max-width: 200px; background: #1e293b; height: 6px; border-radius: 9999px; overflow: hidden;">
-        <div style="background: var(--brand-500, #ecae00); height: 100%; width: 75%; border-radius: 9999px;"></div>
-      </div>
-    </div>
-    <div style="padding: 12px 14px; border-radius: var(--radius-md, 10px); background: var(--surface-1); border: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 4px;">
-      <div style="font-size: 12px; font-weight: 700; color: var(--text-primary);">Key Takeaways:</div>
-      <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">${step.desc_en}</div>
-    </div>
-  `;
-
-  const footer = document.createElement('div');
-  footer.style.display = 'flex';
-  footer.style.justifyContent = 'space-between';
-  footer.style.alignItems = 'center';
-  footer.style.width = '100%';
-
-  const closeBtn = Button({
-    label: 'Close',
-    variant: 'secondary',
-    size: 'sm',
-    onClick: () => modal.close(),
-  });
-
-  const goBtn = Button({
-    label: `Start Now (${step.action_label_en}) →`,
-    variant: 'primary',
-    size: 'sm',
-    onClick: () => {
-      modal.close();
-      nav(step.action_url);
-    },
-  });
-
-  footer.append(closeBtn, goBtn);
-
-  modal = Modal({
-    title: `🎬 ${step.video_title_en}`,
-    content: body,
-    footer,
-    size: 'md',
-  });
-
-  modal.open();
 }
 
 /**

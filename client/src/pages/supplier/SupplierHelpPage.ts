@@ -13,6 +13,7 @@ import { toast } from '../../services/toast.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { supplierModal } from './supplierModal.ts';
 import { Badge } from '../../components/ui/Badge.ts';
+import { setupChecklistLink } from '../../components/guide/SetupChecklist.ts';
 
 export default function SupplierHelpPage(root: HTMLElement) {
   const container = document.createElement('div');
@@ -62,6 +63,9 @@ export default function SupplierHelpPage(root: HTMLElement) {
     `;
 
     header.querySelector<HTMLElement>('#open-ticket-btn').onclick = openSupportTicketModal;
+    // Prompt 13.4: Help is where the finished setup checklist can be opened again.
+    const reopen = setupChecklistLink();
+    if (reopen) header.querySelector('.supplier-header__actions')?.prepend(reopen);
     container.appendChild(header);
 
     // 2. Interactive Operational Routine Checklist

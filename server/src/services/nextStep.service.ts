@@ -49,7 +49,7 @@ export interface StepView {
   route: string | null;
   title_key: string;
   next_key: string;
-  status: 'todo' | 'blocked';
+  status: 'todo' | 'blocked' | 'done';
   blocked_by: { reason: string; message_key: string } | null;
 }
 
@@ -60,10 +60,13 @@ export interface NextStepPayload {
   progress: { done: number; total: number };
   current: StepView | null;
   upcoming: StepView[];
+  /** Every step left in the journey, in order, done ones included: the setup checklist (Prompt 13.4). */
+  steps: StepView[];
 }
 
+// WHY v2: the answer gained `steps` in Prompt 13.4; a v1 entry still cached would lack it.
 export function nextStepCacheKey(userId: number | string): string {
-  return `nextstep:v1:${userId}`;
+  return `nextstep:v2:${userId}`;
 }
 
 export async function invalidateNextStep(cache, userId: number | string): Promise<void> {
@@ -94,7 +97,7 @@ function cacheSeconds(moduleRow): number {
 }
 
 function emptyPayload(journey: string | null, reason: NextStepPayload['reason'] = null): NextStepPayload {
-  return { enabled: reason === null, reason, journey, progress: { done: 0, total: 0 }, current: null, upcoming: [] };
+  return { enabled: reason === null, reason, journey, progress: { done: 0, total: 0 }, current: null, upcoming: [], steps: [] };
 }
 
 /** What the engine asks the rest of the platform. Injectable so the tests need no RBAC tables. */
@@ -168,11 +171,18 @@ export async function computeNextStep(
   const pending = steps.filter((s) => !facts[s.fact]);
   const blocks = await activeBlocks(db, cache, user.id, new Set(pending.flatMap((s) => s.blockedBy)), context, deps);
 
-  const views = pending.map((s) => {
+  const byId = new Map<string, StepView>();
+  for (const s of steps) {
     const missingPermission = Boolean(s.permission) && !permissions.has(s.permission);
-    const block = missingPermission ? 'no_permission' : s.blockedBy.find((b) => blocks.has(b)) || null;
-    return view(role, s, block);
-  });
+    if (facts[s.fact]) {
+      // A done step keeps its page so the checklist can offer "open" again, unless the page refuses them.
+      byId.set(s.id, { ...view(role, s, null), status: 'done', route: missingPermission ? null : s.route });
+    } else {
+      const block = missingPermission ? 'no_permission' : s.blockedBy.find((b) => blocks.has(b)) || null;
+      byId.set(s.id, view(role, s, block));
+    }
+  }
+  const views = pending.map((s) => byId.get(s.id));
 
   return {
     enabled: true,
@@ -180,8 +190,9 @@ export async function computeNextStep(
     journey: role,
     progress: { done: steps.length - pending.length, total: steps.length },
     current: views[0] || null,
-    // WHY no pagination: the list is bounded by the journey itself (at most 9 steps, client test).
+    // WHY no pagination: both lists are bounded by the journey itself (at most 9 steps, client test).
     upcoming: views.slice(1),
+    steps: steps.map((s) => byId.get(s.id)),
   };
 }
 

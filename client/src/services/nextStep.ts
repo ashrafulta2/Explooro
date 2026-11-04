@@ -15,7 +15,7 @@ export interface NextStepView {
   route: string | null;
   title_key: string;
   next_key: string;
-  status: 'todo' | 'blocked';
+  status: 'todo' | 'blocked' | 'done';
   blocked_by: { reason: string; message_key: string } | null;
 }
 
@@ -26,6 +26,18 @@ export interface NextStepData {
   progress: { done: number; total: number };
   current: NextStepView | null;
   upcoming: NextStepView[];
+  /** Every step in order, done ones included (Prompt 13.4's checklist). */
+  steps: NextStepView[];
+}
+
+/**
+ * Fired on `window` after a key action completes (components/guide/ActionResult.ts), so a checklist
+ * already on screen re-reads its steps. Other tabs are covered by refetching when the page is shown.
+ */
+export const JOURNEY_CHANGED_EVENT = 'explooro:journey-changed';
+
+export function notifyJourneyChanged(): void {
+  window.dispatchEvent(new Event(JOURNEY_CHANGED_EVENT));
 }
 
 const LATER_KEY = 'explooro:next-step:later';

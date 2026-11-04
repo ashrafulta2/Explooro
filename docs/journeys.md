@@ -192,7 +192,10 @@ Things found while mapping. None is fixed in 13.1; each names the prompt that sh
 - **F4. Payment gateway set-up has no data fact.** 13.4 lists "payment gateways" among the admin
   set-up items, but gateways are configured through `.env`, and `/admin/platform/integrations`
   writes nothing to check. No step is invented for it. 13.4 should either read the integration
-  status the server already reports or leave it out.
+  status the server already reports or leave it out. **13.4 left it out:** payouts and deliveries
+  run by hand by default (`operations.modes`, migration 097), so the super admin's
+  `set_operations` step is the one that decides whether a gateway is needed at all, and a step that
+  can only be finished by editing `.env` would never be one click away.
 - **F5. The old Shop Partner checklist disagrees on "shared".** `GET /saler/onboarding`
   (`salerDashboard.service.ts`) counts sharing as done only after a link is *clicked*, which the
   partner does not control. The journey counts the partner's own act: a link created. 13.2 replaces
@@ -200,3 +203,23 @@ Things found while mapping. None is fixed in 13.1; each names the prompt that sh
 - **F6. File names in the prompts are out of date.** Phase 13 was specified when the client was
   `.js`; the files are now `.ts` (`journeys.ts`, `navigation.ts`). The test file stays `.js` like
   every other client test.
+
+## 5. The setup checklist (Prompt 13.4)
+
+Every dashboard (`/account`, `/saler`, `/supplier`, `/moderator`, `/editor`, `/admin`) opens
+with `components/guide/SetupChecklist.ts`. It lists the whole journey from the `steps` field of
+`GET /me/next-step`, so it can never disagree with the result panels. It replaced the Next-Step card
+on those pages and the shop partner's old four-step onboarding widget.
+
+| Done | What the user sees |
+| :--- | :--- |
+| under 80% | Every step: ticks for the done ones, the current one with its hint and *Do it now*, *Go* on later ones, and the waiting reason on blocked ones |
+| 80% or more | One line naming the next step, with its button and *Show all steps* |
+| 100% | Nothing, until re-opened from Help: *Show my setup checklist* on `/account/settings` (every role), `/supplier/help` and `/saler/academy` link to the dashboard with `?setup=1` |
+
+The user's own fold choice is remembered per journey in that browser. The list re-reads its steps
+after a key action in the same tab (`JOURNEY_CHANGED_EVENT`, fired by the result panel) and whenever
+the page is shown again. A step finished in another tab, or by someone else (an admin's approval),
+therefore shows the next time the user looks, without a reload. The 15-second walkthroughs the
+old widget offered were a placeholder player with no video behind it, so they were not carried
+over. The checklist shows a walkthrough only where one really exists, and none does yet.

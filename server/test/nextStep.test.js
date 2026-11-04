@@ -148,6 +148,13 @@ describe('next step — each role from first step to last', () => {
       const finished = await computeNextStep(fakeDb({ done: new Set(steps.map((s) => s.fact)) }), null, user(role), deps({ role }));
       assert.equal(finished.current, null);
       assert.deepEqual(finished.progress, { done: steps.length, total: steps.length });
+
+      // The checklist list (Prompt 13.4): every step in order, its status matching the facts.
+      assert.deepEqual(fresh.steps.map((s) => s.id), steps.map((s) => s.id));
+      assert.ok(fresh.steps.every((s) => s.status !== 'done'));
+      assert.ok(finished.steps.every((s) => s.status === 'done' && s.blocked_by === null));
+      assert.equal(nearly.steps.filter((s) => s.status === 'done').length, nearly.progress.done);
+      assert.deepEqual(nearly.steps.at(-1), nearly.current);
     });
   }
 });
@@ -249,6 +256,7 @@ describe('next step — the answer follows the data', () => {
     assert.equal(out.enabled, false);
     assert.equal(out.reason, 'opted_out');
     assert.equal(out.current, null);
+    assert.deepEqual(out.steps, []);
     assert.equal(db.calls.filter((c) => sqlToFact.has(c.sql)).length, 0);
   });
 

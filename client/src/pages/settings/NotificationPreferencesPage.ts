@@ -21,6 +21,7 @@ import {
   setPersonalizationEnabled,
 } from '../../services/signals.ts';
 import { getShowNextSteps, setShowNextSteps } from '../../services/nextStep.ts';
+import { setupChecklistLink } from '../../components/guide/SetupChecklist.ts';
 import type { PageContext } from '../types.ts';
 
 // WHY the channel list is data, not markup: every category renders the same four toggles, and a
@@ -398,6 +399,10 @@ export default function NotificationPreferencesPage(root: HTMLElement, { navigat
         slot.replaceChildren();
         note.textContent = t('journey.settings.load_failed');
       });
+
+    // Prompt 13.4: every role can re-open its finished setup checklist from here.
+    const reopen = setupChecklistLink();
+    if (reopen) body.append(reopen);
 
     const card = Card({ title: `🧭  ${t('journey.settings.title')}`, subtitle: t('journey.settings.subtitle'), body });
     card.classList.add('notif-prefs-card');

@@ -92,6 +92,7 @@ import { ShoppableReels } from '../../components/content/ShoppableReels.ts';
 import { GrowthAssistant } from '../../components/saler/GrowthAssistant.ts';
 import { NextStepCard } from '../../components/guide/NextStepCard.ts';
 import { ActionResult } from '../../components/guide/ActionResult.ts';
+import { SetupChecklist } from '../../components/guide/SetupChecklist.ts';
 import { t } from '../../services/i18n.ts';
 import { CommissionTierCard } from '../../components/saler/CommissionTierCard.ts';
 import { PartnerScoreCard } from '../../components/saler/PartnerScoreCard.ts';
@@ -1596,6 +1597,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'growth-assistant', label: 'GrowthAssistant', group: 'AI & Intelligence', render: renderGrowthAssistantSpecimen },
     { id: 'next-step-card', label: 'NextStepCard', group: 'Guidance', render: renderNextStepCardSpecimen },
     { id: 'action-result', label: 'ActionResult', group: 'Guidance', render: renderActionResultSpecimen },
+    { id: 'setup-checklist', label: 'SetupChecklist', group: 'Guidance', render: renderSetupChecklistSpecimen },
     { id: 'commission-tier-card', label: 'CommissionTierCard', group: 'AI & Intelligence', render: renderCommissionTierCardSpecimen },
     { id: 'partner-score-card', label: 'PartnerScoreCard', group: 'AI & Intelligence', render: renderPartnerScoreCardSpecimen },
     { id: 'partner-reward-card', label: 'PartnerRewardCard', group: 'AI & Intelligence', render: renderPartnerRewardCardSpecimen },
@@ -3104,6 +3106,41 @@ function renderSupplierStoreStatusSpecimen() {
   return wrap;
 }
 
+function renderSetupChecklistSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  const ids = ['verify_phone', 'submit_kyc', 'name_store', 'add_products', 'share_store', 'first_order', 'first_withdrawal'];
+  const routes = ['/auth/otp', '/seller/kyc', '/saler/store-builder', '/saler/sourcing', '/saler/social-kit', '/saler/orders', '/saler/vault/payouts'];
+  // `done` steps are ticked; `blockedAt` marks one step as waiting on a shopper.
+  const data = (done, blockedAt = -1) => {
+    const steps = ids.map((id, i) => {
+      const blocked = i === blockedAt;
+      return {
+        id,
+        order: i + 1,
+        route: routes[i],
+        title_key: `journey.saler.${id}.title`,
+        next_key: `journey.saler.${id}.next`,
+        status: (i < done ? 'done' : blocked ? 'blocked' : 'todo') as 'done' | 'blocked' | 'todo',
+        blocked_by: blocked ? { reason: 'waiting_for_buyer', message_key: 'journey.block.waiting_for_buyer' } : null,
+      };
+    });
+    const pending = steps.filter((s) => s.status !== 'done');
+    return { enabled: true, reason: null, journey: 'saler', progress: { done, total: ids.length }, current: pending[0] || null, upcoming: pending.slice(1), steps };
+  };
+  wrap.append(
+    subgroup('Under 80% done: every step, the current one with its button (Prompt 13.4)'),
+    SetupChecklist({ data: data(2), collapsed: false }),
+    subgroup('A step waiting on a shopper: the reason, and the page to watch'),
+    SetupChecklist({ data: data(5, 5), collapsed: false }),
+    subgroup('80% or more done: folded to one line that still names the next step'),
+    SetupChecklist({ data: data(6), collapsed: true }),
+    subgroup('Everything done, re-opened from Help (?setup=1)'),
+    SetupChecklist({ data: data(7), forceOpen: true })
+  );
+  return wrap;
+}
+
 function renderActionResultSpecimen() {
   const wrap = document.createElement('div');
   wrap.className = 'gallery-section space-y-4';
@@ -3152,6 +3189,7 @@ function renderNextStepCardSpecimen() {
     progress: { done, total },
     current,
     upcoming: [],
+    steps: [],
   });
   const noop = () => {};
   const supplierBlocked = {

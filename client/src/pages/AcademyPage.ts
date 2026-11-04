@@ -14,6 +14,7 @@ import { EmptyState } from '../components/ui/EmptyState.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { toast } from '../services/toast.ts';
 import { isFeatureEnabled } from '../services/featureFlags.ts';
+import { setupChecklistLink } from '../components/guide/SetupChecklist.ts';
 import type { PageContext } from './types.ts';
 
 export default function AcademyPage(root: HTMLElement, ctx: PageContext = {}) {
@@ -60,6 +61,10 @@ export default function AcademyPage(root: HTMLElement, ctx: PageContext = {}) {
       </button>
     </div>
   `;
+  // Prompt 13.4: the academy is the shop partner's Help, where the finished setup checklist can be
+  // opened again. Guests on the public /academy get no link.
+  const reopen = setupChecklistLink();
+  if (reopen) header.querySelector('div')?.append(reopen);
   container.append(header);
 
   header.querySelectorAll<HTMLElement>('.cat-pill').forEach((pill) => {

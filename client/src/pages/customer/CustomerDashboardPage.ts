@@ -19,10 +19,10 @@ import { Button } from '../../components/ui/Button.ts';
 import { Skeleton } from '../../components/ui/Skeleton.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { BecomeSalerCta } from '../../components/customer/BecomeSalerCta.ts';
-import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
+import { mountSetupChecklist } from '../../components/guide/SetupChecklist.ts';
 import type { PageContext } from '../types.ts';
 
-export default function CustomerDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
+export default function CustomerDashboardPage(root: HTMLElement, { navigate, query = {} }: PageContext = {}) {
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {
@@ -77,10 +77,10 @@ export default function CustomerDashboardPage(root: HTMLElement, { navigate }: P
   renderHeader();
   container.append(header);
 
-  // Prompt 13.2: the one thing to do next, decided by the server.
+  // Prompt 13.4: the setup checklist (every journey step; ?setup=1 re-opens it when all are done), decided by the server.
   const guideSlot = document.createElement('div');
   container.append(guideSlot);
-  mountNextStepCard(guideSlot, { navigate: nav });
+  mountSetupChecklist(guideSlot, { forceOpen: query.setup === '1' });
 
   // Dynamic Content Slot
   const contentSlot = document.createElement('div');

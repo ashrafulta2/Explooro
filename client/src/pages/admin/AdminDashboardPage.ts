@@ -59,7 +59,7 @@ import {
   validateCustomRange,
 } from '../../services/adminDashboard.model.ts';
 import type { PageContext } from '../types.ts';
-import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
+import { mountSetupChecklist } from '../../components/guide/SetupChecklist.ts';
 
 const AUTO_REFRESH_KEY = 'explooro:admin-dashboard:auto-refresh';
 const PERM_ROLLUP = 'admin.analytics.rollup';
@@ -90,7 +90,7 @@ function iconEl(name) {
   return span;
 }
 
-export default function AdminDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
+export default function AdminDashboardPage(root: HTMLElement, { navigate, query = {} }: PageContext = {}) {
   loadAdminCockpitStyles();
   const isBn = () => getLanguage() === 'bn';
   // Picks `<field>_bn` or `<field>_en` for the active locale, falling back to the other one.
@@ -412,10 +412,10 @@ export default function AdminDashboardPage(root: HTMLElement, { navigate }: Page
     `;
     root.append(page);
 
-    // Prompt 13.2: the one thing to do next, under the header and above the alerts.
+    // Prompt 13.4: the setup checklist (every journey step; ?setup=1 re-opens it when all are done), under the header and above the alerts.
     const guideSlot = document.createElement('div');
     page.querySelector('[data-region="banner"]')?.before(guideSlot);
-    mountNextStepCard(guideSlot, { navigate });
+    mountSetupChecklist(guideSlot, { forceOpen: query.setup === '1' });
 
     const q = (sel) => page.querySelector(sel);
     els.meta = q('[data-region="meta"]');

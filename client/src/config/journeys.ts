@@ -190,6 +190,26 @@ export const JOURNEYS: JourneyStep[] = [
   step('super_admin', 8, 'first_product_live', '/admin/catalog/moderation', 'platform.product_live', { skipWhen: ['module_off'] }),
 ];
 
+/**
+ * Where each role's setup checklist lives (Prompt 13.4). `?setup=1` on it re-opens the checklist
+ * after every step is done; the Help links point here.
+ */
+export const DASHBOARD_ROUTES: Record<JourneyRole, string> = {
+  customer: '/account',
+  saler: '/saler',
+  supplier: '/supplier',
+  moderator: '/moderator',
+  editor: '/editor',
+  admin: '/admin',
+  super_admin: '/admin',
+};
+
+/**
+ * WHY 0.8 (Prompt 13.4 REQUIREMENT 2): past four steps in five the list is mostly ticks, so it folds
+ * to one line that still names the next step. A UX threshold, not a business number.
+ */
+export const CHECKLIST_COLLAPSE_AT = 0.8;
+
 /** One role's steps in order. */
 export function journeyFor(role: JourneyRole): JourneyStep[] {
   return JOURNEYS.filter((s) => s.role === role).sort((a, b) => a.order - b.order);

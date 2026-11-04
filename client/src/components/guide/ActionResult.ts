@@ -18,7 +18,7 @@
  */
 
 import { t } from '../../services/i18n.ts';
-import { fetchNextStep, type NextStepData } from '../../services/nextStep.ts';
+import { fetchNextStep, notifyJourneyChanged, type NextStepData } from '../../services/nextStep.ts';
 import { DEAD_ENDS, type DeadEnd } from '../../config/journeys.ts';
 import { loadNextStepStyles } from '../../styles/loadNextStepStyles.ts';
 
@@ -157,6 +157,7 @@ export function presentPanel(host: HTMLElement, panel: HTMLElement): HTMLElement
  */
 export async function showActionResult(host: HTMLElement, deadEndId: string): Promise<HTMLElement> {
   const deadEnd = deadEndById(deadEndId);
+  notifyJourneyChanged();
   const resolved = resolveActionResult(deadEnd, await fetchNextStep());
   const params = resolved.primary.params ? { step: t(resolved.primary.params.step) } : undefined;
   const panel = ActionResult({

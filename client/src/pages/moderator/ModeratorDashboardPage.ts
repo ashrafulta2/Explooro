@@ -16,16 +16,16 @@ import { formatDate } from '../../services/format.ts';
 import WorkloadSummary from '../../components/moderator/WorkloadSummary.ts';
 import SlaMonitor from '../../components/moderator/SlaMonitor.ts';
 import { openGrantDrawer } from '../../components/admin/GrantDrawer.ts';
-import { mountNextStepCard } from '../../components/guide/NextStepCard.ts';
+import { mountSetupChecklist } from '../../components/guide/SetupChecklist.ts';
 import type { PageContext } from '../types.ts';
 
-export default function ModeratorDashboardPage(root: HTMLElement, { navigate }: PageContext = {}) {
+export default function ModeratorDashboardPage(root: HTMLElement, { navigate, query = {} }: PageContext = {}) {
   const container = document.createElement('div');
   container.className = 'moderator-dashboard-page';
-  // Prompt 13.2: the one thing to do next. WHY outside render(): render() rewrites the container,
+  // Prompt 13.4: the setup checklist (every journey step; ?setup=1 re-opens it when all are done). WHY outside render(): render() rewrites the container,
   // so the slot is kept here and put back under the header each time.
   const guideSlot = document.createElement('div');
-  mountNextStepCard(guideSlot, { navigate });
+  mountSetupChecklist(guideSlot, { forceOpen: query.setup === '1' });
   container.style.cssText = `
     max-width: 1280px;
     margin: 0 auto;
