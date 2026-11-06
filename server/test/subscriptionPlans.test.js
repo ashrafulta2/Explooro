@@ -108,7 +108,7 @@ describe('parseWaiverDuration', () => {
 
 describe('slugifyCode', () => {
   test('makes a stable ASCII code, with a fallback for names with no ASCII letters', () => {
-    assert.equal(slugifyCode('Explooro Partner Pro!'), 'shop_partner_pro');
+    assert.equal(slugifyCode('Explooro Partner Pro!'), 'explooro_partner_pro');
     assert.equal(slugifyCode('শপ পার্টনার প্রো'), 'plan');
   });
 });
