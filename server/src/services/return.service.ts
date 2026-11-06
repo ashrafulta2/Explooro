@@ -61,7 +61,7 @@ function generateReturnRef() {
   return `RET-${code}`;
 }
 
-async function getReturnWindowDays(db, cache) {
+export async function getReturnWindowDays(db, cache) {
   try {
     if (moduleRepo && typeof moduleRepo.getModuleByKey === 'function') {
       const mod = await moduleRepo.getModuleByKey(db, 'returns_engine');

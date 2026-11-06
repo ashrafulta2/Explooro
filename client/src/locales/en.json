@@ -732,7 +732,8 @@
       "delivery": "Delivery charge",
       "variant_options": "Variant Options",
       "operations": "Manual operations",
-      "guided_experience": "Guided Experience"
+      "guided_experience": "Guided Experience",
+      "legal": "Legal Documents"
     },
     "moderator": {
       "queue": "Product Moderation",
@@ -937,7 +938,10 @@
       "terms": "I agree to the Terms of Service and Privacy Policy",
       "submit": "Create Account & Verify OTP",
       "has_account": "Already have an account?",
-      "login_link": "Sign In"
+      "login_link": "Sign In",
+      "accept_legal": "I agree to the {{terms}} and the {{privacy}}.",
+      "accept_legal_partner": "I agree to the {{terms}}, the {{privacy}} and the {{partner}}.",
+      "accept_legal_required": "Please tick the box to agree to the terms before you sign up."
     },
     "otp": {
       "title": "Verify Identity",
@@ -5950,6 +5954,82 @@
         "courier_manual": "Suppliers record the courier and mark delivery",
         "courier_integrated": "Booked and tracked through the courier API"
       }
+    },
+    "legal": {
+      "title": "Legal Documents",
+      "subtitle": "The terms, privacy policy, refund policy and partner agreement every visitor can read, and who has agreed to them.",
+      "doc": {
+        "terms": "Terms of Use",
+        "privacy": "Privacy Policy",
+        "refund": "Refund & Return Policy",
+        "partner_agreement": "Explooro Partner Agreement"
+      },
+      "role": {
+        "saler": "Explooro partners",
+        "supplier": "Suppliers",
+        "customer": "Customers"
+      },
+      "reason": "Reason for this change",
+      "reason_hint": "At least {{min}} characters. Saved in the audit log.",
+      "missing_title": "Company details are missing",
+      "missing_desc": "The documents show \"—\" where these belong: {{fields}}. Fill them in before launch.",
+      "company_title": "Company details",
+      "company_desc": "The name, licence, address and contact the documents show. Changing them updates every document at once and does not ask anyone to agree again.",
+      "company": {
+        "legal_name": "Registered company name",
+        "legal_name_hint": "As on the trade licence, for example \"Explooro Limited\".",
+        "trade_license": "Trade licence number",
+        "trade_license_hint": "Shown in the Terms of Use.",
+        "address_en": "Address (English)",
+        "address_en_hint": "The registered office address.",
+        "address_bn": "Address (Bangla)",
+        "address_bn_hint": "Optional. The Bangla documents use the English address when this is empty.",
+        "support_email": "Support email",
+        "support_email_hint": "Where people send privacy and account requests.",
+        "support_phone": "Support phone",
+        "support_phone_hint": "For example +8801XXXXXXXXX."
+      },
+      "company_save": "Save company details",
+      "saved": "Saved.",
+      "super_admin_only": "Only a super admin can change the documents or the company details.",
+      "audience_all": "Everyone agrees",
+      "audience_roles": "Agreed by: {{roles}}",
+      "audience_none": "Read only, nobody signs it",
+      "current": "Current version {{version}}",
+      "none_yet": "Not published yet",
+      "view": "View",
+      "new_version": "Publish a new version",
+      "col_version": "Version",
+      "col_published": "Published",
+      "col_reaccept": "Everyone asked again",
+      "col_note": "What changed",
+      "col_accepted": "Agreed",
+      "reaccept_yes": "Yes",
+      "reaccept_no": "No",
+      "title_en": "Title (English)",
+      "title_bn": "Title (Bangla)",
+      "body_en": "Text (English)",
+      "body_bn": "Text (Bangla)",
+      "body_hint": "\"## \" starts a heading, \"- \" a list item, **text** is bold. Placeholders such as company.legal_name, company.address, company.support_email, company.support_phone, company.trade_license and returns.window_days, written inside double curly braces, are filled in for readers.",
+      "note_en": "What changed (English)",
+      "note_bn": "What changed (Bangla)",
+      "note_hint": "One or two sentences. People asked to agree again read this first.",
+      "reaccept_label": "Everyone must agree to this version again",
+      "reaccept_hint": "Tick it for a change in what people agree to. Leave it for a typo or wording fix.",
+      "publish_btn": "Publish version {{version}}",
+      "confirm_title": "Publish {{doc}} version {{version}}?",
+      "confirm_reaccept": "Everyone it applies to will be asked to read and agree before they carry on. A published version can never be edited.",
+      "confirm_no_reaccept": "Readers will see the new text. Nobody is asked to agree again. A published version can never be edited.",
+      "publish_confirm": "Publish",
+      "published": "Published.",
+      "history_title": "Change history",
+      "history_publish": "Published {{ref}}",
+      "history_company": "Changed the company details",
+      "history_empty": "Nothing has been changed yet.",
+      "col_when": "When",
+      "col_who": "Who",
+      "col_change": "Change",
+      "col_reason": "Reason"
     }
   },
   "admin_catalog": {
@@ -8791,6 +8871,36 @@
       "editor": "Editor",
       "admin": "Admin",
       "super_admin": "Super Admin"
+    }
+  },
+  "legal": {
+    "link": {
+      "terms": "Terms of Use",
+      "privacy": "Privacy Policy",
+      "refund": "Refund & Return Policy",
+      "partner_agreement": "Explooro Partner Agreement"
+    },
+    "other_documents": "Other documents",
+    "meta": "Version {{version}} · In effect from {{date}}",
+    "old_version": "You are reading version {{version}}, which has been replaced.",
+    "read_current": "Read the current version ({{version}})",
+    "version_label": "Version",
+    "version_option": "Version {{version}} · {{date}}",
+    "contents": "Contents",
+    "not_found": "This document does not exist.",
+    "load_failed": "The document could not be loaded. Please try again.",
+    "footer_label": "Legal",
+    "footer_copyright": "© {{year}} Explooro",
+    "accept": {
+      "title": "Please read and agree",
+      "intro_first": "Before you carry on, please read and agree to these documents. Each opens in a new tab.",
+      "intro_update": "We have updated these documents. Please read what changed and agree to carry on. Each opens in a new tab.",
+      "version": "version {{version}}",
+      "what_changed": "What changed: {{note}}",
+      "checkbox": "I have read and agree to the documents above.",
+      "agree": "Agree and continue",
+      "sign_out": "Sign out",
+      "thanks": "Thank you. You can carry on."
     }
   }
 }

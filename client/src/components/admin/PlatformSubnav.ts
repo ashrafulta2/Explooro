@@ -13,6 +13,7 @@
  * 7. Popup Genie Effect (/admin/platform/genie)
  * 7b. Delivery Charge (/admin/platform/delivery)
  * 7c. Manual Operations (/admin/platform/operations)
+ * 7d. Legal Documents (/admin/platform/legal)
  * 8. Personalized Feed (/admin/platform/recommendations)
  * 9. Guided Experience (/admin/platform/guided-experience)
  */
@@ -35,6 +36,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null }: 
     { key: 'genie', label: isBn ? 'পপআপ ইফেক্ট' : 'Popup Effect', href: '/admin/platform/genie', icon: '✨' },
     { key: 'delivery', label: isBn ? 'ডেলিভারি চার্জ' : 'Delivery Charge', href: '/admin/platform/delivery', icon: '🚚' },
     { key: 'operations', label: isBn ? 'ম্যানুয়াল অপারেশন' : 'Manual Operations', href: '/admin/platform/operations', icon: '🧾' },
+    { key: 'legal', label: isBn ? 'আইনি নথি' : 'Legal Documents', href: '/admin/platform/legal', icon: '📜' },
     { key: 'recommendations', label: isBn ? 'পার্সোনালাইজড ফিড' : 'Personalized Feed', href: '/admin/platform/recommendations', icon: '🎯' },
     { key: 'guidance', label: isBn ? 'নির্দেশনার ফলাফল' : 'Guided Experience', href: '/admin/platform/guided-experience', icon: '🧭' },
   ];

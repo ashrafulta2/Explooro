@@ -176,8 +176,11 @@ export async function getStaticSitemap(req, reply) {
     { path: '/stories', changefreq: 'daily', priority: '0.7' },
     { path: '/reels', changefreq: 'daily', priority: '0.7' },
     { path: '/about', changefreq: 'monthly', priority: '0.5' },
-    { path: '/terms', changefreq: 'yearly', priority: '0.3' },
-    { path: '/privacy', changefreq: 'yearly', priority: '0.3' },
+    // The legal documents (migration 104): pages/LegalPage.ts at /legal/:doc.
+    { path: '/legal/terms', changefreq: 'yearly', priority: '0.3' },
+    { path: '/legal/privacy', changefreq: 'yearly', priority: '0.3' },
+    { path: '/legal/refund', changefreq: 'yearly', priority: '0.3' },
+    { path: '/legal/partner-agreement', changefreq: 'yearly', priority: '0.3' },
   ];
 
   const entries = staticRoutes.map((r) =>
@@ -206,8 +209,7 @@ Allow: /stories
 Allow: /stories/
 Allow: /reels
 Allow: /about
-Allow: /terms
-Allow: /privacy
+Allow: /legal/
 Allow: /s/
 Allow: /widget.js
 

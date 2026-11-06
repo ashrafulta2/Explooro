@@ -40,6 +40,8 @@ import { Pagination } from '../../components/ui/Pagination.ts';
 import { Tooltip } from '../../components/ui/Tooltip.ts';
 import { InfoTip } from '../../components/ui/InfoTip.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
+import { SiteFooter } from '../../components/shell/SiteFooter.ts';
+import { LegalAcceptModal } from '../../components/legal/LegalAcceptModal.ts';
 import { toast } from '../../services/toast.ts';
 import { ImageUploader } from '../../components/media/ImageUploader.ts';
 import { openMediaLibrary } from '../../components/media/MediaLibrary.ts';
@@ -1553,6 +1555,9 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'community-post-composer', label: 'PostComposer (/community)', group: 'Communication', render: renderCommunityComposerSpecimen },
     { id: 'community-media-picker', label: 'MediaPicker (/community)', group: 'Communication', render: renderCommunityMediaPickerSpecimen },
     { id: 'whats-new-modal', label: 'WhatsNewModal', group: 'Communication', render: renderWhatsNewSpecimen },
+    // Prompt 12.6 req 7 — legal documents (migration 104)
+    { id: 'site-footer', label: 'SiteFooter', group: 'Communication', render: renderSiteFooterSpecimen },
+    { id: 'legal-accept-modal', label: 'LegalAcceptModal', group: 'Communication', render: renderLegalAcceptSpecimen },
     // Prompt 8.3 — WhatsApp & Messenger Unified Inbox
     { id: 'unified-inbox', label: 'UnifiedInbox', group: 'Communication', render: renderUnifiedInboxSpecimen },
     // Prompt 8.4 — Real-Time Chat Interface
@@ -1944,6 +1949,38 @@ function renderWhatsNewSpecimen() {
   `;
 
   wrap.append(specimen("what's new card preview", previewBox));
+  return wrap;
+}
+
+function renderSiteFooterSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Site footer: legal links on shopper pages (Prompt 12.6)'));
+  const box = document.createElement('div');
+  box.className = 'card';
+  box.append(SiteFooter({ year: 2026 }));
+  wrap.append(specimen('footer', box));
+  return wrap;
+}
+
+function renderLegalAcceptSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Agree to new or updated legal documents (Prompt 12.6)'));
+  const sample = [
+    { document_id: 1, key: 'terms', path: '/legal/terms', version: 2, title_en: 'Terms of Use', title_bn: 'ব্যবহারের শর্তাবলি', change_note_en: 'Cash on delivery may need a small advance.', change_note_bn: 'ক্যাশ অন ডেলিভারিতে অল্প অগ্রিম লাগতে পারে।', published_at: new Date().toISOString() },
+    { document_id: 2, key: 'privacy', path: '/legal/privacy', version: 1, title_en: 'Privacy Policy', title_bn: 'গোপনীয়তা নীতি', change_note_en: null, change_note_bn: null, published_at: new Date().toISOString() },
+  ];
+  const open = Button({
+    label: 'Open the dialog',
+    variant: 'secondary',
+    size: 'sm',
+    onClick: () => {
+      // Stubbed calls: the gallery never records an agreement or signs anyone out.
+      LegalAcceptModal(sample, { acceptFn: async () => [], logoutFn: async () => {}, onSignedOut: () => {} }).openModal();
+    },
+  });
+  wrap.append(specimen('not dismissible; the box gates the button', open));
   return wrap;
 }
 

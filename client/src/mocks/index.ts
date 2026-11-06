@@ -28,6 +28,7 @@ import salerHandlers from './handlers/saler.ts';
 import adminHandlers from './handlers/admin.ts';
 import moduleHandlers from './handlers/modules.ts';
 import pageAccessHandlers from './handlers/pageAccess.ts';
+import legalHandlers from './handlers/legal.ts';
 import vaultHandlers from './handlers/vault.ts';
 import liveHandlers from './handlers/live.ts';
 import warrantyHandlers from './handlers/warranty.ts';
@@ -86,6 +87,7 @@ const handlers: (Omit<MockRoute, 'method'> & { method: string })[] = [
   ...adminHandlers,
   ...moduleHandlers,
   ...pageAccessHandlers,
+  ...legalHandlers,
   ...vaultHandlers,
   ...liveHandlers,
   ...warrantyHandlers,

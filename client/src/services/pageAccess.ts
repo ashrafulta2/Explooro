@@ -62,7 +62,9 @@ export interface AccessContext {
  * server/src/services/pageAccess.service.ts — the test asserts both lists match, because a path
  * the API accepts but the client refuses (or the reverse) is a lockout waiting to happen.
  */
-export const LOCKED_PATHS = Object.freeze(['/', '/login', '/admin/platform/pages']);
+// WHY /legal/:doc: hiding the terms or the privacy policy would leave the platform taking orders
+// and signing people up with no published terms.
+export const LOCKED_PATHS = Object.freeze(['/', '/login', '/admin/platform/pages', '/legal/:doc']);
 
 /** `{ [route_path]: { state, allowed_roles: [], allowed_user_ids: [] } }` */
 let toggles: Record<string, PageToggle> = {};

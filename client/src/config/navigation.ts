@@ -181,6 +181,7 @@ export const navItems: NavItemDef[] = [
   { key: 'admin.platform.genie', label_i18n_key: 'nav.admin.genie', icon: null, path: '/admin/platform/genie', group: 'admin.platform', permission: 'platform.genie.view', module: 'core', roles: ['super_admin', 'admin'], order: 8 },
   { key: 'admin.platform.delivery', label_i18n_key: 'nav.admin.delivery', icon: null, path: '/admin/platform/delivery', group: 'admin.platform', permission: 'platform.delivery.view', module: 'core', roles: ['super_admin', 'admin'], order: 9 },
   { key: 'admin.platform.operations', label_i18n_key: 'nav.admin.operations', icon: null, path: '/admin/platform/operations', group: 'admin.platform', permission: 'platform.operations.view', module: 'core', roles: ['super_admin', 'admin'], order: 9.5 },
+  { key: 'admin.platform.legal', label_i18n_key: 'nav.admin.legal', icon: null, path: '/admin/platform/legal', group: 'admin.platform', permission: 'platform.legal.view', module: 'core', roles: ['super_admin', 'admin'], order: 9.7 },
   { key: 'admin.platform.recommendations', label_i18n_key: 'nav.admin.recommendations', icon: null, path: '/admin/platform/recommendations', group: 'admin.platform', permission: 'platform.recommendation.view', module: 'core', roles: ['super_admin', 'admin'], order: 10 },
   { key: 'admin.platform.guided_experience', label_i18n_key: 'nav.admin.guided_experience', icon: null, path: '/admin/platform/guided-experience', group: 'admin.platform', permission: 'platform.guidance.view', module: 'core', roles: ['super_admin', 'admin'], order: 11 },
 

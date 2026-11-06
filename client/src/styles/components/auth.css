@@ -37,3 +37,8 @@
 .auth-footer a:hover { text-decoration: underline; color: var(--brand-hover); }
 .auth-extra-row { display: flex; align-items: center; justify-content: space-between; font-size: var(--text-sm); }
 .auth-2fa-secret { background: var(--surface-2); padding: var(--space-3); border-radius: var(--radius-md); font-family: inherit; font-variant-numeric: tabular-nums; font-size: var(--text-sm); text-align: center; letter-spacing: 2px; user-select: all; border: 1px dashed var(--border-subtle); color: var(--text-primary); }
+
+/* Sign-up agreement box (RegisterPage): checkbox beside a sentence with links. */
+.auth-legal { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-sm); color: var(--text-secondary); }
+.auth-legal__box { margin-top: 3px; flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--brand); }
+.auth-legal__label a { color: var(--text-brand); font-weight: 600; }

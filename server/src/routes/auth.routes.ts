@@ -32,6 +32,8 @@ export default async function authRoutes(app) {
           // Kept only when role is supplier (auth.service registerUser).
           supplier_type: { type: 'string', enum: SUPPLIER_TYPES, nullable: true },
           referral_code: { type: 'string', minLength: 3, maxLength: 60, nullable: true },
+          // The sign-up form's "I agree to the Terms and Privacy Policy" box (services/legal.service.ts).
+          accept_legal: { type: 'boolean', nullable: true },
         },
         anyOf: [{ required: ['phone'] }, { required: ['email'] }],
       },

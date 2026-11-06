@@ -215,7 +215,7 @@ export async function verifyOtp({ phone, email, otp, purpose = 'LOGIN' }: { phon
 /**
  * Registers a new user account with phone or email.
  */
-export async function register({ phone, email, role, supplierType, password, name, referralCode }: { phone?: string; email?: string; role?: string; supplierType?: string; password: string; name?: string; referralCode?: string }) {
+export async function register({ phone, email, role, supplierType, password, name, referralCode, acceptLegal }: { phone?: string; email?: string; role?: string; supplierType?: string; password: string; name?: string; referralCode?: string; acceptLegal?: boolean }) {
   return api.post('/auth/register', {
     phone: phone || undefined,
     email: email || undefined,
@@ -224,6 +224,7 @@ export async function register({ phone, email, role, supplierType, password, nam
     password,
     full_name: name || undefined,
     referral_code: referralCode || undefined,
+    accept_legal: acceptLegal === true ? true : undefined,
   });
 }
 

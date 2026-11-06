@@ -9,8 +9,7 @@ Allow: /stories
 Allow: /stories/
 Allow: /reels
 Allow: /about
-Allow: /terms
-Allow: /privacy
+Allow: /legal/
 Allow: /s/
 Allow: /widget.js
 

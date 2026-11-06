@@ -10,6 +10,7 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
+import { LEGAL_DOCS } from '../../config/legal.ts';
 import type { PageContext } from '../types.ts';
 
 export default function RegisterPage(container: HTMLElement, { query = {}, params = {}, navigate }: PageContext) {
@@ -110,6 +111,7 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
         c.dataset.selected = roles[idx].key === selectedRole ? 'true' : 'false';
       });
       updateSupplierTypeUi();
+      renderLegalLabel();
     });
 
     return cardEl;
@@ -296,6 +298,43 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
   passwordWrap.append(passwordInput, togglePasswordBtn);
   passwordField.append(passwordLabel, passwordWrap);
 
+  // Agreement to the terms and privacy policy (and, for an Explooro partner, the partner agreement).
+  // WHY never pre-ticked and checked before submit: an agreement must be the person's own act. The
+  // server records it at sign-up (legal.service acceptAtSignup); each document opens in a new tab so
+  // the half-filled form is not lost.
+  const legalField = document.createElement('div');
+  legalField.className = 'auth-legal';
+  const legalBox = document.createElement('input');
+  legalBox.type = 'checkbox';
+  legalBox.id = 'register-accept-legal';
+  legalBox.className = 'auth-legal__box';
+  legalBox.required = true;
+  const legalLabel = document.createElement('label');
+  legalLabel.htmlFor = 'register-accept-legal';
+  legalLabel.className = 'auth-legal__label';
+  legalField.append(legalBox, legalLabel);
+
+  function legalLink(key) {
+    const doc = LEGAL_DOCS.find((d) => d.key === key);
+    const a = document.createElement('a');
+    a.href = doc.path;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.textContent = t(doc.labelKey);
+    return a;
+  }
+
+  /** Fills "{{terms}}"-style slots in the sentence with links. */
+  function renderLegalLabel() {
+    const sentence = t(selectedRole === 'saler' ? 'auth.register.accept_legal_partner' : 'auth.register.accept_legal');
+    const slots = { terms: 'terms', privacy: 'privacy', partner: 'partner_agreement' };
+    legalLabel.replaceChildren(...sentence.split(/(\{\{\w+\}\})/).filter(Boolean).map((part) => {
+      const m = part.match(/^\{\{(\w+)\}\}$/);
+      return m && slots[m[1]] ? legalLink(slots[m[1]]) : document.createTextNode(part);
+    }));
+  }
+  renderLegalLabel();
+
   const errorDiv = document.createElement('div');
   errorDiv.className = 'text-sm text-danger';
   errorDiv.style.display = 'none';
@@ -309,6 +348,12 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorDiv.style.display = 'none';
+    if (!legalBox.checked) {
+      errorDiv.textContent = t('auth.register.accept_legal_required');
+      errorDiv.style.display = 'block';
+      legalBox.focus();
+      return;
+    }
     submitBtn.setLoading(true);
 
     const phone = regMode === 'phone' ? phoneInput.value.trim() : null;
@@ -325,6 +370,7 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
         name,
         password,
         referralCode: referralInput.value.trim() || undefined,
+        acceptLegal: true,
       });
 
       // Send OTP code to verify the chosen contact method
@@ -349,7 +395,7 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
     }
   });
 
-  form.append(roleSection, supplierTypeField, phoneField, emailField, nameField, passwordField, referralField, errorDiv, submitBtn);
+  form.append(roleSection, supplierTypeField, phoneField, emailField, nameField, passwordField, referralField, legalField, errorDiv, submitBtn);
 
   // Footer / Login link
   const footer = document.createElement('div');

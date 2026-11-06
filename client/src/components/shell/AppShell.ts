@@ -21,6 +21,7 @@ import { toast } from '../../services/toast.ts';
 import { Sidebar } from './Sidebar.ts';
 import { TopBar, formatRemaining } from './TopBar.ts';
 import { MobileNav } from './MobileNav.ts';
+import { SiteFooter, showSiteFooter } from './SiteFooter.ts';
 import { createCommandPalette } from './CommandPalette.ts';
 import { CHEVRON_LEFT_SVG, bindBackControl } from '../../core/navBack.ts';
 import { initCart, setCartNavigator } from '../../services/cart.ts';
@@ -56,7 +57,12 @@ export function createAppShell({ container, navigate }: { container: HTMLElement
   const mobileNavSlot = document.createElement('div');
   mobileNavSlot.className = 'app-shell__mobilenav-slot';
 
-  shellEl.append(sidebarSlot, topbarSlot, pageOutlet, mobileNavSlot);
+  // A sibling of the page outlet, not inside it: core/router.ts empties the outlet on every
+  // navigation, so a footer in there would vanish with each page.
+  const footerSlot = document.createElement('footer');
+  footerSlot.className = 'app-shell__footer-slot';
+
+  shellEl.append(sidebarSlot, topbarSlot, pageOutlet, footerSlot, mobileNavSlot);
   container.append(shellEl);
 
   function currentCtx() {
@@ -180,8 +186,15 @@ export function createAppShell({ container, navigate }: { container: HTMLElement
     syncBackButton();
   }
 
+  function renderFooter() {
+    const show = showSiteFooter(window.location.pathname);
+    footerSlot.hidden = !show;
+    footerSlot.replaceChildren(...(show ? [SiteFooter({ navigate })] : []));
+  }
+
   function render() {
     const s = appStore.get();
+    renderFooter();
     if (!s.auth.isAuthenticated || !s.auth.role) {
       renderBackBar(null);
       sidebarSlot.replaceChildren();

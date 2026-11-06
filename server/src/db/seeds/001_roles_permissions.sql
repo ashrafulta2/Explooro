@@ -1,7 +1,7 @@
 -- 001_roles_permissions.sql (Prompt 2.2)
 -- GENERATED — do not hand-edit. Regenerate with:
 --   node scripts/generate-role-permission-seed.mjs
--- Source: docs/permission-catalog.json v1 (216 permissions, 7 roles).
+-- Source: docs/permission-catalog.json v1 (219 permissions, 7 roles).
 -- Idempotent: every INSERT is ON CONFLICT DO NOTHING, safe to re-run.
 
 INSERT INTO roles (key, label_en, label_bn, level, is_system) VALUES
@@ -79,6 +79,8 @@ INSERT INTO permissions (key, domain, label_en, label_bn, plain_en, plain_bn, ri
   ('platform.delivery.update', 'platform', 'Change the delivery charge', 'ডেলিভারি চার্জ পরিবর্তন', 'change the delivery charge every shopper pays per parcel at checkout', 'চেকআউটে প্রত্যেক ক্রেতা প্রতি পার্সেলে যে ডেলিভারি চার্জ দেন তা বদলাতে', 'CRITICAL', false, 'approve_before'),
   ('platform.operations.view', 'platform', 'View manual operations mode', 'ম্যানুয়াল অপারেশন মোড দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.operations.update', 'platform', 'Switch payouts and couriers between manual and automatic', 'পেআউট ও কুরিয়ার ম্যানুয়াল/স্বয়ংক্রিয় করা', 'decide whether withdrawals are sent by hand or by the bKash gateway, and whether parcels are booked by hand or through a courier API', 'উইথড্র হাতে পাঠানো হবে নাকি বিকাশ গেটওয়ে দিয়ে, আর পার্সেল হাতে বুক হবে নাকি কুরিয়ার API দিয়ে, তা ঠিক করতে', 'CRITICAL', false, 'approve_before'),
+  ('platform.legal.view', 'platform', 'View the legal documents', 'আইনি নথি দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
+  ('platform.legal.publish', 'platform', 'Publish legal documents and company details', 'আইনি নথি ও কোম্পানির তথ্য প্রকাশ', 'publish a new version of the terms, privacy policy, refund policy or partner agreement, which can ask every user to agree again, and change the company details they show', 'শর্তাবলি, গোপনীয়তা নীতি, রিফান্ড নীতি বা পার্টনার চুক্তির নতুন সংস্করণ প্রকাশ করতে, যাতে সব ব্যবহারকারীকে আবার সম্মতি দিতে বলা হতে পারে, এবং সেগুলোতে দেখানো কোম্পানির তথ্য বদলাতে', 'CRITICAL', false, 'approve_before'),
   ('platform.recommendation.view', 'platform', 'View personalized feed settings', 'পার্সোনালাইজড ফিড সেটিংস দেখা', NULL, NULL, 'LOW', true, 'approve_before'),
   ('platform.recommendation.update', 'platform', 'Tune the personalized feed', 'পার্সোনালাইজড ফিড টিউন করা', 'change how products are ranked and which rails appear on the home page for every shopper', 'সব ক্রেতার জন্য পণ্য কীভাবে সাজানো হবে এবং হোম পেজে কোন কোন রেল দেখা যাবে তা বদলাতে', 'MEDIUM', true, 'approve_before'),
   ('platform.integration.view', 'platform', 'View integrations', 'ইন্টিগ্রেশন দেখা', 'see which payment and courier integrations are connected', 'কোন পেমেন্ট ও কুরিয়ার ইন্টিগ্রেশন যুক্ত আছে তা দেখতে', 'MEDIUM', true, 'approve_before'),
@@ -349,6 +351,9 @@ FROM (VALUES
   ('admin', 'platform.operations.view'),
   ('super_admin', 'platform.operations.view'),
   ('super_admin', 'platform.operations.update'),
+  ('admin', 'platform.legal.view'),
+  ('super_admin', 'platform.legal.view'),
+  ('super_admin', 'platform.legal.publish'),
   ('admin', 'platform.recommendation.view'),
   ('super_admin', 'platform.recommendation.view'),
   ('super_admin', 'platform.recommendation.update'),

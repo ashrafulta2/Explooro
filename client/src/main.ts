@@ -125,11 +125,26 @@ async function bootRouterDemo() {
   // Prompt 8.2 req. 7: show the latest release note once per version. Never awaited and loaded
   // lazily so it cannot delay the first route or grow the entry bundle; guests have no
   // notifications to read, and a failed call is swallowed inside the modal module.
+  // Prompt 12.6 req 7: an account with terms, privacy or partner agreement still to agree to is asked
+  // first. WHY What's New waits: two dialogs at once would stack, and agreeing comes first.
+  const showWhatsNew = () => {
+    import('./components/notifications/WhatsNewModal.ts').then((m) => m.checkAndShowWhatsNew()).catch(() => {});
+  };
+  const promptLegal = (onAccepted = null) => import('./components/legal/LegalAcceptModal.ts')
+    .then((m) => m.checkAndPromptLegal({ onAccepted }))
+    .catch(() => false);
   if (isUserAuthenticated()) {
     setTimeout(() => {
-      import('./components/notifications/WhatsNewModal.ts').then((m) => m.checkAndShowWhatsNew()).catch(() => {});
+      promptLegal(showWhatsNew).then((shown) => { if (!shown) showWhatsNew(); });
     }, 2500);
   }
+  // Signing in without a reload (login, OTP, sign-up) must ask too, not wait for the next visit.
+  let wasAuthenticated = isUserAuthenticated();
+  appStore.subscribe((s) => {
+    const now = Boolean(s.auth?.isAuthenticated);
+    if (now && !wasAuthenticated) setTimeout(() => { promptLegal(); }, 800);
+    wasAuthenticated = now;
+  });
 
   // Prompt 3.2: Bootstrap live feature flags
   await initFeatureFlags();
@@ -169,6 +184,8 @@ async function bootRouterDemo() {
       { path: '/product/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.ts') },
       { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.ts') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
+      // The legal documents (migration 104). Public, `core`, and locked LIVE in page availability.
+      { path: '/legal/:doc', title: 'Legal — Explooro', permission: null, module: 'core', load: () => import('./pages/LegalPage.ts') },
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.ts') },
       // A Explooro partner's tracked short link: counts the click, remembers the partner, then opens the target.
       { path: '/s/:code', title: 'Explooro', permission: null, module: 'social_seller_kit', load: () => import('./pages/ShortLinkPage.ts') },
@@ -446,6 +463,15 @@ async function bootRouterDemo() {
         permission: 'platform.operations.view',
         module: 'core',
         load: () => import('./pages/admin/OperationsModePage.ts'),
+      },
+      // Terms, privacy, refund policy and partner agreement: versions and company details (migration 104)
+      {
+        path: '/admin/platform/legal',
+        title: 'Legal Documents — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.legal.view',
+        module: 'core',
+        load: () => import('./pages/admin/LegalDocumentsPage.ts'),
       },
       // Personalized home feed governance (Phase G): weights, rails, diversity, co-visitation, cache and
       // the per-surface funnel. `core` for the same reason as Genie: the weights also govern the

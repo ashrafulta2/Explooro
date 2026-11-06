@@ -12,6 +12,7 @@ import { randomBytes, timingSafeEqual, createHash } from 'node:crypto';
 import * as authService from '../services/auth.service.ts';
 import * as otpService from '../services/otp.service.ts';
 import * as referralService from '../services/referral.service.ts';
+import * as legalService from '../services/legal.service.ts';
 import {
   markPhoneVerified,
   markEmailVerified,
@@ -86,8 +87,24 @@ export async function register(req, reply) {
     role,
     supplier_type: supplierType,
     referral_code: referralCode,
+    accept_legal: acceptLegal,
   } = req.body;
   const user = await authService.registerUser(db, { phone, email, password, fullName, role, supplierType });
+
+  // The sign-up form's "I agree" box. WHY best-effort: a failed write must never cost someone their
+  // account; without a row they are simply asked to agree on their first visit (legal.service).
+  if (acceptLegal === true) {
+    try {
+      await legalService.acceptAtSignup(db, {
+        userId: user.id,
+        roles: [role || 'customer'],
+        ip: req.ip ?? null,
+        userAgent: req.headers?.['user-agent'] ?? null,
+      });
+    } catch (err) {
+      req.log.warn({ err, userRef: user.ref }, 'legal acceptance at sign-up failed');
+    }
+  }
 
   // WHY best-effort: a bad, expired or fraud-flagged code must never cost someone their account.
   // The refusal is recorded by the engine (FRAUD_FLAGGED row) and the signup carries on.

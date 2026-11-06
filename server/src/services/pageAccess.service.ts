@@ -34,7 +34,9 @@ export const PAGE_STATES = Object.freeze(['LIVE', 'COMING_SOON', 'HIDDEN', 'LIMI
  * client/src/services/pageAccess.ts — the test asserts both lists match, because a path one side
  * refuses and the other accepts is a lockout waiting to happen.
  */
-export const LOCKED_PATHS = Object.freeze(['/', '/login', '/admin/platform/pages']);
+// WHY /legal/:doc: hiding the terms or the privacy policy would leave the platform taking orders
+// and signing people up with no published terms.
+export const LOCKED_PATHS = Object.freeze(['/', '/login', '/admin/platform/pages', '/legal/:doc']);
 
 const CACHE_KEY = 'page-access:parked';
 const CACHE_TTL_SECONDS = 60;

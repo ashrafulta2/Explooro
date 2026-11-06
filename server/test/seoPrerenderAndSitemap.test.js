@@ -215,7 +215,7 @@ describe('Prompt 11.5 — SEO, Prerendering, Structured Data & Dynamic Sitemaps'
     // 4. GET /sitemaps/static.xml
     const resStatic = await app.inject({ method: 'GET', url: '/sitemaps/static.xml' });
     assert.equal(resStatic.statusCode, 200);
-    assert.ok(resStatic.body.includes('https://explooro.com/terms'));
+    assert.ok(resStatic.body.includes('https://explooro.com/legal/terms'));
 
     await app.close();
   });
