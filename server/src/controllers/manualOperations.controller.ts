@@ -4,6 +4,7 @@
 
 import * as manualOps from '../services/manualOperations.service.ts';
 import * as reversePickups from '../services/reversePickup.service.ts';
+import * as returnShipping from '../services/returnShipping.service.ts';
 import * as auditService from '../services/audit.service.ts';
 import * as auditRepo from '../repositories/audit.repository.ts';
 
@@ -15,6 +16,7 @@ export async function getAdminModes(req, reply) {
   const db = dbOf(req);
   const modes = await manualOps.getModes(db, cacheOf(req));
   const returnAddress = await reversePickups.getReturnAddress(db);
+  const returnShippingPolicy = await returnShipping.getPolicy(db);
 
   let history = [];
   try {
@@ -40,6 +42,10 @@ export async function getAdminModes(req, reply) {
     return_address: returnAddress,
     return_address_missing: reversePickups.missingReturnAddressFields(returnAddress),
     return_address_history: returnAddressHistory,
+    // Who pays to send a return back (migration 106); the bounds come with it so the form offers
+    // only what the server accepts.
+    return_shipping: returnShippingPolicy,
+    return_shipping_options: { reasons: returnShipping.REASON_CODES, limits: returnShipping.POLICY_LIMITS },
     can_update: Boolean(req.userPermissions?.has?.('platform.operations.update')),
   });
 }
@@ -77,6 +83,23 @@ export async function updateReturnAddress(req, reply) {
     return_address_missing: reversePickups.missingReturnAddressFields(saved),
     message_en: 'Returns address saved. Couriers take returned products there from now on.',
     message_bn: 'ফেরতের ঠিকানা সংরক্ষিত হয়েছে। এখন থেকে কুরিয়ার ফেরত পণ্য সেখানে নেবে।',
+  });
+}
+
+export async function updateReturnShipping(req, reply) {
+  const { reason, base_updated_at: baseUpdatedAt, ...policy } = req.body || {};
+  const saved = await returnShipping.updatePolicy(dbOf(req), auditService, {
+    policy,
+    reason,
+    baseUpdatedAt,
+    userId: req.user?.id ?? null,
+    actorRole: roleOf(req),
+    reqContext: { traceId: req.traceId, ip: req.ip, userAgent: req.headers?.['user-agent'] },
+  });
+  return reply.send({
+    return_shipping: saved,
+    message_en: 'Return shipping rules saved. They apply to returns refunded from now on.',
+    message_bn: 'ফেরত পাঠানোর খরচের নিয়ম সংরক্ষিত হয়েছে। এখন থেকে যে রিটার্নের টাকা ফেরত হবে তাতে প্রযোজ্য।',
   });
 }
 

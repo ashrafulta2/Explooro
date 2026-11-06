@@ -13,6 +13,7 @@
 
 import * as settingRepo from '../repositories/setting.repository.ts';
 import { getReturnWindowDays } from './return.service.ts';
+import { getPolicy as getReturnShippingPolicy } from './returnShipping.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 import { LEGAL_DOCS, LEGAL_DOC_KEYS, docsToAccept } from '../config/legal.ts';
 
@@ -147,7 +148,7 @@ export async function updateCompany(db, auditService, { company, reason, userId 
  * Fills {{company.*}} and {{returns.window_days}}. Unknown tokens are left as written, so a typo in
  * a new version shows up in the admin preview instead of vanishing.
  */
-export function renderBody(body, { company = {} as Record<string, string>, returnWindowDays = null as number | null } = {}, lang = 'en') {
+export function renderBody(body, { company = {} as Record<string, string>, returnWindowDays = null as number | null, returnShipping = null as Record<string, number> | null } = {}, lang = 'en') {
   return String(body ?? '').replace(TOKEN_RE, (whole, group, field) => {
     if (group === 'company') {
       if (field === 'legal_name') return company.legal_name || 'Explooro';
@@ -160,13 +161,19 @@ export function renderBody(body, { company = {} as Record<string, string>, retur
     if (group === 'returns' && field === 'window_days' && returnWindowDays != null) {
       return lang === 'bn' ? toBnDigits(returnWindowDays) : String(returnWindowDays);
     }
+    // The return-shipping amounts (migration 106), so the refund policy says what the code charges.
+    if (group === 'returns' && (field === 'max_courier_refund' || field === 'pickup_fee') && returnShipping?.[field] != null) {
+      return lang === 'bn' ? toBnDigits(returnShipping[field]) : String(returnShipping[field]);
+    }
     return whole;
   });
 }
 
 async function renderContext(db) {
-  const [{ company }, returnWindowDays] = await Promise.all([loadCompany(db), getReturnWindowDays(db, null)]);
-  return { company, returnWindowDays };
+  const [{ company }, returnWindowDays, returnShipping] = await Promise.all([
+    loadCompany(db), getReturnWindowDays(db, null), getReturnShippingPolicy(db),
+  ]);
+  return { company, returnWindowDays, returnShipping };
 }
 
 // ── Reading ─────────────────────────────────────────────────────────────────

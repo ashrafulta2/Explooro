@@ -199,7 +199,7 @@ describe('a return the customer sends back themselves (couriers MANUAL)', () => 
   });
 
   test('the customer returns list uses it', () => {
-    assert.match(read('controllers/return.controller.ts'), /returns: await reversePickupService\.withSendBackAddress\(req\.server\.db, rows\)/);
+    assert.match(read('controllers/return.controller.ts'), /await reversePickupService\.withSendBackAddress\(req\.server\.db, rows\)/);
   });
 });
 

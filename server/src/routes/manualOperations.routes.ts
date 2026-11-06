@@ -4,6 +4,7 @@
  *   GET  /admin/platform/operations              platform.operations.view    (LOW)
  *   PUT  /admin/platform/operations              platform.operations.update  (CRITICAL: super admin only)
  *   PUT  /admin/platform/operations/return-address  platform.operations.update (CRITICAL)
+ *   PUT  /admin/platform/operations/return-shipping platform.operations.update (CRITICAL)
  *   POST /admin/finance/payouts/:id/mark-paid    finance.payout.complete_manual (CRITICAL)
  *   GET  /supplier/shipments                     courier_hub + logistics.shipment.view
  *   POST /supplier/fulfilment/manual-ship        courier_hub + logistics.consignment.create
@@ -79,6 +80,31 @@ export default async function manualOperationsRoutes(app) {
       },
     },
     controller.updateReturnAddress
+  );
+
+  // WHY CRITICAL like the rest of the page: these rules move money between customers, suppliers
+  // and the platform on every refunded return (returnShipping.service.ts).
+  app.put(
+    '/admin/platform/operations/return-shipping',
+    {
+      config: { page: '/admin/platform/operations' },
+      preHandler: [auth, reqPerm('platform.operations.update')],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['supplier_fault_reasons', 'max_courier_refund', 'pickup_fee', 'reason'],
+          additionalProperties: false,
+          properties: {
+            supplier_fault_reasons: { type: 'array', maxItems: 20, items: { type: 'string', maxLength: 40 } },
+            max_courier_refund: { type: 'number' },
+            pickup_fee: { type: 'number' },
+            reason: { type: 'string', minLength: 10, maxLength: 500 },
+            base_updated_at: { type: ['string', 'null'] },
+          },
+        },
+      },
+    },
+    controller.updateReturnShipping
   );
 
   app.post(

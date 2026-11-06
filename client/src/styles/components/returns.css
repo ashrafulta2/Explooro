@@ -383,6 +383,15 @@
   color: var(--text-secondary);
 }
 
+/* Who pays to send it back (returnShipping.service). */
+.customer-return-card__shipping {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-xs, 0.8rem);
+  color: var(--text-secondary);
+}
+
 /* Note Section */
 .customer-return-card__note {
   background: var(--surface-1);

@@ -3286,7 +3286,21 @@
       "wrong_item": "Wrong Item or Color Sent",
       "size_mismatch": "Size Mismatch / Fitting Issue",
       "not_as_described": "Not as Described / Misrepresented",
-      "changed_mind": "Changed Mind (Subject to Policy)"
+      "changed_mind": "Changed Mind (Subject to Policy)",
+      "other": "Other"
+    },
+    "shipping": {
+      "payer_label": "Return shipping paid by",
+      "payer_supplier": "Supplier (their fault, free for the customer)",
+      "payer_customer": "Customer (their own choice)",
+      "payer_hint": "Set by the reason the customer gave. Change it if the reason does not match what happened.",
+      "by_reason": "by the reason, not decided yet",
+      "approve_title": "Approve return",
+      "approve_desc": "Approve {{ref}}. The customer's returns page then says who pays to send it back.",
+      "inspect_title": "Pass inspection",
+      "inspect_desc": "The customer sent this back by hand and the supplier pays. Type the amount on their courier receipt so it is repaid with the refund.",
+      "cost_label": "Customer's courier receipt (Tk)",
+      "cost_hint": "Repaid with the refund, up to {{max}}. Leave it empty if there is no receipt."
     }
   },
   "dispute": {
@@ -5969,6 +5983,18 @@
         "address_line": "Full address",
         "save": "Save returns address",
         "saved": "Returns address saved."
+      },
+      "return_shipping": {
+        "title": "Who pays to send a return back",
+        "desc": "As Daraz does it: when the problem is the supplier's, the customer pays nothing and the supplier pays the return. When the customer changed their mind, they pay to send it back and the delivery charge is not refunded. Staff can change the payer when they approve a return.",
+        "reasons_label": "The supplier pays when the reason is",
+        "reasons_hint": "Every reason left unticked counts as the customer's own choice.",
+        "max_label": "Customer's courier receipt repaid, up to (Tk)",
+        "max_hint": "For a return the customer sent by hand when the supplier is at fault. The supplier pays it.",
+        "fee_label": "Courier pickup charge (Tk)",
+        "fee_hint": "When couriers are automatic. The supplier pays it for its faults; otherwise it is taken from the customer's refund.",
+        "save": "Save return shipping rules",
+        "saved": "Return shipping rules saved."
       }
     },
     "legal": {
@@ -8927,5 +8953,16 @@
       "thanks": "Thank you. You can carry on.",
       "needed_for_order": "Please agree to the updated terms first, then place your order again."
     }
+  },
+  "return_shipping": {
+    "form_free": "Sending it back costs you nothing for this reason. If you send it yourself, keep the courier's receipt: we repay up to {{amount}} with your refund.",
+    "form_paid": "For this reason you pay to send it back, and the delivery charge is not refunded. If we send a courier, {{fee}} is taken from your refund.",
+    "page_free_hand": "Sending it back costs you nothing. Keep the courier's receipt: we repay up to {{amount}} with your refund.",
+    "page_free_courier": "The courier pickup is free.",
+    "page_paid_hand": "You pay the courier to send it back. The delivery charge is not refunded.",
+    "page_paid_courier": "A {{fee}} pickup charge is taken from your refund. The delivery charge is not refunded.",
+    "settled_repaid": "{{amount}} courier receipt repaid",
+    "settled_delivery_kept": "{{amount}} delivery charge not refunded",
+    "settled_pickup_fee": "{{amount}} pickup charge taken"
   }
 }

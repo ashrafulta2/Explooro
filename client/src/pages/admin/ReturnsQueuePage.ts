@@ -9,6 +9,9 @@
  *    - Review (Approve -> schedules reverse courier pickup, Reject)
  *    - Receive & Inspect (Pass -> INSPECTED, Fail -> DISPUTED)
  *    - Execute Refund (triggers clawback & ledger balance payout)
+ * 5. Who pays to send it back (migration 106, server/src/services/returnShipping.service.ts):
+ *    Approve asks, defaulting to the policy's answer for the reason; passing inspection of a
+ *    hand-sent return the supplier pays for asks for the customer's courier receipt.
  */
 
 import { api } from '../../core/api.ts';
@@ -16,6 +19,10 @@ import { formatCurrency, formatDate } from '../../services/format.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { showActionResult } from '../../components/guide/ActionResult.ts';
+import { Modal } from '../../components/ui/Modal.ts';
+import { Select } from '../../components/ui/Select.ts';
+import { Input } from '../../components/ui/Input.ts';
+import { Button } from '../../components/ui/Button.ts';
 import '../../styles/components/returns.css';
 
 export default function ReturnsQueuePage(root: HTMLElement) {
@@ -53,9 +60,62 @@ export default function ReturnsQueuePage(root: HTMLElement) {
     }
   }
 
+  const findReturn = (id) => returns.find((r) => String(r.id) === String(id));
+
+  /**
+   * Asks something before an action, in a dialog with Cancel and a confirm button. Resolves to the
+   * fields' values, or null when cancelled.
+   */
+  function askInDialog({ title, description, fields, confirmLabel }): Promise<Record<string, string> | null> {
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+      const body = document.createElement('div');
+      body.className = 'flex flex-col gap-3';
+      body.append(...fields.map((f) => f.field));
+      const footer = document.createElement('div');
+      footer.className = 'flex justify-end gap-2';
+      const cancel = Button({ label: t('common.cancel'), variant: 'ghost', onClick: () => modal.closeModal(null) });
+      const ok = Button({
+        label: confirmLabel,
+        variant: 'primary',
+        onClick: () => {
+          const values = Object.fromEntries(fields.map((f) => [f.name, f.field.value]));
+          done(values);
+          modal.closeModal(values);
+        },
+      });
+      footer.append(cancel, ok);
+      const modal = Modal({ title, description, content: body, footer, size: 'sm', onClose: () => done(null) });
+      modal.open();
+    });
+  }
+
+  const payerLabel = (payer) => t(`returns.shipping.payer_${String(payer).toLowerCase()}`);
+
   async function handleApprove(returnId) {
+    const ret = findReturn(returnId);
+    const terms = ret?.return_shipping;
+    const payer = Select({
+      label: t('returns.shipping.payer_label'),
+      hint: t('returns.shipping.payer_hint'),
+      name: 'return_shipping_paid_by',
+      options: ['SUPPLIER', 'CUSTOMER'].map((value) => ({ value, label: payerLabel(value) })),
+      value: terms?.paid_by || 'SUPPLIER',
+    });
+    const answer = await askInDialog({
+      title: t('returns.shipping.approve_title'),
+      description: t('returns.shipping.approve_desc', { ref: ret?.ref || '' }),
+      fields: [{ name: 'return_shipping_paid_by', field: payer }],
+      confirmLabel: t('returns.btn_approve', 'Approve'),
+    });
+    if (!answer) return;
     try {
-      await api.post(`/admin/returns/${returnId}/review`, { action: 'APPROVE' });
+      await api.post(`/admin/returns/${returnId}/review`, { action: 'APPROVE', return_shipping_paid_by: answer.return_shipping_paid_by });
       await fetchQueue();
       // Prompt 13.3: approval ends on a result panel that says what the courier and refund do next.
       // The same page serves /moderator/returns and /admin/returns, so the role comes from the path.
@@ -79,10 +139,32 @@ export default function ReturnsQueuePage(root: HTMLElement) {
   }
 
   async function handleInspect(returnId, pass = true) {
+    const ret = findReturn(returnId);
+    let courierCost = null;
+    // A hand-sent return the supplier pays for: the customer's courier receipt is repaid at refund.
+    if (pass && ret?.reverse_carrier === 'MANUAL' && ret?.return_shipping?.paid_by === 'SUPPLIER') {
+      const cost = Input({
+        label: t('returns.shipping.cost_label'),
+        hint: t('returns.shipping.cost_hint', { max: formatCurrency(ret.return_shipping.max_courier_refund) }),
+        type: 'number',
+        name: 'customer_courier_cost',
+      });
+      cost.input.min = '0';
+      cost.input.step = '0.01';
+      const answer = await askInDialog({
+        title: t('returns.shipping.inspect_title'),
+        description: t('returns.shipping.inspect_desc'),
+        fields: [{ name: 'customer_courier_cost', field: cost }],
+        confirmLabel: t('returns.btn_inspect_pass', 'Pass Physical Inspection'),
+      });
+      if (!answer) return;
+      courierCost = answer.customer_courier_cost === '' ? null : Number(answer.customer_courier_cost);
+    }
     try {
       await api.post(`/admin/returns/${returnId}/inspect`, {
         inspection_notes: pass ? 'Physical condition verified: PASS' : 'Item damaged by customer: FAIL',
         condition_pass: pass,
+        ...(courierCost != null ? { customer_courier_cost: courierCost } : {}),
       });
       toast.success(pass ? t('returns.inspect_pass_success', 'Physical inspection passed.') : t('returns.inspect_fail_disputed', 'Failed inspection; case moved to dispute.'));
       await fetchQueue();
@@ -285,6 +367,7 @@ export default function ReturnsQueuePage(root: HTMLElement) {
                 ">
                   <div>
                     <div style="color: var(--text-muted, #64748b); margin-bottom: 2px;">Reason Code: <strong style="color: var(--text-primary, #0f172a);">${ret.reason_code}</strong></div>
+                    ${ret.return_shipping ? `<div style="color: var(--text-muted, #64748b); margin-bottom: 2px;" data-return-shipping>${t('returns.shipping.payer_label')}: <strong style="color: var(--text-primary, #0f172a);">${payerLabel(ret.return_shipping.paid_by)}</strong>${ret.return_shipping.decided ? '' : ` (${t('returns.shipping.by_reason')})`}</div>` : ''}
                     ${ret.customer_note ? `<p style="margin: 4px 0 0 0; color: var(--text-secondary, #475569); font-style: italic;">"${ret.customer_note}"</p>` : ''}
                     ${
                       ret.reverse_tracking_number

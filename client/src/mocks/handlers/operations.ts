@@ -36,6 +36,16 @@ const RETURN_ADDRESS_REQUIRED = ['name', 'phone', 'division', 'district', 'addre
 let mockReturnAddress = { name: '', phone: '', division: '', district: '', upazila: '', address_line: '', updated_at: null, updated_by: null };
 const missingReturnAddress = () => RETURN_ADDRESS_REQUIRED.filter((f) => !String(mockReturnAddress[f] || '').trim());
 
+// Who pays to send a return back (migration 106), equal to the server's seed.
+const RETURN_REASONS = ['DAMAGED', 'WRONG_ITEM', 'DEFECTIVE', 'SIZE_MISMATCH', 'NOT_AS_DESCRIBED', 'CHANGED_MIND', 'OTHER'];
+const RETURN_SHIPPING_LIMITS = { max_courier_refund: { min: 0, max: 2000 }, pickup_fee: { min: 0, max: 1000 }, customer_courier_cost: { min: 0, max: 100000 } };
+let mockReturnShipping = { supplier_fault_reasons: ['DAMAGED', 'WRONG_ITEM', 'DEFECTIVE', 'NOT_AS_DESCRIBED'], max_courier_refund: 150, pickup_fee: 100, updated_at: null, updated_by: null };
+
+/** The live mock return-shipping rules, for the returns handlers. */
+export function mockReturnShippingPolicy() {
+  return mockReturnShipping;
+}
+
 /** The returns address as GET /returns/my-returns sends it (`send_back`), or null while incomplete. */
 export function mockSendBackAddress() {
   if (missingReturnAddress().length > 0) return null;
@@ -64,6 +74,8 @@ export const operationsHandlers = [
           return_address: { ...mockReturnAddress },
           return_address_missing: missingReturnAddress(),
           return_address_history: [],
+          return_shipping: { ...mockReturnShipping },
+          return_shipping_options: { reasons: RETURN_REASONS, limits: RETURN_SHIPPING_LIMITS },
           can_update: true,
         },
       };
@@ -139,6 +151,39 @@ export const operationsHandlers = [
           return_address_missing: missingReturnAddress(),
           message_en: 'Returns address saved. Couriers take returned products there from now on.',
           message_bn: 'ফেরতের ঠিকানা সংরক্ষিত হয়েছে। এখন থেকে কুরিয়ার ফেরত পণ্য সেখানে নেবে।',
+        },
+      };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/platform/operations/return-shipping',
+    handler({ body = {} } = {}) {
+      const reasons = Array.isArray(body.supplier_fault_reasons) ? body.supplier_fault_reasons : null;
+      if (!reasons || reasons.some((r) => !RETURN_REASONS.includes(r))) {
+        return bad('Fault reasons must be from the return reasons.', 'কারণগুলো রিটার্নের কারণ থেকে হতে হবে।');
+      }
+      for (const key of ['max_courier_refund', 'pickup_fee']) {
+        const n = Number(body[key]);
+        const { min, max } = RETURN_SHIPPING_LIMITS[key];
+        if (!Number.isInteger(n) || n < min || n > max) return bad(`${key} must be a whole number of Taka from ${min} to ${max}.`, `${key} ${min} থেকে ${max} এর মধ্যে পূর্ণ টাকা হতে হবে।`);
+      }
+      if (typeof body.reason !== 'string' || body.reason.trim().length < 10) {
+        return bad('Give a reason of at least 10 characters for this change.', 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।');
+      }
+      mockReturnShipping = {
+        supplier_fault_reasons: RETURN_REASONS.filter((r) => reasons.includes(r)),
+        max_courier_refund: Number(body.max_courier_refund),
+        pickup_fee: Number(body.pickup_fee),
+        updated_at: new Date().toISOString(),
+        updated_by: 1,
+      };
+      return {
+        status: 200,
+        body: {
+          return_shipping: { ...mockReturnShipping },
+          message_en: 'Return shipping rules saved. They apply to returns refunded from now on.',
+          message_bn: 'ফেরত পাঠানোর খরচের নিয়ম সংরক্ষিত হয়েছে। এখন থেকে যে রিটার্নের টাকা ফেরত হবে তাতে প্রযোজ্য।',
         },
       };
     },

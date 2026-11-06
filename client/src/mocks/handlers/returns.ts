@@ -3,7 +3,41 @@
  */
 
 import type { MockRoute } from '../types.ts';
-import { mockSendBackAddress } from './operations.ts';
+import { mockSendBackAddress, mockReturnShippingPolicy, mockOperationsModes } from './operations.ts';
+
+/** As server/src/services/returnShipping.service.ts withShippingTerms: who pays to send it back. */
+function withTerms(r) {
+  const policy = mockReturnShippingPolicy();
+  const decided = r.return_shipping_paid_by === 'SUPPLIER' || r.return_shipping_paid_by === 'CUSTOMER';
+  return {
+    ...r,
+    return_shipping: {
+      paid_by: decided ? r.return_shipping_paid_by : (policy.supplier_fault_reasons.includes(r.reason_code) ? 'SUPPLIER' : 'CUSTOMER'),
+      decided,
+      max_courier_refund: policy.max_courier_refund,
+      pickup_fee: policy.pickup_fee,
+      settlement: r.shipping_settlement_json ?? null,
+    },
+  };
+}
+
+/** A short mirror of planSettlement for the mock refund (the server's is the one that counts). */
+function mockSettle(r) {
+  const policy = mockReturnShippingPolicy();
+  const paidBy = withTerms(r).return_shipping.paid_by;
+  const hand = r.reverse_carrier === 'MANUAL';
+  const moves = [];
+  if (paidBy === 'SUPPLIER') {
+    const cost = Math.min(Number(r.customer_courier_cost) || 0, policy.max_courier_refund);
+    if (hand && cost > 0) moves.push({ kind: 'COURIER_RECEIPT_REPAID', from: 'SUPPLIER', to: 'CUSTOMER', amount: cost.toFixed(2) });
+    if (!hand && policy.pickup_fee > 0) moves.push({ kind: 'PICKUP_FEE', from: 'SUPPLIER', to: 'PLATFORM', amount: policy.pickup_fee.toFixed(2) });
+  } else {
+    moves.push({ kind: 'DELIVERY_CHARGE_KEPT', from: 'CUSTOMER', to: 'SUPPLIER', amount: '60.00' });
+    if (!hand && policy.pickup_fee > 0) moves.push({ kind: 'PICKUP_FEE', from: 'CUSTOMER', to: 'PLATFORM', amount: policy.pickup_fee.toFixed(2) });
+  }
+  const net = moves.reduce((s, m) => s + (m.to === 'CUSTOMER' ? +m.amount : 0) - (m.from === 'CUSTOMER' ? +m.amount : 0), 0);
+  return { paid_by: paidBy, mode: hand ? 'HAND' : 'COURIER', moves, customer_net: net.toFixed(2) };
+}
 
 let mockReturns: Record<string, any>[] = [
   // Approved with couriers manual: the customer sends it back to the returns address (migration 105).
@@ -97,7 +131,7 @@ export const returnHandlers = [
       }
       // As the server's withSendBackAddress: only an approved return the customer sends themselves.
       const sendBack = mockSendBackAddress();
-      list = list.map((r) => (r.status === 'PICKUP_SCHEDULED' && r.reverse_carrier === 'MANUAL' ? { ...r, send_back: sendBack } : r));
+      list = list.map((r) => withTerms(r.status === 'PICKUP_SCHEDULED' && r.reverse_carrier === 'MANUAL' ? { ...r, send_back: sendBack } : r));
       return {
         status: 200,
         body: {
@@ -107,6 +141,14 @@ export const returnHandlers = [
           },
         },
       };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/returns/shipping-terms',
+    handler() {
+      const { supplier_fault_reasons, max_courier_refund, pickup_fee } = mockReturnShippingPolicy();
+      return { status: 200, body: { data: { supplier_fault_reasons, max_courier_refund, pickup_fee } } };
     },
   },
   {
@@ -137,7 +179,7 @@ export const returnHandlers = [
         status: 200,
         body: {
           data: {
-            returns: list,
+            returns: list.map(withTerms),
             total: list.length,
           },
         },
@@ -151,8 +193,12 @@ export const returnHandlers = [
       const item = mockReturns.find((r) => r.id === Number(params.id));
       if (item) {
         if (body?.action === 'APPROVE') {
-          item.status = 'APPROVED';
-          item.reverse_tracking_number = `REV-${Date.now().toString(36).toUpperCase()}`;
+          // As return.service: approval schedules the pickup, by hand while couriers are manual.
+          const manual = mockOperationsModes().courier_mode === 'MANUAL';
+          item.status = 'PICKUP_SCHEDULED';
+          item.reverse_carrier = manual ? 'MANUAL' : 'MOCK';
+          item.reverse_tracking_number = manual ? null : `TRK-MOCK-${Date.now().toString(36).toUpperCase()}`;
+          item.return_shipping_paid_by = body?.return_shipping_paid_by || withTerms(item).return_shipping.paid_by;
         } else {
           item.status = 'REJECTED';
           item.rejection_reason = body?.rejection_reason || 'Rejected by moderator';
@@ -174,6 +220,7 @@ export const returnHandlers = [
       if (item) {
         item.status = body?.condition_pass ? 'INSPECTED' : 'DISPUTED';
         item.inspection_notes = body?.inspection_notes || '';
+        if (body?.customer_courier_cost != null) item.customer_courier_cost = Number(body.customer_courier_cost).toFixed(2);
       }
       return {
         status: 200,
@@ -191,6 +238,8 @@ export const returnHandlers = [
       if (item) {
         item.status = 'REFUNDED';
         item.refunded_at = new Date().toISOString();
+        item.shipping_settlement_json = mockSettle(item);
+        item.return_shipping_paid_by = item.shipping_settlement_json.paid_by;
       }
       return {
         status: 200,

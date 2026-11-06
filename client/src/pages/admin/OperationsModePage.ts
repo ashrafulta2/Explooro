@@ -262,6 +262,94 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
     return panel;
   }
 
+  /**
+   * Who pays to send a return back (migration 106, server/src/services/returnShipping.service.ts).
+   * The supplier pays for the reasons ticked; every other reason is the customer's choice. The
+   * reasons and the bounds come from the API, so the form never offers a value the server refuses.
+   */
+  function returnShippingCard() {
+    const policy = data.return_shipping;
+    const options = data.return_shipping_options;
+    if (!policy || !options) return document.createDocumentFragment();
+    const canUpdate = data.can_update !== false && can('platform.operations.update');
+
+    const panel = document.createElement('section');
+    panel.className = 'admin-panel group-buy-settings mt-4';
+    panel.innerHTML = `
+      <h2 class="admin-panel__title">${escapeHtml(t('admin.operations.return_shipping.title'))}</h2>
+      <p data-page-info class="text-sm text-secondary">${escapeHtml(t('admin.operations.return_shipping.desc'))}</p>
+    `;
+
+    const reasons = document.createElement('fieldset');
+    reasons.className = 'return-shipping-reasons mt-3';
+    reasons.innerHTML = `
+      <legend class="text-sm font-semibold">${escapeHtml(t('admin.operations.return_shipping.reasons_label'))}</legend>
+      <p class="text-xs text-secondary">${escapeHtml(t('admin.operations.return_shipping.reasons_hint'))}</p>`;
+    const boxes = options.reasons.map((code) => {
+      const label = document.createElement('label');
+      label.className = 'flex items-center gap-2 text-sm mt-1';
+      const box = document.createElement('input');
+      box.type = 'checkbox';
+      box.value = code;
+      box.checked = policy.supplier_fault_reasons.includes(code);
+      box.disabled = !canUpdate;
+      label.append(box, document.createTextNode(t(`returns.reasons.${code.toLowerCase()}`)));
+      reasons.append(label);
+      return box;
+    });
+
+    const grid = document.createElement('div');
+    grid.className = 'group-buy-settings__grid mt-3';
+    const money = (name, label, hint, value) => {
+      const field = Input({ label, hint, type: 'number', name, value: String(value) });
+      field.input.min = String(options.limits[name].min);
+      field.input.max = String(options.limits[name].max);
+      field.input.step = '1';
+      field.input.disabled = !canUpdate;
+      return field;
+    };
+    const max = money('max_courier_refund', t('admin.operations.return_shipping.max_label'), t('admin.operations.return_shipping.max_hint'), policy.max_courier_refund);
+    const fee = money('pickup_fee', t('admin.operations.return_shipping.fee_label'), t('admin.operations.return_shipping.fee_hint'), policy.pickup_fee);
+    const reason = Input({ label: t('admin.operations.reason'), hint: t('admin.operations.reason_hint', { min: MIN_REASON_LENGTH }), type: 'text', name: 'reason', maxLength: 500, required: true });
+    reason.input.disabled = !canUpdate;
+    grid.append(max, fee, reason);
+
+    const save = Button({
+      label: t('admin.operations.return_shipping.save'),
+      variant: 'primary',
+      size: 'sm',
+      disabled: !canUpdate,
+      onClick: async () => {
+        if (reason.value.trim().length < MIN_REASON_LENGTH) {
+          toast.error(t('admin.operations.reason_hint', { min: MIN_REASON_LENGTH }));
+          reason.input.focus();
+          return;
+        }
+        save.disabled = true;
+        try {
+          const res = await api.put('/admin/platform/operations/return-shipping', {
+            supplier_fault_reasons: boxes.filter((b) => b.checked).map((b) => b.value),
+            max_courier_refund: Number(max.value),
+            pickup_fee: Number(fee.value),
+            reason: reason.value.trim(),
+            base_updated_at: policy.updated_at ?? null,
+          });
+          toast.success((isBn ? res?.message_bn : res?.message_en) || t('admin.operations.return_shipping.saved'));
+          await loadData();
+        } catch (err) {
+          toast.error(err?.message || t('common.error_generic'));
+        } finally {
+          save.disabled = false;
+        }
+      },
+    });
+    const actions = document.createElement('div');
+    actions.className = 'group-buy-settings__actions';
+    actions.append(save);
+    panel.append(reasons, grid, actions);
+    return panel;
+  }
+
   function kpis() {
     const { modes } = data;
     const grid = document.createElement('div');
@@ -348,7 +436,7 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
       error.textContent = loadError;
       container.append(error);
     } else if (data) {
-      container.append(kpis(), modesCard(), returnAddressCard(), historyPanel());
+      container.append(kpis(), modesCard(), returnAddressCard(), returnShippingCard(), historyPanel());
     }
 
     root.appendChild(container);

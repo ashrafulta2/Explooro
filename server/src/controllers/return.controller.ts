@@ -4,6 +4,7 @@
 
 import * as returnService from '../services/return.service.ts';
 import * as reversePickupService from '../services/reversePickup.service.ts';
+import * as returnShipping from '../services/returnShipping.service.ts';
 
 export async function requestReturn(req, reply) {
   const customerId = req.user.id;
@@ -44,9 +45,14 @@ export async function getMyReturns(req, reply) {
 
   return reply.send({
     data: {
-      returns: await reversePickupService.withSendBackAddress(req.server.db, rows),
+      returns: await returnShipping.withShippingTerms(req.server.db, await reversePickupService.withSendBackAddress(req.server.db, rows)),
     },
   });
+}
+
+/** The return-shipping rules, so the return form can say who pays for the reason picked. */
+export async function getShippingTerms(req, reply) {
+  return reply.send({ data: returnShipping.publicTerms(await returnShipping.getPolicy(req.server.db)) });
 }
 
 export async function getReturnById(req, reply) {
@@ -93,13 +99,14 @@ export async function getAdminQueue(req, reply) {
 
 export async function reviewReturn(req, reply) {
   const returnRequestId = parseInt(req.params.id, 10);
-  const { action, rejection_reason } = req.body;
+  const { action, rejection_reason, return_shipping_paid_by } = req.body;
 
   const result = await returnService.reviewReturnRequest(req.server.db, req.server.cache, {
     returnRequestId,
     action: action || 'APPROVE',
     rejectionReason: rejection_reason || '',
     reviewedBy: req.user.id,
+    shippingPaidBy: return_shipping_paid_by ?? null,
   });
 
   return reply.send({
@@ -109,13 +116,14 @@ export async function reviewReturn(req, reply) {
 
 export async function inspectReturn(req, reply) {
   const returnRequestId = parseInt(req.params.id, 10);
-  const { inspection_notes, condition_pass } = req.body;
+  const { inspection_notes, condition_pass, customer_courier_cost } = req.body;
 
   const result = await returnService.receiveAndInspectReturn(req.server.db, {
     returnRequestId,
     inspectionNotes: inspection_notes || 'Inspected at returns warehouse',
     conditionPass: condition_pass !== false,
     inspectedBy: req.user.id,
+    customerCourierCost: customer_courier_cost ?? null,
   });
 
   return reply.send({

@@ -13,6 +13,7 @@
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
 import * as reversePickupService from './reversePickup.service.ts';
+import * as returnShipping from './returnShipping.service.ts';
 import * as clawbackService from './clawback.service.ts';
 import * as returnProtection from './returnProtection.service.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
@@ -307,8 +308,12 @@ export async function reviewReturnRequest(db, cache, {
   action = 'APPROVE',
   rejectionReason = '',
   reviewedBy = null,
+  // 'SUPPLIER' | 'CUSTOMER' | null: who pays to send it back (returnShipping.service). null = the
+  // policy's answer for the reason; staff override it for, say, an OTHER that is really a defect.
+  shippingPaidBy = null,
   client = null,
 }) {
+  const payerOverride = returnShipping.parsePayerOverride(shippingPaidBy);
   const runner = async (txClient) => {
     const { rows: retRows } = await txClient.query(
       `SELECT r.*, s.ref AS sub_order_ref, s.supplier_id, o.recipient_name, o.recipient_phone,
@@ -351,6 +356,9 @@ export async function reviewReturnRequest(db, cache, {
       return { success: true, status: 'REJECTED', returnRequestId };
     }
 
+    // Decided now, so the customer's page can say who pays before they send anything.
+    const paidBy = payerOverride ?? returnShipping.defaultPayer(returnReq.reason_code, await returnShipping.getPolicy(txClient));
+
     // APPROVE with couriers MANUAL (launch): nothing is booked. The customer sends the product back
     // as staff tell them; staff then receive and inspect it here as usual. WHY no tracking number:
     // there is none until someone books a courier, and an invented one would look real.
@@ -361,10 +369,11 @@ export async function reviewReturnRequest(db, cache, {
              reverse_tracking_number = NULL,
              reverse_carrier = 'MANUAL',
              reviewed_by = $2,
+             return_shipping_paid_by = $3,
              reviewed_at = now(),
              updated_at = now()
          WHERE id = $1`,
-        [returnRequestId, reviewedBy]
+        [returnRequestId, reviewedBy, paidBy]
       );
 
       await writeAudit(txClient, {
@@ -373,11 +382,11 @@ export async function reviewReturnRequest(db, cache, {
         targetType: 'return_request',
         targetRef: returnReq.ref,
         beforeJson: { status: returnReq.status },
-        afterJson: { status: 'PICKUP_SCHEDULED', reverse_tracking_number: null, reverse_carrier: 'MANUAL' },
+        afterJson: { status: 'PICKUP_SCHEDULED', reverse_tracking_number: null, reverse_carrier: 'MANUAL', return_shipping_paid_by: paidBy },
         riskTier: 'MEDIUM',
       });
 
-      return { success: true, status: 'PICKUP_SCHEDULED', reverseTrackingNumber: null, carrier: 'MANUAL', manual: true, returnRequestId };
+      return { success: true, status: 'PICKUP_SCHEDULED', reverseTrackingNumber: null, carrier: 'MANUAL', manual: true, returnShippingPaidBy: paidBy, returnRequestId };
     }
 
     // APPROVE with couriers INTEGRATED: a courier collects the product from the customer and takes
@@ -402,10 +411,11 @@ export async function reviewReturnRequest(db, cache, {
            reverse_carrier = $3,
            reverse_pickup_id = $5,
            reviewed_by = $4,
+           return_shipping_paid_by = $6,
            reviewed_at = now(),
            updated_at = now()
        WHERE id = $1`,
-      [returnRequestId, pickup.tracking_number, pickup.carrier, reviewedBy, pickup.id]
+      [returnRequestId, pickup.tracking_number, pickup.carrier, reviewedBy, pickup.id, paidBy]
     );
 
     await writeAudit(txClient, {
@@ -419,6 +429,7 @@ export async function reviewReturnRequest(db, cache, {
         reverse_tracking_number: pickup.tracking_number,
         reverse_carrier: pickup.carrier,
         reverse_pickup_ref: pickup.ref,
+        return_shipping_paid_by: paidBy,
       },
       riskTier: 'MEDIUM',
     });
@@ -429,6 +440,7 @@ export async function reviewReturnRequest(db, cache, {
       reverseTrackingNumber: pickup.tracking_number,
       carrier: pickup.carrier,
       reversePickupId: pickup.id,
+      returnShippingPaidBy: paidBy,
       returnRequestId,
     };
   };
@@ -444,8 +456,12 @@ export async function receiveAndInspectReturn(db, {
   inspectionNotes = 'Items verified in good condition',
   conditionPass = true,
   inspectedBy = null,
+  // What the customer's courier receipt says, for a hand-sent return the supplier pays for
+  // (returnShipping.service repays it at refund, up to the policy's limit). null = not given.
+  customerCourierCost = null,
   client = null,
 }) {
+  const courierCost = returnShipping.parseCourierCost(customerCourierCost);
   const runner = async (txClient) => {
     const nextStatus = conditionPass ? 'INSPECTED' : 'DISPUTED';
 
@@ -469,10 +485,11 @@ export async function receiveAndInspectReturn(db, {
            received_at = COALESCE(received_at, now()),
            inspected_at = now(),
            reviewed_by = COALESCE(reviewed_by, $4),
+           customer_courier_cost = COALESCE($5, customer_courier_cost),
            updated_at = now()
        WHERE id = $1
        RETURNING *`,
-      [returnRequestId, nextStatus, inspectionNotes, inspectedBy]
+      [returnRequestId, nextStatus, inspectionNotes, inspectedBy, courierCost]
     );
 
     if (rows.length === 0) {
@@ -485,7 +502,7 @@ export async function receiveAndInspectReturn(db, {
       targetType: 'return_request',
       targetRef: current[0].ref,
       beforeJson: { status: current[0].status },
-      afterJson: { status: nextStatus, inspection_notes: inspectionNotes },
+      afterJson: { status: nextStatus, inspection_notes: inspectionNotes, customer_courier_cost: courierCost },
       riskTier: 'MEDIUM',
     });
 
@@ -511,7 +528,8 @@ export async function executeRefund(db, cache, {
   const runner = async (txClient) => {
     // 1. Fetch return request
     const { rows: retRows } = await txClient.query(
-      `SELECT r.*, s.id AS sub_order_id, s.ref AS sub_order_ref, s.status AS sub_order_status
+      `SELECT r.*, s.id AS sub_order_id, s.ref AS sub_order_ref, s.status AS sub_order_status,
+              s.supplier_id, s.shipping_amount
        FROM return_requests r
        JOIN sub_orders s ON s.id = r.sub_order_id
        WHERE r.id = $1
@@ -572,6 +590,19 @@ export async function executeRefund(db, cache, {
       clawedBackAmount: isPartial ? (clawbackResult.sharesByRole?.SALER ?? '0.00') : null,
     });
 
+    // 2c. Who pays to send it back (returnShipping.service): repays a customer's courier receipt,
+    // charges a pickup fee, or keeps the delivery charge on a change of mind. In this transaction,
+    // so a refund never lands without its shipping settled.
+    const customerRefund = clawbackResult?.alreadyClawedBack
+      ? 0
+      : (clawbackResult?.customerRefundAmount ?? clawbackResult?.totalClawbackAmount ?? 0);
+    const shippingSettlement = await returnShipping.settleReturnShipping(txClient, {
+      returnReq,
+      isFullReturn: !isPartial,
+      customerRefund,
+      approvedBy,
+    });
+
     // 3. Restore warehouse stock for returned items
     const { rows: items } = await txClient.query(
       `SELECT product_id, quantity FROM return_items WHERE return_request_id = $1`,
@@ -601,6 +632,7 @@ export async function executeRefund(db, cache, {
       refundAmount: returnReq.refund_amount,
       clawbackResult,
       protectionResult,
+      shippingSettlement,
       returnRequestId,
     };
   };
@@ -683,5 +715,7 @@ export async function getAdminReturnsQueue(db, { status = null, limit = 50, offs
   params.push(limit, offset);
 
   const { rows } = await runner.query(query, params);
-  return rows;
+  // `return_shipping`: who pays to send it back (decided, or the policy's default for the reason)
+  // and the amounts, so the approve and inspect dialogs can say it (returnShipping.service).
+  return returnShipping.withShippingTerms(runner, rows);
 }

@@ -30,6 +30,9 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
   let customerNote = '';
   let evidenceUrls = [];
   let preferredResolution = 'WALLET_REFUND';
+  // Who pays to send it back, by reason (GET /returns/shipping-terms, returnShipping.service).
+  // null until loaded; the note then just does not show.
+  let shippingTerms = null;
 
   function goTo(path, opts: { replace?: boolean } = {}) {
     if (typeof navigate === 'function') {
@@ -61,6 +64,30 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
       loading = false;
       render();
     }
+  }
+
+  async function fetchShippingTerms() {
+    try {
+      const res = await api.get('/returns/shipping-terms');
+      shippingTerms = res.data || null;
+      updateShippingNote();
+    } catch {
+      // The form works without it; the refund policy page still says the rule.
+    }
+  }
+
+  /** The line under the reason: free when the fault is the supplier's, else the customer pays. */
+  function shippingNoteText() {
+    if (!shippingTerms) return '';
+    const free = (shippingTerms.supplier_fault_reasons || []).includes(selectedReason);
+    return free
+      ? t('return_shipping.form_free', { amount: formatCurrency(shippingTerms.max_courier_refund) })
+      : t('return_shipping.form_paid', { fee: formatCurrency(shippingTerms.pickup_fee) });
+  }
+
+  function updateShippingNote() {
+    const note = container.querySelector('[data-return-shipping-note]');
+    if (note) note.textContent = shippingNoteText();
   }
 
   function calculateEstimatedRefund() {
@@ -141,6 +168,7 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
               <option value="NOT_AS_DESCRIBED" ${selectedReason === 'NOT_AS_DESCRIBED' ? 'selected' : ''}>${t('returns.reasons.not_as_described')}</option>
               <option value="CHANGED_MIND" ${selectedReason === 'CHANGED_MIND' ? 'selected' : ''}>${t('returns.reasons.changed_mind')}</option>
             </select>
+            <p class="text-xs text-secondary mb-3" data-return-shipping-note aria-live="polite">${shippingNoteText()}</p>
 
             <label class="form-label">${t('returns.customer_note')}</label>
             <textarea class="input textarea" id="return-note" rows="3" placeholder="${t('returns.customer_note_placeholder')}">${customerNote}</textarea>
@@ -227,6 +255,7 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
 
     container.querySelector('#return-reason-select')?.addEventListener('change', (e) => {
       selectedReason = (e.target as HTMLSelectElement).value;
+      updateShippingNote();
     });
 
     container.querySelector('#return-note')?.addEventListener('input', (e) => {
@@ -262,5 +291,6 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
   }
 
   fetchSubOrder();
+  fetchShippingTerms();
   root.append(container);
 }

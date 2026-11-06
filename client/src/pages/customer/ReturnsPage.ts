@@ -220,6 +220,34 @@ export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext
       </div>`;
   }
 
+  /**
+   * Who pays to send it back, once staff have decided (approval), and what the refund then moved
+   * (server/src/services/returnShipping.service.ts). Before approval the return form said it.
+   */
+  function renderShippingTerms(ret) {
+    const terms = ret.return_shipping;
+    if (!terms || !terms.decided) return '';
+    const amount = (n) => formatCurrency(Number(n) || 0);
+    if (ret.status === 'REFUNDED' && terms.settlement) {
+      const lines = (terms.settlement.moves || []).map((m) => {
+        const key = m.kind === 'COURIER_RECEIPT_REPAID' ? 'settled_repaid'
+          : m.kind === 'DELIVERY_CHARGE_KEPT' ? 'settled_delivery_kept'
+            : m.from === 'CUSTOMER' ? 'settled_pickup_fee' : null;
+        return key ? `<li>${escapeHtml(t(`return_shipping.${key}`, { amount: amount(m.amount) }))}</li>` : '';
+      }).join('');
+      return lines ? `<ul class="customer-return-card__shipping" data-return-shipping>${lines}</ul>` : '';
+    }
+    if (['REJECTED', 'DISPUTED', 'REFUNDED'].includes(ret.status)) return '';
+    const hand = ret.reverse_carrier === 'MANUAL';
+    const key = terms.paid_by === 'SUPPLIER'
+      ? (hand ? 'page_free_hand' : 'page_free_courier')
+      : (hand ? 'page_paid_hand' : 'page_paid_courier');
+    return `<p class="customer-return-card__shipping" data-return-shipping>${escapeHtml(t(`return_shipping.${key}`, {
+      amount: amount(terms.max_courier_refund),
+      fee: amount(terms.pickup_fee),
+    }))}</p>`;
+  }
+
   function openEvidenceModal(url) {
     const content = document.createElement('div');
     content.className = 'return-evidence-preview';
@@ -432,7 +460,7 @@ export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext
         </div>
       `;
 
-      card.innerHTML = topRow + stepper + noticeBanner + renderSendBack(ret) + detailsGrid + noteHtml + evidenceHtml + actionsHtml;
+      card.innerHTML = topRow + stepper + noticeBanner + renderSendBack(ret) + renderShippingTerms(ret) + detailsGrid + noteHtml + evidenceHtml + actionsHtml;
 
       // Populate evidence gallery elements with event listeners
       if (Array.isArray(evidenceUrls) && evidenceUrls.length > 0) {

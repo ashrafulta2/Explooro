@@ -34,6 +34,13 @@ export default async function returnRoutes(app) {
     handler: controller.getMyReturns,
   });
 
+  // 2b. Customer: who pays to send a return back, for the return form. Before /returns/:id, which
+  // would otherwise take "shipping-terms" as an id.
+  app.get('/returns/shipping-terms', {
+    preHandler: [app.authenticate],
+    handler: controller.getShippingTerms,
+  });
+
   // 3. Customer / Staff: Get Return Details
   app.get('/returns/:id', {
     preHandler: [app.authenticate],
@@ -80,6 +87,8 @@ export default async function returnRoutes(app) {
         properties: {
           action: { type: 'string', enum: ['APPROVE', 'REJECT'] },
           rejection_reason: { type: 'string' },
+          // Who pays to send it back; omitted = the policy's answer for the reason (returnShipping.service).
+          return_shipping_paid_by: { type: 'string', enum: ['SUPPLIER', 'CUSTOMER'] },
         },
       },
     },
@@ -106,6 +115,8 @@ export default async function returnRoutes(app) {
         properties: {
           inspection_notes: { type: 'string' },
           condition_pass: { type: 'boolean' },
+          // The customer's courier receipt for a hand-sent return; bounds are the service's.
+          customer_courier_cost: { type: ['number', 'null'] },
         },
       },
     },
