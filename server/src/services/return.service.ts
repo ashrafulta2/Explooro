@@ -19,6 +19,7 @@ import * as moduleRepo from '../repositories/module.repository.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { primaryImageKeySql, toPublicImageUrl } from '../lib/productImage.ts';
 import { AppError } from '../plugins/errorHandler.ts';
+import { courierBookingAvailable } from './manualOperations.service.ts';
 
 // WHY explicit transitions: review, inspect and refund used to accept a return in any status, so
 // staff could refund a REJECTED return or one whose parcel never came back, re-open a REFUNDED
@@ -65,9 +66,11 @@ export async function getReturnWindowDays(db, cache) {
   try {
     if (moduleRepo && typeof moduleRepo.getModuleByKey === 'function') {
       const mod = await moduleRepo.getModuleByKey(db, 'returns_engine');
-      if (mod?.sub_settings_json?.return_window_days) {
-        return parseInt(mod.sub_settings_json.return_window_days, 10) || 7;
-      }
+      // WHY settings_json: that is the platform_modules column. The code read sub_settings_json, which no
+      // row has, so the admin's module settings were ignored and the defaults always applied.
+      // WHY a number check and not truthiness: 0 is a valid setting (the schema allows 0, meaning no returns).
+      const days = parseInt((mod?.settings_json ?? mod?.sub_settings_json)?.return_window_days, 10);
+      if (Number.isFinite(days) && days >= 0) return days;
     }
   } catch {}
   return 7;
@@ -346,6 +349,35 @@ export async function reviewReturnRequest(db, cache, {
       });
 
       return { success: true, status: 'REJECTED', returnRequestId };
+    }
+
+    // APPROVE with couriers MANUAL (launch): nothing is booked. The customer sends the product back
+    // as staff tell them; staff then receive and inspect it here as usual. WHY no tracking number:
+    // there is none until someone books a courier, and an invented one would look real.
+    if (!(await courierBookingAvailable(txClient, cache))) {
+      await txClient.query(
+        `UPDATE return_requests
+         SET status = 'PICKUP_SCHEDULED',
+             reverse_tracking_number = NULL,
+             reverse_carrier = 'MANUAL',
+             reviewed_by = $2,
+             reviewed_at = now(),
+             updated_at = now()
+         WHERE id = $1`,
+        [returnRequestId, reviewedBy]
+      );
+
+      await writeAudit(txClient, {
+        actorId: reviewedBy,
+        action: 'returns.request.approve',
+        targetType: 'return_request',
+        targetRef: returnReq.ref,
+        beforeJson: { status: returnReq.status },
+        afterJson: { status: 'PICKUP_SCHEDULED', reverse_tracking_number: null, reverse_carrier: 'MANUAL' },
+        riskTier: 'MEDIUM',
+      });
+
+      return { success: true, status: 'PICKUP_SCHEDULED', reverseTrackingNumber: null, carrier: 'MANUAL', manual: true, returnRequestId };
     }
 
     // APPROVE -> Book reverse courier consignment & set status to PICKUP_SCHEDULED

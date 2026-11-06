@@ -2304,10 +2304,9 @@ export const adminHandlers: MockRoute[] = [
       const method = query?.method;
 
       let filtered = mockPayoutsStore;
+      // Same as the API (payout.service listPayoutQueue): no status, or ALL, means every payout.
       if (status && status !== 'ALL') {
         filtered = filtered.filter((p) => p.status === status);
-      } else if (!status) {
-        filtered = filtered.filter((p) => p.status === 'REQUESTED');
       }
 
       if (method) {

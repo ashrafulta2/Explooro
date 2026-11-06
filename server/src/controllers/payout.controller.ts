@@ -4,9 +4,12 @@
 
 import * as payoutService from '../services/payout.service.ts';
 import { assertGatewayPayoutsAllowed, getModes } from '../services/manualOperations.service.ts';
+import { assertAgreed } from '../services/legal.service.ts';
 
 export async function requestWithdrawal(req, reply) {
   const idempotencyKey = req.headers['idempotency-key'] || null;
+  // A withdrawal is paid under the terms and, for a partner, the partner agreement (legal.service).
+  await assertAgreed(req.server.db, req.user.id, Array.isArray(req.user.roles) ? req.user.roles : []);
   const result = await payoutService.requestPayout(req.server.db, {
     userId: req.user.id,
     method: req.body?.method,
@@ -46,7 +49,8 @@ export async function getMyPayouts(req, reply) {
 }
 
 export async function listPayoutQueue(req, reply) {
-  const status = req.query.status || null;
+  // WHY 'ALL' means no filter: the queue page's "All statuses" option used to send it, and it matched nothing.
+  const status = req.query.status && String(req.query.status).toUpperCase() !== 'ALL' ? req.query.status : null;
   const method = req.query.method || null;
   const userId = req.query.user_id ? parseInt(req.query.user_id, 10) : null;
   const minAmount = req.query.min_amount || null;

@@ -57,16 +57,18 @@ async function getModerationSettings(db) {
   try {
     if (moduleRepo && typeof moduleRepo.getModuleByKey === 'function') {
       const modMod = await moduleRepo.getModuleByKey(db, 'product_moderation');
-      if (modMod?.sub_settings_json) {
-        if (modMod.sub_settings_json.sla_hours) settings.sla_hours = parseInt(modMod.sub_settings_json.sla_hours, 10);
-        if (Array.isArray(modMod.sub_settings_json.keyword_blocklist_en)) {
-          settings.keyword_blocklist_en = [...new Set([...DEFAULT_KEYWORD_BLOCKLIST_EN, ...modMod.sub_settings_json.keyword_blocklist_en])];
+      // WHY settings_json: that is the platform_modules column. The code read sub_settings_json, which no
+      // row has, so the admin's module settings were ignored and the defaults always applied.
+      if ((modMod?.settings_json ?? modMod?.sub_settings_json)) {
+        if ((modMod.settings_json ?? modMod.sub_settings_json).sla_hours) settings.sla_hours = parseInt((modMod.settings_json ?? modMod.sub_settings_json).sla_hours, 10);
+        if (Array.isArray((modMod.settings_json ?? modMod.sub_settings_json).keyword_blocklist_en)) {
+          settings.keyword_blocklist_en = [...new Set([...DEFAULT_KEYWORD_BLOCKLIST_EN, ...(modMod.settings_json ?? (modMod.settings_json ?? modMod.sub_settings_json)).keyword_blocklist_en])];
         }
-        if (Array.isArray(modMod.sub_settings_json.keyword_blocklist_bn)) {
-          settings.keyword_blocklist_bn = [...new Set([...DEFAULT_KEYWORD_BLOCKLIST_BN, ...modMod.sub_settings_json.keyword_blocklist_bn])];
+        if (Array.isArray((modMod.settings_json ?? modMod.sub_settings_json).keyword_blocklist_bn)) {
+          settings.keyword_blocklist_bn = [...new Set([...DEFAULT_KEYWORD_BLOCKLIST_BN, ...(modMod.settings_json ?? (modMod.settings_json ?? modMod.sub_settings_json)).keyword_blocklist_bn])];
         }
-        if (modMod.sub_settings_json.price_anomaly_multiplier) {
-          settings.price_anomaly_multiplier = parseFloat(modMod.sub_settings_json.price_anomaly_multiplier);
+        if ((modMod.settings_json ?? modMod.sub_settings_json).price_anomaly_multiplier) {
+          settings.price_anomaly_multiplier = parseFloat((modMod.settings_json ?? modMod.sub_settings_json).price_anomaly_multiplier);
         }
       }
 

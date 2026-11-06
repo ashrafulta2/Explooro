@@ -330,6 +330,27 @@ export async function acceptAtSignup(db, { userId, roles = [], ip = null, userAg
   await insertAcceptances(db, userId, rows, { ip, userAgent });
 }
 
+/**
+ * Refuses an action from an account that has not agreed to the current terms and privacy policy.
+ *
+ * `roles` adds the documents a role signs: checkout passes none (a partner buying is a shopper, so
+ * only the terms and privacy apply), a withdrawal passes the caller's roles (a partner withdraws
+ * under the partner agreement).
+ * WHY at checkout and withdrawal: those are the moments money moves on the strength of the terms.
+ * The boot dialog asks first; this is the backstop for an API caller or a dismissed dialog.
+ */
+export async function assertAgreed(db, userId, roles: string[] = []) {
+  if (!userId) return;
+  const pending = await pendingFor(db, { userId, roles });
+  if (pending.length === 0) return;
+  throw new AppError(
+    'LEGAL_ACCEPTANCE_REQUIRED',
+    'Please read and agree to the updated terms before you carry on.',
+    'এগিয়ে যাওয়ার আগে অনুগ্রহ করে হালনাগাদ শর্তাবলি পড়ে সম্মতি দিন।',
+    { pending: pending.map((p) => ({ document_id: p.document_id, key: p.key, version: p.version })) }
+  );
+}
+
 // ── Publishing ──────────────────────────────────────────────────────────────
 
 function textField(input, field, { min, max }, label) {

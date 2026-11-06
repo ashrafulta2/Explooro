@@ -2846,7 +2846,8 @@
       "upazila_help": "Optional, but it helps the rider find you.",
       "address_help": "House, road and area, so the rider can find the door.",
       "notes_help": "Optional: a landmark or the best time to deliver."
-    }
+    },
+    "no_payment_method": "No way to pay is available right now. Please try again later."
   },
   "quick_buy": {
     "title": "Quick Buy (1-Click Order)",
@@ -8900,7 +8901,8 @@
       "checkbox": "I have read and agree to the documents above.",
       "agree": "Agree and continue",
       "sign_out": "Sign out",
-      "thanks": "Thank you. You can carry on."
+      "thanks": "Thank you. You can carry on.",
+      "needed_for_order": "Please agree to the updated terms first, then place your order again."
     }
   }
 }

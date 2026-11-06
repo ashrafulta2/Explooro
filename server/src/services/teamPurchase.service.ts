@@ -33,6 +33,7 @@ import { calculatePricingBreakdown } from './pricing.service.ts';
 import { loadPricingContext } from './retailMarkup.service.ts';
 import { getReservedForProduct } from './teamStockReservation.service.ts';
 import * as deliveryChargeService from './deliveryCharge.service.ts';
+import { assertAgreed } from './legal.service.ts';
 
 export const TEAM_SIZES = Object.freeze([2, 3]);
 export const PAYMENT_METHODS = Object.freeze(['COD', 'WALLET']);
@@ -374,6 +375,8 @@ export async function createTeamPurchase(db, cache, {
 
   const recipient = validateRecipient({ recipientName, addressLine, division, district });
   assertPaymentMethod(paymentMethod);
+  // A team order is a contract under the terms, as at checkout (legal.service assertAgreed).
+  await assertAgreed(db, userId);
 
   const settings = await getTeamBuyingSettings(db);
   const teamSize = requiredMembers == null ? settings.default_team_size : Number(requiredMembers);
@@ -497,6 +500,8 @@ export async function joinTeamPurchase(db, cache, {
 
   const recipient = validateRecipient({ recipientName, addressLine, division, district });
   assertPaymentMethod(paymentMethod);
+  // A team order is a contract under the terms, as at checkout (legal.service assertAgreed).
+  await assertAgreed(db, userId);
 
   return runWithClient(db, async (client) => {
     const { rows: teamRows } = await client.query(

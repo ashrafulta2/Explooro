@@ -31,7 +31,8 @@ import { pickParcelSaler } from './attribution.service.ts';
 import * as shortlinkService from './shortlink.service.ts';
 import { payOrderFromVault, VAULT_METHOD } from './vaultCheckout.service.ts';
 import { reserveFlashSaleStock } from './flashSale.service.ts';
-import { ONLINE_METHODS, onlineMethodsForDriver } from '../integrations/payments/index.ts';
+import { availableMethods, isMethodAvailable } from './paymentMethods.service.ts';
+import { assertAgreed } from './legal.service.ts';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -86,14 +87,20 @@ export async function executeCheckout(pool, cache, {
     };
   }
 
-  // WHY before any lock or insert: with PAYMENT_DRIVER=none (launch, no gateway signed) an online
-  // method would create the order and then fail at the payment step, leaving an unpaid order that
-  // holds stock. The checkout page hides these methods (GET /payments/methods); this is the backstop.
-  if (ONLINE_METHODS.includes(paymentMethod) && !onlineMethodsForDriver().includes(paymentMethod)) {
+  // WHY before any lock or insert: a method with no gateway (PAYMENT_DRIVER=none at launch) or one
+  // the admin switched off in Module Control would create the order and then fail at the payment
+  // step, leaving an unpaid order that holds stock. The checkout page hides these methods
+  // (GET /payments/methods); this is the backstop.
+  // An order is a contract under the terms: an account that has not agreed to the current ones
+  // cannot place one (the boot dialog asks first; this is the backstop).
+  await assertAgreed(pool, userId);
+
+  const availability = await availableMethods(pool, cache, { userId, district });
+  if (!isMethodAvailable(paymentMethod, availability)) {
     throw new AppError(
       'PAYMENT_METHOD_UNSUPPORTED',
-      `${paymentMethod} is not available yet. Pay cash on delivery or from your vault.`,
-      `${paymentMethod} এখনো চালু হয়নি। ক্যাশ অন ডেলিভারি বা আপনার ভল্ট থেকে পেমেন্ট করুন।`
+      `${paymentMethod} is not available right now. Please choose another way to pay.`,
+      `${paymentMethod} এখন চালু নেই। অনুগ্রহ করে অন্য উপায়ে পেমেন্ট করুন।`
     );
   }
 

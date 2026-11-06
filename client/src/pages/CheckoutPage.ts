@@ -13,7 +13,7 @@ import { AddressForm } from '../components/checkout/AddressForm.ts';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.ts';
 import { getCart, fetchCart, clearCart } from '../services/cart.ts';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.ts';
-import { needsOnlinePayment, payForOrder, getOnlineMethods } from '../services/payment.api.ts';
+import { needsOnlinePayment, payForOrder, getPaymentAvailability } from '../services/payment.api.ts';
 import { getTopUps } from '../services/walletTopup.api.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { customerApi } from '../services/customer.api.ts';
@@ -110,8 +110,8 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
 
   let userAddresses = [];
   let vaultBalance: number | null = null;
-  // Online methods the server can charge; filled before the form renders (GET /payments/methods).
-  let onlineMethods: string[] = [];
+  // What the server offers; filled before the form renders (GET /payments/methods).
+  let payAvailability = { online: [] as string[], cod: true };
 
   /**
    * The delivery charge for the district the shopper has picked: the zone's per-parcel charge
@@ -176,7 +176,7 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
         }
       } catch {}
 
-      onlineMethods = await getOnlineMethods();
+      payAvailability = await getPaymentAvailability();
 
       // WHY no error: without a balance the vault option is simply not offered.
       try {
@@ -214,7 +214,8 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
       initialMethod: paymentMethod,
       orderTotal: orderTotal(),
       vaultBalance,
-      onlineMethods,
+      onlineMethods: payAvailability.online,
+      codAvailable: payAvailability.cod,
       onChange: (method) => {
         paymentMethod = method;
         persistDraft();
@@ -457,6 +458,10 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
           if (err.code === 'COD_OTP_REQUIRED') {
             paymentSelector?.promptOtp(err.details?.phone || addressData.recipient_phone);
             toast.warning(t('checkout.cod_otp_required_notice'));
+          } else if (err.code === 'LEGAL_ACCEPTANCE_REQUIRED') {
+            // Ask now, then the shopper presses Place order again; the cart and form are kept.
+            import('../components/legal/LegalAcceptModal.ts').then((m) => m.checkAndPromptLegal()).catch(() => {});
+            toast.warning(t('legal.accept.needed_for_order'));
           } else {
             const isBn = document.documentElement.lang === 'bn';
             const msg = isBn && err.messageBn ? err.messageBn : err.message;

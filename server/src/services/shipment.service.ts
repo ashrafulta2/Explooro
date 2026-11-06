@@ -24,6 +24,9 @@ export function mockCourierRefused(env = process.env) {
   return env.NODE_ENV === 'production' && env.ALLOW_MOCK_DRIVERS_IN_PRODUCTION !== 'true';
 }
 
+/** Sub-order statuses a parcel can be handed over from (008_orders_minimal.sql). Shared with manualOperations.service. */
+export const SHIPPABLE_SUB_ORDER_STATUSES = Object.freeze(['PLACED', 'CONFIRMED', 'PACKED']);
+
 /** Roles that may read any supplier's parcel (labels carry the shopper's name and phone). */
 const ALL_PARCELS_ROLES = Object.freeze(['admin', 'super_admin']);
 
@@ -118,6 +121,18 @@ export async function createShipmentForSubOrder(db, {
     }
 
     const subOrder = subRows[0];
+
+    // WHY: nothing stopped a second booking, so a sub-order could get two courier pickups and two
+    // tracking numbers, and a delivered one could be "shipped" again. Same rule as a hand-sent parcel.
+    const { rows: existing } = await txClient.query(
+      `SELECT tracking_number FROM shipments WHERE sub_order_id = $1 LIMIT 1`,
+      [subOrder.id]
+    );
+    if (existing.length > 0 || (subOrder.status && !SHIPPABLE_SUB_ORDER_STATUSES.includes(subOrder.status))) {
+      throw new AppError('ALREADY_SHIPPED', `Order ${subOrder.ref} has already been sent (${existing[0]?.tracking_number ?? subOrder.status}).`,
+        `অর্ডার ${subOrder.ref} আগেই পাঠানো হয়েছে (${existing[0]?.tracking_number ?? subOrder.status})।`);
+    }
+
     const address = typeof subOrder.delivery_address_json === 'string'
       ? JSON.parse(subOrder.delivery_address_json)
       : subOrder.delivery_address_json || {};

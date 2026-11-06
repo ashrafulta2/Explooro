@@ -24,6 +24,41 @@ export const prerenderConfig = {
         url: 'https://explooro.com',
       },
     },
+    // The legal documents (migration 104). WHY a summary and not the text: the text is versioned in
+    // the database and edited at /admin/platform/legal; a copy baked in at build time would go stale.
+    // The page loads the current version as soon as it hydrates.
+    {
+      path: '/legal/terms',
+      title: 'Terms of Use — Explooro',
+      description: 'The terms for using Explooro: accounts, orders, payment, delivery and what is not allowed.',
+      heading: 'Terms of Use',
+      bodyText: 'How Explooro works for shoppers, Explooro partners and suppliers, and the rules every account agrees to.',
+      ogType: 'article',
+    },
+    {
+      path: '/legal/privacy',
+      title: 'Privacy Policy — Explooro',
+      description: 'What information Explooro collects, why, who it is shared with, how long it is kept and your choices.',
+      heading: 'Privacy Policy',
+      bodyText: 'What we collect when you use Explooro, why we use it, who we share it with, and how to reach us about it.',
+      ogType: 'article',
+    },
+    {
+      path: '/legal/refund',
+      title: 'Refund & Return Policy — Explooro',
+      description: 'When you can return a product, how refunds reach your Explooro Vault, and how warranty claims work.',
+      heading: 'Refund & Return Policy',
+      bodyText: 'Your money is held safely until delivery. Returns, refunds and warranty claims explained.',
+      ogType: 'article',
+    },
+    {
+      path: '/legal/partner-agreement',
+      title: 'Explooro Partner Agreement — Explooro',
+      description: 'What an Explooro partner does, how partners earn and withdraw, and how they must promote.',
+      heading: 'Explooro Partner Agreement',
+      bodyText: 'The agreement every Explooro partner accepts before selling from an Explooro shop.',
+      ogType: 'article',
+    },
     {
       path: '/categories',
       title: 'Product Categories — Explooro Wholesale & Retail',

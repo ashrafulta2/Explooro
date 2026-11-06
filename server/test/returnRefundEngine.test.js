@@ -209,6 +209,12 @@ function createMockDb() {
         return { rows: [] };
       }
 
+      // WHY: these cases test courier-booked pickups; with no row the modes read MANUAL (the
+      // launch default) and nothing is booked (manualOperations.service courierBookingAvailable).
+      if (q.includes('FROM platform_settings') && params[0] === 'operations.modes') {
+        return { rows: [{ key: 'operations.modes', value_json: { payout_mode: 'MANUAL', courier_mode: 'INTEGRATED' } }] };
+      }
+
       // SELECT wallets WHERE user_id = $1
       if (q.includes('FROM wallets') && q.includes('WHERE user_id = $1')) {
         const userId = params[0];

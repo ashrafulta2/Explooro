@@ -32,6 +32,7 @@ import {
 import * as auditService from './audit.service.ts';
 import { detectContactInfoLeak } from './chat.service.ts';
 import { preScreenContent } from './moderation.service.ts';
+import { assertAgreed } from './legal.service.ts';
 
 /**
  * A stream product's special price must cover the wholesale cost (base cost + wholesale margin).
@@ -556,6 +557,9 @@ export async function executeInStreamBuy(pool, cache, {
   if (existing) {
     return { order: existing, isReplay: true, originalAt: existing.created_at };
   }
+
+  // An order is a contract under the terms, as at checkout (legal.service assertAgreed).
+  await assertAgreed(pool, user?.id);
 
   const sId = Number(streamId);
   const quantity = Number(qty);

@@ -13,6 +13,7 @@ import * as authService from '../services/auth.service.ts';
 import * as otpService from '../services/otp.service.ts';
 import * as referralService from '../services/referral.service.ts';
 import * as legalService from '../services/legal.service.ts';
+import { emailDeliveryAvailable } from '../integrations/email/index.ts';
 import {
   markPhoneVerified,
   markEmailVerified,
@@ -89,6 +90,9 @@ export async function register(req, reply) {
     referral_code: referralCode,
     accept_legal: acceptLegal,
   } = req.body;
+  // WHY before the account exists: sign-up is confirmed by a code, and an email-only account with no
+  // way to send email could never be confirmed (otp.service emailUnavailableError).
+  if (!phone && email && !emailDeliveryAvailable()) throw otpService.emailUnavailableError();
   const user = await authService.registerUser(db, { phone, email, password, fullName, role, supplierType });
 
   // The sign-up form's "I agree" box. WHY best-effort: a failed write must never cost someone their

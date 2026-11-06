@@ -23,7 +23,8 @@ import { withTransaction } from '../config/db.ts';
 import * as settingRepo from '../repositories/setting.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import { settleDisbursedPayout } from './payout.service.ts';
-import { applyShipmentEvent, creditReferralOnDelivery } from './shipment.service.ts';
+import { applyShipmentEvent, creditReferralOnDelivery, SHIPPABLE_SUB_ORDER_STATUSES, mockCourierRefused } from './shipment.service.ts';
+import { getCourierAdapter } from '../integrations/courier/index.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
@@ -43,8 +44,6 @@ export const FIELD_LIMITS = Object.freeze({
   note: { max: 300 },
 });
 
-/** Sub-order statuses a parcel can be handed over from (008_orders_minimal.sql). */
-const SHIPPABLE_SUB_ORDER_STATUSES = Object.freeze(['PLACED', 'CONFIRMED', 'PACKED']);
 /** What a supplier may mark a hand-sent parcel as. */
 export const MANUAL_FINAL_STATUSES = Object.freeze(['DELIVERED', 'RETURNED']);
 /** A parcel in one of these has finished; DELIVERED → RETURNED goes through the returns engine. */
@@ -92,6 +91,19 @@ export function validateModes(input: Record<string, any> = {}) {
 }
 
 /** The live modes. `{ fresh: true }` reads past the cache, for decisions that move money. */
+/**
+ * Whether a courier API may book a pickup right now: couriers are INTEGRATED, and the configured
+ * driver is a real one (the mock courier never books in production, see shipment.service).
+ * WHY one function: the return and warranty pickups used to call the courier adapter directly, so
+ * with couriers MANUAL (launch) they booked mock consignments with tracking numbers nobody issued.
+ */
+export async function courierBookingAvailable(db, cache = null) {
+  const { courier_mode } = await getModes(db, cache);
+  if (courier_mode === 'MANUAL') return false;
+  const adapter = getCourierAdapter(process.env.COURIER_DRIVER || 'MOCK');
+  return !(adapter.name === 'MOCK' && mockCourierRefused());
+}
+
 export async function getModes(db, cache, { fresh = false } = {}) {
   if (cache && !fresh) {
     try {

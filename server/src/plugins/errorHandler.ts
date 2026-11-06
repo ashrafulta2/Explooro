@@ -27,6 +27,8 @@ const ERROR_STATUS = {
   ACCOUNT_SUSPENDED: 403,
   KYC_REQUIRED: 403,
   SELF_APPROVAL_FORBIDDEN: 403,
+  // The account has not agreed to the current terms or privacy policy (legal.service, migration 104).
+  LEGAL_ACCEPTANCE_REQUIRED: 403,
   // Generic business-rule/ownership denial (Prompt 4.6) — distinct from PERMISSION_DENIED, which
   // is specifically an RBAC catalog gate. Also fixes product.service.ts's pre-existing ownership
   // check, which threw this same code and had been silently falling through to 500 until now.

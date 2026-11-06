@@ -16,7 +16,8 @@ import { randomUUID } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { withTransaction } from '../config/db.ts';
-import { createPaymentGateway, onlineMethodsForDriver } from '../integrations/payments/index.ts';
+import { createPaymentGateway } from '../integrations/payments/index.ts';
+import { availableMethods } from './paymentMethods.service.ts';
 import * as paymentRepo from '../repositories/payment.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
@@ -51,9 +52,9 @@ export function resolveRules(raw) {
 export async function loadRules(db) {
   const { rows } = await db.query(`SELECT value_json FROM platform_settings WHERE key = $1`, [RULES_KEY]);
   const rules = resolveRules(rows[0]?.value_json);
-  // WHY: every top-up method is an online gateway. With PAYMENT_DRIVER=none (launch) none of them can
-  // take money, so the page is told there are no methods instead of offering ones that fail.
-  const online = onlineMethodsForDriver();
+  // WHY: every top-up method is an online gateway. With PAYMENT_DRIVER=none (launch), or with the
+  // method's module switched off, it cannot take money, so the page is not offered it.
+  const online = (await availableMethods(db, null)).online_methods;
   return { ...rules, methods: rules.methods.filter((m) => online.includes(String(m))) };
 }
 

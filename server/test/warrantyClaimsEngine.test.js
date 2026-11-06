@@ -22,6 +22,11 @@ function createMockDb({
   // comes back. Answering it here keeps the real notification path exercised instead of logging a
   // swallowed failure on every run, which is how a genuine notification regression would hide.
   const run = async (sql, params) => {
+    // WHY: these cases test courier-booked pickups; with no row the modes read MANUAL (the launch
+    // default) and nothing is booked (manualOperations.service courierBookingAvailable).
+    if (sql.includes('FROM platform_settings') && params?.[0] === 'operations.modes') {
+      return { rows: [{ key: 'operations.modes', value_json: { payout_mode: 'MANUAL', courier_mode: 'INTEGRATED' } }] };
+    }
     if (sql.includes('u.locale') && sql.includes('LEFT JOIN user_profiles up ON up.user_id = u.id')) {
       return { rows: [{ id: params[0], full_name: 'Test User', phone: null, email: null, locale: 'en' }] };
     }

@@ -14,27 +14,39 @@ const GATEWAY_METHODS = new Set(['BKASH', 'NAGAD', 'ROCKET', 'CARD']);
 
 const UNPAYABLE_SUB_ORDER = new Set(['CANCELLED', 'RETURNED', 'REFUNDED']);
 
-let onlineMethodsRequest: Promise<string[]> | null = null;
+export interface PaymentAvailability {
+  /** Online methods the server can charge now (no gateway, or the module off, leaves it out). */
+  online: string[];
+  /** Whether cash on delivery is on (the `cod_payment` module). */
+  cod: boolean;
+}
+
+let availabilityRequest: Promise<PaymentAvailability> | null = null;
 
 /**
- * The online methods the server can take money with right now (GET /payments/methods). Empty while
- * no gateway is connected (PAYMENT_DRIVER=none), so checkout offers cash on delivery and the vault.
- * WHY [] on a failed request: offering bKash the server cannot charge strands an unpaid order, while
- * hiding it for one visit costs nothing. A failure is not cached, so the next checkout asks again.
+ * Which ways to pay the server offers right now (GET /payments/methods, decided by
+ * server/src/services/paymentMethods.service.ts from PAYMENT_DRIVER and the payment modules).
+ * WHY no online method on a failed request: offering bKash the server cannot charge strands an
+ * unpaid order, while hiding it for one visit costs nothing. COD stays offered, because the server
+ * refuses it anyway if it is off. A failure is not cached, so the next checkout asks again.
  */
-export function getOnlineMethods(): Promise<string[]> {
-  if (!onlineMethodsRequest) {
-    onlineMethodsRequest = api.get('/payments/methods')
+export function getPaymentAvailability(): Promise<PaymentAvailability> {
+  if (!availabilityRequest) {
+    availabilityRequest = api.get('/payments/methods')
       .then((res) => {
-        const list = (res?.data ?? res)?.online_methods;
-        return Array.isArray(list) ? list.map((m) => String(m).toUpperCase()).filter((m) => GATEWAY_METHODS.has(m)) : [];
+        const data = res?.data ?? res;
+        const list = data?.online_methods;
+        return {
+          online: Array.isArray(list) ? list.map((m) => String(m).toUpperCase()).filter((m) => GATEWAY_METHODS.has(m)) : [],
+          cod: data?.cod !== false,
+        };
       })
       .catch(() => {
-        onlineMethodsRequest = null;
-        return [];
+        availabilityRequest = null;
+        return { online: [], cod: true };
       });
   }
-  return onlineMethodsRequest;
+  return availabilityRequest;
 }
 
 /** The order fields payment reads. */

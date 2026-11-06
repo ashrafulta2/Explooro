@@ -230,6 +230,11 @@ function createMockDb() {
         return { rows: [] };
       }
 
+      // Every payment module on, as a seeded database has them (services/paymentMethods.service.ts).
+      if (q.includes('FROM platform_modules') && q.includes('WHERE key = $1')) {
+        return { rows: [{ key: params[0], is_enabled: true, default_enabled: true, settings_json: {}, depends_on: [] }] };
+      }
+
       // Users
       if (q.includes('FROM users WHERE id = $1') || (q.includes('FROM users u') && q.includes('u.locale'))) {
         const u = users.find((x) => x.id === Number(params[0]));

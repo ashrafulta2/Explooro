@@ -9,6 +9,7 @@ import { createHash, randomInt } from 'node:crypto';
 import * as userRepo from '../repositories/user.repository.ts';
 import { checkBucket } from '../lib/rateBucket.ts';
 import { AppError } from '../plugins/errorHandler.ts';
+import { emailDeliveryAvailable } from '../integrations/email/index.ts';
 
 const OTP_TTL_SECONDS = 5 * 60;
 
@@ -28,9 +29,25 @@ function generateCode() {
  * @param {*} emailSender
  * @param {{ phone?: string|null, email?: string|null, purpose: string, ip?: string, isDevelopment?: boolean }} params
  */
+/** Shared with sign-up (auth.controller), which must refuse before it creates the account. */
+export function emailUnavailableError() {
+  return new AppError(
+    'VALIDATION_FAILED',
+    'Codes by email are not available yet. Please use your mobile number.',
+    'ইমেইলে কোড পাঠানো এখনো চালু হয়নি। অনুগ্রহ করে মোবাইল নম্বর ব্যবহার করুন।',
+    { field: 'email' }
+  );
+}
+
 export async function sendOtp(db: any, cache: any, smsSender: any, emailSender: any, { phone, email, purpose, ip, isDevelopment }: { phone?: string|null; email?: string|null; purpose: string; ip?: string; isDevelopment?: boolean; }) {
   if (!phone && !email) {
     throw new AppError('VALIDATION_FAILED', 'A phone number or email address is required to send OTP.', 'ওটিপি পাঠাতে ফোন নম্বর বা ইমেইল ঠিকানা আবশ্যক।');
+  }
+
+  // WHY before anything is stored: a code only an email could carry, with no way to send email,
+  // would be a code nobody receives. With a phone too, the SMS carries it.
+  if (email && !phone && !emailDeliveryAvailable()) {
+    throw emailUnavailableError();
   }
 
   if (phone) {

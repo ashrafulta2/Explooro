@@ -50,7 +50,8 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
 
     try {
       const params = new URLSearchParams();
-      if (statusFilter) params.set('status', statusFilter);
+      // WHY not 'ALL': the API filters on the value it is sent, and no payout has status ALL.
+      if (statusFilter && statusFilter !== 'ALL') params.set('status', statusFilter);
       if (methodFilter) params.set('method', methodFilter);
       params.set('limit', '50');
 

@@ -11,7 +11,7 @@ import { Button } from '../ui/Button.ts';
 import { AddressForm } from '../checkout/AddressForm.ts';
 import { PaymentSelector } from '../checkout/PaymentSelector.ts';
 import { placeCheckout, loadCheckoutDraft } from '../../services/order.api.ts';
-import { getOnlineMethods } from '../../services/payment.api.ts';
+import { getPaymentAvailability } from '../../services/payment.api.ts';
 import { addToCart } from '../../services/cart.ts';
 import { knownDeliveryCharge, knownZoneFor, loadDeliveryCharge, deliveryEtaText } from '../../services/deliveryCharge.ts';
 import { zoneName } from '../../services/deliveryZones.ts';
@@ -88,6 +88,7 @@ export function openQuickBuyModal({
   let paymentMethod = 'COD';
   // WHY empty until the server answers: an online method shown before then might not be chargeable.
   let onlineMethods: string[] = [];
+  let codAvailable = true;
   let isSubmitting = false;
   let deliveryCharge = knownDeliveryCharge();
 
@@ -221,6 +222,7 @@ export function openQuickBuyModal({
         initialMethod: paymentMethod,
         orderTotal: totalAmount,
         onlineMethods,
+        codAvailable,
         onChange: (m) => { paymentMethod = m; },
       });
       step2Body.append(paymentSelector.element);
@@ -322,9 +324,11 @@ export function openQuickBuyModal({
     if (charge !== null) deliveryCharge = charge;
     if (step === 2) renderStep();
   });
-  getOnlineMethods().then((list) => {
-    onlineMethods = list;
-    if (!list.includes(paymentMethod) && paymentMethod !== 'COD') paymentMethod = 'COD';
+  getPaymentAvailability().then((availability) => {
+    onlineMethods = availability.online;
+    codAvailable = availability.cod;
+    const usable = [...onlineMethods, ...(codAvailable ? ['COD'] : [])];
+    if (!usable.includes(paymentMethod)) paymentMethod = usable[0] ?? '';
     if (step === 2) renderStep();
   });
   return modal;

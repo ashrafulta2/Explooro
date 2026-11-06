@@ -118,29 +118,33 @@ test('Prompts 5.3 & 5.4: Checkout & Payments — Client Invariants', async (t) =
 
 // Launch runs PAYMENT_DRIVER=none (no gateway signed): checkout must offer only what the server can
 // charge, or a shopper picks bKash and is left with an unpaid order. See server/test/launchConfig.test.js.
-test('Online methods come from GET /payments/methods, never a hardcoded list', async () => {
+test('Ways to pay come from GET /payments/methods, never from a hardcoded list or a feature flag', async () => {
   const { readFileSync } = await import('node:fs');
   const read = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
 
   const selector = read('components/checkout/PaymentSelector.ts');
   assert.match(selector, /onlineMethods = ONLINE_METHOD_IDS/, 'the selector takes the server list');
-  assert.match(selector, /ONLINE_METHOD_IDS\.includes\(m\.id\) && !onlineMethods\.includes\(m\.id\)\) return;/, 'it hides what the server did not list');
-  assert.match(selector, /!onlineMethods\.includes\(selectedMethod\)\) selectedMethod = 'COD'/, 'a remembered online pick falls back to COD');
+  assert.match(selector, /codAvailable = true/, 'and whether cash on delivery is on');
+  assert.match(selector, /m\.id === 'COD' \? codAvailable : ONLINE_METHOD_IDS\.includes\(m\.id\) \? onlineMethods\.includes\(m\.id\) : true/, 'it offers only what the server listed');
+  assert.match(selector, /selectedMethod = methods\.find\(\(m\) => !m\.disabled\)\?\.id \?\? ''/, 'a remembered method no longer offered falls back to a usable one');
+  // The old per-method flags named no module key, so they always read "on".
+  assert.doesNotMatch(selector, /isFeatureEnabled|flag: '/);
 
   for (const caller of ['pages/CheckoutPage.ts', 'components/cart/QuickBuyModal.ts']) {
     const code = read(caller);
-    assert.match(code, /getOnlineMethods\(\)/, `${caller} asks the server`);
-    assert.match(code, /onlineMethods,/, `${caller} passes the list to the selector`);
+    assert.match(code, /getPaymentAvailability\(\)/, `${caller} asks the server`);
+    assert.match(code, /codAvailable/, `${caller} passes cash-on-delivery availability`);
   }
 
   const api = read('services/payment.api.ts');
   assert.match(api, /api\.get\('\/payments\/methods'\)/);
-  assert.match(api, /\.catch\(\(\) => \{\s*onlineMethodsRequest = null;\s*return \[\];/, 'a failed request offers no online method and is not cached');
+  assert.match(api, /\.catch\(\(\) => \{\s*availabilityRequest = null;\s*return \{ online: \[\], cod: true \};/, 'a failed request offers no online method and is not cached');
 
   const { default: orderHandlers } = await import('../src/mocks/handlers/orders.ts');
   const route = orderHandlers.find((h) => h.method === 'GET' && h.path === '/payments/methods');
   assert.ok(route, 'mock mode answers /payments/methods');
-  assert.deepEqual(route.handler({}).body.data.online_methods, ['BKASH', 'NAGAD', 'ROCKET', 'CARD']);
+  assert.deepEqual(route.handler({}).body.data, { online_methods: ['BKASH', 'NAGAD', 'ROCKET', 'CARD'], cod: true });
 
   assert.ok(enDict.topup.unavailable && bnDict.topup.unavailable, 'the top-up page explains an empty method list in both locales');
+  assert.ok(enDict.checkout.no_payment_method && bnDict.checkout.no_payment_method, 'checkout explains when nothing is offered');
 });

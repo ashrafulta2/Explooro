@@ -56,11 +56,13 @@ async function getDisputeSettings(db) {
   try {
     if (moduleRepo && typeof moduleRepo.getModuleByKey === 'function') {
       const mod = await moduleRepo.getModuleByKey(db, 'dispute_panel');
-      if (mod?.sub_settings_json) {
+      // WHY settings_json: that is the platform_modules column. The code read sub_settings_json, which no
+      // row has, so the admin's module settings were ignored and the defaults always applied.
+      if ((mod?.settings_json ?? mod?.sub_settings_json)) {
         return {
-          sla_hours: parseInt(mod.sub_settings_json.sla_hours, 10) || 48,
-          escalate_above_amount: parseFloat(mod.sub_settings_json.escalate_above_amount) || 10000,
-          maker_checker_above_amount: parseFloat(mod.sub_settings_json.maker_checker_above_amount) || 5000,
+          sla_hours: parseInt((mod.settings_json ?? mod.sub_settings_json).sla_hours, 10) || 48,
+          escalate_above_amount: parseFloat((mod.settings_json ?? mod.sub_settings_json).escalate_above_amount) || 10000,
+          maker_checker_above_amount: parseFloat((mod.settings_json ?? mod.sub_settings_json).maker_checker_above_amount) || 5000,
         };
       }
     }

@@ -11,7 +11,6 @@
  *    while the balance is short of the order total (the server refuses it as well)
  */
 
-import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { t } from '../../services/i18n.ts';
 import { formatCurrency } from '../../services/format.ts';
 import { Button } from '../ui/Button.ts';
@@ -23,6 +22,8 @@ export interface PaymentSelectorOptions {
   vaultBalance?: number | null;
   /** Online methods the server can charge (GET /payments/methods). Defaults to all four. */
   onlineMethods?: string[];
+  /** Whether cash on delivery is on (GET /payments/methods). Defaults to on. */
+  codAvailable?: boolean;
   onChange?: (method: string) => void;
   onOtpSubmit?: (code: string) => void;
 }
@@ -45,6 +46,7 @@ export function PaymentSelector({
   orderTotal = 0,
   vaultBalance = null,
   onlineMethods = ONLINE_METHOD_IDS,
+  codAvailable = true,
   onChange,
   onOtpSubmit,
 }: PaymentSelectorOptions = {}): PaymentSelectorParts {
@@ -54,15 +56,13 @@ export function PaymentSelector({
   const vaultShort = vaultBalance == null ? 0 : Math.max(orderTotal - vaultBalance, 0);
   // WHY: a draft may remember the vault from a visit when the balance covered the cart; it may not now.
   let selectedMethod = initialMethod === 'WALLET' && (vaultBalance == null || vaultShort > 0) ? 'COD' : initialMethod;
-  // WHY: a remembered draft may name bKash from a visit when a gateway was connected; it may not now.
-  if (ONLINE_METHOD_IDS.includes(selectedMethod) && !onlineMethods.includes(selectedMethod)) selectedMethod = 'COD';
   let otpState = {
     required: false,
     phone: '',
     code: '',
   };
 
-  const methods: { id: string; title: string; desc: string; icon: string; badge: string; flag?: string; disabled?: boolean }[] = [
+  const allMethods: { id: string; title: string; desc: string; icon: string; badge: string; disabled?: boolean }[] = [
     ...(vaultBalance == null ? [] : [{
       id: 'WALLET',
       title: t('checkout.vault'),
@@ -77,7 +77,6 @@ export function PaymentSelector({
       desc: t('checkout.bkash_desc'),
       icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>',
       badge: t('checkout.badge_instant'),
-      flag: 'bkash',
     },
     {
       id: 'NAGAD',
@@ -85,7 +84,6 @@ export function PaymentSelector({
       desc: t('checkout.nagad_desc'),
       icon: '📲',
       badge: t('checkout.badge_fast'),
-      flag: 'nagad',
     },
     {
       id: 'ROCKET',
@@ -93,7 +91,6 @@ export function PaymentSelector({
       desc: t('checkout.rocket_desc'),
       icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 3.81-2 24.36 24.36 0 0 1 5.9-2c3.55-1 6-4 6-4s-3 2.45-4 6a24.36 24.36 0 0 1-2 5.9A22 22 0 0 1 15 12z"></path><path d="M9 11l.01-.01"></path></svg>',
       badge: t('checkout.badge_dbbl'),
-      flag: 'rocket',
     },
     {
       id: 'CARD',
@@ -101,7 +98,6 @@ export function PaymentSelector({
       desc: t('checkout.card_desc'),
       icon: '💳',
       badge: t('checkout.badge_card'),
-      flag: 'cards',
     },
     {
       id: 'COD',
@@ -109,21 +105,30 @@ export function PaymentSelector({
       desc: t('checkout.cod_desc'),
       icon: '💵',
       badge: t('checkout.badge_cash'),
-      flag: 'cod',
     },
   ];
+
+  // WHY only what the server offers (GET /payments/methods): it alone knows whether a gateway is
+  // connected and which payment modules the admin switched on. The old per-method feature flags
+  // (`bkash`, `cards`, `cod`) named no real module, so they always read "on".
+  const methods = allMethods.filter((m) => (m.id === 'COD' ? codAvailable : ONLINE_METHOD_IDS.includes(m.id) ? onlineMethods.includes(m.id) : true));
+  // A remembered draft may name a method that is no longer offered: fall back to the first usable one.
+  if (!methods.some((m) => m.id === selectedMethod && !m.disabled)) {
+    selectedMethod = methods.find((m) => !m.disabled)?.id ?? '';
+  }
 
   // Render methods list
   const listEl = document.createElement('div');
   listEl.className = 'payment-selector__list';
 
+  if (methods.length === 0) {
+    const none = document.createElement('p');
+    none.className = 'payment-selector__none text-sm text-secondary';
+    none.textContent = t('checkout.no_payment_method');
+    listEl.append(none);
+  }
+
   methods.forEach((m) => {
-    // Check if feature flag is active (if feature flags initialized)
-    // @ts-expect-error isFeatureEnabled (featureFlags.ts, not typed yet) takes one argument; the second is ignored
-    const isEnabled = !m.flag || isFeatureEnabled(m.flag, true);
-    if (!isEnabled) return;
-    // WHY: the server lists only the online methods it can charge (GET /payments/methods).
-    if (ONLINE_METHOD_IDS.includes(m.id) && !onlineMethods.includes(m.id)) return;
 
     const card = document.createElement('label');
     card.className = `payment-selector__card ${selectedMethod === m.id ? 'payment-selector__card--selected' : ''} ${m.disabled ? 'payment-selector__card--disabled' : ''}`;

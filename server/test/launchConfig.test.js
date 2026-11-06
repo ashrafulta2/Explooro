@@ -29,12 +29,16 @@ import * as shipmentService from '../src/services/shipment.service.ts';
 const norm = (sql) => String(sql).trim().replace(/\s+/g, ' ');
 const src = (p) => readFileSync(new URL(`../src/${p}`, import.meta.url), 'utf8');
 
+/** Module rows a seeded database has; `off` lists the ones switched off. */
+const moduleRow = (key, off = []) => ({ rows: [{ key, is_enabled: !off.includes(key), default_enabled: true, settings_json: {}, depends_on: [] }] });
+
 /** A pool whose client answers by matching SQL text, and records every query it saw. */
-function fakePool(answer = () => ({ rows: [] })) {
+function fakePool(answer = () => ({ rows: [] }), { modulesOff = [] } = {}) {
   const seen = [];
   const client = {
     async query(sql, params = []) {
       seen.push({ sql: norm(sql), params });
+      if (norm(sql).includes('FROM platform_modules') && norm(sql).includes('WHERE key = $1')) return moduleRow(params[0], modulesOff);
       return answer(norm(sql), params);
     },
     release() {},
@@ -95,8 +99,8 @@ describe('2. PAYMENT_DRIVER=none: cash on delivery and the vault only', () => {
         executeCheckout(pool, null, { userId: 7, idempotencyKey: `k-${method}`, paymentMethod: method }),
         (e) => e.code === 'PAYMENT_METHOD_UNSUPPORTED'
       );
-      // Only the idempotency replay lookup ran.
-      assert.ok(pool.seen.every((q) => q.sql.startsWith('SELECT * FROM orders WHERE idempotency_key')), JSON.stringify(pool.seen));
+      // Only reads ran: the replay lookup and the module switches. Nothing was locked or written.
+      assert.ok(pool.seen.every((q) => q.sql.startsWith('SELECT') && !q.sql.includes('FOR UPDATE')), JSON.stringify(pool.seen));
     }
   });
 

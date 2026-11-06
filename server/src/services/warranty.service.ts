@@ -17,6 +17,7 @@ import { getCourierAdapter } from '../integrations/courier/index.ts';
 import * as notificationService from './notification.service.ts';
 import * as clawbackService from './clawback.service.ts';
 import { writeAudit } from '../lib/audit.ts';
+import { courierBookingAvailable } from './manualOperations.service.ts';
 
 export function generateWarrantyRef() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -565,8 +566,14 @@ export async function reviewWarrantyClaim(db, {
       };
     }
 
-    // For physical inspection (Repair / Replace), book reverse consignment with 3PL courier
-    if (finalResolution === 'REPAIR' || finalResolution === 'REPLACE') {
+    // For physical inspection (Repair / Replace), book reverse consignment with 3PL courier.
+    // WHY skipped while couriers are MANUAL (launch): the adapter would be the mock one and invent a
+    // tracking number; the customer sends the item back by hand.
+    // WHY a savepoint: in Postgres a failed statement aborts the whole transaction, so the caught
+    // error below used to leave every later query (the claim update, the audit row) failing and the
+    // approval lost. Rolling back to the savepoint keeps the approval when only the booking fails.
+    if ((finalResolution === 'REPAIR' || finalResolution === 'REPLACE') && (await courierBookingAvailable(txClient))) {
+      await txClient.query('SAVEPOINT warranty_reverse_pickup');
       try {
         const courierAdapter = getCourierAdapter(process.env.COURIER_DRIVER || 'MOCK');
         const address = typeof claim.delivery_address_json === 'string'
@@ -600,7 +607,9 @@ export async function reviewWarrantyClaim(db, {
         if (shipRows.length > 0) {
           reverseShipmentId = shipRows[0].id;
         }
+        await txClient.query('RELEASE SAVEPOINT warranty_reverse_pickup');
       } catch (err) {
+        await txClient.query('ROLLBACK TO SAVEPOINT warranty_reverse_pickup').catch(() => {});
         console.warn(`[WarrantyService] Reverse shipment booking notice: ${err.message}`);
       }
     }
