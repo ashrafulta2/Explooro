@@ -309,6 +309,56 @@ describe('courier webhooks for reverse parcels', () => {
   });
 });
 
+describe('pickup charges vs what couriers bill (migration 107)', () => {
+  test('a booking stores the courier quote', async () => {
+    process.env.COURIER_DRIVER = 'mock';
+    const db = fakeDb();
+    await reversePickups.bookReversePickup(db, {
+      kind: 'RETURN', returnRequestId: 5, parentRef: 'RET-5',
+      pickup: { name: 'A', phone: '+8801712345678', address: { district: 'cumilla' } },
+      destination: { name: 'Desk', phone: '+8801711000000', address: { district: 'dhaka_city' } },
+    });
+    const [ins] = inserted(db, 'reverse_pickups');
+    assert.match(ins.sql, /label_url, courier_charge, created_at/);
+    assert.match(String(ins.params[14]), /^\d+\.\d{2}$/, 'the quoted price, two decimals');
+  });
+
+  test('the report uses the bill when recorded, else the quote, and shows the gap', async () => {
+    const db = fakeDb({ answer: (q) => {
+      if (q.includes('FROM reverse_pickups rp')) {
+        return { rows: [
+          { id: 1, ref: 'R1', fee_charged: '100.00', courier_charge: '60.00', courier_billed: '130.00' },
+          { id: 2, ref: 'R2', fee_charged: '100.00', courier_charge: '70.00', courier_billed: null },
+          { id: 3, ref: 'R3', fee_charged: null, courier_charge: '70.00', courier_billed: null },
+        ] };
+      }
+      if (q.includes('COUNT(*)::int AS pickups')) return { rows: [{ pickups: 3, collected: '200.00', cost: '270.00', unbilled: 2 }] };
+      return null;
+    } });
+    const r = await reversePickups.getPickupCharges(db, { days: '999' });
+    assert.equal(r.days, 365, 'bounded');
+    assert.deepEqual(r.totals, { pickups: 3, unbilled: 2, collected: '200.00', cost: '270.00', gap: '-70.00' });
+    assert.deepEqual(r.pickups.map((p) => p.gap), ['-30.00', '30.00', null]);
+  });
+
+  test('recording a bill is checked, reasoned and audited', async () => {
+    const audits = [];
+    const auditService = { async record(_db, row) { audits.push(row); } };
+    const db = fakeDb({ answer: (q, p) => {
+      if (q.startsWith('SELECT id, ref, courier_billed FROM reverse_pickups')) return { rows: p[0] === 1 ? [{ id: 1, ref: 'R1', courier_billed: null }] : [] };
+      if (q.startsWith('UPDATE reverse_pickups')) return { rows: [{ id: 1, ref: 'R1', courier_billed: p[1] }] };
+      return null;
+    } });
+    await assert.rejects(reversePickups.recordCourierBill(db, auditService, { pickupId: 1, amount: -5, reason: 'Steadfast November bill', userId: 1 }), (e) => e.details?.field === 'amount');
+    await assert.rejects(reversePickups.recordCourierBill(db, auditService, { pickupId: 1, amount: 120, reason: 'short', userId: 1 }), (e) => e.details?.field === 'reason');
+    await assert.rejects(reversePickups.recordCourierBill(db, auditService, { pickupId: 2, amount: 120, reason: 'Steadfast November bill', userId: 1 }), (e) => e.code === 'NOT_FOUND');
+    const saved = await reversePickups.recordCourierBill(db, auditService, { pickupId: 1, amount: 120, reason: 'Steadfast November bill', userId: 1 });
+    assert.equal(saved.courier_billed, '120.00');
+    assert.equal(audits[0].action, 'platform.operations.pickup_bill.record');
+    assert.equal(audits[0].riskTier, 'CRITICAL');
+  });
+});
+
 describe('courier adapters', () => {
   test('every carrier can book a return pickup', async () => {
     for (const key of ['MOCK', 'STEADFAST', 'PATHAO', 'REDX']) {

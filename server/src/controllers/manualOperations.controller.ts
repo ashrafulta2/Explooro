@@ -103,6 +103,28 @@ export async function updateReturnShipping(req, reply) {
   });
 }
 
+export async function getPickupCharges(req, reply) {
+  const q = req.query || {};
+  return reply.send(await reversePickups.getPickupCharges(dbOf(req), { days: q.days, limit: q.limit, offset: q.offset }));
+}
+
+export async function recordPickupBill(req, reply) {
+  const body = req.body || {};
+  const saved = await reversePickups.recordCourierBill(dbOf(req), auditService, {
+    pickupId: parseInt(req.params.id, 10),
+    amount: body.amount,
+    reason: body.reason,
+    userId: req.user?.id ?? null,
+    actorRole: roleOf(req),
+    reqContext: { traceId: req.traceId, ip: req.ip, userAgent: req.headers?.['user-agent'] },
+  });
+  return reply.send({
+    pickup: saved,
+    message_en: 'Courier bill recorded.',
+    message_bn: 'কুরিয়ারের বিল লেখা হয়েছে।',
+  });
+}
+
 export async function markPayoutPaid(req, reply) {
   const body = req.body || {};
   const result = await manualOps.completePayoutManually(dbOf(req), {

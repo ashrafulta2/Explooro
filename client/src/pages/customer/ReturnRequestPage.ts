@@ -167,6 +167,7 @@ export default function ReturnRequestPage(root: HTMLElement, { params = {}, navi
               <option value="SIZE_MISMATCH" ${selectedReason === 'SIZE_MISMATCH' ? 'selected' : ''}>${t('returns.reasons.size_mismatch')}</option>
               <option value="NOT_AS_DESCRIBED" ${selectedReason === 'NOT_AS_DESCRIBED' ? 'selected' : ''}>${t('returns.reasons.not_as_described')}</option>
               <option value="CHANGED_MIND" ${selectedReason === 'CHANGED_MIND' ? 'selected' : ''}>${t('returns.reasons.changed_mind')}</option>
+              <option value="OTHER" ${selectedReason === 'OTHER' ? 'selected' : ''}>${t('returns.reasons.other')}</option>
             </select>
             <p class="text-xs text-secondary mb-3" data-return-shipping-note aria-live="polite">${shippingNoteText()}</p>
 

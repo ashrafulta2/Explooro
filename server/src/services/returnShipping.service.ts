@@ -268,12 +268,22 @@ export async function settleReturnShipping(txClient, { returnReq, isFullReturn, 
     policy,
   });
 
+  let supplierDeficit = null;
   if (plan.moves.length > 0) {
     const walletOf: Record<string, any> = {};
     const needs = new Set(plan.moves.flatMap((m) => [m.from, m.to]));
     if (needs.has('CUSTOMER')) walletOf.CUSTOMER = (await walletRepo.getOrCreateWallet(txClient, returnReq.customer_id, { client: txClient })).id;
     if (needs.has('SUPPLIER')) walletOf.SUPPLIER = (await walletRepo.getOrCreateWallet(txClient, returnReq.supplier_id, { client: txClient })).id;
     if (needs.has('PLATFORM')) walletOf.PLATFORM = await vaultService.resolvePlatformWalletId(txClient, txClient);
+
+    // What the supplier can cover from their vault right now, read under lock (after this refund's
+    // clawback, which runs first in the same transaction).
+    const supplierPaisa = plan.moves.filter((m) => m.from === 'SUPPLIER').reduce((sum, m) => sum + m.paisa, 0);
+    let supplierAvailablePaisa = 0;
+    if (supplierPaisa > 0) {
+      const wallet = await walletRepo.getWalletByIdForUpdate(txClient, walletOf.SUPPLIER);
+      supplierAvailablePaisa = Math.max(0, paisa(wallet?.available_balance));
+    }
 
     const entries = [];
     for (const m of plan.moves) {
@@ -290,6 +300,27 @@ export async function settleReturnShipping(txClient, { returnReq, isFullReturn, 
       defaultReferenceId: returnReq.id,
       createdBy: approvedBy,
     });
+
+    // WHY recorded and not refused: the customer is owed the money whatever the supplier holds, so
+    // the supplier's vault goes below zero, as with a clawback they cannot cover, and the daily
+    // settleDeficitRecoveries job marks it recovered as their next earnings come in.
+    if (supplierPaisa > supplierAvailablePaisa) {
+      supplierDeficit = await recordSupplierDeficit(txClient, {
+        returnReq,
+        walletId: walletOf.SUPPLIER,
+        totalPaisa: supplierPaisa,
+        coveredPaisa: supplierAvailablePaisa,
+      });
+    }
+
+    // The pickup charge collected, beside what the courier quoted, for the reconciliation report.
+    const fee = plan.moves.find((m) => m.kind === 'PICKUP_FEE');
+    if (fee && returnReq.reverse_pickup_id) {
+      await txClient.query(
+        'UPDATE reverse_pickups SET fee_charged = $2, fee_charged_from = $3, updated_at = now() WHERE id = $1',
+        [returnReq.reverse_pickup_id, taka(fee.paisa), fee.from]
+      );
+    }
   }
 
   const record = {
@@ -297,12 +328,38 @@ export async function settleReturnShipping(txClient, { returnReq, isFullReturn, 
     mode: plan.mode,
     moves: plan.moves.map((m) => ({ kind: m.kind, from: m.from, to: m.to, amount: taka(m.paisa) })),
     customer_net: (plan.customerNetPaisa / 100).toFixed(2),
+    supplier_deficit: supplierDeficit,
   };
   await txClient.query(
     `UPDATE return_requests SET return_shipping_paid_by = $2, shipping_settlement_json = $3, updated_at = now() WHERE id = $1`,
     [returnReq.id, plan.paidBy, JSON.stringify(record)]
   );
   return record;
+}
+
+/** A recovery record for return shipping a supplier could not cover (migration 107). */
+async function recordSupplierDeficit(txClient, { returnReq, walletId, totalPaisa, coveredPaisa }) {
+  const ref = `NBR-${randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+  const { rows } = await txClient.query(
+    `INSERT INTO negative_balance_recoveries (
+       ref, wallet_id, user_id, sub_order_id, return_request_id,
+       total_clawback_amount, recovered_from_available, unrecovered_deficit, recovery_status, reason
+     )
+     VALUES ($1, $2, $3, $4, $5, $6::numeric(14,2), $7::numeric(14,2), $8::numeric(14,2), 'PENDING', $9)
+     RETURNING ref, unrecovered_deficit`,
+    [
+      ref,
+      walletId,
+      returnReq.supplier_id,
+      returnReq.sub_order_id ?? null,
+      returnReq.id,
+      taka(totalPaisa),
+      taka(coveredPaisa),
+      taka(totalPaisa - coveredPaisa),
+      `Return shipping for return ${returnReq.ref}, paid by the supplier`,
+    ]
+  );
+  return rows[0] ? { ref: rows[0].ref, amount: taka(totalPaisa - coveredPaisa) } : null;
 }
 
 /**

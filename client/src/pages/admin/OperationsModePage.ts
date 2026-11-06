@@ -25,7 +25,8 @@ import { api } from '../../core/api.ts';
 import { can } from '../../services/permissions.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
-import { formatRelativeTime } from '../../services/format.ts';
+import { formatRelativeTime, formatCurrency } from '../../services/format.ts';
+import { Modal } from '../../components/ui/Modal.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 import { getDivisions, getDistrictsByDivision } from '../../data/bangladeshGeo.ts';
@@ -45,6 +46,20 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
   let data = null;
   let loadError = null;
   let isLoading = true;
+  // Courier pickup charges vs what couriers quote and bill (migration 107). Loaded on its own so
+  // the rest of the page works if it fails. WHY these periods: a report window, not a business rule.
+  const PICKUP_PERIODS = [30, 90, 365];
+  let pickupDays = PICKUP_PERIODS[0];
+  let pickupCharges = null;
+
+  async function loadPickupCharges() {
+    try {
+      pickupCharges = await api.get(`/admin/platform/operations/pickup-charges?days=${pickupDays}`);
+    } catch {
+      pickupCharges = null;
+    }
+    render();
+  }
 
   async function loadData() {
     isLoading = true;
@@ -52,6 +67,7 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
     try {
       data = await api.get('/admin/platform/operations');
       loadError = null;
+      loadPickupCharges();
     } catch (err) {
       loadError = err?.message || t('common.error_generic');
     } finally {
@@ -350,6 +366,134 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
     return panel;
   }
 
+  /** Records what a courier's bill said for one pickup, with a reason (CRITICAL, audited). */
+  function openBillDialog(row) {
+    const amount = Input({ label: t('admin.operations.pickup_charges.bill_label'), hint: t('admin.operations.pickup_charges.bill_hint'), type: 'number', name: 'amount', value: row.courier_billed ?? row.courier_charge ?? '' });
+    amount.input.min = '0';
+    amount.input.step = '0.01';
+    const reason = Input({ label: t('admin.operations.reason'), hint: t('admin.operations.reason_hint', { min: MIN_REASON_LENGTH }), type: 'text', name: 'reason', maxLength: 500, required: true });
+    const body = document.createElement('div');
+    body.className = 'flex flex-col gap-3';
+    body.append(amount, reason);
+    const footer = document.createElement('div');
+    footer.className = 'flex justify-end gap-2';
+    const save = Button({
+      label: t('admin.operations.pickup_charges.bill_save'),
+      variant: 'primary',
+      onClick: async () => {
+        if (reason.value.trim().length < MIN_REASON_LENGTH) {
+          toast.error(t('admin.operations.reason_hint', { min: MIN_REASON_LENGTH }));
+          reason.input.focus();
+          return;
+        }
+        save.disabled = true;
+        try {
+          const res = await api.put(`/admin/platform/operations/pickup-charges/${row.id}/bill`, { amount: Number(amount.value), reason: reason.value.trim() });
+          toast.success((isBn ? res?.message_bn : res?.message_en) || t('admin.operations.pickup_charges.bill_saved'));
+          modal.closeModal(true);
+          loadPickupCharges();
+        } catch (err) {
+          toast.error(err?.message || t('common.error_generic'));
+        } finally {
+          save.disabled = false;
+        }
+      },
+    });
+    footer.append(Button({ label: t('common.cancel'), variant: 'ghost', onClick: () => modal.closeModal(false) }), save);
+    const modal = Modal({ title: t('admin.operations.pickup_charges.bill_title', { ref: row.return_ref || row.claim_ref || row.ref }), content: body, footer, size: 'sm' });
+    modal.open();
+  }
+
+  /**
+   * What courier pickups collected (from the supplier or the customer, returnShipping.service)
+   * against what the courier quoted at booking and, once staff record it, what its bill said.
+   * A negative gap means the pickup charge no longer covers what couriers charge.
+   */
+  function pickupChargesCard() {
+    const panel = document.createElement('section');
+    panel.className = 'admin-panel mt-4';
+    panel.dataset.pickupCharges = '';
+    const canUpdate = data.can_update !== false && can('platform.operations.update');
+    const r = pickupCharges;
+    const money = (v) => (v === null || v === undefined ? '—' : formatCurrency(Number(v)));
+    const head = `
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <h2 class="admin-panel__title">${escapeHtml(t('admin.operations.pickup_charges.title'))}</h2>
+      </div>
+      <p class="text-sm text-secondary">${escapeHtml(t('admin.operations.pickup_charges.desc'))}</p>`;
+    panel.innerHTML = head;
+
+    const period = Select({
+      label: t('admin.operations.pickup_charges.period'),
+      name: 'pickup_days',
+      options: PICKUP_PERIODS.map((d) => ({ value: d, label: t('admin.operations.pickup_charges.days', { days: d }) })),
+      value: pickupDays,
+      onChange: () => {
+        pickupDays = Number(period.value);
+        loadPickupCharges();
+      },
+    });
+    panel.append(period);
+
+    if (!r) {
+      const empty = document.createElement('p');
+      empty.className = 'p-6 text-center text-sm text-muted';
+      empty.textContent = t('common.loading');
+      panel.append(empty);
+      return panel;
+    }
+
+    const gap = Number(r.totals.gap);
+    const kpi = document.createElement('div');
+    kpi.className = 'admin-kpi-grid mt-3';
+    kpi.innerHTML = `
+      <div class="admin-kpi-card"><div class="admin-kpi-card__label">${escapeHtml(t('admin.operations.pickup_charges.kpi_pickups'))}</div><div class="admin-kpi-card__val">${escapeHtml(String(r.totals.pickups))}</div><div class="admin-kpi-card__hint">${escapeHtml(t('admin.operations.pickup_charges.kpi_unbilled', { count: r.totals.unbilled }))}</div></div>
+      <div class="admin-kpi-card"><div class="admin-kpi-card__label">${escapeHtml(t('admin.operations.pickup_charges.kpi_collected'))}</div><div class="admin-kpi-card__val">${escapeHtml(money(r.totals.collected))}</div></div>
+      <div class="admin-kpi-card"><div class="admin-kpi-card__label">${escapeHtml(t('admin.operations.pickup_charges.kpi_cost'))}</div><div class="admin-kpi-card__val">${escapeHtml(money(r.totals.cost))}</div></div>
+      <div class="admin-kpi-card" data-pickup-gap="${gap < 0 ? 'short' : 'ok'}"><div class="admin-kpi-card__label">${escapeHtml(t('admin.operations.pickup_charges.kpi_gap'))}</div><div class="admin-kpi-card__val">${escapeHtml(money(r.totals.gap))}</div><div class="admin-kpi-card__hint">${escapeHtml(t(gap < 0 ? 'admin.operations.pickup_charges.gap_short' : 'admin.operations.pickup_charges.gap_ok'))}</div></div>`;
+    panel.append(kpi);
+
+    if (r.pickups.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'p-6 text-center text-sm text-muted';
+      empty.textContent = t('admin.operations.pickup_charges.empty');
+      panel.append(empty);
+      return panel;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'system-table-wrap mt-3';
+    const from = (v) => (v ? t(`admin.operations.pickup_charges.from_${String(v).toLowerCase()}`) : '—');
+    wrap.innerHTML = `
+      <table class="system-table">
+        <thead><tr>
+          <th>${escapeHtml(t('admin.operations.pickup_charges.col_pickup'))}</th>
+          <th>${escapeHtml(t('admin.operations.pickup_charges.col_collected'))}</th>
+          <th>${escapeHtml(t('admin.operations.pickup_charges.col_quote'))}</th>
+          <th>${escapeHtml(t('admin.operations.pickup_charges.col_bill'))}</th>
+          <th>${escapeHtml(t('admin.operations.pickup_charges.col_gap'))}</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${r.pickups.map((p) => `
+          <tr>
+            <td class="text-xs"><strong class="font-mono">${escapeHtml(p.return_ref || p.claim_ref || p.ref)}</strong><br>${escapeHtml(p.carrier)} · <span class="font-mono">${escapeHtml(p.tracking_number || '')}</span></td>
+            <td>${escapeHtml(money(p.fee_charged))}<br><span class="text-xs text-secondary">${escapeHtml(from(p.fee_charged_from))}</span></td>
+            <td>${escapeHtml(money(p.courier_charge))}</td>
+            <td>${escapeHtml(money(p.courier_billed))}</td>
+            <td>${escapeHtml(money(p.gap))}</td>
+            <td>${canUpdate ? `<button type="button" class="btn btn--ghost btn--sm" data-record-bill="${escapeHtml(String(p.id))}">${escapeHtml(t('admin.operations.pickup_charges.record_bill'))}</button>` : ''}</td>
+          </tr>`).join('')}</tbody>
+      </table>`;
+    wrap.querySelectorAll<HTMLElement>('[data-record-bill]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const row = r.pickups.find((p) => String(p.id) === btn.dataset.recordBill);
+        if (row) openBillDialog(row);
+      });
+    });
+    panel.append(wrap);
+    return panel;
+  }
+
   function kpis() {
     const { modes } = data;
     const grid = document.createElement('div');
@@ -436,7 +580,7 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
       error.textContent = loadError;
       container.append(error);
     } else if (data) {
-      container.append(kpis(), modesCard(), returnAddressCard(), returnShippingCard(), historyPanel());
+      container.append(kpis(), modesCard(), returnAddressCard(), returnShippingCard(), pickupChargesCard(), historyPanel());
     }
 
     root.appendChild(container);

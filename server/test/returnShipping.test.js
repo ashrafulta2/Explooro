@@ -100,7 +100,7 @@ describe('the rules are configuration', () => {
 });
 
 /** A db that runs the real ledger code: wallets per user, captured ledger rows. */
-function ledgerDb({ returnRow, policy = POLICY, fullReturn = true }) {
+function ledgerDb({ returnRow, policy = POLICY, fullReturn = true, supplierAvailable = '0.00' }) {
   const seen = [];
   const ledger = [];
   const query = async (sql, params = []) => {
@@ -112,6 +112,10 @@ function ledgerDb({ returnRow, policy = POLICY, fullReturn = true }) {
       return { rows: [{ id: 1, qty: 2, returned_qty: fullReturn ? 2 : 1 }] };
     }
     if (q.includes('FROM wallets') && q.includes('WHERE user_id = $1')) return { rows: [{ id: 1000 + Number(params[0]), user_id: params[0] }] };
+    if (q.includes('FROM wallets') && q.includes('WHERE id = $1 FOR UPDATE')) {
+      return { rows: [{ id: params[0], user_id: params[0] - 1000, available_balance: supplierAvailable }] };
+    }
+    if (q.startsWith('INSERT INTO negative_balance_recoveries')) return { rows: [{ ref: params[0], unrecovered_deficit: params[7] }] };
     if (q.includes('FROM wallets') && q.includes('ANY($1::bigint[])')) {
       return { rows: params[0].map((id) => ({ id, user_id: id - 1000, available_balance: '0.00', pending_escrow_balance: '0.00', held_balance: '0.00' })) };
     }
@@ -150,6 +154,43 @@ describe('settling at refund', () => {
     }
     const saved = db.seen.find((s) => s.sql.startsWith('UPDATE return_requests SET return_shipping_paid_by'));
     assert.equal(JSON.parse(saved.params[2]).customer_net, '90.00');
+  });
+
+  test('a supplier who cannot cover it goes below zero with a recovery record, as with a clawback', async () => {
+    const db = ledgerDb({ returnRow: base, supplierAvailable: '40.00' });
+    const record = await rs.settleReturnShipping(db, {
+      returnReq: { ...base, reason_code: 'DAMAGED', reverse_carrier: 'MANUAL', customer_courier_cost: '90.00' },
+      isFullReturn: true,
+      customerRefund: '500.00',
+    });
+    const ins = db.seen.find((s) => s.sql.startsWith('INSERT INTO negative_balance_recoveries'));
+    assert.ok(ins, 'a recovery record is written');
+    assert.deepEqual(ins.params.slice(1, 8), [1009, 9, 501, 5, '90.00', '40.00', '50.00']);
+    assert.deepEqual(record.supplier_deficit, { ref: ins.params[0], amount: '50.00' });
+    assert.deepEqual(db.ledger.map((l) => [l.wallet, l.type, l.amount]), [[1009, 'DEBIT', '90.00'], [1003, 'CREDIT', '90.00']],
+      'the customer is still repaid in full');
+  });
+
+  test('a supplier who can cover it gets no recovery record', async () => {
+    const db = ledgerDb({ returnRow: base, supplierAvailable: '500.00' });
+    const record = await rs.settleReturnShipping(db, {
+      returnReq: { ...base, reason_code: 'DAMAGED', reverse_carrier: 'MANUAL', customer_courier_cost: '90.00' },
+      isFullReturn: true,
+      customerRefund: '500.00',
+    });
+    assert.equal(record.supplier_deficit, null);
+    assert.equal(db.seen.some((s) => s.sql.startsWith('INSERT INTO negative_balance_recoveries')), false);
+  });
+
+  test('a courier pickup records the charge it collected on the pickup, for reconciliation', async () => {
+    const db = ledgerDb({ returnRow: base, supplierAvailable: '500.00' });
+    await rs.settleReturnShipping(db, {
+      returnReq: { ...base, reason_code: 'CHANGED_MIND', reverse_carrier: 'MOCK', reverse_pickup_id: 900 },
+      isFullReturn: false,
+      customerRefund: '500.00',
+    });
+    const upd = db.seen.find((s) => s.sql.startsWith('UPDATE reverse_pickups SET fee_charged'));
+    assert.deepEqual(upd.params, [900, '100.00', 'CUSTOMER']);
   });
 
   test('nothing to move writes no ledger rows but still records the outcome', async () => {

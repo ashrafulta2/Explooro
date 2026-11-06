@@ -295,9 +295,9 @@ export async function bookReversePickup(txClient, {
     `INSERT INTO reverse_pickups (
        ref, kind, return_request_id, warranty_claim_id, carrier, tracking_number, courier_consignment_id,
        status, pickup_name, pickup_phone, pickup_address_json,
-       destination_name, destination_phone, destination_address_json, label_url, created_at, updated_at
+       destination_name, destination_phone, destination_address_json, label_url, courier_charge, created_at, updated_at
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING', $8, $9, $10, $11, $12, $13, $14, now(), now())
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'PENDING', $8, $9, $10, $11, $12, $13, $14, $15, now(), now())
      RETURNING id, ref, kind, carrier, tracking_number, courier_consignment_id, status`,
     [
       // WHY a suffix: a cancelled pickup may be booked again for the same parent, and ref is UNIQUE.
@@ -315,6 +315,8 @@ export async function bookReversePickup(txClient, {
       destination.phone,
       JSON.stringify(destination.address ?? {}),
       booked.labelUrl ?? null,
+      // The courier's own quote, for the pickup-charge report (migration 107).
+      Number.isFinite(Number(booked.shippingCharge)) && Number(booked.shippingCharge) >= 0 ? Number(booked.shippingCharge).toFixed(2) : null,
     ]
   );
   return rows[0];
@@ -378,4 +380,107 @@ export async function applyReversePickupEvent(txClient, pickup, normalized) {
     );
   }
   return { duplicate: false, status: moves ? next : pickup.status };
+}
+
+// ── Pickup charges vs what couriers bill (migration 107) ─────────────────────
+
+/** Report bounds: shapes, not business numbers. */
+export const PICKUP_REPORT_LIMITS = Object.freeze({
+  days: Object.freeze({ min: 1, max: 365 }),
+  limit: Object.freeze({ min: 1, max: 100 }),
+  billed: Object.freeze({ min: 0, max: 100000 }),
+});
+
+const money = (v) => (v === null || v === undefined ? null : Number(v));
+
+/**
+ * Courier pickups booked in the last `days`: what each collected, what the courier quoted and what
+ * its bill said, and the totals. `gap` is collected minus cost, where cost is the bill when staff
+ * have recorded one and the quote until then; a negative gap means the pickup charge setting no
+ * longer covers what couriers charge.
+ */
+export async function getPickupCharges(db, { days = 30, limit = 50, offset = 0 } = {}) {
+  const d = Math.min(PICKUP_REPORT_LIMITS.days.max, Math.max(PICKUP_REPORT_LIMITS.days.min, parseInt(String(days), 10) || 30));
+  const l = Math.min(PICKUP_REPORT_LIMITS.limit.max, Math.max(PICKUP_REPORT_LIMITS.limit.min, parseInt(String(limit), 10) || 50));
+  const o = Math.max(0, parseInt(String(offset), 10) || 0);
+  const [{ rows }, { rows: totals }] = await Promise.all([
+    db.query(
+      `SELECT rp.id, rp.ref, rp.kind, rp.carrier, rp.tracking_number, rp.status, rp.created_at,
+              rp.courier_charge, rp.fee_charged, rp.fee_charged_from, rp.courier_billed, rp.billed_recorded_at,
+              rr.ref AS return_ref, wc.ref AS claim_ref
+       FROM reverse_pickups rp
+       LEFT JOIN return_requests rr ON rr.id = rp.return_request_id
+       LEFT JOIN warranty_claims wc ON wc.id = rp.warranty_claim_id
+       WHERE rp.created_at >= now() - make_interval(days => $1)
+       ORDER BY rp.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [d, l, o]
+    ),
+    db.query(
+      `SELECT COUNT(*)::int AS pickups,
+              COALESCE(SUM(fee_charged), 0)::numeric(14,2) AS collected,
+              COALESCE(SUM(COALESCE(courier_billed, courier_charge)), 0)::numeric(14,2) AS cost,
+              COUNT(*) FILTER (WHERE courier_billed IS NULL)::int AS unbilled
+       FROM reverse_pickups
+       WHERE created_at >= now() - make_interval(days => $1)`,
+      [d]
+    ),
+  ]);
+  const t = totals[0] || {};
+  const collected = money(t.collected) ?? 0;
+  const cost = money(t.cost) ?? 0;
+  return {
+    days: d,
+    totals: {
+      pickups: t.pickups ?? 0,
+      unbilled: t.unbilled ?? 0,
+      collected: collected.toFixed(2),
+      cost: cost.toFixed(2),
+      gap: (collected - cost).toFixed(2),
+    },
+    pickups: rows.map((r) => {
+      const c = money(r.courier_billed) ?? money(r.courier_charge);
+      const f = money(r.fee_charged);
+      return { ...r, gap: c === null || f === null ? null : (f - c).toFixed(2) };
+    }),
+    limits: PICKUP_REPORT_LIMITS,
+  };
+}
+
+/** Staff record what a courier's bill said for one pickup: reasoned, audited (CRITICAL). */
+export async function recordCourierBill(db, auditService, { pickupId, amount, reason, userId, actorRole = null, reqContext = ({} as { ip?: string, userAgent?: string, traceId?: string }) }) {
+  const n = Number(amount);
+  const { min, max } = PICKUP_REPORT_LIMITS.billed;
+  if (!Number.isFinite(n) || n < min || n > max || Math.round(n * 100) !== n * 100) {
+    throw invalid('amount', `The bill must be an amount from ${min} to ${max} Taka.`, `বিলের টাকা ${min} থেকে ${max} এর মধ্যে হতে হবে।`);
+  }
+  if (typeof reason !== 'string' || reason.trim().length < 10) {
+    throw invalid('reason', 'Give a reason of at least 10 characters for this change.', 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।');
+  }
+  const { rows: before } = await db.query('SELECT id, ref, courier_billed FROM reverse_pickups WHERE id = $1', [pickupId]);
+  if (!before[0]) throw new AppError('NOT_FOUND', 'No such pickup.', 'এমন কোনো পিকআপ নেই।');
+  const { rows } = await db.query(
+    `UPDATE reverse_pickups
+     SET courier_billed = $2::numeric(14,2), billed_recorded_by = $3, billed_recorded_at = now(), updated_at = now()
+     WHERE id = $1
+     RETURNING id, ref, courier_billed, billed_recorded_at`,
+    [pickupId, n.toFixed(2), userId ?? null]
+  );
+  if (auditService?.record) {
+    await auditService.record(db, {
+      action: 'platform.operations.pickup_bill.record',
+      targetType: 'reverse_pickup',
+      targetRef: before[0].ref,
+      beforeJson: { courier_billed: before[0].courier_billed ?? null },
+      afterJson: { courier_billed: rows[0].courier_billed },
+      meta: { reason: reason.trim() },
+      riskTier: 'CRITICAL',
+      actorId: userId ?? null,
+      actorRole,
+      ip: reqContext.ip ?? null,
+      userAgent: reqContext.userAgent ?? null,
+      traceId: reqContext.traceId ?? null,
+    });
+  }
+  return rows[0];
 }

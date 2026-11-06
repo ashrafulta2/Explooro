@@ -41,6 +41,12 @@ const RETURN_REASONS = ['DAMAGED', 'WRONG_ITEM', 'DEFECTIVE', 'SIZE_MISMATCH', '
 const RETURN_SHIPPING_LIMITS = { max_courier_refund: { min: 0, max: 2000 }, pickup_fee: { min: 0, max: 1000 }, customer_courier_cost: { min: 0, max: 100000 } };
 let mockReturnShipping = { supplier_fault_reasons: ['DAMAGED', 'WRONG_ITEM', 'DEFECTIVE', 'NOT_AS_DESCRIBED'], max_courier_refund: 150, pickup_fee: 100, updated_at: null, updated_by: null };
 
+// Two booked courier pickups, one billed, one not, so the reconciliation card has rows.
+const mockPickups = [
+  { id: 1, ref: 'REV-RET-2026-0039-A1B2C3', kind: 'RETURN', carrier: 'STEADFAST', tracking_number: 'CID-1730000000001', status: 'DELIVERED', created_at: new Date(Date.now() - 6 * 86400000).toISOString(), courier_charge: '70.00', fee_charged: '100.00', fee_charged_from: 'CUSTOMER', courier_billed: '130.00', billed_recorded_at: new Date(Date.now() - 2 * 86400000).toISOString(), return_ref: 'RET-2026-0039', claim_ref: null },
+  { id: 2, ref: 'REV-CLM-2026-0007-D4E5F6', kind: 'WARRANTY', carrier: 'PATHAO', tracking_number: 'PTH-88213', status: 'IN_TRANSIT', created_at: new Date(Date.now() - 1 * 86400000).toISOString(), courier_charge: '60.00', fee_charged: null, fee_charged_from: null, courier_billed: null, billed_recorded_at: null, return_ref: null, claim_ref: 'CLM-2026-0007' },
+];
+
 /** The live mock return-shipping rules, for the returns handlers. */
 export function mockReturnShippingPolicy() {
   return mockReturnShipping;
@@ -186,6 +192,50 @@ export const operationsHandlers = [
           message_bn: 'ফেরত পাঠানোর খরচের নিয়ম সংরক্ষিত হয়েছে। এখন থেকে যে রিটার্নের টাকা ফেরত হবে তাতে প্রযোজ্য।',
         },
       };
+    },
+  },
+  // Pickup charges vs courier quotes and bills (migration 107), as reversePickup.service getPickupCharges.
+  {
+    method: 'GET',
+    path: '/admin/platform/operations/pickup-charges',
+    handler({ query = {} } = {}) {
+      const days = Math.min(365, Math.max(1, parseInt(query.days, 10) || 30));
+      const gap = (p) => {
+        const cost = p.courier_billed ?? p.courier_charge;
+        return cost == null || p.fee_charged == null ? null : (Number(p.fee_charged) - Number(cost)).toFixed(2);
+      };
+      const collected = mockPickups.reduce((s, p) => s + (Number(p.fee_charged) || 0), 0);
+      const cost = mockPickups.reduce((s, p) => s + (Number(p.courier_billed ?? p.courier_charge) || 0), 0);
+      return {
+        status: 200,
+        body: {
+          days,
+          totals: {
+            pickups: mockPickups.length,
+            unbilled: mockPickups.filter((p) => p.courier_billed == null).length,
+            collected: collected.toFixed(2),
+            cost: cost.toFixed(2),
+            gap: (collected - cost).toFixed(2),
+          },
+          pickups: mockPickups.map((p) => ({ ...p, gap: gap(p) })),
+        },
+      };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/platform/operations/pickup-charges/:id/bill',
+    handler({ params, body = {} } = {}) {
+      const p = mockPickups.find((x) => String(x.id) === String(params?.id));
+      if (!p) return { status: 404, body: { error: { code: 'NOT_FOUND', message_en: 'No such pickup.', message_bn: 'এমন কোনো পিকআপ নেই।' } } };
+      const n = Number(body.amount);
+      if (!Number.isFinite(n) || n < 0 || n > 100000) return bad('The bill must be an amount from 0 to 100000 Taka.', 'বিলের টাকা ০ থেকে ১০০০০০ এর মধ্যে হতে হবে।');
+      if (typeof body.reason !== 'string' || body.reason.trim().length < 10) {
+        return bad('Give a reason of at least 10 characters for this change.', 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।');
+      }
+      p.courier_billed = n.toFixed(2);
+      p.billed_recorded_at = new Date().toISOString();
+      return { status: 200, body: { pickup: p, message_en: 'Courier bill recorded.', message_bn: 'কুরিয়ারের বিল লেখা হয়েছে।' } };
     },
   },
 ] satisfies MockRoute[];

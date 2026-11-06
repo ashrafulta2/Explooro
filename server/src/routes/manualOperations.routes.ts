@@ -5,6 +5,8 @@
  *   PUT  /admin/platform/operations              platform.operations.update  (CRITICAL: super admin only)
  *   PUT  /admin/platform/operations/return-address  platform.operations.update (CRITICAL)
  *   PUT  /admin/platform/operations/return-shipping platform.operations.update (CRITICAL)
+ *   GET  /admin/platform/operations/pickup-charges  platform.operations.view (paginated)
+ *   PUT  /admin/platform/operations/pickup-charges/:id/bill  platform.operations.update (CRITICAL)
  *   POST /admin/finance/payouts/:id/mark-paid    finance.payout.complete_manual (CRITICAL)
  *   GET  /supplier/shipments                     courier_hub + logistics.shipment.view
  *   POST /supplier/fulfilment/manual-ship        courier_hub + logistics.consignment.create
@@ -105,6 +107,47 @@ export default async function manualOperationsRoutes(app) {
       },
     },
     controller.updateReturnShipping
+  );
+
+  // Pickup charges collected vs what couriers quote and bill (migration 107).
+  app.get(
+    '/admin/platform/operations/pickup-charges',
+    {
+      config: { page: '/admin/platform/operations' },
+      preHandler: [auth, reqPerm('platform.operations.view')],
+      schema: {
+        querystring: {
+          type: 'object',
+          properties: {
+            days: { type: 'string', pattern: '^[0-9]{1,3}$' },
+            limit: { type: 'string', pattern: '^[0-9]{1,3}$' },
+            offset: { type: 'string', pattern: '^[0-9]{1,6}$' },
+          },
+        },
+      },
+    },
+    controller.getPickupCharges
+  );
+
+  app.put(
+    '/admin/platform/operations/pickup-charges/:id/bill',
+    {
+      config: { page: '/admin/platform/operations' },
+      preHandler: [auth, reqPerm('platform.operations.update')],
+      schema: {
+        params: idParams,
+        body: {
+          type: 'object',
+          required: ['amount', 'reason'],
+          additionalProperties: false,
+          properties: {
+            amount: { type: 'number' },
+            reason: { type: 'string', minLength: 10, maxLength: 500 },
+          },
+        },
+      },
+    },
+    controller.recordPickupBill
   );
 
   app.post(

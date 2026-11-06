@@ -5995,6 +5995,33 @@
         "fee_hint": "When couriers are automatic. The supplier pays it for its faults; otherwise it is taken from the customer's refund.",
         "save": "Save return shipping rules",
         "saved": "Return shipping rules saved."
+      },
+      "pickup_charges": {
+        "title": "Pickup charges vs what couriers charge",
+        "desc": "When couriers are automatic, each return pickup collects the pickup charge from the supplier or the customer. Compare it with what the courier quoted at booking and, once you record it, what its bill said. Pay the courier from the company account as usual.",
+        "period": "Period",
+        "days": "Last {{days}} days",
+        "kpi_pickups": "Pickups",
+        "kpi_unbilled": "{{count}} without a recorded bill",
+        "kpi_collected": "Collected",
+        "kpi_cost": "Courier cost (bill, else quote)",
+        "kpi_gap": "Difference",
+        "gap_ok": "The pickup charge covers the courier cost",
+        "gap_short": "Couriers cost more than the pickup charge collects. Consider raising it.",
+        "empty": "No courier pickups in this period.",
+        "col_pickup": "Pickup",
+        "col_collected": "Collected",
+        "col_quote": "Courier quote",
+        "col_bill": "Courier bill",
+        "col_gap": "Difference",
+        "from_supplier": "from the supplier",
+        "from_customer": "from the customer",
+        "record_bill": "Record bill",
+        "bill_title": "Courier bill for {{ref}}",
+        "bill_label": "Amount on the courier's bill (Tk)",
+        "bill_hint": "From the courier's invoice for this pickup.",
+        "bill_save": "Save bill",
+        "bill_saved": "Courier bill recorded."
       }
     },
     "legal": {
@@ -6325,7 +6352,8 @@
       "DAMAGED": "Product Damaged",
       "DEFECTIVE": "Defective Item",
       "NOT_AS_DESCRIBED": "Not As Described",
-      "CHANGED_MIND": "Changed My Mind"
+      "CHANGED_MIND": "Changed My Mind",
+      "OTHER": "Other"
     },
     "tab_all": "All",
     "tab_requested": "Submitted",
