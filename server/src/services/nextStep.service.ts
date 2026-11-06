@@ -2,8 +2,9 @@
  * nextStep.service.ts — "what should this user do now?" for every role (Prompt 13.2).
  *
  * Walks the user's journey (config/journeys.ts, the server copy of client/src/config/journeys.ts)
- * and returns the first step whose fact is still false. Read-only: it never writes a "completed"
- * flag, so progress is always what the data says.
+ * and returns the first step whose fact is still false. It never writes a "completed" flag, so
+ * progress is always what the data says. The one write is journey_step_events (Prompt 13.7): the
+ * first time a step is seen current or done, for the metrics page. Nothing here ever reads it back.
  *
  * Rules, in the order they apply (docs/journeys.md §1):
  *  1. `module_off` — a step whose page's module is switched off is left out of the journey.
@@ -22,6 +23,7 @@
 
 import { journeyFor, STAFF_ROLES, type ServerJourneyStep } from '../config/journeys.ts';
 import * as repo from '../repositories/nextStep.repository.ts';
+import { recordStepEvents, type StepEvent } from '../repositories/journeyMetrics.repository.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
 import { isEnabled } from './module.service.ts';
 import { resolvePermissions } from './rbac.service.ts';
@@ -105,8 +107,20 @@ export interface NextStepDeps {
   // WHY Set<unknown>: rbac.service builds the set without a type; the keys are strings in practice.
   resolvePermissions: (db, cache, userId: number) => Promise<{ permissions: Set<unknown> }>;
   isEnabled: (db, cache, moduleKey: string, context: Record<string, any>) => Promise<boolean>;
+  /** Writes the first sighting of each step for the metrics page (Prompt 13.7). */
+  recordStepEvents?: (db, userId: number, journey: string, events: { step_id: string; event: StepEvent }[]) => Promise<void>;
 }
-const DEFAULT_DEPS: NextStepDeps = { resolvePermissions, isEnabled };
+const DEFAULT_DEPS: NextStepDeps = { resolvePermissions, isEnabled, recordStepEvents };
+
+/** The events one answer shows: its current step was reached, its done steps were completed. */
+export function stepEventsOf(payload: NextStepPayload): { step_id: string; event: StepEvent }[] {
+  if (!payload.enabled || !payload.journey) return [];
+  const events: { step_id: string; event: StepEvent }[] = payload.steps
+    .filter((s) => s.status === 'done')
+    .map((s) => ({ step_id: s.id, event: 'COMPLETED' as StepEvent }));
+  if (payload.current) events.push({ step_id: payload.current.id, event: 'REACHED' });
+  return events;
+}
 
 /** Is each block reason in force right now? Only the queries a pending step actually needs run. */
 async function activeBlocks(db, cache, userId: number, reasons: Set<string>, context, deps: NextStepDeps): Promise<Set<string>> {
@@ -215,6 +229,13 @@ export async function getNextStep(
   }
 
   const payload = await computeNextStep(db, cache, user, deps);
+  // WHY here, on a cache miss, and never awaited into a failure: the metrics are a side record of
+  // what the user was shown. A cache hit shows nothing new, and a failed write must not cost the user
+  // their card. Rows are first-sighting only (UNIQUE), so recomputing often adds nothing.
+  const events = stepEventsOf(payload);
+  if (events.length && deps.recordStepEvents) {
+    await deps.recordStepEvents(db, user.id, payload.journey as string, events).catch(() => {});
+  }
   const ttl = cacheSeconds(await moduleRepo.getModuleByKey(db, MODULE_KEY).catch(() => null));
   if (cache && ttl > 0) await cache.set(key, JSON.stringify(payload), ttl).catch(() => {});
   return payload;

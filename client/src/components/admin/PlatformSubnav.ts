@@ -14,6 +14,7 @@
  * 7b. Delivery Charge (/admin/platform/delivery)
  * 7c. Manual Operations (/admin/platform/operations)
  * 8. Personalized Feed (/admin/platform/recommendations)
+ * 9. Guided Experience (/admin/platform/guided-experience)
  */
 
 import { getLanguage } from '../../services/i18n.ts';
@@ -35,6 +36,7 @@ export function PlatformSubnav({ activeKey = 'integrations', navigate = null }: 
     { key: 'delivery', label: isBn ? 'ডেলিভারি চার্জ' : 'Delivery Charge', href: '/admin/platform/delivery', icon: '🚚' },
     { key: 'operations', label: isBn ? 'ম্যানুয়াল অপারেশন' : 'Manual Operations', href: '/admin/platform/operations', icon: '🧾' },
     { key: 'recommendations', label: isBn ? 'পার্সোনালাইজড ফিড' : 'Personalized Feed', href: '/admin/platform/recommendations', icon: '🎯' },
+    { key: 'guidance', label: isBn ? 'নির্দেশনার ফলাফল' : 'Guided Experience', href: '/admin/platform/guided-experience', icon: '🧭' },
   ];
 
   const nav = document.createElement('nav');

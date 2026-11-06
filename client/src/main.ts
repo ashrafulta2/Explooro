@@ -459,6 +459,16 @@ async function bootRouterDemo() {
         module: 'core',
         load: () => import('./pages/admin/RecommendationSettingsPage.ts'),
       },
+      // Prompt 13.7: where users stall in their journeys. Read-only (`platform.guidance.view`, LOW).
+      // `core`, not `guided_experience`: this is where an admin decides whether that module stays on.
+      {
+        path: '/admin/platform/guided-experience',
+        title: 'Guided Experience — Explooro Admin',
+        requiresAuth: true,
+        permission: 'platform.guidance.view',
+        module: 'core',
+        load: () => import('./pages/admin/GuidedExperiencePage.ts'),
+      },
       // Prompt 10.8: Content Commerce, Reels, Academy & Editor Dashboard
       {
         path: '/stories',

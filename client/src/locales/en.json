@@ -730,7 +730,8 @@
       "recommendations": "Personalized feed",
       "delivery": "Delivery charge",
       "variant_options": "Variant Options",
-      "operations": "Manual operations"
+      "operations": "Manual operations",
+      "guided_experience": "Guided Experience"
     },
     "moderator": {
       "queue": "Product Moderation",
@@ -8734,6 +8735,61 @@
       "all_done_title": "Setup complete",
       "all_done_body": "You finished every first step. This list stays here if you want to look back.",
       "reopen": "Show my setup checklist"
+    }
+  },
+  "admin_guidance": {
+    "eyebrow": "Platform · Guidance",
+    "title": "Guided Experience results",
+    "subtitle": "For each step of each journey: how many people got there, how many finished it, how long it took, and where they stopped.",
+    "loading": "Loading the numbers…",
+    "load_failed": "Could not load the guidance results. Reload the page to try again.",
+    "module_title": "Next-step card",
+    "module_on": "On",
+    "module_off": "Off",
+    "module_on_desc": "Every user sees a card with the one thing to do next.",
+    "module_off_desc": "The card is hidden everywhere. No new numbers are collected while it is off.",
+    "turn_on": "Turn the card on",
+    "turn_off": "Turn the card off",
+    "confirm_on": "Every user will see the next-step card again.",
+    "confirm_off": "The next-step card disappears for every user until it is turned on again.",
+    "reason_label": "Reason",
+    "reason_hint": "At least 10 characters. Saved in the audit log.",
+    "turned_on": "The next-step card is on.",
+    "turned_off": "The next-step card is off.",
+    "toggle_failed": "Could not change the card. Nothing changed; try again.",
+    "toggle_needs_permission": "Only someone who can switch modules (a Super Admin) can turn the card on or off.",
+    "rule": "A step is flagged when more than {{pct}}% of the people who reached it stopped there for {{days}} days or more.",
+    "change_rule": "Change this rule",
+    "reconciled": "Built from {{reached}} \"reached\" and {{completed}} \"finished\" records; every row below adds up to them.",
+    "not_reconciled": "The rows below do not add up to the {{reached}} \"reached\" and {{completed}} \"finished\" records. Some records belong to a step that is no longer in a journey.",
+    "fixes_title": "Steps to fix",
+    "fixes_none": "No step is above the limit. Nothing to fix right now.",
+    "fixes_desc": "Worst first. Each one is a numbered fix in docs/usability-report.md.",
+    "fix_rate": "{{rate}}% stopped here",
+    "opt_out": "Turned the card off: {{rate}} ({{n}} of {{total}})",
+    "th_step": "Step",
+    "th_reached": "Reached",
+    "th_finished": "Finished",
+    "th_median": "Typical time",
+    "th_stopped": "Stopped here",
+    "th_rate": "Stop rate",
+    "flagged": "Fix",
+    "waits": "Waits on others",
+    "waits_tip": "This step waits for a buyer or a courier, so a stop here is not always the user giving up.",
+    "duration": {
+      "seconds": "{{n}} s",
+      "minutes": "{{n}} min",
+      "hours": "{{n}} h",
+      "days": "{{n}} days"
+    },
+    "role": {
+      "customer": "Customer",
+      "saler": "Explooro Partner",
+      "supplier": "Supplier",
+      "moderator": "Moderator",
+      "editor": "Editor",
+      "admin": "Admin",
+      "super_admin": "Super Admin"
     }
   }
 }

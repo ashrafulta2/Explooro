@@ -364,6 +364,11 @@ export const adminApi = {
     return api.get('/admin/platform/recommendations');
   },
 
+  /** Journey funnel per role, flagged steps and opt-out rates (Prompt 13.7). Read-only. */
+  async getGuidedExperience() {
+    return api.get('/admin/platform/guided-experience');
+  },
+
   /** Which surface works: impressions, clicks and click-attributed carts / purchases per surface. */
   async getRecommendationFunnel({ days, attribution_days }: { days?: number; attribution_days?: number } = {}) {
     const q = new URLSearchParams();
