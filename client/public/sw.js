@@ -11,7 +11,9 @@
  * 3. Background sync & message event forwarding.
  */
 
-const CACHE_VERSION = 'explooro-v1.1.0';
+// WHY bumped to 1.2.0: manifest.json sits in the cache-first shell cache, so without a new version
+// an installed copy would keep the old SVG-only manifest and never see the PNG icons.
+const CACHE_VERSION = 'explooro-v1.2.0';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const CATALOG_CACHE = `${CACHE_VERSION}-catalog`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -25,7 +27,8 @@ const PRECACHE_ASSETS = [
   '/favicon.svg',
   '/manifest.json',
   '/icons/icon-192.svg',
-  '/icons/icon-512.svg',
+  '/icons/icon-192.png',
+  '/icons/apple-touch-icon.png',
 ];
 
 // Sensitive endpoints that MUST NEVER be cached

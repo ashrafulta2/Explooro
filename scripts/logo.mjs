@@ -14,6 +14,10 @@
  *   client/public/icons/icon-192.svg                  — default theme
  *   client/public/icons/icon-512.svg                  — default theme
  *   client/public/icons/icon-maskable-512.svg         — default theme, safe-zone scaled
+ *   client/public/icons/icon-192.png, icon-512.png    — PNG copies for the manifest (Android install)
+ *   client/public/icons/icon-maskable-512.png         — PNG copy of the maskable icon
+ *   client/public/icons/apple-touch-icon.png          — 180×180 full-bleed square for iOS, which
+ *                                                        ignores SVG and rounds the corners itself
  *   client/public/icons/brand/{preset-key}.svg        — one per Master Colour preset, prepared for
  *                                                        any context that needs a themed mark outside
  *                                                        the running app (share images, docs, a future
@@ -29,6 +33,7 @@ import { dirname, join } from 'node:path';
 import { generatePalette } from '../client/src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/master-themes.ts';
 import { buildLogoMarkSvg, buildLogoMaskableSvg } from '../client/src/services/logoMark.ts';
+import { renderLogoPng } from './logoPng.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = join(ROOT, 'client', 'public');
@@ -61,6 +66,13 @@ writeFileSync(join(ICONS_DIR, 'icon-512.svg'), buildLogoMarkSvg({ size: 512, ...
 writeFileSync(join(ICONS_DIR, 'icon-maskable-512.svg'), buildLogoMaskableSvg({ size: 512, ...defaultColors }) + '\n');
 
 console.log(`wrote favicon.svg, icons/icon-192.svg, icons/icon-512.svg, icons/icon-maskable-512.svg (${DEFAULT_MASTER_PRESET})`);
+
+writeFileSync(join(ICONS_DIR, 'icon-192.png'), renderLogoPng({ size: 192, ...defaultColors }));
+writeFileSync(join(ICONS_DIR, 'icon-512.png'), renderLogoPng({ size: 512, ...defaultColors }));
+writeFileSync(join(ICONS_DIR, 'icon-maskable-512.png'), renderLogoPng({ size: 512, maskable: true, ...defaultColors }));
+writeFileSync(join(ICONS_DIR, 'apple-touch-icon.png'), renderLogoPng({ size: 180, maskable: true, ...defaultColors }));
+
+console.log('wrote icons/icon-192.png, icons/icon-512.png, icons/icon-maskable-512.png, icons/apple-touch-icon.png');
 
 for (const key of Object.keys(MASTER_PRESETS)) {
   const colors = colorsFor(key);

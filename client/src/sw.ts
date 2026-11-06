@@ -4,7 +4,7 @@
  * Source copy corresponding to client/public/sw.js.
  */
 
-export const SW_VERSION = 'explooro-v1.1.0';
+export const SW_VERSION = 'explooro-v1.2.0';
 
 export function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {

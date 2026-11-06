@@ -8992,5 +8992,17 @@
     "settled_repaid": "কুরিয়ারের রসিদের {{amount}} ফেরত দেওয়া হয়েছে",
     "settled_delivery_kept": "ডেলিভারি চার্জ {{amount}} ফেরত হয়নি",
     "settled_pickup_fee": "পিকআপ খরচ {{amount}} কাটা হয়েছে"
+  },
+  "pwa": {
+    "dismiss": "এখন না",
+    "install": {
+      "title": "Explooro অ্যাপ ইনস্টল করুন",
+      "body": "আরও দ্রুত, এক ট্যাপেই খুলবে",
+      "action": "ইনস্টল"
+    },
+    "ios": {
+      "title": "Explooro হোম স্ক্রিনে যোগ করুন",
+      "body": "Share বাটনে ট্যাপ করুন, তারপর “Add to Home Screen” বেছে নিন"
+    }
   }
 }

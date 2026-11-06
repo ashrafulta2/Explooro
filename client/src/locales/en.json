@@ -8992,5 +8992,17 @@
     "settled_repaid": "{{amount}} courier receipt repaid",
     "settled_delivery_kept": "{{amount}} delivery charge not refunded",
     "settled_pickup_fee": "{{amount}} pickup charge taken"
+  },
+  "pwa": {
+    "dismiss": "Not now",
+    "install": {
+      "title": "Install the Explooro app",
+      "body": "Faster, and opens in one tap",
+      "action": "Install"
+    },
+    "ios": {
+      "title": "Add Explooro to your Home Screen",
+      "body": "Tap the Share button, then choose “Add to Home Screen”"
+    }
   }
 }

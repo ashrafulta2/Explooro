@@ -15,6 +15,24 @@ export const LOGO_SPARKLE_PATH =
 
 export const LOGO_BADGE_RADIUS = 48;
 export const LOGO_HOLE_RADIUS = 9;
+/** How much the maskable variant shrinks the mark so an OS circle/squircle crop never cuts it. */
+export const LOGO_MASKABLE_SCALE = 0.8;
+
+/**
+ * The sparkle's gold, top-left to bottom-right across the sparkle's own bounding box. Shared with
+ * scripts/logoPng.mjs, which paints the PNG icons from these same numbers.
+ */
+export const LOGO_GOLD_STOPS: ReadonlyArray<{ offset: number; color: string }> = [
+  { offset: 0, color: '#ffe58f' },
+  { offset: 0.45, color: '#ffbc00' },
+  { offset: 1, color: '#d98200' },
+];
+
+function goldStopsSvg(): string {
+  return LOGO_GOLD_STOPS
+    .map((s) => `<stop offset="${Math.round(s.offset * 100)}%" stop-color="${s.color}" />`)
+    .join('\n        ');
+}
 
 /** SVG paints (a colour, `var(--…)` or `url(#…)`). A `star` that is the default gold uses the gradient. */
 export interface LogoPaints {
@@ -38,9 +56,7 @@ export function buildLogoMarkSvg({
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}"${className ? ` class="${className}"` : ''} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
       <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#ffe58f" />
-        <stop offset="45%" stop-color="#ffbc00" />
-        <stop offset="100%" stop-color="#d98200" />
+        ${goldStopsSvg()}
       </linearGradient>
     </defs>
     <circle cx="50" cy="50" r="${LOGO_BADGE_RADIUS}" fill="${bg}" />
@@ -62,13 +78,11 @@ export function buildLogoMaskableSvg({ size = 512, bg, star, hole }: LogoPaints 
   return `<svg viewBox="0 0 100 100" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
       <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#ffe58f" />
-        <stop offset="45%" stop-color="#ffbc00" />
-        <stop offset="100%" stop-color="#d98200" />
+        ${goldStopsSvg()}
       </linearGradient>
     </defs>
     <rect width="100" height="100" fill="${bg}" />
-    <g transform="translate(50 50) scale(0.8) translate(-50 -50)">
+    <g transform="translate(50 50) scale(${LOGO_MASKABLE_SCALE}) translate(-50 -50)">
       <path d="${LOGO_SPARKLE_PATH}" fill="${starFill}" />
       <circle cx="50" cy="50" r="${LOGO_HOLE_RADIUS}" fill="${hole}" />
     </g>
