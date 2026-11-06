@@ -170,6 +170,39 @@ describe('return pickups', () => {
   });
 });
 
+describe('a return the customer sends back themselves (couriers MANUAL)', () => {
+  const approvedManual = { id: 5, ref: 'RET-5', status: 'PICKUP_SCHEDULED', reverse_carrier: 'MANUAL' };
+
+  test('an approved manual return carries the returns address, and only that one', async () => {
+    const rows = [
+      approvedManual,
+      { id: 6, ref: 'RET-6', status: 'REQUESTED', reverse_carrier: null },
+      { id: 7, ref: 'RET-7', status: 'PICKUP_SCHEDULED', reverse_carrier: 'MOCK' },
+      { id: 8, ref: 'RET-8', status: 'RECEIVED', reverse_carrier: 'MANUAL' },
+    ];
+    const out = await reversePickups.withSendBackAddress(fakeDb(), rows);
+    assert.deepEqual(out[0].send_back, {
+      name: 'Returns Desk', phone: '+8801711000000', division: 'dhaka', district: 'dhaka_city', upazila: 'Tejgaon', address_line: 'House 1, Road 2',
+    });
+    for (const r of out.slice(1)) assert.equal('send_back' in r, false, `${r.ref} must not carry an address`);
+  });
+
+  test('while the address is empty it is null, so the page says staff will call', async () => {
+    const [r] = await reversePickups.withSendBackAddress(fakeDb({ returnAddress: EMPTY }), [approvedManual]);
+    assert.equal(r.send_back, null);
+  });
+
+  test('no query at all when no return needs it', async () => {
+    const db = fakeDb();
+    await reversePickups.withSendBackAddress(db, [{ id: 6, status: 'REQUESTED' }]);
+    assert.equal(db.seen.length, 0);
+  });
+
+  test('the customer returns list uses it', () => {
+    assert.match(read('controllers/return.controller.ts'), /returns: await reversePickupService\.withSendBackAddress\(req\.server\.db, rows\)/);
+  });
+});
+
 describe('warranty pickups', () => {
   const claimRow = (q) => (q.includes('SELECT c.*, wc.supplier_id') && q.includes('FOR UPDATE')
     ? { rows: [{

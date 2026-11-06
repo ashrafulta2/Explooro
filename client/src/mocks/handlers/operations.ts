@@ -36,6 +36,13 @@ const RETURN_ADDRESS_REQUIRED = ['name', 'phone', 'division', 'district', 'addre
 let mockReturnAddress = { name: '', phone: '', division: '', district: '', upazila: '', address_line: '', updated_at: null, updated_by: null };
 const missingReturnAddress = () => RETURN_ADDRESS_REQUIRED.filter((f) => !String(mockReturnAddress[f] || '').trim());
 
+/** The returns address as GET /returns/my-returns sends it (`send_back`), or null while incomplete. */
+export function mockSendBackAddress() {
+  if (missingReturnAddress().length > 0) return null;
+  const { updated_at, updated_by, ...address } = mockReturnAddress;
+  return address;
+}
+
 /** The live mock modes, for the payout queue and supplier handlers. */
 export function mockOperationsModes() {
   return mockModes;

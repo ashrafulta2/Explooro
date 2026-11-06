@@ -2,10 +2,29 @@
  * returns.ts — Mock API handlers for Returns & Reverse Logistics Queue (Prompt 7.2).
  */
 
-
 import type { MockRoute } from '../types.ts';
+import { mockSendBackAddress } from './operations.ts';
 
 let mockReturns: Record<string, any>[] = [
+  // Approved with couriers manual: the customer sends it back to the returns address (migration 105).
+  {
+    id: 4,
+    ref: 'RET-2026-0044',
+    sub_order_id: 1051,
+    sub_order_ref: 'SO-1051-A',
+    status: 'PICKUP_SCHEDULED',
+    reason_code: 'WRONG_ITEM',
+    customer_id: 2,
+    customer_name: 'Tanvir Hossain',
+    customer_phone: '+880 1711-223344',
+    customer_trust_score: 92,
+    customer_note: 'Received a blue shirt instead of the black one I ordered.',
+    refund_amount: 1450,
+    reverse_tracking_number: null,
+    reverse_carrier: 'MANUAL',
+    evidence_urls_json: [],
+    created_at: new Date(Date.now() - 26 * 3600 * 1000).toISOString(),
+  },
   {
     id: 1,
     ref: 'RET-2026-0041',
@@ -76,6 +95,9 @@ export const returnHandlers = [
       if (status && status !== 'ALL') {
         list = list.filter((r) => r.status === status);
       }
+      // As the server's withSendBackAddress: only an approved return the customer sends themselves.
+      const sendBack = mockSendBackAddress();
+      list = list.map((r) => (r.status === 'PICKUP_SCHEDULED' && r.reverse_carrier === 'MANUAL' ? { ...r, send_back: sendBack } : r));
       return {
         status: 200,
         body: {

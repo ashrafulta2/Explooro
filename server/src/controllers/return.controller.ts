@@ -3,6 +3,7 @@
  */
 
 import * as returnService from '../services/return.service.ts';
+import * as reversePickupService from '../services/reversePickup.service.ts';
 
 export async function requestReturn(req, reply) {
   const customerId = req.user.id;
@@ -43,7 +44,7 @@ export async function getMyReturns(req, reply) {
 
   return reply.send({
     data: {
-      returns: rows,
+      returns: await reversePickupService.withSendBackAddress(req.server.db, rows),
     },
   });
 }

@@ -6317,7 +6317,7 @@
     "view_orders_btn": "Delivered Orders",
     "evidence_modal_title": "Evidence Preview",
     "click_to_view": "Click to enlarge",
-    "status_note_requested": "Our courier will contact you within 24-48 hours for reverse pickup.",
+    "status_note_requested": "We are checking your request. Once it is approved, we will tell you how the product comes back.",
     "status_note_received": "Item received at warehouse. Quality inspection is underway.",
     "status_note_inspected": "Inspection passed. Refund is being processed.",
     "status_note_refunded": "Refund has been transferred to your original payment method or wallet.",
@@ -6328,8 +6328,16 @@
       "APPROVED": "Approved",
       "REFUNDED": "Refund Completed",
       "REJECTED": "Rejected",
-      "DISPUTED": "Disputed"
-    }
+      "DISPUTED": "Disputed",
+      "PICKUP_SCHEDULED": "Approved, send it back"
+    },
+    "pickup_note_courier": "Your return is approved. A courier will collect the product from your delivery address. Keep it packed and ready.",
+    "send_back_pending": "Your return is approved. We will call you soon to tell you where to send the product.",
+    "send_back_title": "Your return is approved. Send the product to:",
+    "send_back_phone": "Phone",
+    "send_back_steps": "Pack the product with everything that came with it. Write the return number {{ref}} on the parcel, then send it by any courier or drop it off at this address.",
+    "send_back_keep_receipt": "Keep the courier's receipt until your refund arrives.",
+    "carrier_self": "You send it"
   },
   "customer_reviews": {
     "page_title": "My Reviews & UGC",

@@ -205,6 +205,32 @@ export async function requireReturnDestination(db) {
 }
 
 /**
+ * Adds `send_back` to each of a customer's returns that they must send back themselves: approved
+ * (PICKUP_SCHEDULED) with couriers MANUAL (`reverse_carrier = 'MANUAL'`, return.service). It is the
+ * returns address, or null while that is empty (the page then says staff will call).
+ * WHY only those: a courier-booked return is collected from the customer's own address, and before
+ * approval there is nothing to send yet. WHY the phone too: the customer may need to call before
+ * dropping the parcel off; it is the business's number, not a person's.
+ */
+export async function withSendBackAddress(db, returns) {
+  const rows = Array.isArray(returns) ? returns : [];
+  const needsIt = (r) => r?.status === 'PICKUP_SCHEDULED' && r?.reverse_carrier === 'MANUAL';
+  if (!rows.some(needsIt)) return rows;
+  const address = await getReturnAddress(db);
+  const sendBack = missingReturnAddressFields(address).length === 0
+    ? {
+      name: address.name,
+      phone: address.phone,
+      division: address.division,
+      district: address.district,
+      upazila: address.upazila,
+      address_line: address.address_line,
+    }
+    : null;
+  return rows.map((r) => (needsIt(r) ? { ...r, send_back: sendBack } : r));
+}
+
+/**
  * Where a warranty item goes: the supplier's own active warehouse (highest priority first), with
  * the supplier's phone, else the returns address. WHY the supplier first: they repair or replace
  * it; routing it through the platform's returns address would mean shipping it twice.

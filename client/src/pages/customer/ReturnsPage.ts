@@ -7,6 +7,11 @@
  * status tracker stepper, details grid, copyable reverse tracking,
  * constrained evidence thumbnail preview with lightbox modal, and filter tabs.
  * All UI strings resolved via t('customer_returns.*') for proper i18n.
+ *
+ * An approved return (PICKUP_SCHEDULED) says how the product comes back. With couriers manual
+ * (`reverse_carrier = 'MANUAL'`) the customer sends it, and the API adds `send_back`: the returns
+ * address an admin set at /admin/platform/operations, or null while it is empty
+ * (server/src/services/reversePickup.service.ts withSendBackAddress). Otherwise a courier collects it.
  */
 
 import '../../styles/components/returns.css';
@@ -20,6 +25,7 @@ import { EmptyState } from '../../components/ui/EmptyState.ts';
 import { Tabs } from '../../components/ui/Tabs.ts';
 import { Modal } from '../../components/ui/Modal.ts';
 import { bindBackControl, renderBackLink } from '../../core/navBack.ts';
+import { getDivisionById, getDistrictById } from '../../data/bangladeshGeo.ts';
 import type { PageContext } from '../types.ts';
 
 export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext = {}) {
@@ -113,6 +119,7 @@ export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext
     const label = t(key) !== key ? t(key) : status;
     const variantMap = {
       REQUESTED: 'warning',
+      PICKUP_SCHEDULED: 'info',
       RECEIVED: 'info',
       INSPECTED: 'info',
       APPROVED: 'success',
@@ -136,6 +143,8 @@ export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext
     // 4 stages: Submitted (1) -> Received (2) -> Inspected (3) -> Resolved (4)
     const stageStatus = {
       REQUESTED: 1,
+      // Approved and on its way back: the next step is "received".
+      PICKUP_SCHEDULED: 2,
       RECEIVED: 2,
       INSPECTED: 3,
       APPROVED: 4,
@@ -178,6 +187,37 @@ export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext
         </div>
       </div>
     `;
+  }
+
+  /** How an approved return comes back: the customer sends it (manual) or a courier collects it. */
+  function renderSendBack(ret) {
+    if (ret.status !== 'PICKUP_SCHEDULED') return '';
+    if (ret.reverse_carrier !== 'MANUAL') {
+      return `<div class="customer-return-card__notice"><span>ℹ️</span><span>${escapeHtml(t('customer_returns.pickup_note_courier'))}</span></div>`;
+    }
+    const to = ret.send_back;
+    if (!to) {
+      return `<div class="customer-return-card__notice" data-send-back-pending><span>ℹ️</span><span>${escapeHtml(t('customer_returns.send_back_pending'))}</span></div>`;
+    }
+    const isBn = getLanguage() === 'bn';
+    const nameOf = (item, fallback) => (item ? (isBn ? item.name_bn : item.name_en) : fallback);
+    const place = [
+      to.upazila,
+      nameOf(getDistrictById(to.division, to.district), to.district),
+      nameOf(getDivisionById(to.division), to.division),
+    ].filter(Boolean).join(', ');
+    return `
+      <div class="customer-return-card__send-back" data-send-back>
+        <div class="customer-return-card__send-back-title">${escapeHtml(t('customer_returns.send_back_title'))}</div>
+        <address class="customer-return-card__send-back-address">
+          <strong>${escapeHtml(to.name)}</strong><br>
+          ${escapeHtml(to.address_line)}<br>
+          ${escapeHtml(place)}<br>
+          ${escapeHtml(t('customer_returns.send_back_phone'))}: <a href="tel:${escapeHtml(to.phone)}">${escapeHtml(to.phone)}</a>
+        </address>
+        <p class="customer-return-card__send-back-steps">${escapeHtml(t('customer_returns.send_back_steps', { ref: `#${ret.ref}` }))}</p>
+        <p class="customer-return-card__send-back-steps">${escapeHtml(t('customer_returns.send_back_keep_receipt'))}</p>
+      </div>`;
   }
 
   function openEvidenceModal(url) {
@@ -333,7 +373,7 @@ export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext
           </div>
           <div class="customer-return-card__info-cell">
             <div class="customer-return-card__info-label">${escapeHtml(t('customer_returns.carrier_label'))}</div>
-            <div class="customer-return-card__info-val">🚚 ${escapeHtml(ret.reverse_carrier || '—')}</div>
+            <div class="customer-return-card__info-val">🚚 ${escapeHtml(ret.reverse_carrier === 'MANUAL' ? t('customer_returns.carrier_self') : (ret.reverse_carrier || '—'))}</div>
           </div>
           <div class="customer-return-card__info-cell">
             <div class="customer-return-card__info-label">${escapeHtml(t('customer_returns.tracking_label'))}</div>
@@ -392,7 +432,7 @@ export default function ReturnsPage(root: HTMLElement, { navigate }: PageContext
         </div>
       `;
 
-      card.innerHTML = topRow + stepper + noticeBanner + detailsGrid + noteHtml + evidenceHtml + actionsHtml;
+      card.innerHTML = topRow + stepper + noticeBanner + renderSendBack(ret) + detailsGrid + noteHtml + evidenceHtml + actionsHtml;
 
       // Populate evidence gallery elements with event listeners
       if (Array.isArray(evidenceUrls) && evidenceUrls.length > 0) {

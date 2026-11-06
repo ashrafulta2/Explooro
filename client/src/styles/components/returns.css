@@ -357,6 +357,32 @@
   gap: 8px;
 }
 
+/* Where the customer sends an approved return themselves (couriers manual). */
+.customer-return-card__send-back {
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--brand);
+  border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
+  padding: 12px 14px;
+  background: var(--surface-1);
+}
+.customer-return-card__send-back-title {
+  font-weight: 600;
+  font-size: var(--text-sm, 0.875rem);
+  margin-bottom: 6px;
+}
+.customer-return-card__send-back-address {
+  font-style: normal;
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.customer-return-card__send-back-address a { color: var(--text-brand); }
+.customer-return-card__send-back-steps {
+  margin: 8px 0 0;
+  font-size: var(--text-xs, 0.8rem);
+  color: var(--text-secondary);
+}
+
 /* Note Section */
 .customer-return-card__note {
   background: var(--surface-1);
