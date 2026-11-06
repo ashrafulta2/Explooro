@@ -13,7 +13,7 @@ import { AddressForm } from '../components/checkout/AddressForm.ts';
 import { PaymentSelector } from '../components/checkout/PaymentSelector.ts';
 import { getCart, fetchCart, clearCart } from '../services/cart.ts';
 import { placeCheckout, saveCheckoutDraft, loadCheckoutDraft, clearCheckoutDraft } from '../services/order.api.ts';
-import { needsOnlinePayment, payForOrder } from '../services/payment.api.ts';
+import { needsOnlinePayment, payForOrder, getOnlineMethods } from '../services/payment.api.ts';
 import { getTopUps } from '../services/walletTopup.api.ts';
 import { adsApi } from '../services/ads.api.ts';
 import { customerApi } from '../services/customer.api.ts';
@@ -110,6 +110,8 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
 
   let userAddresses = [];
   let vaultBalance: number | null = null;
+  // Online methods the server can charge; filled before the form renders (GET /payments/methods).
+  let onlineMethods: string[] = [];
 
   /**
    * The delivery charge for the district the shopper has picked: the zone's per-parcel charge
@@ -174,6 +176,8 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
         }
       } catch {}
 
+      onlineMethods = await getOnlineMethods();
+
       // WHY no error: without a balance the vault option is simply not offered.
       try {
         const own = await getTopUps();
@@ -210,6 +214,7 @@ export default function CheckoutPage(root: HTMLElement, { navigate }: PageContex
       initialMethod: paymentMethod,
       orderTotal: orderTotal(),
       vaultBalance,
+      onlineMethods,
       onChange: (method) => {
         paymentMethod = method;
         persistDraft();

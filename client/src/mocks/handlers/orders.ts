@@ -219,6 +219,12 @@ const orderHandlers = [
     },
   },
   {
+    method: 'GET',
+    path: '/payments/methods',
+    // The mock simulates every gateway, as PAYMENT_DRIVER=mock does on the server.
+    handler: () => ({ status: 200, body: { data: { online_methods: ['BKASH', 'NAGAD', 'ROCKET', 'CARD'] } } }),
+  },
+  {
     method: 'POST',
     path: '/payments/initiate',
     handler({ body }) {

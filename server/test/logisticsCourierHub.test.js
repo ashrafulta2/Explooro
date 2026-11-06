@@ -292,7 +292,7 @@ function createMockDb() {
         const id = params[0];
         const s = shipments.find((x) => x.id === id);
         const so = subOrders.find((x) => x.id === s?.sub_order_id);
-        return { rows: s ? [{ ...s, sub_order_ref: so?.ref, total_amount: so?.total_amount }] : [] };
+        return { rows: s ? [{ ...s, sub_order_ref: so?.ref, total_amount: so?.total_amount, supplier_id: so?.supplier_id }] : [] };
       }
 
       // SELECT shipment_events by shipment_id

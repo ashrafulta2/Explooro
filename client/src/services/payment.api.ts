@@ -14,6 +14,29 @@ const GATEWAY_METHODS = new Set(['BKASH', 'NAGAD', 'ROCKET', 'CARD']);
 
 const UNPAYABLE_SUB_ORDER = new Set(['CANCELLED', 'RETURNED', 'REFUNDED']);
 
+let onlineMethodsRequest: Promise<string[]> | null = null;
+
+/**
+ * The online methods the server can take money with right now (GET /payments/methods). Empty while
+ * no gateway is connected (PAYMENT_DRIVER=none), so checkout offers cash on delivery and the vault.
+ * WHY [] on a failed request: offering bKash the server cannot charge strands an unpaid order, while
+ * hiding it for one visit costs nothing. A failure is not cached, so the next checkout asks again.
+ */
+export function getOnlineMethods(): Promise<string[]> {
+  if (!onlineMethodsRequest) {
+    onlineMethodsRequest = api.get('/payments/methods')
+      .then((res) => {
+        const list = (res?.data ?? res)?.online_methods;
+        return Array.isArray(list) ? list.map((m) => String(m).toUpperCase()).filter((m) => GATEWAY_METHODS.has(m)) : [];
+      })
+      .catch(() => {
+        onlineMethodsRequest = null;
+        return [];
+      });
+  }
+  return onlineMethodsRequest;
+}
+
 /** The order fields payment reads. */
 export interface PayableOrder {
   id: number | string;

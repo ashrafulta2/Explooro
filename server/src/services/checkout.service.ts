@@ -31,6 +31,7 @@ import { pickParcelSaler } from './attribution.service.ts';
 import * as shortlinkService from './shortlink.service.ts';
 import { payOrderFromVault, VAULT_METHOD } from './vaultCheckout.service.ts';
 import { reserveFlashSaleStock } from './flashSale.service.ts';
+import { ONLINE_METHODS, onlineMethodsForDriver } from '../integrations/payments/index.ts';
 
 export function hashPayload(payload) {
   return createHash('sha256').update(JSON.stringify(payload || {})).digest('hex');
@@ -83,6 +84,17 @@ export async function executeCheckout(pool, cache, {
       isReplay: true,
       originalAt: existingOrder.created_at,
     };
+  }
+
+  // WHY before any lock or insert: with PAYMENT_DRIVER=none (launch, no gateway signed) an online
+  // method would create the order and then fail at the payment step, leaving an unpaid order that
+  // holds stock. The checkout page hides these methods (GET /payments/methods); this is the backstop.
+  if (ONLINE_METHODS.includes(paymentMethod) && !onlineMethodsForDriver().includes(paymentMethod)) {
+    throw new AppError(
+      'PAYMENT_METHOD_UNSUPPORTED',
+      `${paymentMethod} is not available yet. Pay cash on delivery or from your vault.`,
+      `${paymentMethod} এখনো চালু হয়নি। ক্যাশ অন ডেলিভারি বা আপনার ভল্ট থেকে পেমেন্ট করুন।`
+    );
   }
 
   // 2. Load Cart

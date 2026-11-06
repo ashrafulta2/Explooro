@@ -21,6 +21,8 @@ export interface PaymentSelectorOptions {
   orderTotal?: number;
   /** The shopper's vault balance. null/undefined hides the vault option (guest, or not loaded). */
   vaultBalance?: number | null;
+  /** Online methods the server can charge (GET /payments/methods). Defaults to all four. */
+  onlineMethods?: string[];
   onChange?: (method: string) => void;
   onOtpSubmit?: (code: string) => void;
 }
@@ -35,10 +37,14 @@ export interface PaymentSelectorParts {
   clearOtp(): void;
 }
 
+/** Checkout methods paid through an online gateway; the rest are cash on delivery and the vault. */
+const ONLINE_METHOD_IDS = ['BKASH', 'NAGAD', 'ROCKET', 'CARD'];
+
 export function PaymentSelector({
   initialMethod = 'COD',
   orderTotal = 0,
   vaultBalance = null,
+  onlineMethods = ONLINE_METHOD_IDS,
   onChange,
   onOtpSubmit,
 }: PaymentSelectorOptions = {}): PaymentSelectorParts {
@@ -48,6 +54,8 @@ export function PaymentSelector({
   const vaultShort = vaultBalance == null ? 0 : Math.max(orderTotal - vaultBalance, 0);
   // WHY: a draft may remember the vault from a visit when the balance covered the cart; it may not now.
   let selectedMethod = initialMethod === 'WALLET' && (vaultBalance == null || vaultShort > 0) ? 'COD' : initialMethod;
+  // WHY: a remembered draft may name bKash from a visit when a gateway was connected; it may not now.
+  if (ONLINE_METHOD_IDS.includes(selectedMethod) && !onlineMethods.includes(selectedMethod)) selectedMethod = 'COD';
   let otpState = {
     required: false,
     phone: '',
@@ -114,6 +122,8 @@ export function PaymentSelector({
     // @ts-expect-error isFeatureEnabled (featureFlags.ts, not typed yet) takes one argument; the second is ignored
     const isEnabled = !m.flag || isFeatureEnabled(m.flag, true);
     if (!isEnabled) return;
+    // WHY: the server lists only the online methods it can charge (GET /payments/methods).
+    if (ONLINE_METHOD_IDS.includes(m.id) && !onlineMethods.includes(m.id)) return;
 
     const card = document.createElement('label');
     card.className = `payment-selector__card ${selectedMethod === m.id ? 'payment-selector__card--selected' : ''} ${m.disabled ? 'payment-selector__card--disabled' : ''}`;

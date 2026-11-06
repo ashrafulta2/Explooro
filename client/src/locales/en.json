@@ -14,6 +14,7 @@
     "pay": "Pay {{amount}}",
     "success": "{{amount}} added to your vault.",
     "not_confirmed": "The payment is not confirmed yet. Your vault is credited as soon as it is.",
+    "unavailable": "Adding money online is not available yet. Your vault still fills up from referral earnings and refunds.",
     "added": "{{amount}} is in your vault now.",
     "go_back": "Back to your ad",
     "err_format": "Enter an amount in taka, with at most two decimals.",

@@ -16,7 +16,7 @@ import { randomUUID } from 'node:crypto';
 import { AppError } from '../plugins/errorHandler.ts';
 import { generateRef } from '../lib/ref.ts';
 import { withTransaction } from '../config/db.ts';
-import { createPaymentGateway } from '../integrations/payments/index.ts';
+import { createPaymentGateway, onlineMethodsForDriver } from '../integrations/payments/index.ts';
 import * as paymentRepo from '../repositories/payment.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import * as ledgerService from './ledger.service.ts';
@@ -50,7 +50,11 @@ export function resolveRules(raw) {
 
 export async function loadRules(db) {
   const { rows } = await db.query(`SELECT value_json FROM platform_settings WHERE key = $1`, [RULES_KEY]);
-  return resolveRules(rows[0]?.value_json);
+  const rules = resolveRules(rows[0]?.value_json);
+  // WHY: every top-up method is an online gateway. With PAYMENT_DRIVER=none (launch) none of them can
+  // take money, so the page is told there are no methods instead of offering ones that fail.
+  const online = onlineMethodsForDriver();
+  return { ...rules, methods: rules.methods.filter((m) => online.includes(String(m))) };
 }
 
 /** Pure. Refuses an amount or method the rules do not allow; returns the amount in paisa. */

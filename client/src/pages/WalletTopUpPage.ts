@@ -59,6 +59,11 @@ export default function WalletTopUpPage(root: HTMLElement) {
     const { rules } = view;
     const card = el('section', 'advertise-card');
     card.append(el('h2', 'advertise-card__title', t('topup.form_title')));
+    // WHY: the server lists no methods while no payment gateway is connected (PAYMENT_DRIVER=none).
+    if (!rules.methods.length) {
+      card.append(el('p', 'advertise-card__hint', t('topup.unavailable')));
+      return card;
+    }
 
     const amount = Input({
       label: t('topup.amount'),

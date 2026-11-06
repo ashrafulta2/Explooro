@@ -17,6 +17,45 @@ import * as clawbackService from './clawback.service.ts';
 import * as warrantyService from './warranty.service.ts';
 import * as referralService from './referral.service.ts';
 import { writeAudit } from '../lib/audit.ts';
+import { AppError } from '../plugins/errorHandler.ts';
+
+/** True where the mock courier must not book a parcel: production, unless staging opted in. */
+export function mockCourierRefused(env = process.env) {
+  return env.NODE_ENV === 'production' && env.ALLOW_MOCK_DRIVERS_IN_PRODUCTION !== 'true';
+}
+
+/** Roles that may read any supplier's parcel (labels carry the shopper's name and phone). */
+const ALL_PARCELS_ROLES = Object.freeze(['admin', 'super_admin']);
+
+/**
+ * The parcel's supplier, or a NOT_FOUND for anyone else. Admins may read every parcel.
+ * WHY NOT_FOUND and not FORBIDDEN: a 403 would confirm to a stranger that the id exists.
+ */
+export async function assertCanReadShipment(db, shipmentId, user) {
+  const { rows } = await db.query(
+    `SELECT so.supplier_id
+     FROM shipments s
+     JOIN sub_orders so ON so.id = s.sub_order_id
+     WHERE s.id = $1`,
+    [shipmentId]
+  );
+  const roles = Array.isArray(user?.roles) ? user.roles : [];
+  const isOwner = rows.length > 0 && String(rows[0].supplier_id) === String(user?.id);
+  if (!isOwner && !(rows.length > 0 && roles.some((r) => ALL_PARCELS_ROLES.includes(r)))) {
+    throw new AppError('NOT_FOUND', 'Shipment not found.', 'চালান পাওয়া যায়নি।');
+  }
+}
+
+/** The supplier's own sub-order, or NOT_FOUND. Nobody books a parcel for another supplier's order. */
+export async function assertOwnSubOrder(db, subOrderId, supplierId) {
+  const { rows } = await db.query(
+    'SELECT id FROM sub_orders WHERE id = $1 AND supplier_id = $2',
+    [subOrderId, supplierId]
+  );
+  if (rows.length === 0) {
+    throw new AppError('NOT_FOUND', 'Sub-order not found.', 'সাব-অর্ডার পাওয়া যায়নি।');
+  }
+}
 
 /**
  * Resolves the optimal carrier for a sub-order based on routing rules.
@@ -91,6 +130,13 @@ export async function createShipmentForSubOrder(db, {
     }));
 
     const adapter = getCourierAdapter(carrierKey);
+    // WHY: an unknown carrier key (COURIER_DRIVER=none, a typo, a routing rule naming a courier with
+    // no adapter) falls back to the mock adapter, which invents a tracking number no courier issued.
+    // On a live deployment that would mark a parcel shipped that nobody is carrying.
+    if (adapter.name === 'MOCK' && mockCourierRefused()) {
+      throw new AppError('CONFLICT', 'No courier API is connected. Use "Sent by hand" and type the courier\'s tracking number.',
+        'কোনো কুরিয়ার API যুক্ত নেই। "হাতে পাঠিয়েছি" দিয়ে কুরিয়ারের ট্র্যাকিং নম্বর লিখুন।');
+    }
     const isCod = subOrder.payment_method === 'COD';
     const codAmount = isCod ? parseFloat(subOrder.total_amount) : 0.00;
 
@@ -480,6 +526,58 @@ export async function getShipmentTracking(db, trackingNumberOrSubOrderId, { clie
       longitude: shipment.current_longitude ? parseFloat(shipment.current_longitude) : null,
       lastEvent: events[events.length - 1] || null,
     },
+  };
+}
+
+/**
+ * What anyone holding a tracking number may see: where the parcel is, never who it is for.
+ *
+ * WHY its own query: GET /shipments/track/:id needs no login, and getShipmentTracking also matches
+ * a bare sub-order id and returns the recipient's name, phone, address, COD amount and the rider's
+ * live coordinates. Counting 1, 2, 3... read every shopper's home address off the public internet.
+ * Here only the courier's tracking number or consignment id finds a parcel, and the answer carries
+ * no personal data, no money and no coordinates.
+ */
+export async function getPublicShipmentTracking(db, trackingNumber) {
+  const identifier = String(trackingNumber ?? '').trim();
+  if (!identifier) return null;
+
+  const { rows } = await db.query(
+    `SELECT s.id, s.carrier, s.courier_name, s.tracking_number, s.status, s.delivered_at, s.created_at,
+            so.status AS sub_order_status
+     FROM shipments s
+     JOIN sub_orders so ON so.id = s.sub_order_id
+     WHERE s.tracking_number = $1 OR s.courier_consignment_id = $1
+     ORDER BY s.id DESC LIMIT 1`,
+    [identifier]
+  );
+  if (rows.length === 0) return null;
+  const shipment = rows[0];
+
+  const { rows: events } = await db.query(
+    `SELECT normalized_status, carrier_status, location, created_at
+     FROM shipment_events
+     WHERE shipment_id = $1
+     ORDER BY created_at ASC`,
+    [shipment.id]
+  );
+
+  return {
+    shipment: {
+      carrier: shipment.carrier,
+      courier_name: shipment.courier_name ?? null,
+      tracking_number: shipment.tracking_number,
+      status: shipment.status,
+      sub_order_status: shipment.sub_order_status,
+      delivered_at: shipment.delivered_at,
+      created_at: shipment.created_at,
+    },
+    events: events.map((e) => ({
+      normalized_status: e.normalized_status,
+      carrier_status: e.carrier_status,
+      location: e.location,
+      created_at: e.created_at,
+    })),
   };
 }
 

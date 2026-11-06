@@ -34,6 +34,18 @@ export function createPaymentGateway(gatewayName: string = 'MOCK', config: any =
   const norm = String(gatewayName || 'MOCK').trim().toUpperCase();
   const globalDriver = (process.env.PAYMENT_DRIVER || 'MOCK').toUpperCase();
 
+  // WHY: PAYMENT_DRIVER=none is the launch setting, with no MFS merchant or card gateway signed yet.
+  // Shoppers pay cash on delivery or from their vault, and neither path reaches this factory, so
+  // anything that does is an online payment the platform cannot take. Refused in every environment,
+  // so a developer can run the launch configuration locally.
+  if (globalDriver === 'NONE') {
+    throw new AppError(
+      'PAYMENT_METHOD_UNSUPPORTED',
+      'Online payment is not available yet. Pay cash on delivery or from your vault.',
+      'অনলাইন পেমেন্ট এখনো চালু হয়নি। ক্যাশ অন ডেলিভারি বা আপনার ভল্ট থেকে পেমেন্ট করুন।'
+    );
+  }
+
   // WHY: /payments/webhook/mock and /payments/initiate with gateway=MOCK reach this factory from the
   // outside. In production the mock driver approves everything, so it is never handed out there.
   if (norm === 'MOCK' && process.env.NODE_ENV === 'production' && process.env.ALLOW_MOCK_DRIVERS_IN_PRODUCTION !== 'true') {
@@ -70,4 +82,22 @@ export function createPaymentGateway(gatewayName: string = 'MOCK', config: any =
   }
 }
 
-export const defaultPaymentGateway = createPaymentGateway();
+/** Checkout method ids (`orders.payment_method`) that are paid through an online gateway. */
+export const ONLINE_METHODS = Object.freeze(['BKASH', 'NAGAD', 'ROCKET', 'CARD']);
+
+/**
+ * The online methods this deployment can actually take money with, from PAYMENT_DRIVER alone.
+ *   none → [] (launch: cash on delivery and the vault only)
+ *   mock → all four (the mock driver simulates each)
+ *   any live driver → every method that has a live driver; Rocket has none yet, so it is left out.
+ */
+export function onlineMethodsForDriver(driver: string | undefined = process.env.PAYMENT_DRIVER): string[] {
+  const norm = String(driver || 'mock').trim().toLowerCase();
+  if (norm === 'none') return [];
+  if (norm === 'mock') return [...ONLINE_METHODS];
+  return ONLINE_METHODS.filter((m) => m !== 'ROCKET');
+}
+
+// WHY no `defaultPaymentGateway = createPaymentGateway()` here any more: nothing used it, and it ran
+// the factory at import time with the MOCK gateway, which throws in production. Every production
+// boot crashed on importing this file, whatever PAYMENT_DRIVER said.
