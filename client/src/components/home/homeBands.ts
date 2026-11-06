@@ -161,7 +161,7 @@ export const ROLE_BANDS: Record<string, RoleBand> = {
   },
 
   // WHY no balance cards in the centre: escrow, available and 30-day profit are the first thing the
-  // Shop Partner's vault and dashboard show. The centre is the band's widest panel, so it carries what
+  // Explooro Partner's vault and dashboard show. The centre is the band's widest panel, so it carries what
   // the console does not put up front: what sells, what is selling platform-wide, what shoppers search.
   saler: {
     left: {

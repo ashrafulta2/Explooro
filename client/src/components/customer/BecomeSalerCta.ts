@@ -1,8 +1,8 @@
 /**
- * BecomeSalerCta.ts — 1-Click Zero-Paperwork Shop Partner Upgrade Component (Prompt 11.3 / idea §AL.3).
+ * BecomeSalerCta.ts — 1-Click Zero-Paperwork Explooro Partner Upgrade Component (Prompt 11.3 / idea §AL.3).
  *
  * Implements:
- * 1. Genuine 1-click upgrade provisioning shop partner role & virtual store in <3 seconds.
+ * 1. Genuine 1-click upgrade provisioning Explooro partner role & virtual store in <3 seconds.
  * 2. High-contrast, low-literacy friendly visual presentation with clear value propositions.
  * 3. Immediate redirect to /saler/store-builder with zero paperwork.
  */
@@ -28,7 +28,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null }: B
       <div class="become-saler-cta__info">
         <div class="inline-flex items-center gap-2">
           <span class="badge badge--brand text-[10px] font-bold uppercase tracking-wider">
-            ✨ ${t('customer.become_saler.badge', 'Zero-Capital Shop Partner Hub')}
+            ✨ ${t('customer.become_saler.badge', 'Zero-Capital Explooro Partner Hub')}
           </span>
         </div>
         <h2 class="become-saler-cta__title">
@@ -67,7 +67,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null }: B
   let isUpgrading = false;
 
   const upgradeBtn = Button({
-    label: `${t('customer.become_saler.cta_btn', 'Click to Become a Shop Partner')}`,
+    label: `${t('customer.become_saler.cta_btn', 'Click to Become a Explooro Partner')}`,
     variant: 'primary',
     size: 'lg',
     onClick: handleUpgrade,
@@ -87,7 +87,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null }: B
 
       toast.success(data.message_bn || data.message_en || t('customer.become_saler.upgrade_success', 'Congratulations! Your digital store is active.'));
 
-      // Elevate session to shop partner role
+      // Elevate session to Explooro partner role
       try {
         if (typeof setMockRole === 'function') {
           setMockRole('saler');
@@ -121,7 +121,7 @@ export function BecomeSalerCta({ onUpgradeSuccess = null, onNavigate = null }: B
       toast.error(err.message || 'Upgrade failed. Please try again.');
       isUpgrading = false;
       upgradeBtn.setLoading(false);
-      upgradeBtn.setLabel(`${t('customer.become_saler.cta_btn', 'Click to Become a Shop Partner')}`);
+      upgradeBtn.setLabel(`${t('customer.become_saler.cta_btn', 'Click to Become a Explooro Partner')}`);
     }
   }
 

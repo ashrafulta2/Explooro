@@ -1,14 +1,14 @@
 /**
  * adPushBlast.service.ts — delivery and settlement of the Push Notification Blast ad format.
  *
- * A shop partner buys N recipients up front (CPS, prepaid, placement PUSH_INBOX). Until this service
+ * A Explooro partner buys N recipients up front (CPS, prepaid, placement PUSH_INBOX). Until this service
  * existed nothing ever sent the push, so the money was taken for a product that was never delivered.
  *
  * The rules, each of which exists to protect either the shopper or the advertiser's money:
  *
  *   1. AUDIENCE — active customers who have not switched marketing push off, never the advertiser,
  *      never the same shopper twice for one campaign, and never a shopper who already received ANY
- *      ad push within `push_frequency_days` (default 3). A shop partner's budget does not buy the
+ *      ad push within `push_frequency_days` (default 3). A Explooro partner's budget does not buy the
  *      right to spam; the cap is per shopper, across all advertisers.
  *   2. AT MOST ONCE — the (campaign, shopper) row in ad_push_deliveries is inserted BEFORE the send.
  *      A crash or a second worker meets the UNIQUE key and skips. A failed send removes the claim so
@@ -63,7 +63,7 @@ export async function loadPushSettings(db) {
 /**
  * What a campaign's stored targeting means for a Push Blast. An empty list means "no restriction"; when
  * both are set a shopper must match BOTH (lives in a chosen district AND has shown interest in a chosen
- * category), because each extra condition is the shop partner asking for a narrower audience.
+ * category), because each extra condition is the Explooro partner asking for a narrower audience.
  * Anything malformed is dropped rather than trusted: this runs on JSON a client sent.
  */
 export function parsePushTargeting(targeting) {

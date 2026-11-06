@@ -1,5 +1,5 @@
 /**
- * SupplierReturnProtectionPage.ts — A supplier opts in to protect shop partners' commission against returns.
+ * SupplierReturnProtectionPage.ts — A supplier opts in to protect Explooro partners' commission against returns.
  *
  * Route: /supplier/return-protection  (module: sourcing, read: supplier.analytics.view, act: supplier.return_protection.manage)
  *

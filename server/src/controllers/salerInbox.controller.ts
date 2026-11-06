@@ -1,5 +1,5 @@
 /**
- * salerInbox.controller.ts — Shop Partner Unified Inbox Controller (Prompt 8.3 / DFD Subsystem 20.0).
+ * salerInbox.controller.ts — Explooro Partner Unified Inbox Controller (Prompt 8.3 / DFD Subsystem 20.0).
  */
 
 import * as service from '../services/whatsappCommerce.service.ts';

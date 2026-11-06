@@ -541,7 +541,7 @@ export default function StoreStatusPage(root: HTMLElement) {
           📍 ${t('supplier.address_contact_title', 'Showroom Address & Self-Pickup Configuration')}
         </h3>
         <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
-          Ensure your street address and customer pickup notes are accurate for walk-in buyers and consignments.
+          Ensure your street address and customer pickup notes are accurate for walk-in buyers and courier pickups.
         </p>
       </div>
 
@@ -571,7 +571,7 @@ export default function StoreStatusPage(root: HTMLElement) {
         <div class="supplier-form-field" style="grid-column: 1 / -1; background: var(--surface-1); padding: 14px 18px; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle);">
           <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none; font-size: var(--text-sm); color: var(--text-primary);">
             <input type="checkbox" id="store-pickup-toggle" ${store.pickup_enabled ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--brand);" />
-            <strong>${t('supplier.pickup_desk_toggle', 'Enable Direct Customer & Shop Partner Self-Pickup at Showroom')}</strong>
+            <strong>${t('supplier.pickup_desk_toggle', 'Enable Direct Customer & Explooro Partner Self-Pickup at Showroom')}</strong>
           </label>
         </div>
 

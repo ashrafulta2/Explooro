@@ -3,7 +3,7 @@
  * (their role's own type, an Idea or News — ROLE_COMPOSE), then fills numbered sections, so the form
  * is clear at a glance and says what each part is for:
  *   Review        Product → Rating → Experience                (customer, a verified-purchase review)
- *   Update        Type → Product → Stock and pricing → Highlights   (supplier, for shop partners)
+ *   Update        Type → Product → Stock and pricing → Highlights   (supplier, for Explooro partners)
  *   Idea          Type → Product (optional) → Idea → Tags      (every member)
  *   News          Product (optional) → Headline and story      (every member, for everyone)
  *   Announcement  Type → Message → Audience                    (staff)
@@ -303,8 +303,8 @@ export function PostComposer({ role, authorName, onPublished, onCancel }: PostCo
       body.append(mediaSection());
       read.tags = textInput(t('community.composer.ph.tags'), { max: 150 });
       read.tags.setAttribute('aria-label', t('community.composer.tags'));
-      // WHY only for a shop partner: the Shop this button credits the sale to the author's store,
-      // and only a shop partner has one.
+      // WHY only for a Explooro partner: the Shop this button credits the sale to the author's store,
+      // and only a Explooro partner has one.
       body.append(section(++n, t('community.composer.tags'), t('community.composer.optional'), read.tags,
         role === 'saler' ? el('p', 'cm-callout', t('community.composer.shop_button_note')) : null));
     }

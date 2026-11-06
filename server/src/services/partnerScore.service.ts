@@ -1,5 +1,5 @@
 /**
- * partnerScore.service.ts — the Partner Score: how much and how well a shop partner promotes.
+ * partnerScore.service.ts — the Partner Score: how much and how well a Explooro partner promotes.
  *
  * Earning by promotion, Phase B. Attribution (attribution.service.ts) decides WHICH partner a sale
  * belongs to; this decides how good a promoter each partner is, from the sales credited to them:

@@ -151,7 +151,7 @@ export default function WarrantyCardsPage(root: HTMLElement, { navigate }: PageC
         <div class="warranties-step-num">2</div>
         <h4 class="warranties-step-title">${t('warranty.step2_title') || '1-Click Online Claim'}</h4>
         <p class="warranties-step-desc">
-          ${t('warranty.step2_desc') || 'If an issue occurs, click "File Claim" anytime with photo proof. Suppliers are committed to a 72-hour review SLA.'}
+          ${t('warranty.step2_desc') || 'If something goes wrong, tap "File Claim" any time with a photo. The supplier answers within 72 hours.'}
         </p>
       </div>
 
@@ -235,7 +235,7 @@ export default function WarrantyCardsPage(root: HTMLElement, { navigate }: PageC
           <span class="warranties-kpi-card__dot ${openClaims.length > 0 ? 'warranties-kpi-card__dot--warning' : ''}"></span>
         </div>
         <div class="warranties-kpi-card__val ${openClaims.length > 0 ? 'warranties-kpi-card__val--warning' : ''}">${openClaims.length}</div>
-        <div class="warranties-kpi-card__sub">${openClaims.length > 0 ? '72h SLA In Progress' : t('warranty.no_active_claims') || 'All claims resolved'}</div>
+        <div class="warranties-kpi-card__sub">${openClaims.length > 0 ? 'Answer due within 72 hours' : t('warranty.no_active_claims') || 'All claims resolved'}</div>
       </div>
 
       <div class="warranties-kpi-card">

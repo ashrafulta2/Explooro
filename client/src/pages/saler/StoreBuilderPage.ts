@@ -1,6 +1,6 @@
 /**
  * StoreBuilderPage.ts — Virtual storefront builder with live availability check, curated shelves,
- * dedicated 1-Tap Quick Share Hub & Social Shop Partner Kit with zero-dependency QR flyers (Prompt 4.8).
+ * dedicated 1-Tap Quick Share Hub & Social Explooro Partner Kit with zero-dependency QR flyers (Prompt 4.8).
  */
 
 import { getMyStore, updateMyStore, updateStoreShelves, checkSlugAvailability } from '../../services/store.api.ts';
@@ -208,7 +208,7 @@ export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageCo
     header.append(titleWrap, actions);
     parent.append(header);
 
-    // ── Dedicated Quick Share Hub & Social Shop Partner Kit Card ───────────────────
+    // ── Dedicated Quick Share Hub & Social Explooro Partner Kit Card ───────────────────
     const shareCard = document.createElement('div');
     shareCard.className = 'store-builder__share-card';
 
@@ -220,7 +220,7 @@ export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageCo
 
     const shareTitle = document.createElement('h3');
     shareTitle.className = 'store-builder__share-title';
-    shareTitle.innerHTML = `<span>📢</span> <span>${t('nav.simple.saler.share_store', 'Share My Store')} & Social Shop Partner Kit</span>`;
+    shareTitle.innerHTML = `<span>📢</span> <span>${t('nav.simple.saler.share_store', 'Share My Store')} & Social Explooro Partner Kit</span>`;
 
     const shareBadge = document.createElement('span');
     shareBadge.className = 'badge badge--success badge--sm';
@@ -283,8 +283,8 @@ export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageCo
         : `🛍️ Check out "${storeState.shop_name}" on Explooro Bangladesh!`;
       const bioText = storeState.bio ? `\n\n${storeState.bio}` : '';
       const orderCta = isBn
-        ? '\n\n১০০% এসক্রো সুরক্ষায় অর্ডার করতে ভিজিট করুন:'
-        : '\n\nBrowse products & buy with 100% Escrow Protection:';
+        ? '\n\nআপনার টাকা ডেলিভারি পর্যন্ত নিরাপদে জমা থাকে। অর্ডার করতে ভিজিট করুন:'
+        : '\n\nYour money is held safely until delivery. Browse and order here:';
       const text = encodeURIComponent(`${greeting}${bioText}${orderCta}\n👉 ${getStoreUrl()}`);
       window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
     });
@@ -495,7 +495,7 @@ export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageCo
 
     const socialTitle = document.createElement('h3');
     socialTitle.className = 'store-builder__section-title';
-    socialTitle.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> ${t('store_builder.social_links_section', 'Social Shop Partner Links')}`;
+    socialTitle.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> ${t('store_builder.social_links_section', 'Social Explooro Partner Links')}`;
     socialSec.append(socialTitle);
 
     const waInput = Input({
@@ -816,9 +816,8 @@ export default function StoreBuilderPage(root: HTMLElement, { navigate }: PageCo
 
     const inst = document.createElement('p');
     inst.className = 'qr-flyer-card__instructions';
-    inst.innerHTML = `<strong>${t('social_kit.scan_to_shop', 'Scan QR Code to Shop Online')}</strong><br/>${t(
-      'social_kit.scan_instructions',
-      'Point your phone camera to browse catalog, chat on WhatsApp & place secure escrow orders on Explooro.'
+    inst.innerHTML = `<strong>${t('social_kit.scan_to_shop', 'Scan QR Code to Shop Online')}</strong><br/>${t('social_kit.scan_instructions',
+      'Point your phone camera here to see the products, chat on WhatsApp and order safely on Explooro.'
     )}`;
 
     const link = document.createElement('p');

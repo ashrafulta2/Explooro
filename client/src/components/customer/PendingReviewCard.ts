@@ -50,7 +50,7 @@ export function PendingReviewCard({
   meta.className = 'pending-review-card__meta';
 
   const storeSpan = document.createElement('span');
-  storeSpan.innerHTML = `🏪 <strong>${item.store_name || 'Verified Shop Partner'}</strong>`;
+  storeSpan.innerHTML = `🏪 <strong>${item.store_name || 'Verified Explooro Partner'}</strong>`;
 
   const orderSpan = document.createElement('span');
   orderSpan.textContent = t('customer_reviews.order_id_label', { id: item.order_ref || item.order_item_id });

@@ -1,7 +1,7 @@
 /**
- * partnerReward.service.ts — the monthly shop partner reward pool (Phase B; migrations 085 and 086).
+ * partnerReward.service.ts — the monthly Explooro partner reward pool (Phase B; migrations 085 and 086).
  *
- * A shop partner is an advertiser, not a shopkeeper. They earn nothing per sale; every month the
+ * A Explooro partner is an advertiser, not a shopkeeper. They earn nothing per sale; every month the
  * PARTNER_REWARD_POOL wallet is shared out to them by score:
  *
  *   pool    = what partner-brought sales escrowed to it (released by now)
@@ -44,7 +44,7 @@ export const RULE_LIMITS = Object.freeze({
 
 export const DEFAULT_RULES = Object.freeze({
   weights: Object.freeze({ sales: 40, social: 25, community: 20, activity: 15 }),
-  ad_revenue_share_pct: 55, // WHY 55: owner decision 2026-10-30 — partners get the larger part of ad revenue (pool 55, platform 45)
+  ad_revenue_share_pct: 45, // WHY 45: owner decision 2026-11-04 — platform keeps 55% of ad revenue; partners receive 45% in the pool
   community_points: Object.freeze({ post: 3, like: 1, comment: 2, save: 2 }),
   max_posts_per_day: 3,
   settle_lag_days: 7,
@@ -329,7 +329,7 @@ export async function closeMonth(db, { start, end }, rules, { triggeredBy = null
         defaultCategory: 'PARTNER_REWARD',
         defaultReferenceType: 'partner_reward_runs',
         defaultReferenceId: runId,
-        memo: `Shop partner reward pool, ${start}`,
+        memo: `Explooro Partner reward pool, ${start}`,
         entries,
       });
     }
@@ -519,7 +519,7 @@ export async function updateRules(db, { input, reason, userId = null, actorRole 
       key: repo.RULES_KEY,
       valueJson: after,
       valueType: 'OBJECT',
-      labelEn: 'Shop partner reward pool rules',
+      labelEn: 'Explooro Partner reward pool rules',
       labelBn: 'শপ পার্টনার রিওয়ার্ড পুলের নিয়ম',
       groupKey: 'growth',
       updatedBy: userId,

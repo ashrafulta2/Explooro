@@ -25,7 +25,7 @@ export const customerApi = {
   },
 
   /**
-   * Fetches following feed (product drops, live streams, stories from followed shop partners).
+   * Fetches following feed (product drops, live streams, stories from followed Explooro partners).
    */
   async getFollowingFeed() {
     return api.get('/customer/following-feed');
@@ -39,7 +39,7 @@ export const customerApi = {
   },
 
   /**
-   * 1-Click genuine shop partner upgrade.
+   * 1-Click genuine Explooro partner upgrade.
    */
   async becomeSaler() {
     return api.post('/customer/become-saler');

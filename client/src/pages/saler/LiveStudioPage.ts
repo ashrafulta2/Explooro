@@ -1,5 +1,5 @@
 /**
- * LiveStudioPage.ts — Shop Partner & Supplier Live Streaming Studio (Prompt 10.1 / DFD Subsystem 15.0).
+ * LiveStudioPage.ts — Explooro Partner & Supplier Live Streaming Studio (Prompt 10.1 / DFD Subsystem 15.0).
  *
  * Implements:
  * 1. Stream creation, scheduling & catalog showcase product selection.
@@ -40,7 +40,7 @@ export default function LiveStudioPage(root: HTMLElement, { navigate }: PageCont
     container.innerHTML = `
       <div class="studio-header">
         <div>
-          <h1 class="studio-title">📹 ${t('live.studio_title') || 'Shop Partner Live Streaming Studio'}</h1>
+          <h1 class="studio-title">📹 ${t('live.studio_title') || 'Explooro Partner Live Streaming Studio'}</h1>
           <p class="studio-subtitle">${t('live.studio_subtitle') || 'Host interactive live shopping events, pin products, and sell directly to live viewers.'}</p>
         </div>
         <div class="studio-header__actions">

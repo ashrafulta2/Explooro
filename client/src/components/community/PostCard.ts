@@ -4,7 +4,7 @@
  * Every post shares one skeleton so the feed scans easily: author line, content, the product it is
  * about, then actions. Only the middle differs by type:
  *   REVIEW        rating + facet bars, liked / could be better, usability tip
- *   UPDATE        stock facts and price tiers (supplier → shop partners)
+ *   UPDATE        stock facts and price tiers (supplier → Explooro partners)
  *   IDEA          numbered steps (any member)
  *   ANNOUNCEMENT  title and message: a staff notice (can be pinned) or a member's News post
  *
@@ -249,7 +249,7 @@ export function PostCard({ post, viewerRole, canModerate = false, openComments =
     content = updateBody(post);
     product = productRow(post, { cta: viewerRole === 'saler' ? t('community.card.add_to_store') : t('community.card.view_product') });
   } else if (post.type === 'IDEA' && post.author.role === 'saler') {
-    // Only a shop partner's idea credits the sale to their store.
+    // Only a Explooro partner's idea credits the sale to their store.
     content = ideaBody(post);
     product = productRow(post, { cta: t('community.card.shop_this'), note: t('community.card.credit_note', { name: post.author.name }) });
   } else if (post.type === 'IDEA') {

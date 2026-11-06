@@ -107,7 +107,7 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
           <input type="text" name="batch_number" class="input font-mono" required aria-label="BTC-2026-..." placeholder="BTC-2026-..." value="BTC-2026-${Math.floor(Math.random() * 90 + 10)}" />
         </div>
         <div class="form-group">
-          <label class="form-label">${isBn ? 'পণ্য এসকেইউ (SKU)' : 'Product SKU'} *</label>
+          <label class="form-label">${isBn ? 'পণ্যের কোড' : 'Product code'} *</label>
           <input type="text" name="sku" class="input font-mono" required aria-label="HONEY-500-RAW" placeholder="HONEY-500-RAW" />
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
           <input type="date" name="manufactured_at" class="input" required value="${new Date().toISOString().split('T')[0]}" />
         </div>
         <div class="form-group">
-          <label class="form-label">${isBn ? 'মেয়াদোত্তীর্ণের তারিখ' : 'Expiry Date (FEFO)'} *</label>
+          <label class="form-label">${isBn ? 'মেয়াদ শেষের তারিখ' : 'Expiry date'} *</label>
           <input type="date" name="expires_at" class="input" required value="${new Date(Date.now() + 86400000 * 180).toISOString().split('T')[0]}" />
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
     const saveBtn = Button({ label: isBn ? 'ব্যাচ সংরক্ষণ' : 'Save Batch', variant: 'primary' });
     footer.append(Button({ label: isBn ? 'বাতিল' : 'Cancel', variant: 'secondary', onClick: () => modal.close() }), saveBtn);
     const modal = Modal({
-      title: isBn ? 'নতুন ব্যাচ নিবন্ধন' : 'Register New FEFO Batch',
+      title: isBn ? 'নতুন ব্যাচ যোগ করুন' : 'Add a new batch',
       content,
       footer,
     });
@@ -248,9 +248,9 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
       <div class="admin-page-header">
         <div>
           <div class="admin-page-eyebrow">
-            <span class="badge badge--neutral">📦 ${isBn ? 'এফইএফও ব্যাচ গভর্নেন্স' : 'FEFO Inventory Management'}</span>
+            <span class="badge badge--neutral">📦 ${isBn ? 'আগে মেয়াদ শেষ হবে এমনটা আগে' : 'Expiry first'}</span>
           </div>
-          <h1 class="admin-page-title">${isBn ? 'ব্যাচ ও এক্সপায়ারি ম্যানেজমেন্ট' : 'Batches & FEFO Expiration Governance'}</h1>
+          <h1 class="admin-page-title">${isBn ? 'ব্যাচ ও মেয়াদ' : 'Batches & expiry'}</h1>
           <p class="admin-page-subtitle">
             ${isBn ? 'ফার্স্ট-এক্সপায়ার্ড-ফার্স্ট-আউট নিয়মে ব্যাচ ট্র্যাকিং, এক্সপায়ারি অ্যালার্ট, ক্লিয়ারেন্স সেল ও কোয়ারেন্টাইন আইসোলেশন।' : 'First-Expired-First-Out deterministic batch allocation, expiration risk alerts, clearance sales, and rapid recall quarantine.'}
           </p>
@@ -296,7 +296,7 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
       <!-- Toolbar -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="batch-search-input" class="input" aria-label="${isBn ? 'ব্যাচ নম্বর, এসকেইউ বা পণ্যের নাম...' : 'Search batch #, SKU, product, supplier...'}" placeholder="${isBn ? 'ব্যাচ নম্বর, এসকেইউ বা পণ্যের নাম...' : 'Search batch #, SKU, product, supplier...'}" value="${searchQuery}" />
+          <input type="search" id="batch-search-input" class="input" aria-label="${isBn ? 'ব্যাচ নম্বর, পণ্যের কোড বা নাম...' : 'Search batch #, product code, product, supplier...'}" placeholder="${isBn ? 'ব্যাচ নম্বর, পণ্যের কোড বা নাম...' : 'Search batch #, product code, product, supplier...'}" value="${searchQuery}" />
         </div>
 
         <div class="admin-toolbar__filters">
@@ -317,7 +317,7 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
             <thead>
               <tr>
                 <th>${isBn ? 'ব্যাচ রেফারেন্স' : 'Batch Ref'}</th>
-                <th>${isBn ? 'পণ্য ও এসকেইউ' : 'Product & SKU'}</th>
+                <th>${isBn ? 'পণ্য ও কোড' : 'Product & code'}</th>
                 <th>${isBn ? 'ওয়্যারহাউস ও সাপ্লায়ার' : 'Location & Supplier'}</th>
                 <th>${isBn ? 'মেয়াদোত্তীর্ণ ও রিমেইনিং' : 'Expiry & Timeline'}</th>
                 <th>${isBn ? 'স্টক লেভেল' : 'Stock'}</th>

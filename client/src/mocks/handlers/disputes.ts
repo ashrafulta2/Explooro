@@ -17,7 +17,7 @@ let mockDisputes: Record<string, any>[] = [
     customer_id: 2,
     customer_name: 'Tanvir Hossain',
     saler_id: 3,
-    saler_name: 'Dhaka Trendz Shop Partner',
+    saler_name: 'Dhaka Trendz Explooro Partner',
     supplier_id: 4,
     supplier_name: 'Walton Electronics Ltd',
     sla_expires_at: new Date(Date.now() + 90 * 60 * 1000).toISOString(),

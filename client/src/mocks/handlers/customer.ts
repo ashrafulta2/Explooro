@@ -508,7 +508,7 @@ export const customerHandlers = [
           id: storeId,
           slug: `store-${storeId}`,
           shop_name: `Verified Merchant ${storeId}`,
-          bio: 'Verified local shop partner on Explooro.',
+          bio: 'Verified local Explooro partner on Explooro.',
           total_products: 12,
           rating: 4.8,
           followers_count: 520,
@@ -598,7 +598,7 @@ export const customerHandlers = [
     },
   },
 
-  // 4. 1-Click Shop Partner Upgrade
+  // 4. 1-Click Explooro Partner Upgrade
   {
     method: 'POST',
     path: '/customer/become-saler',

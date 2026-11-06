@@ -108,7 +108,7 @@ test('Prompts 3.3 & 3.4: Users, Access & Audit Explorer — Client Invariants', 
     ];
 
     const csv = serializeAuditRecordsToCsv(records);
-    assert.ok(csv.startsWith('ID,Timestamp,Actor Role,Action,Target Type,Target Ref,IP Address,Trace ID,Risk Tier'));
+    assert.ok(csv.startsWith('ID,Timestamp,Actor Role,Action,Target Type,Target Ref,IP Address,Trace ID,Approval Level'));
     assert.ok(csv.includes('101,2026-08-30T12:00:00Z,admin,module.toggle'));
     // Escaped string with comma and quotes
     assert.ok(csv.includes('"User, #5 ""Rahim"""'));

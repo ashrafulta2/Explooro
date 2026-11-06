@@ -1,5 +1,5 @@
 /**
- * partnerReward.test.js — the monthly shop partner reward pool (migration 086, partnerReward.service.ts).
+ * partnerReward.test.js — the monthly Explooro partner reward pool (migration 086, partnerReward.service.ts).
  *
  * The invariants: a payout never exceeds the pool, a factor nobody scored on hands its weight to the
  * others, the owner's factor order is enforced on write, reads fall back field by field, and a month
@@ -115,10 +115,9 @@ describe('partner reward pool — rules', () => {
     const sql = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/086_partner_reward_runs.sql'), 'utf8');
     const json = JSON.parse(sql.match(/'(\{"weights"[\s\S]*?\})'::jsonb/)[1]);
     assert.deepEqual(json.weights, DEFAULT_RULES.weights);
-    // 091 moves the seeded ad share (20 -> 55), so the default must equal what 091 writes.
-    const m091 = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/091_partner_pool_ad_share_55.sql'), 'utf8');
-    assert.equal(json.ad_revenue_share_pct, Number(m091.match(/::numeric = (\d+(?:\.\d+)?);/)[1]));
-    assert.equal(Number(m091.match(/'\{ad_revenue_share_pct\}', '(\d+(?:\.\d+)?)'::jsonb/)[1]), DEFAULT_RULES.ad_revenue_share_pct);
+    // 102 changes the ad share to 45% for a fresh default; the deployed row moves in migration 102.
+    const m102 = fs.readFileSync(path.resolve(import.meta.dirname, '../src/db/migrations/102_partner_pool_ad_share_45.sql'), 'utf8');
+    assert.equal(Number(m102.match(/'\{ad_revenue_share_pct\}', '(\d+(?:\.\d+)?)'::jsonb/)[1]), DEFAULT_RULES.ad_revenue_share_pct);
     assert.deepEqual(json.community_points, DEFAULT_RULES.community_points);
     assert.equal(json.max_posts_per_day, DEFAULT_RULES.max_posts_per_day);
     assert.equal(json.settle_lag_days, DEFAULT_RULES.settle_lag_days);

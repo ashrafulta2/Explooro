@@ -1,5 +1,5 @@
 /**
- * SalerOrderDetailPage.ts — Detailed Shop Partner Order Breakdown & Delivery Timeline (Prompt 11.2).
+ * SalerOrderDetailPage.ts — Detailed Explooro Partner Order Breakdown & Delivery Timeline (Prompt 11.2).
  *
  * Route: /saler/orders/:id
  */

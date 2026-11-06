@@ -1,5 +1,5 @@
 /**
- * subscription.service.ts — Shop Partner subscription plans (Shop Partner Pro) — admin side.
+ * subscription.service.ts — Explooro Partner subscription plans (Explooro Partner Pro) — admin side.
  *
  * Everything here sits behind the `subscription_fees` module (default OFF). The module switch is the
  * only on/off control: with it OFF the tables are inert, nothing is billed and pricing ignores the
@@ -8,7 +8,7 @@
  *
  * Invariants:
  *   - a plan's rebate can never exceed the platform's current global share (it moves points from
- *     the platform's cut to the shop partner's; it must not push the platform share below zero);
+ *     the platform's cut to the Explooro partner's; it must not push the platform share below zero);
  *   - plan `code` is immutable after creation (invoices and audit rows refer to it);
  *   - every write is audited with before/after.
  */
@@ -126,7 +126,7 @@ export function parsePlanInput(body: Record<string, any> = {}, { partial = false
 }
 
 /**
- * A rebate moves points from the platform's share to the shop partner's, so it cannot exceed what the
+ * A rebate moves points from the platform's share to the Explooro partner's, so it cannot exceed what the
  * platform currently keeps. Throws; otherwise returns the rebate unchanged.
  */
 export function assertRebateWithinPlatformShare(rebatePct, platformSplitPct) {

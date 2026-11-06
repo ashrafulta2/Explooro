@@ -1,7 +1,7 @@
 /**
  * attributionTouch.test.js — captureTouchFromQuery in services/attribution.ts.
  *
- * A shop partner's sponsored ad lands on /product/:id?store=<slug> (server adDestination.service.ts),
+ * A Explooro partner's sponsored ad lands on /product/:id?store=<slug> (server adDestination.service.ts),
  * so `store` must become a STORE touch, or the partner who paid for the ad is never credited.
  */
 

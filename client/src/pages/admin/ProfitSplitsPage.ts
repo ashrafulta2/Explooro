@@ -5,7 +5,7 @@
  * 1. Global Platform Margin Sharing Governor (CRITICAL tier audited policy).
  * 2. Real-Time Interactive Margin & Profit Split Simulator with exact paisa arithmetic.
  * 3. Category-Level Split Overrides table with instant add/edit/reset workflows.
- * 4. Shop Partner Trust Tier Incentive Bonus Matrix (Bronze through Platinum/Elite boosts).
+ * 4. Explooro Partner Trust Tier Incentive Bonus Matrix (Bronze through Platinum/Elite boosts).
  * 5. Full audit log history tracking who changed split policies and why.
  * 6. Shared FinanceSubnav bar interconnecting all 7 financial control surfaces.
  */
@@ -55,7 +55,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
   let formExtraMarkupPlatform = 20;
   let formReason = '';
 
-  // Shop Partner commission tier form (bonuses + the volume ladder, saved together)
+  // Explooro Partner commission tier form (bonuses + the volume ladder, saved together)
   let tierEnabled = false;
   let tierWindow: number | string = 30;
   let tierMin = { SILVER: 0, GOLD: 0, PLATINUM: 0 };
@@ -705,7 +705,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
           </h2>
           <p class="admin-panel__subtitle">${t('admin_splits.global_policy_desc')}</p>
         </div>
-        <span class="badge badge--danger font-bold text-xs">MAKER-CHECKER CRITICAL</span>
+        <span class="badge badge--danger font-bold text-xs">${t('admin_splits.badge_critical')}</span>
       </div>
 
       <form class="global-split-form flex flex-col gap-4">
@@ -870,9 +870,9 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
                       <td>
                         <div class="split-pill split-pill--saler">
                           <span class="split-pill__val font-mono">${cat.saler_split_pct}%</span>
-                          <span class="split-pill__lbl">${isBn ? 'শপ পার্টনার' : 'Shop Partner'}</span>
+                          <span class="split-pill__lbl">${isBn ? 'শপ পার্টনার' : 'Explooro Partner'}</span>
                         </div>
-                        <div class="split-ratio-bar" title="Shop Partner: ${cat.saler_split_pct}% | Platform: ${cat.platform_split_pct}%">
+                        <div class="split-ratio-bar" title="Explooro Partner: ${cat.saler_split_pct}% | Platform: ${cat.platform_split_pct}%">
                           <div class="split-ratio-bar__saler" style="width: ${cat.saler_split_pct}%;"></div>
                           <div class="split-ratio-bar__platform" style="width: ${cat.platform_split_pct}%;"></div>
                         </div>
@@ -1020,7 +1020,7 @@ export default function ProfitSplitsPage(root: HTMLElement, { navigate }: PageCo
                     <td>
                       <div class="split-pill split-pill--saler">
                         <span class="split-pill__val font-mono">${exampleSaler}%</span>
-                        <span class="split-pill__lbl">${isBn ? 'শপ পার্টনার' : 'Shop Partner'}</span>
+                        <span class="split-pill__lbl">${isBn ? 'শপ পার্টনার' : 'Explooro Partner'}</span>
                       </div>
                       <span class="text-xs text-muted font-mono"> / </span>
                       <div class="split-pill split-pill--platform">

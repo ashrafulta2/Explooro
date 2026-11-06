@@ -233,7 +233,7 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
 
   const cart = await getOrCreateActiveCart(db, { userId, guestToken });
 
-  // The shopper's last storefront visit or link click decides the shop partner; an explicit salerId
+  // The shopper's last storefront visit or link click decides the Explooro partner; an explicit salerId
   // is still accepted, but only for a partner who sells the product and is not the shopper.
   let shortLinkId = null;
   let attributionSource = null;
@@ -254,7 +254,7 @@ export async function addItemToCart(db, { userId = null, guestToken = null, prod
     throw new AppError('NOT_FOUND', 'Product not available.', 'পণ্যটি উপলব্ধ নেই।');
   }
 
-  // WHY: price_at_add must be the price getCart will read back, or every shop partner line shows PRICE_CHANGED.
+  // WHY: price_at_add must be the price getCart will read back, or every Explooro partner line shows PRICE_CHANGED.
   let basePrice = Number(prodRows[0].default_retail_price);
   if (salerId) {
     const { rows: itemRows } = await db.query(

@@ -269,7 +269,7 @@ function buildDraft(role, body) {
     const stock = Number(d.stock);
     const minOrder = Number(d.min_order);
     const price = Number(d.wholesale_price);
-    if (!text) return { error: fail(400, 'VALIDATION_FAILED', 'Add the highlights for shop partners.', 'শপ পার্টনারদের জন্য বিবরণ লিখুন।', 'body') };
+    if (!text) return { error: fail(400, 'VALIDATION_FAILED', 'Add the highlights for Explooro partners.', 'শপ পার্টনারদের জন্য বিবরণ লিখুন।', 'body') };
     if (!Number.isInteger(stock) || stock < 0) return { error: fail(400, 'VALIDATION_FAILED', 'Enter the stock you have.', 'আপনার স্টকের পরিমাণ লিখুন।', 'stock') };
     if (!Number.isInteger(minOrder) || minOrder < 1) return { error: fail(400, 'VALIDATION_FAILED', 'Enter the minimum order quantity.', 'সর্বনিম্ন অর্ডারের পরিমাণ লিখুন।', 'min_order') };
     if (!Number.isFinite(price) || price < 0) return { error: fail(400, 'VALIDATION_FAILED', 'Enter the wholesale price.', 'পাইকারি দাম লিখুন।', 'wholesale_price') };

@@ -21,8 +21,8 @@
  * sidebar entry, reached from within a page rather than the tree — normal, not an omission.
  *
  * Two inferences beyond a literal table lookup, both flagged where they occur:
- *  - `saler.store_status` — §2.5 lists "Physical Shop Status" under Shop Partner's My Store group, but
- *    §1.5's shop partner route table has no such row. Mirrors supplier's identical `/supplier/store-status`
+ *  - `saler.store_status` — §2.5 lists "Physical Shop Status" under Explooro Partner's My Store group, but
+ *    §1.5's Explooro partner route table has no such row. Mirrors supplier's identical `/supplier/store-status`
  *    concept 1:1 (same perm shape, same module) under the `/saler/` prefix.
  *  - Module keys for the ten `/admin/*` oversight routes that mirror a toggleable feature (catalog
  *    moderation, batches, warehouses, returns, disputes, courier, b2b escrow, growth items, theme
@@ -97,7 +97,7 @@ export const navGroups: NavGroup[] = [
   { key: 'supplier.my_shop', role: 'supplier', icon: '🏪', label_i18n_key: 'nav.group.supplier.my_shop', order: 7 },
   { key: 'supplier.me', role: 'supplier', icon: '👤', label_i18n_key: 'nav.group.me', order: 8 },
 
-  // ---- Shop Partner (7 groups, ia-sitemap.md §2.5) ----
+  // ---- Explooro Partner (7 groups, ia-sitemap.md §2.5) ----
   { key: 'saler.overview', role: 'saler', icon: '📊', label_i18n_key: 'nav.group.overview', order: 1 },
   { key: 'saler.my_store', role: 'saler', icon: '🏪', label_i18n_key: 'nav.group.saler.my_store', order: 2 },
   { key: 'saler.sourcing', role: 'saler', icon: '🔍', label_i18n_key: 'nav.group.saler.sourcing', order: 3 },
@@ -236,7 +236,7 @@ export const navItems: NavItemDef[] = [
   { key: 'supplier.b2b_escrow', label_i18n_key: 'nav.shared.b2b_escrow', icon: null, path: '/supplier/b2b-escrow', group: 'supplier.finance', permission: 'finance.b2b_escrow.view_own', module: 'b2b_escrow', roles: ['supplier'], order: 2 },
   { key: 'supplier.inquiries', label_i18n_key: 'nav.supplier.inquiries', icon: null, path: '/supplier/inquiries', group: 'supplier.engage', permission: 'chat.thread.view_own', module: 'chat', roles: ['supplier'], order: 1 },
   { key: 'supplier.live_studio', label_i18n_key: 'nav.supplier.live_studio', icon: null, path: '/supplier/live-studio', group: 'supplier.engage', permission: 'live.stream.host', module: 'live_commerce', roles: ['supplier'], order: 2 },
-  // Same page and same permission as the shop partner's: the route is gated by `growth.ad.manage_own`,
+  // Same page and same permission as the Explooro partner's: the route is gated by `growth.ad.manage_own`,
   // which a supplier holds, and every ad format allows the supplier role. Only the menu entry was missing.
   // The simple Boost wizard (migration 087) for every account type; the full catalogue stays at /saler/ads.
   { key: 'supplier.advertise', label_i18n_key: 'nav.shared.advertise', icon: null, path: '/advertise', group: 'supplier.engage', permission: 'growth.ad.manage_own', module: 'sponsored_ads', roles: ['supplier'], order: 3 },
@@ -339,7 +339,7 @@ export function homePathForRoles(roles: string[] = []): string {
 
 /**
  * Roles whose sidebar has a Simple/Advanced mode split. Since Prompt 13.5 that is every role with a
- * journey (ia-sitemap.md §4 first gave it to shop partners and suppliers only). Simple shows the
+ * journey (ia-sitemap.md §4 first gave it to Explooro partners and suppliers only). Simple shows the
  * role's core items, the user's pins and a "More" group with everything else; Advanced shows the
  * full grouped tree. Which one a user starts in is `defaultUiMode` below.
  */
@@ -395,7 +395,7 @@ export const SIMPLE_MODE_ITEMS: Record<string, NavItemDef[]> = Object.fromEntrie
 /**
  * The mode a user starts in when they have not chosen one this session. A user whose journey is not
  * finished starts in Simple; one who finished it starts in Advanced. While the journey is not known
- * yet (guidance off, opted out, still loading) shop partners and suppliers keep Simple and every other
+ * yet (guidance off, opted out, still loading) Explooro partners and suppliers keep Simple and every other
  * role keeps Advanced, which is how the sidebar behaved before Prompt 13.5.
  */
 export function defaultUiMode(role: string, journeyState: 'unknown' | 'new' | 'done'): 'simple' | 'advanced' {

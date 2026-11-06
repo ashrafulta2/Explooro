@@ -4,7 +4,7 @@
  * Imported by pages/CommunityPage.ts (route chunk), never by main.css.
  *
  * Colour is role-coded with the status triads so it follows the master theme in light and dark:
- *   customer → success · supplier → info · shop partner → brand · admin → text-primary on inverse.
+ *   customer → success · supplier → info · Explooro partner → brand · admin → text-primary on inverse.
  * Cards are solid with a hairline border (no gradients, no shadows on surfaces). Action buttons
  * carry no border of their own; hover is a soft fill.
  */

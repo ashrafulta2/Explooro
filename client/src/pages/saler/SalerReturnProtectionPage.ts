@@ -1,10 +1,10 @@
 /**
- * SalerReturnProtectionPage.ts — Which suppliers protect a shop partner's commission against returns, and what
- * the shop partner has been paid under that promise.
+ * SalerReturnProtectionPage.ts — Which suppliers protect a Explooro partner's commission against returns, and what
+ * the Explooro partner has been paid under that promise.
  *
- * Route: /saler/return-protection  (module: sourcing, read: shop partner.sourcing.view)
+ * Route: /saler/return-protection  (module: sourcing, read: Explooro partner.sourcing.view)
  *
- * WHY the limits are shown: a shop partner should know what the promise covers (only the commission a return
+ * WHY the limits are shown: a Explooro partner should know what the promise covers (only the commission a return
  * actually took back, up to a cap per order) and that repeated claims are limited, before relying on it.
  */
 import { returnProtectionApi } from '../../services/payoutProtection.api.ts';

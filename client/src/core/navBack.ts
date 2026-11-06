@@ -184,7 +184,7 @@ export function getBackDestination(fromPath: string | null | undefined, lang = '
   }
   if (pathname === '/account/become-saler' || pathname.startsWith('/account/become-saler/')) {
     return {
-      name: resolveLabel('nav.customer.become_saler', 'শপ পার্টনার একাউন্ট', 'Become a Shop Partner', activeLang),
+      name: resolveLabel('nav.customer.become_saler', 'শপ পার্টনার একাউন্ট', 'Become a Explooro Partner', activeLang),
       path: '/account/become-saler',
     };
   }
@@ -197,7 +197,7 @@ export function getBackDestination(fromPath: string | null | undefined, lang = '
     };
   }
 
-  // 5. Shop Partner & Supplier Portals
+  // 5. Explooro Partner & Supplier Portals
   if (pathname.startsWith('/supplier')) {
     return {
       name: resolveLabel('common.dashboard', 'ড্যাশবোর্ড', 'Dashboard', activeLang),

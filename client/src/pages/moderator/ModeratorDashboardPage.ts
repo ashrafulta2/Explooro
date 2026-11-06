@@ -70,7 +70,7 @@ export default function ModeratorDashboardPage(root: HTMLElement, { navigate, qu
     {
       id: 'product-moderation',
       title: 'Product & Content Moderation',
-      desc: 'Review newly listed and edited shop partner products, banned keyword flags, and price anomalies.',
+      desc: 'Review newly listed and edited Explooro partner products, banned keyword flags, and price anomalies.',
       icon: '🛍️',
       permissionKey: 'moderation.product.approve',
       route: '/moderator/queue',
@@ -93,7 +93,7 @@ export default function ModeratorDashboardPage(root: HTMLElement, { navigate, qu
     },
     {
       id: 'kyc-verification',
-      title: 'KYC Verification Center',
+      title: 'Identity checks',
       desc: 'Inspect government NIDs, business trade licenses, facility photos, and issue Blue-Tick badges.',
       icon: '🛡️',
       permissionKey: 'users.kyc.approve',
@@ -373,7 +373,7 @@ export default function ModeratorDashboardPage(root: HTMLElement, { navigate, qu
                           color: var(--warning, #d97706);
                           cursor: pointer;
                         ">
-                          🔑 Request JIT Access
+                          🔑 Request temporary access
                         </button>`
                   }
                 </div>
@@ -400,7 +400,7 @@ export default function ModeratorDashboardPage(root: HTMLElement, { navigate, qu
       ">
         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle, #e2e8f0);">
           <h3 style="margin: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-primary, #0f172a);">
-            🛡️ ${t('moderator_dashboard.my_grants_title', 'My Elevated Access Grants')}
+            🛡️ ${t('moderator_dashboard.my_grants_title', 'My temporary access')}
           </h3>
           <span style="font-size: 11px; padding: 2px 8px; border-radius: var(--radius-sm, 6px); background: var(--info-bg, rgba(79, 70, 229, 0.1)); color: var(--text-brand, #4f46e5); border: 1px solid var(--info-border, rgba(79, 70, 229, 0.25)); font-weight: 700;">
             ${grants.length} Active
@@ -459,7 +459,7 @@ export default function ModeratorDashboardPage(root: HTMLElement, { navigate, qu
       ">
         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle, #e2e8f0);">
           <h3 style="margin: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-primary, #0f172a);">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('moderator_dashboard.maker_checker_title', 'Awaiting Admin Approval (Maker-Checker)')}
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('moderator_dashboard.maker_checker_title', 'Waiting for an admin\'s second approval')}
           </h3>
           <span style="font-size: 11px; color: var(--text-muted, #64748b);">4-Eyes Principle</span>
         </div>

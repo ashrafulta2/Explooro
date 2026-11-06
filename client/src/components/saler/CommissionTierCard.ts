@@ -1,15 +1,15 @@
 /**
- * CommissionTierCard.ts — where a shop partner stands on the earned commission ladder.
+ * CommissionTierCard.ts — where a Explooro partner stands on the earned commission ladder.
  *
  * Draws only what GET /saler/commission-tier returns (server services/salerTier.service.ts getSalerView):
  * the tier, the bonus it pays, the delivered volume in the window and the gap to the next tier.
  * The client never works out a tier or a bonus itself.
  *
- * Returns null while the platform has tiers switched off, so a shop partner is never shown a ladder that
+ * Returns null while the platform has tiers switched off, so a Explooro partner is never shown a ladder that
  * pays nothing.
  *
  * WHY no page mounts it (owner, 2026-11-02): "+X% on every sale" told partners they earn per sale,
- * which they never do, so the shop partner dashboard dropped it. It stays for the gallery, and
+ * which they never do, so the Explooro partner dashboard dropped it. It stays for the gallery, and
  * `esc` and its card classes are shared by PartnerRewardCard and PartnerScoreCard.
  */
 import { formatCurrency, formatNumber } from '../../services/format.ts';
@@ -59,7 +59,7 @@ export function isVisible(data: CommissionTierData | null | undefined): data is 
 
 /**
  * Pure. Percent of the way from the current tier's floor to the next tier, 0 to 100; 100 at the top.
- * WHY from the floor: a shop partner just above SILVER should see a near-empty bar towards GOLD, not one
+ * WHY from the floor: a Explooro partner just above SILVER should see a near-empty bar towards GOLD, not one
  * already half full from the BRONZE-to-SILVER climb.
  */
 export function progressPct(data: CommissionTierData | null | undefined): number {

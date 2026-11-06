@@ -1,5 +1,5 @@
 /**
- * productVisibility.test.js — the supplier's cost never reaches a shopper, shop partner or guest.
+ * productVisibility.test.js — the supplier's cost never reaches a shopper, Explooro partner or guest.
  *
  * WHY this file exists: GET /products/:id and GET /products are public and select `p.*`, so until
  * 2026-11-02 every guest could read a product's base_cost, wholesale_margin, partner_profit and the
@@ -77,7 +77,7 @@ describe('GET /products/:id detail', () => {
   for (const [who, viewer] of [
     ['a guest', GUEST],
     ['a customer', CUSTOMER],
-    ['a shop partner', SALER],
+    ['a Explooro partner', SALER],
     ['another supplier', OTHER_SUPPLIER],
   ]) {
     test(`${who} gets no cost, margin or pricing breakdown`, async () => {
@@ -155,8 +155,8 @@ async function getJson(viewer, url) {
 }
 
 describe('GET /products list and /sourcing/catalog', () => {
-  test('a guest and a shop partner get no cost on any row', async () => {
-    for (const [who, viewer] of [['a guest', GUEST], ['a shop partner', SALER]]) {
+  test('a guest and a Explooro partner get no cost on any row', async () => {
+    for (const [who, viewer] of [['a guest', GUEST], ['a Explooro partner', SALER]]) {
       const body = await getJson(viewer, '/products');
       assert.equal(body.data.products.length, 2);
       for (const p of body.data.products) assertNoCosts(p, who);
@@ -180,7 +180,7 @@ describe('GET /products list and /sourcing/catalog', () => {
     const body = await getJson(SALER, '/sourcing/catalog');
     assert.equal(body.catalog.length, 2);
     for (const p of body.catalog) {
-      assertNoCosts(p, 'a shop partner');
+      assertNoCosts(p, 'a Explooro partner');
       assert.equal('sourcing_opportunity' in p, false);
     }
   });
@@ -192,7 +192,7 @@ describe('the client mock follows the same rule', () => {
     assert.deepEqual([...mockRules.PUBLIC_PRICING_FIELDS].sort(), [...serverRules.PUBLIC_PRICING_FIELDS].sort());
   });
 
-  test('a guest and a shop partner get no cost from the mock either', () => {
+  test('a guest and a Explooro partner get no cost from the mock either', () => {
     const row = { ...productRow(), pricing: { retail_price: 150, base_cost: 100, platform_earning: 12 } };
     for (const viewer of [GUEST, SALER]) assertNoCosts(mockRules.productForViewer(row, viewer), 'a mock viewer');
     assert.equal(mockRules.productForViewer(row, ADMIN).base_cost, '100.00');

@@ -47,15 +47,15 @@ export default function HelpCenterManagerPage(root: HTMLElement) {
         <label for="faq-cat">Help Category *</label>
         <select class="form-select" id="faq-cat">
           <option value="orders" ${existing?.category === 'orders' ? 'selected' : ''}>📦 Orders, Courier & Fulfillment</option>
-          <option value="finance" ${existing?.category === 'finance' ? 'selected' : ''}>💰 Commissions, Payouts & Wallets</option>
-          <option value="sourcing" ${existing?.category === 'sourcing' ? 'selected' : ''}>🏭 Factory Sourcing & B2B Escrow</option>
+          <option value="finance" ${existing?.category === 'finance' ? 'selected' : ''}>💰 Commissions, withdrawals & wallets</option>
+          <option value="sourcing" ${existing?.category === 'sourcing' ? 'selected' : ''}>🏭 Factory sourcing & protected bulk deals</option>
           <option value="warranties" ${existing?.category === 'warranties' ? 'selected' : ''}>🛡️ Digital Warranties & Returns</option>
         </select>
       </div>
 
       <div class="supplier-form-field">
         <label for="faq-title-en">Question / Article Title (English) *</label>
-        <input type="text" id="faq-title-en" class="form-input" placeholder="e.g. How do I track customer orders with 3PL couriers?" value="${existing?.title_en || ''}" />
+        <input type="text" id="faq-title-en" class="form-input" placeholder="e.g. How do I track customer orders with couriers?" value="${existing?.title_en || ''}" />
       </div>
 
       <div class="supplier-form-field">
@@ -156,7 +156,7 @@ export default function HelpCenterManagerPage(root: HTMLElement) {
           <span>❓</span> ${t('editor.help_title', 'Help Centre & Knowledge Base FAQs')}
         </h1>
         <p class="editor-header__subtitle">
-          Manage merchant guides, buyer support FAQs, escrow tutorials, and resolution articles.
+          Manage merchant guides, buyer support FAQs, payment-protection tutorials, and resolution articles.
         </p>
       </div>
       <div class="editor-header__actions">
@@ -185,10 +185,10 @@ export default function HelpCenterManagerPage(root: HTMLElement) {
             📦 Orders & Courier
           </button>
           <button class="editor-chip ${activeCategory === 'finance' ? 'editor-chip--active' : ''}" data-cat="finance">
-            💰 Payouts & Wallets
+            💰 Withdrawals & wallets
           </button>
           <button class="editor-chip ${activeCategory === 'sourcing' ? 'editor-chip--active' : ''}" data-cat="sourcing">
-            🏭 Factory Escrow
+            🏭 Protected bulk deals
           </button>
           <button class="editor-chip ${activeCategory === 'warranties' ? 'editor-chip--active' : ''}" data-cat="warranties">
             🛡️ Warranties & Returns
@@ -234,7 +234,7 @@ export default function HelpCenterManagerPage(root: HTMLElement) {
         EmptyState({
           icon: '❓',
           title: 'No articles found',
-          description: 'Add a new FAQ article to assist platform buyers and shop partners.',
+          description: 'Add a new FAQ article to assist platform buyers and Explooro partners.',
         })
       );
       return;

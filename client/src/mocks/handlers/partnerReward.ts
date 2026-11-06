@@ -1,5 +1,5 @@
 /**
- * partnerReward.ts — Mock API handlers for the monthly shop partner reward pool.
+ * partnerReward.ts — Mock API handlers for the monthly Explooro partner reward pool.
  *
  * Mirrors server/src/routes/partnerReward.routes.ts and the shapes of partnerReward.service.ts
  * (getAdminView, getOwnView, getRunPayouts). The rules persist to localStorage, as attribution.js does,

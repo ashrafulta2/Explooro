@@ -163,7 +163,7 @@ export default function StoriesManagerPage(root: HTMLElement) {
       </div>
 
       <div class="supplier-form-field">
-        <label for="reel-product-name">Pinned Product SKU Name *</label>
+        <label for="reel-product-name">Pinned product name *</label>
         <input type="text" id="reel-product-name" class="form-input" placeholder="Heritage Dhakai Jamdani Saree" value="Heritage Dhakai Jamdani Saree (84 Count)" />
       </div>
     `;
@@ -266,7 +266,7 @@ export default function StoriesManagerPage(root: HTMLElement) {
           <span>🎬</span> ${t('editor.stories_title', 'Shoppable Stories & Product Video Reels')}
         </h1>
         <p class="editor-header__subtitle">
-          Curate merchant spotlights, behind-the-scenes artisan reels, and tag purchasable SKUs with 1-click checkout buttons.
+          Curate merchant spotlights, behind-the-scenes artisan reels, and tag products shoppers can buy with 1-click checkout buttons.
         </p>
       </div>
       <div class="editor-header__actions">
@@ -344,7 +344,7 @@ export default function StoriesManagerPage(root: HTMLElement) {
           EmptyState({
             icon: '📰',
             title: 'No stories found',
-            description: 'Publish an artisan spotlight story to educate buyers and shop partners.',
+            description: 'Publish an artisan spotlight story to educate buyers and Explooro partners.',
           })
         );
         return;
@@ -380,7 +380,7 @@ export default function StoriesManagerPage(root: HTMLElement) {
               story.embedded_products?.length
                 ? `
               <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--surface-1); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-top: 4px;">
-                <span class="text-xs font-bold text-primary">🛍️ Tagged SKU:</span>
+                <span class="text-xs font-bold text-primary">🛍️ Tagged product:</span>
                 <span class="text-xs font-mono font-bold">${story.embedded_products[0].title_en}</span>
               </div>
             `

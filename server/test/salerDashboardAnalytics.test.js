@@ -1,10 +1,10 @@
 /**
- * salerDashboardAnalytics.test.js — Automated test suite for Prompt 11.2 (Shop Partner Dashboard, Inline SVG Analytics & Growth Assistant).
+ * salerDashboardAnalytics.test.js — Automated test suite for Prompt 11.2 (Explooro Partner Dashboard, Inline SVG Analytics & Growth Assistant).
  *
  * Verifies all ACCEPTANCE criteria from docs/prompt.md Prompt 11.2:
- * 1. Every shop partner feature is reachable within two clicks from the dashboard.
+ * 1. Every Explooro partner feature is reachable within two clicks from the dashboard.
  * 2. Analytics figures reconcile exactly with the ledger and order data.
- * 3. A brand-new shop partner sees the onboarding checklist rather than an empty dashboard.
+ * 3. A brand-new Explooro partner sees the onboarding checklist rather than an empty dashboard.
  * 4. Simple Mode shows at most 6 primary actions.
  * 5. Growth Assistant provides grounded prescriptive advice with 1-click actions.
  * 6. Fastify HTTP REST API endpoints return 200 OK.
@@ -29,13 +29,13 @@ function createMockDb({ queryHandler = null } = {}) {
   };
 }
 
-describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI Growth Assistant', () => {
+describe('Prompt 11.2 — Explooro Partner Dashboard, Pure Inline SVG Analytics & AI Growth Assistant', () => {
 
   // ---------------------------------------------------------------------------
   // 1. Dashboard Aggregation & 2-Click Reachability (Acceptance 1)
   // ---------------------------------------------------------------------------
-  test('Acceptance 1: Every shop partner feature across Phases 4–10 is reachable within two clicks', () => {
-    // 15 core Phase 4-10 Shop Partner tools
+  test('Acceptance 1: Every Explooro partner feature across Phases 4–10 is reachable within two clicks', () => {
+    // 15 core Phase 4-10 Explooro Partner tools
     const expectedTools = [
       'virtual_storefront', // Storefront Builder
       'sourcing',           // Sourcing Catalog
@@ -48,8 +48,8 @@ describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI
       'referral_engine',    // Referral Network Hub
       'core',               // Analytics (/saler/analytics) & Vault (/saler/vault)
       'sponsored_ads',      // Sponsored Ads Manager
-      'gamification',       // Shop Partner Leaderboard
-      'seller_academy',     // Shop Partner Academy
+      'gamification',       // Explooro Partner Leaderboard
+      'seller_academy',     // Explooro Partner Academy
       'cart_recovery',      // Abandoned Cart Recovery
     ];
 
@@ -58,7 +58,7 @@ describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI
 
     expectedTools.forEach((toolModule) => {
       const match = salerNavItems.find((i) => i.module === toolModule);
-      assert.ok(match, `Shop Partner tool module ${toolModule} must have an accessible route`);
+      assert.ok(match, `Explooro Partner tool module ${toolModule} must have an accessible route`);
     });
   });
 
@@ -134,9 +134,9 @@ describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI
   });
 
   // ---------------------------------------------------------------------------
-  // 3. Brand-New Shop Partner Onboarding Checklist (Acceptance 3)
+  // 3. Brand-New Explooro Partner Onboarding Checklist (Acceptance 3)
   // ---------------------------------------------------------------------------
-  test('Acceptance 3: A brand-new shop partner sees the onboarding checklist rather than an empty dashboard', async () => {
+  test('Acceptance 3: A brand-new Explooro partner sees the onboarding checklist rather than an empty dashboard', async () => {
     const mockDb = createMockDb({
       queryHandler: async (sql, params) => {
         if (sql.includes('FROM virtual_stores vs')) {
@@ -175,14 +175,14 @@ describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI
     const overview = await salerService.getSalerOverview(mockDb, 99);
 
     assert.ok(overview.onboarding, 'Onboarding object must be present');
-    assert.equal(overview.onboarding.is_brand_new, true, 'Shop Partner with 0 orders and 0 products must be marked is_brand_new = true');
+    assert.equal(overview.onboarding.is_brand_new, true, 'Explooro Partner with 0 orders and 0 products must be marked is_brand_new = true');
     assert.equal(overview.onboarding.steps.length, 4, 'Onboarding must have 4 clear steps');
 
     // Verify 15-second walkthrough presence on every step
     overview.onboarding.steps.forEach((step) => {
       assert.equal(step.video_duration, '15s', 'Every onboarding step must provide a 15-second video guide');
       assert.ok(step.video_title_en.includes('15s'), 'Video title must state 15s');
-      assert.ok(step.action_url.startsWith('/saler'), 'Action URL must be direct shop partner route');
+      assert.ok(step.action_url.startsWith('/saler'), 'Action URL must be direct Explooro partner route');
     });
   });
 
@@ -190,9 +190,9 @@ describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI
   // 4. Simple Mode Constraints (Acceptance 4)
   // ---------------------------------------------------------------------------
   // WHY these paths: since Prompt 13.5 (owner decision 2026-11-04) Simple Mode is derived from the
-  // shop partner's journey, the dashboard first, instead of ia-sitemap §4's six hand-picked items.
+  // Explooro partner's journey, the dashboard first, instead of ia-sitemap §4's six hand-picked items.
   // Everything else is one click away under "More" (client/test/navTiers.test.js).
-  test('Acceptance 4: Simple Mode shows the shop partner journey, at most 7 items', () => {
+  test('Acceptance 4: Simple Mode shows the Explooro partner journey, at most 7 items', () => {
     const salerSimpleItems = SIMPLE_MODE_ITEMS.saler;
 
     assert.ok(Array.isArray(salerSimpleItems), 'SIMPLE_MODE_ITEMS.saler must be an array');
@@ -245,7 +245,7 @@ describe('Prompt 11.2 — Shop Partner Dashboard, Pure Inline SVG Analytics & AI
   // ---------------------------------------------------------------------------
   // 6. Fastify HTTP Endpoints (Acceptance 6)
   // ---------------------------------------------------------------------------
-  test('Fastify HTTP API: Shop Partner dashboard, analytics, onboarding, and growth assistant endpoints return 200', async () => {
+  test('Fastify HTTP API: Explooro Partner dashboard, analytics, onboarding, and growth assistant endpoints return 200', async () => {
     const mockDb = createMockDb({
       queryHandler: async (sql, params) => {
         if (sql.includes('FROM virtual_stores vs')) {

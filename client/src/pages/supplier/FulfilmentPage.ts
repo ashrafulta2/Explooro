@@ -60,13 +60,13 @@ export default function FulfilmentPage(root: HTMLElement) {
         <div class="supplier-header__badge-row">
           <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">&lt; ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
           <span class="text-muted">/</span>
-          <span class="text-xs text-muted font-mono">Print Labels & 3PL</span>
+          <span class="text-xs text-muted font-mono">Print labels & book courier</span>
         </div>
         <h1 class="supplier-header__title">
           <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg></span> ${t('supplier.fulfilment_title', 'Fulfilment & Packing Queue')}
         </h1>
         <p class="supplier-header__subtitle">
-          ${t('supplier.fulfilment_subtitle', '1-Click courier consignments, FEFO batch-directed packing slips, and shipping label generation.')}
+          ${t('supplier.fulfilment_subtitle', 'Book a courier in one click, print packing slips that say which batch to pack first, and print shipping labels.')}
         </p>
       </div>
       <div class="supplier-header__actions">
@@ -94,9 +94,9 @@ export default function FulfilmentPage(root: HTMLElement) {
     summaryStrip.className = 'supplier-kpi-grid';
     summaryStrip.innerHTML = `
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">Pending Consignments</span>
+        <span class="supplier-kpi-card__label">Parcels to book</span>
         <div class="supplier-kpi-card__value text-warning" style="font-size: 1.5rem; margin: 4px 0;">${unbookedCount}</div>
-        <span class="text-xs text-muted">Awaiting 1-click 3PL booking</span>
+        <span class="text-xs text-muted">Waiting for a 1-click courier booking</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
@@ -119,7 +119,7 @@ export default function FulfilmentPage(root: HTMLElement) {
 
       <div class="supplier-kpi-card" style="padding: 16px;">
         <span class="supplier-kpi-card__label">Nationwide Delivery</span>
-        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">Steadfast 3PL</div>
+        <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">Steadfast</div>
         <span class="text-xs text-muted">64 districts door-to-door</span>
       </div>
       `}
@@ -183,7 +183,7 @@ export default function FulfilmentPage(root: HTMLElement) {
         <!-- Packing Slip Items with FEFO Lot Directives -->
         <div class="supplier-order-card__items-box">
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); font-weight: 700;">
-            <span>📦 ${t('supplier.packing_slip_items', 'Items to Pack (FEFO Directives)')}</span>
+            <span>📦 ${t('supplier.packing_slip_items', 'Items to pack (soonest expiry first)')}</span>
             <span class="text-muted font-mono">Node: ${order.warehouse_name || 'Central Depot'}</span>
           </div>
 
@@ -196,7 +196,7 @@ export default function FulfilmentPage(root: HTMLElement) {
                     <span class="badge badge--info text-xs font-mono" style="margin-left: 8px;">
                       🏷️ Lot: #${item.batch_number} (Exp: ${item.batch_exp_date ? item.batch_exp_date.slice(0, 10) : 'N/A'})
                     </span>
-                  ` : '<span class="text-xs text-muted" style="margin-left: 8px;">(Standard SKU)</span>'}
+                  ` : '<span class="text-xs text-muted" style="margin-left: 8px;">(Standard)</span>'}
                 </div>
                 <div style="font-family: var(--font-mono); font-weight: 800; color: var(--text-brand);">
                   Qty: ${item.qty}
@@ -216,7 +216,7 @@ export default function FulfilmentPage(root: HTMLElement) {
               </div>
             ` : `
               <div style="font-size: var(--text-xs); color: var(--warning); font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                <span>⚠️</span> ${t('supplier.consignment_not_booked', 'Courier consignment not yet booked.')}
+                <span>⚠️</span> ${t('supplier.consignment_not_booked', 'No courier booked yet. Book one to send this parcel.')}
               </div>
             `}
           </div>
@@ -225,7 +225,7 @@ export default function FulfilmentPage(root: HTMLElement) {
             <button class="btn btn--xs btn--outline print-slip-btn">
               📄 ${t('supplier.print_packing_slip', 'Print Packing Slip')}
             </button>
-            <button class="btn btn--xs btn--secondary print-label-btn" ${!hasConsignment ? 'disabled title="Book consignment first"' : ''}>
+            <button class="btn btn--xs btn--secondary print-label-btn" ${!hasConsignment ? 'disabled title="Book the courier first"' : ''}>
               🏷️ ${t('supplier.print_shipping_label', 'Print Label')}
             </button>
             ${!hasConsignment && courierMode === 'MANUAL' ? `
@@ -237,7 +237,7 @@ export default function FulfilmentPage(root: HTMLElement) {
                 🚚 1-Click Book (${order.district === 'Dhaka' ? 'Pathao' : 'Steadfast'})
               </button>
             ` : `
-              <span class="badge badge--success text-xs font-bold">✅ Consignment Manifested</span>
+              <span class="badge badge--success text-xs font-bold">✅ Courier booked</span>
             `}
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function FulfilmentPage(root: HTMLElement) {
             // Prompt 13.3: shipping ends on a result panel (follow the parcel), not a toast.
             showActionResult(root, 'order_shipped');
           } catch (err) {
-            toast.error(t('supplier.consignment_failed', 'Failed to book courier consignment.'));
+            toast.error(t('supplier.consignment_failed', 'The courier could not be booked. Try again, or record that you sent it by hand.'));
           }
         };
       }
@@ -338,7 +338,7 @@ export default function FulfilmentPage(root: HTMLElement) {
         loadQueue();
         showActionResult(root, 'order_shipped');
       } catch (err) {
-        toast.error(err?.message || t('supplier.consignment_failed', 'Failed to book courier consignment.'));
+        toast.error(err?.message || t('supplier.consignment_failed', 'The courier could not be booked. Try again, or record that you sent it by hand.'));
         confirmBtn.disabled = false;
       }
     };
@@ -401,7 +401,7 @@ export default function FulfilmentPage(root: HTMLElement) {
       body: `
         <div class="thermal-shipping-label">
           <div class="thermal-shipping-label__carrier-row">
-            <span style="font-weight: 800; font-size: 14px;">EXPLOORO 3PL EXPRESS</span>
+            <span style="font-weight: 800; font-size: 14px;">EXPLOORO COURIER EXPRESS</span>
             <span style="font-weight: 800; text-transform: uppercase;">${order.carrier || 'STEADFAST'}</span>
           </div>
 

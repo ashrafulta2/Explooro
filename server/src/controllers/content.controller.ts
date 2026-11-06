@@ -87,7 +87,7 @@ export async function likeReel(req, reply) {
 }
 
 // -----------------------------------------------------------------------------
-// Shop Partner Academy
+// Explooro Partner Academy
 // -----------------------------------------------------------------------------
 
 export async function listAcademyCourses(req, reply) {

@@ -1,5 +1,5 @@
 /**
- * attribution.ts — remembers which shop partner sent this shopper here, so their sale credits them.
+ * attribution.ts — remembers which Explooro partner sent this shopper here, so their sale credits them.
  *
  * A "touch" is the last storefront the shopper visited (`STORE`, by slug) or the last tracked
  * short link they opened (`LINK`, by code, arriving as `?ref=<code>`). The latest touch wins. It is

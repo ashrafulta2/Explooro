@@ -71,7 +71,7 @@ describe('nav tiers — the core set', () => {
     }
   });
 
-  it('a fresh shop partner sees at most 7 items, led by the dashboard', () => {
+  it('a fresh Explooro partner sees at most 7 items, led by the dashboard', () => {
     const core = corePathsFor('saler');
     assert.ok(core.length <= 7);
     assert.equal(core[0], '/saler');

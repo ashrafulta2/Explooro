@@ -23,7 +23,7 @@ const RETURN_ID = 3001;
 
 // Sub-order with two items. Only the cable (item 902, line total ৳200) has a warranty claim.
 // Escrow is held per sub-order, not per item: supplier 1010 (base+wholesale+shipping 60),
-// shop partner 90, platform 160 = ৳1,260, the whole sub-order.
+// Explooro partner 90, platform 160 = ৳1,260, the whole sub-order.
 const ITEMS = [
   { id: 901, title: 'Walton 43-inch Smart TV', qty: 1, base_price: '800.00', retail_price: '1000.00', line_total: '1000.00' },
   { id: 902, title: 'HDMI Cable 2m', qty: 1, base_price: '150.00', retail_price: '200.00', line_total: '200.00' },
@@ -293,13 +293,13 @@ describe('Warranty REFUND is scoped to the claimed order item', () => {
     assert.equal(refundPaisa, toPaisa(CLAIMED_ITEM.line_total), 'not the whole ৳1,260 sub-order');
   });
 
-  test('the supplier pays the whole refund; shop partner and platform are untouched', async () => {
+  test('the supplier pays the whole refund; Explooro partner and platform are untouched', async () => {
     const { db, ledgerRows } = createScenarioDb();
 
     await approveRefund(db);
 
     assert.equal(sumPaisa(ledgerRows, 101, 'DEBIT'), 20000);
-    assert.equal(sumPaisa(ledgerRows, 201, 'DEBIT'), 0, 'shop partner must keep its commission');
+    assert.equal(sumPaisa(ledgerRows, 201, 'DEBIT'), 0, 'Explooro partner must keep its commission');
     assert.equal(sumPaisa(ledgerRows, 1, 'DEBIT'), 0, 'platform must keep its margin');
     assert.equal(sumPaisa(ledgerRows, 10, 'CREDIT'), sumPaisa(ledgerRows, 101, 'DEBIT'), 'double entry balances');
   });
@@ -375,7 +375,7 @@ describe('A return after a warranty refund does not refund the item twice', () =
 
     const net = (walletId) => sumPaisa(ledgerRows, walletId, 'CREDIT') - sumPaisa(ledgerRows, walletId, 'DEBIT');
     assert.equal(net(101), -101000, 'supplier loses only its escrow, its warranty payment is repaid');
-    assert.equal(net(201), -9000, 'shop partner loses only its escrow');
+    assert.equal(net(201), -9000, 'Explooro partner loses only its escrow');
     assert.equal(net(1), -16000, 'platform loses only its escrow');
   });
 
@@ -411,7 +411,7 @@ describe('A partial return refunds only the returned items', () => {
 
     const result = await returnCable(db);
 
-    // goods-only escrow: supplier 950 (1010 minus ৳60 shipping), shop partner 90, platform 160 = 1200
+    // goods-only escrow: supplier 950 (1010 minus ৳60 shipping), Explooro partner 90, platform 160 = 1200
     assert.deepEqual(result.sharesByRole, { SUPPLIER: '158.33', SALER: '15.00', PLATFORM: '26.67' });
     assert.equal(net(ledgerRows, 101) + net(ledgerRows, 201) + net(ledgerRows, 1), -20000);
   });

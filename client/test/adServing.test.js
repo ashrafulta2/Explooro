@@ -5,7 +5,7 @@
  *      (the old code read `res.data`, the whole body object, so no reserved ad ever rendered).
  *   2. 'HOMEPAGE_HERO' is sent as the server's 'HOME_HERO', and the category goes out as `category_id`.
  *   3. A failing auction request resolves to [] — an ad must never break a page.
- *   4. A supplier can reach the ad manager from the menu (same route, permission and module as the shop partner).
+ *   4. A supplier can reach the ad manager from the menu (same route, permission and module as the Explooro partner).
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

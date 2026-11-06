@@ -25,7 +25,7 @@ export default async function disputeRoutes(app) {
     handler: controller.createDispute,
   });
 
-  // 2. List Disputes (scoper for Customer/Shop Partner/Supplier/Staff)
+  // 2. List Disputes (scoper for Customer/Explooro Partner/Supplier/Staff)
   app.get('/disputes', {
     preHandler: [app.authenticate],
     schema: {

@@ -1,5 +1,5 @@
 /**
- * partnerReward.controller.ts — the monthly shop partner reward pool (/admin/growth/partner-rewards and
+ * partnerReward.controller.ts — the monthly Explooro partner reward pool (/admin/growth/partner-rewards and
  * the partner dashboard card).
  */
 

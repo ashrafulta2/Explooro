@@ -1,5 +1,5 @@
 /**
- * tierBonuses.test.js — trust-tier Shop Partner split bonuses come from the `finance.tier_bonuses`
+ * tierBonuses.test.js — trust-tier Explooro Partner split bonuses come from the `finance.tier_bonuses`
  * setting: the Finance list, the simulator and the save endpoint must all agree on it.
  */
 

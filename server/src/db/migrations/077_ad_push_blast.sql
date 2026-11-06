@@ -1,7 +1,7 @@
 -- 077_ad_push_blast.sql — delivery of the Push Notification Blast ad format.
 --
 -- The `push_blast` product (CPS, prepaid, PUSH_INBOX) was sellable but nothing ever sent it: the
--- shop partner paid for N recipients and N pushes never left. This adds the bookkeeping the delivery
+-- Explooro partner paid for N recipients and N pushes never left. This adds the bookkeeping the delivery
 -- job needs.
 --
 --   1. ad_push_deliveries — one row per (campaign, shopper). The UNIQUE key is the claim: the job

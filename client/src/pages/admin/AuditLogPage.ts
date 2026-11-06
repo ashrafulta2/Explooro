@@ -54,12 +54,12 @@ const ACTION_HUMAN_LABELS = {
     bn: 'ওটিপি লগইন',
   },
   'access.jit.approve': {
-    en: 'Approve JIT Elevation',
-    bn: 'জেআইটি পারমিশন অনুমোদন',
+    en: 'Approve temporary access',
+    bn: 'সাময়িক অনুমতি অনুমোদন',
   },
   'pending_action.approve': {
-    en: 'Execute Maker-Checker Action',
-    bn: 'মেকার-চেকার অ্যাকশন সম্পাদন',
+    en: 'Carry out a second-approved action',
+    bn: 'দ্বিতীয় অনুমোদনের কাজ সম্পাদন',
   },
 };
 
@@ -189,9 +189,9 @@ export default function AuditLogPage(root: HTMLElement) {
   // Risk Tier
   const riskSelect = document.createElement('select');
   riskSelect.className = 'audit-toolbar__select';
-  riskSelect.setAttribute('aria-label', 'Filter by risk tier');
+  riskSelect.setAttribute('aria-label', t('perm_matrix.risk_filter_aria'));
   riskSelect.innerHTML = `
-    <option value="ALL">${t('audit_explorer.all_risks', 'All Risk Tiers')}</option>
+    <option value="ALL">${t('audit_explorer.all_risks', 'All approval levels')}</option>
     <option value="CRITICAL">🔴 CRITICAL</option>
     <option value="HIGH">🟠 HIGH</option>
     <option value="MEDIUM">🟡 MEDIUM</option>
@@ -530,7 +530,7 @@ export default function AuditLogPage(root: HTMLElement) {
       return;
     }
 
-    const headers = ['ID', 'Timestamp', 'Actor Name', 'Actor Phone', 'Action', 'Risk Tier', 'Target Type', 'Target Ref', 'IP', 'Trace ID'];
+    const headers = ['ID', 'Timestamp', 'Actor Name', 'Actor Phone', 'Action', 'Approval Level', 'Target Type', 'Target Ref', 'IP', 'Trace ID'];
     const rows = records.map((r) => [
       r.id,
       r.created_at,

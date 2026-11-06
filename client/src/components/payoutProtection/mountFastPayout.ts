@@ -1,5 +1,5 @@
 /**
- * mountFastPayout — the Fast Payout page body, shared by the supplier's page and the shop partner's page.
+ * mountFastPayout — the Fast Payout page body, shared by the supplier's page and the Explooro partner's page.
  *
  * Both audiences take their own escrowed earnings early; only the endpoints differ, so the two route pages
  * pass in `load` and `take` and this builds the same screen for each.
@@ -166,7 +166,7 @@ export function mountFastPayout(root: HTMLElement, { load, take }: FastPayoutSou
     try {
       await refresh();
     } catch (err) {
-      console.error('Failed to load fast payout:', err);
+      console.error('Failed to load early withdrawal:', err);
       toast.error(t('fastpay.load_failed'));
       body.replaceChildren(EmptyState({ title: t('fastpay.load_failed') }));
     }

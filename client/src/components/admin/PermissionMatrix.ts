@@ -80,7 +80,7 @@ export function PermissionMatrix({
   const thPerm = document.createElement('th');
   thPerm.scope = 'col';
   thPerm.className = 'perm-matrix__perm-col';
-  thPerm.textContent = t('perm_matrix.th_permission', 'Permission & Risk Tier');
+  thPerm.textContent = t('perm_matrix.th_permission', 'Permission & approval level');
   headRow.append(thPerm);
 
   for (const role of roles) {

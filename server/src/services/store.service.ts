@@ -142,7 +142,7 @@ export async function getPublicStore(db, slug) {
 
   const status = resolvePhysicalShopStatus(store);
   // WHY reservation-aware: this is what a shopper sees, so units an open team is counting on must not
-  // look buyable. The shop partner's own management view below keeps the raw figure.
+  // look buyable. The Explooro partner's own management view below keeps the raw figure.
   const rawItems = await withAvailableStock(db, await storeRepo.listStoreItems(db, store.id), { idKey: 'product_id' });
 
   // Group items by collection / shelf
@@ -234,7 +234,7 @@ export async function getPublicStore(db, slug) {
 }
 
 /**
- * Gets or auto-provisions virtual store for authenticated shop partner.
+ * Gets or auto-provisions virtual store for authenticated Explooro partner.
  */
 export async function getSalerStore(db, salerId) {
   let store = await storeRepo.getStoreBySalerId(db, salerId);
@@ -317,7 +317,7 @@ export async function getSalerStore(db, salerId) {
 }
 
 /**
- * Saves and updates shop partner virtual store settings.
+ * Saves and updates Explooro partner virtual store settings.
  */
 export async function saveSalerStore(db, salerId, payload) {
   let store = await storeRepo.getStoreBySalerId(db, salerId);
@@ -497,8 +497,8 @@ export async function updateMyProduct(db, salerId, id, body) {
   if (typeof payload.is_active !== 'boolean') {
     throw new AppError(
       'VALIDATION_FAILED',
-      'is_active (true or false) is the only field a shop partner can change on a store item.',
-      'স্টোর আইটেমে shop partner শুধু is_active (true বা false) পরিবর্তন করতে পারবেন।'
+      'is_active (true or false) is the only field a Explooro partner can change on a store item.',
+      'স্টোর আইটেমে Explooro partner শুধু is_active (true বা false) পরিবর্তন করতে পারবেন।'
     );
   }
 

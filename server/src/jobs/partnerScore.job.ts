@@ -1,5 +1,5 @@
 /**
- * partnerScore.job.ts — rebuilds every shop partner's Partner Score snapshot from live orders.
+ * partnerScore.job.ts — rebuilds every Explooro partner's Partner Score snapshot from live orders.
  *
  * Gated on the `virtual_storefront` module by the scheduler: a partner promotes through their
  * storefront and its links, so with storefronts off there is nobody to score.

@@ -67,7 +67,7 @@ export default function WorkloadSummary({
     },
     {
       id: 'sla-at-risk',
-      title: t('moderator_dashboard.kpi_sla_at_risk', 'SLA At-Risk'),
+      title: t('moderator_dashboard.kpi_sla_at_risk', 'Near deadline'),
       count: workload.sla_at_risk_count || 0,
       icon: '🔥',
       color: workload.sla_at_risk_count > 0 ? 'var(--danger, #e11d48)' : 'var(--text-muted, #64748b)',

@@ -1,6 +1,6 @@
--- 074_shop_partner_display_names.sql — "Saler" and "Seller" become "Shop Partner" in stored display text.
+-- 074_shop_partner_display_names.sql — "Saler" and "Seller" become "Explooro Partner" in stored display text.
 --
--- WHY: the customer-facing role name changed from Saler to Shop Partner. The seeds are
+-- WHY: the customer-facing role name changed from Saler to Explooro Partner. The seeds are
 -- `ON CONFLICT DO NOTHING`, so a database that was already seeded keeps the old words in its rows
 -- (role and permission labels, module names, plan names, ad product copy, notification templates,
 -- quest titles, setting labels). Editing migrations 001-073 would break their stored checksums, so
@@ -33,21 +33,21 @@ BEGIN
   s := replace(s, 'ক্রস-সেলার', 'ক্রস-@@B@@');
 
   -- rows seeded before the earlier reseller -> Saler rename still carry the old word
-  s := replace(s, 'Branded reseller shops', 'Branded shop partner stores');
-  s := regexp_replace(s, '\mResellers\M', 'Shop Partners', 'g');
-  s := regexp_replace(s, '\mReseller\M', 'Shop Partner', 'g');
-  s := regexp_replace(s, '\mresellers\M', 'shop partners', 'g');
-  s := regexp_replace(s, '\mreseller\M', 'shop partner', 'g');
+  s := replace(s, 'Branded reseller shops', 'Branded Explooro partner stores');
+  s := regexp_replace(s, '\mResellers\M', 'Explooro Partners', 'g');
+  s := regexp_replace(s, '\mReseller\M', 'Explooro Partner', 'g');
+  s := regexp_replace(s, '\mresellers\M', 'Explooro partners', 'g');
+  s := regexp_replace(s, '\mreseller\M', 'Explooro partner', 'g');
   s := replace(s, 'রিসেলার', 'শপ পার্টনার');
 
-  s := regexp_replace(s, '\mSalers\M', 'Shop Partners', 'g');
-  s := regexp_replace(s, '\mSaler\M', 'Shop Partner', 'g');
-  s := regexp_replace(s, '\msalers\M', 'shop partners', 'g');
-  s := regexp_replace(s, '\msaler\M', 'shop partner', 'g');
-  s := regexp_replace(s, '\mSellers\M', 'Shop Partners', 'g');
-  s := regexp_replace(s, '\mSeller\M', 'Shop Partner', 'g');
-  s := regexp_replace(s, '\msellers\M', 'shop partners', 'g');
-  s := regexp_replace(s, '\mseller\M', 'shop partner', 'g');
+  s := regexp_replace(s, '\mSalers\M', 'Explooro Partners', 'g');
+  s := regexp_replace(s, '\mSaler\M', 'Explooro Partner', 'g');
+  s := regexp_replace(s, '\msalers\M', 'Explooro partners', 'g');
+  s := regexp_replace(s, '\msaler\M', 'Explooro partner', 'g');
+  s := regexp_replace(s, '\mSellers\M', 'Explooro Partners', 'g');
+  s := regexp_replace(s, '\mSeller\M', 'Explooro Partner', 'g');
+  s := regexp_replace(s, '\msellers\M', 'Explooro partners', 'g');
+  s := regexp_replace(s, '\mseller\M', 'Explooro partner', 'g');
   s := replace(s, 'সেলার', 'শপ পার্টনার');
 
   s := replace(s, '@@S@@', 'Seller');

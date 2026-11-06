@@ -110,7 +110,7 @@ export function LiveTrackingMap({
         <div class="live-tracking-card__header">
           <div>
             <h3 class="live-tracking-card__title">🚚 ${t('logistics.live_tracking_title')}</h3>
-            <p class="text-sm text-secondary">${t('logistics.carrier_partner')}: <strong class="badge badge--neutral">${trackingData?.shipment?.carrier || '3PL Courier'}</strong></p>
+            <p class="text-sm text-secondary">${t('logistics.carrier_partner')}: <strong class="badge badge--neutral">${trackingData?.shipment?.carrier || '—'}</strong></p>
           </div>
           ${trackingData?.shipment?.tracking_number ? `
             <span class="badge badge--primary font-mono font-bold">

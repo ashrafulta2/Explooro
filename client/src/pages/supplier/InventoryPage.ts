@@ -56,15 +56,15 @@ export default function InventoryPage(root: HTMLElement) {
           <span class="text-xs text-muted font-mono">Stock & Inventory</span>
         </div>
         <h1 class="supplier-header__title">
-          <span>📦</span> ${t('supplier.inventory_title', 'Live Stock & SKU Inventory')}
+          <span>📦</span> ${t('supplier.inventory_title', 'Live stock')}
         </h1>
         <p class="supplier-header__subtitle">
-          ${t('supplier.inventory_subtitle', 'Monitor physical warehouse quantities, threshold alerts, and FEFO lot associations.')}
+          ${t('supplier.inventory_subtitle', 'See how much of each product you hold, get low-stock alerts, and track batches by expiry.')}
         </p>
       </div>
       <div class="supplier-header__actions">
         <a href="/supplier/products" class="btn btn--sm btn--primary">
-          ➕ ${t('supplier.add_product', 'Add New SKU')}
+          ➕ ${t('supplier.add_product', 'Add Product')}
         </a>
         <button class="btn btn--sm btn--secondary" id="refresh-inv-btn">
           🔄 ${t('common.refresh', 'Refresh')}
@@ -84,7 +84,7 @@ export default function InventoryPage(root: HTMLElement) {
     metricStrip.className = 'supplier-kpi-grid';
     metricStrip.innerHTML = `
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('supplier.total_sku', 'Total Tracked SKUs')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.total_sku', 'Active products')}</span>
         <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${items.length}</div>
         <span class="text-xs text-muted">Active physical listings</span>
       </div>
@@ -104,7 +104,7 @@ export default function InventoryPage(root: HTMLElement) {
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('supplier.out_of_stock', 'Out of Stock SKUs')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.out_of_stock', 'Out of Stock')}</span>
         <div class="supplier-kpi-card__value ${outOfStockCount > 0 ? 'supplier-kpi-card__value--danger' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
           ${outOfStockCount}
         </div>
@@ -123,14 +123,14 @@ export default function InventoryPage(root: HTMLElement) {
           id="search-input"
           class="input input--sm input--search"
           style="width: 100%;"
-          aria-label="${t('supplier.search_sku_placeholder', 'Search SKU by title, reference, or brand...')}"
-          placeholder="${t('supplier.search_sku_placeholder', 'Search SKU by title, reference, or brand...')}"
+          aria-label="${t('supplier.search_sku_placeholder', 'Search by product name, code or brand...')}"
+          placeholder="${t('supplier.search_sku_placeholder', 'Search by product name, code or brand...')}"
           value="${searchQuery}"
         />
       </div>
       <div class="supplier-toolbar__filters">
         <button class="supplier-chip ${filterStatus === 'all' ? 'supplier-chip--active' : ''}" data-status="all">
-          ${t('common.all', 'All SKUs')} (${items.length})
+          ${t('common.all', 'All')} (${items.length})
         </button>
         <button class="supplier-chip supplier-chip--warning ${filterStatus === 'low_stock' ? 'supplier-chip--active' : ''}" data-status="low_stock">
           ⚠️ ${t('supplier.low_stock', 'Low Stock')} (${lowStockCount})
@@ -177,7 +177,7 @@ export default function InventoryPage(root: HTMLElement) {
         EmptyState({
           icon: '📦',
           title: t('supplier.no_inventory_found', 'No inventory items match your filter'),
-          description: t('supplier.no_inventory_desc', 'Try clearing your search filters or add a new product SKU to your catalog.'),
+          description: t('supplier.no_inventory_desc', 'Clear your search filters, or add a new product.'),
           action: Button({
             label: t('supplier.add_product', 'Add Product'),
             onClick: () => {
@@ -197,7 +197,7 @@ export default function InventoryPage(root: HTMLElement) {
         <table class="supplier-table">
           <thead>
             <tr>
-              <th>${t('supplier.product_sku', 'Product SKU')}</th>
+              <th>${t('supplier.product_sku', 'Product')}</th>
               <th>${t('supplier.category', 'Category')}</th>
               <th>${t('supplier.pricing', 'Wholesale / Retail')}</th>
               <th>${t('supplier.stock_status', 'Physical Stock')}</th>
@@ -219,7 +219,7 @@ export default function InventoryPage(root: HTMLElement) {
               <span style="font-weight: 700; color: var(--text-primary);">${item.title_en}</span>
               <div style="display: flex; align-items: center; gap: 6px;">
                 <span class="supplier-order-card__ref">${item.ref}</span>
-                ${item.requires_fefo ? '<span class="badge badge--info text-xs font-mono">🏷️ FEFO Batch</span>' : ''}
+                ${item.requires_fefo ? '<span class="badge badge--info text-xs font-mono">🏷️ Pack by expiry</span>' : ''}
               </div>
             </div>
           </td>

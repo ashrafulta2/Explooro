@@ -264,7 +264,7 @@ export default function UserDetailPage(root: HTMLElement, { params = {}, navigat
       const verified = userData.kyc_status === 'VERIFIED';
       badgesRow.append(Badge({
         label: verified
-          ? `✓ ${t('user_detail.kyc_approved', 'KYC Verified')}`
+          ? `✓ ${t('user_detail.kyc_approved', 'Identity checked')}`
           : t('user_detail.kyc_pending', 'Verification Pending'),
         variant: verified ? 'success' : 'warning',
       }));
@@ -281,7 +281,7 @@ export default function UserDetailPage(root: HTMLElement, { params = {}, navigat
       { id: 'timeline', label: t('user_detail.tab_timeline', 'Activity Timeline'), render: renderTimelineTab },
       { id: 'orders', label: t('user_detail.tab_orders', 'Orders & GMV'), render: renderOrdersTab },
       { id: 'vault', label: t('user_detail.tab_vault', 'Vault & Balance'), render: renderVaultTab },
-      { id: 'kyc', label: t('user_detail.tab_kyc', 'KYC & Verification'), render: renderKycTab },
+      { id: 'kyc', label: t('user_detail.tab_kyc', 'Identity check'), render: renderKycTab },
     ];
 
     // WHY `tabs`/`panel` and not `items`/`activeId`: Tabs() takes `{ tabs, active }` and owns the
@@ -466,7 +466,7 @@ export default function UserDetailPage(root: HTMLElement, { params = {}, navigat
     const grid = el('div', 'user-stat-grid');
     grid.append(
       stat(t('user_detail.stat_balance', 'Available Balance'), formatCurrency(userData.wallet_balance_bdt ?? 0, { lang }), 'success'),
-      stat(t('user_detail.stat_escrow', 'Escrow Hold'), formatCurrency(userData.escrow_held_bdt ?? 0, { lang }), 'warning'),
+      stat(t('user_detail.stat_escrow', 'Held until delivery'), formatCurrency(userData.escrow_held_bdt ?? 0, { lang }), 'warning'),
     );
     pane.append(grid);
   }
@@ -485,13 +485,13 @@ export default function UserDetailPage(root: HTMLElement, { params = {}, navigat
       kycRow(
         t('user_detail.kyc_nid', 'National ID (Smart NID)'),
         `${t('user_detail.kyc_verified_on', 'Verified on')}: ${userData.kyc_verified_at ? fmtDate(userData.kyc_verified_at) : t('user_detail.kyc_pending_short', 'Pending')}`,
-        verified ? `✓ ${t('user_detail.kyc_approved', 'KYC Verified')}` : t('user_detail.kyc_pending', 'Verification Pending'),
+        verified ? `✓ ${t('user_detail.kyc_approved', 'Identity checked')}` : t('user_detail.kyc_pending', 'Verification Pending'),
         verified ? 'ok' : 'pending',
       ),
       kycRow(
         t('user_detail.kyc_trade_license', 'Trade License'),
         t('user_detail.kyc_trade_hint', 'Enterprise merchant verification'),
-        t('user_detail.kyc_optional', 'Optional for Shop Partners'),
+        t('user_detail.kyc_optional', 'Optional for Explooro Partners'),
         'muted',
       ),
     );

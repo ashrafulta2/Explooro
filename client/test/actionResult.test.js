@@ -102,7 +102,7 @@ describe('action result — coverage', () => {
       'sample requested',
       'ad campaign created',
     ]) {
-      // "product added" is covered by the supplier's entry; the shop partner's reads "added to store".
+      // "product added" is covered by the supplier's entry; the Explooro partner's reads "added to store".
       assert.ok(actions.has(a), a);
     }
   });

@@ -1,17 +1,17 @@
 /**
- * attribution.service.ts — decides which shop partner's promotion a sale belongs to.
+ * attribution.service.ts — decides which Explooro partner's promotion a sale belongs to.
  *
- * A shopper's "touch" is the last place a shop partner sent them from: their storefront
+ * A shopper's "touch" is the last place a Explooro partner sent them from: their storefront
  * (`STORE`, by store slug) or one of their tracked short links (`LINK`, by link code). The client
  * keeps the last touch and sends it with every add-to-cart; this file is the only place that turns
- * a touch into a shop partner. The client never sends a user id, so a touch can only name a shop
+ * a touch into a Explooro partner. The client never sends a user id, so a touch can only name a shop
  * partner through something that partner published.
  *
  * A touch counts only when all of these hold:
  *   1. it is younger than `attribution.rules.window_days`;
  *   2. it resolves to a live store or an existing link;
- *   3. that shop partner has the product active in their store (they are actually selling it);
- *   4. the shopper is not that shop partner (no commission on your own purchase).
+ *   3. that Explooro partner has the product active in their store (they are actually selling it);
+ *   4. the shopper is not that Explooro partner (no commission on your own purchase).
  *
  * WHY a forged touch is harmless: it can only name a partner who already sells the product, and it
  * pays that partner, never the shopper. That is exactly what clicking the partner's link does.
@@ -195,7 +195,7 @@ export async function updatePolicy(
 }
 
 /**
- * Turns a client touch into the shop partner it credits for one product, or null.
+ * Turns a client touch into the Explooro partner it credits for one product, or null.
  * @returns {Promise<{ salerId: number, shortLinkId: number|null, source: string } | null>}
  */
 export async function resolveTouch(
@@ -235,7 +235,7 @@ export async function salerCarriesProduct(db: any, salerId: number, productId: n
 }
 
 /**
- * Picks the one shop partner a supplier's parcel pays. A parcel pays one partner (sub_orders.saler_id),
+ * Picks the one Explooro partner a supplier's parcel pays. A parcel pays one partner (sub_orders.saler_id),
  * so when its lines came through different partners the one whose lines are worth most wins; a tie
  * goes to the line added first. Unattributed lines never win over an attributed one.
  *

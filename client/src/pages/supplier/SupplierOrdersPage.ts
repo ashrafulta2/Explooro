@@ -83,7 +83,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
           <span>📦</span> ${t('supplier.orders_to_pack_title', 'Orders to Pack & Dispatch')}
         </h1>
         <p class="supplier-header__subtitle">
-          ${t('supplier.orders_to_pack_subtitle', 'Review incoming customer orders, manage FEFO lot assignments, and hand over parcels to 3PL couriers.')}
+          ${t('supplier.orders_to_pack_subtitle', 'See new customer orders, pack the batch that expires soonest, and hand parcels to the courier.')}
         </p>
       </div>
       <div class="supplier-header__actions">
@@ -113,7 +113,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('supplier.orders_tab_packed', 'Consignments Manifested')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.orders_tab_packed', 'Packed & Ready')}</span>
         <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${bookedCount}</div>
         <span class="text-xs text-muted">Ready for courier pickup</span>
       </div>
@@ -250,7 +250,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
         <!-- Packing Slip Directive -->
         <div class="supplier-order-card__items-box">
           <div style="display: flex; align-items: center; justify-content: space-between; font-size: var(--text-xs); font-weight: 700;">
-            <span>📦 ${t('supplier.packing_slip_items', 'Items to Pack (FEFO Directives)')}</span>
+            <span>📦 ${t('supplier.packing_slip_items', 'Items to pack (soonest expiry first)')}</span>
             <span class="text-muted font-mono">Node: ${order.warehouse_name || 'Central Depot'}</span>
           </div>
 
@@ -283,7 +283,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
               </div>
             ` : `
               <div style="font-size: var(--text-xs); color: var(--warning); font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                <span>⚠️</span> ${t('supplier.consignment_not_booked', 'Courier consignment not yet booked.')}
+                <span>⚠️</span> ${t('supplier.consignment_not_booked', 'No courier booked yet. Book one to send this parcel.')}
               </div>
             `}
           </div>
@@ -292,7 +292,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
             <button class="btn btn--xs btn--outline print-slip-btn">
               📄 ${t('supplier.print_packing_slip', 'Print Packing Slip')}
             </button>
-            <button class="btn btn--xs btn--secondary print-label-btn" ${!hasConsignment ? 'disabled title="Book consignment first"' : ''}>
+            <button class="btn btn--xs btn--secondary print-label-btn" ${!hasConsignment ? 'disabled title="Book the courier first"' : ''}>
               🏷️ ${t('supplier.print_shipping_label', 'Print Label')}
             </button>
             ${!hasConsignment ? `
@@ -300,7 +300,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
                 🚚 ${t('supplier.pack_and_consign', '1-Click Pack & Consign')} (${order.district === 'Dhaka' ? 'Pathao' : 'Steadfast'})
               </button>
             ` : `
-              <span class="badge badge--success text-xs font-bold">✅ Consignment Manifested</span>
+              <span class="badge badge--success text-xs font-bold">✅ Courier booked</span>
             `}
           </div>
         </div>
@@ -317,7 +317,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
             // Prompt 13.3: shipping ends on a result panel (follow the parcel), not a toast.
             showActionResult(root, 'order_shipped');
           } catch (err) {
-            toast.error(t('supplier.consignment_failed', 'Failed to book courier consignment.'));
+            toast.error(t('supplier.consignment_failed', 'The courier could not be booked. Try again, or record that you sent it by hand.'));
           }
         };
       }
@@ -358,8 +358,8 @@ export default function SupplierOrdersPage(root: HTMLElement) {
           <table class="supplier-table" style="font-size: 12px; margin-top: 6px;">
             <thead>
               <tr>
-                <th>Product SKU</th>
-                <th>FEFO Lot / Batch</th>
+                <th>Product</th>
+                <th>Batch (pack soonest expiry first)</th>
                 <th style="text-align: right;">Qty</th>
               </tr>
             </thead>
@@ -367,7 +367,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
               ${(order.items || []).map((i) => `
                 <tr>
                   <td><strong>${i.title_snapshot}</strong></td>
-                  <td class="font-mono font-bold">${i.batch_number ? '#' + i.batch_number : 'Standard SKU'}</td>
+                  <td class="font-mono font-bold">${i.batch_number ? '#' + i.batch_number : 'Standard'}</td>
                   <td style="text-align: right; font-weight: 800; color: var(--text-brand);">${i.qty}</td>
                 </tr>
               `).join('')}
@@ -400,7 +400,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
       body: `
         <div class="thermal-shipping-label">
           <div class="thermal-shipping-label__carrier-row">
-            <span style="font-weight: 800; font-size: 14px;">EXPLOORO 3PL EXPRESS</span>
+            <span style="font-weight: 800; font-size: 14px;">EXPLOORO COURIER EXPRESS</span>
             <span style="font-weight: 800; text-transform: uppercase;">${order.carrier || 'STEADFAST'}</span>
           </div>
 

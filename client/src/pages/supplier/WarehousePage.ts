@@ -235,7 +235,7 @@ export default function WarehousePage(root: HTMLElement) {
         <div>
           <h4 class="supplier-mode-banner__title">${t('supplier.smart_routing_active', 'Smart GIS Proximity Dispatch Active')}</h4>
           <p class="supplier-mode-banner__desc">
-            ${t('supplier.smart_routing_desc', 'Orders automatically route to the closest warehouse relative to buyer district, cutting 3PL transit time & courier freight cost by 30-40%.')}
+            ${t('supplier.smart_routing_desc', 'Orders ship from the warehouse closest to the buyer\'s district, which cuts delivery time and courier cost by 30-40%.')}
           </p>
         </div>
       </div>
@@ -295,7 +295,7 @@ export default function WarehousePage(root: HTMLElement) {
               ${sortableTh('district', t('supplier.wh_col_location', 'Location'), false)}
               ${sortableTh('status', t('supplier.wh_col_status', 'Status'), false)}
               ${sortableTh('priority', t('supplier.wh_col_priority', 'Routing priority'), true)}
-              ${sortableTh('skus', t('supplier.wh_col_skus', 'SKUs'), true)}
+              ${sortableTh('skus', t('supplier.wh_col_skus', 'Products'), true)}
               ${sortableTh('stock', t('supplier.wh_col_stock', 'Stock held'), true)}
               <th style="text-align: right;">${escapeHtml(t('common.actions', 'Actions'))}</th>
             </tr>
@@ -360,7 +360,7 @@ export default function WarehousePage(root: HTMLElement) {
         </div>
         <dl class="supplier-warehouse-card__stats">
           <div>
-            <dt>${escapeHtml(t('supplier.wh_col_skus', 'SKUs'))}</dt>
+            <dt>${escapeHtml(t('supplier.wh_col_skus', 'Products'))}</dt>
             <dd>${numberFmt.format(skuOf(wh))}</dd>
           </div>
           <div>

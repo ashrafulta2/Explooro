@@ -27,8 +27,8 @@ export default function BatchManagerPage(root: HTMLElement) {
     container.appendChild(
       EmptyState({
         icon: '🏷️',
-        title: t('supplier.batches_fefo', 'FEFO Batch Manager'),
-        description: t('supplier.fefo_module_disabled', 'The FEFO Batch & Expiration Management module is currently disabled.'),
+        title: t('supplier.batches_fefo', 'Batches by expiry'),
+        description: t('supplier.fefo_module_disabled', 'Batch and expiry tracking is switched off.'),
       })
     );
     root.appendChild(container);
@@ -76,10 +76,10 @@ export default function BatchManagerPage(root: HTMLElement) {
         <div class="supplier-header__badge-row">
           <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">&lt; ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
           <span class="text-muted">/</span>
-          <span class="text-xs text-muted font-mono">Batches & Expiry (FEFO)</span>
+          <span class="text-xs text-muted font-mono">Batches & expiry</span>
         </div>
         <h1 class="supplier-header__title">
-          <span>🏷️</span> ${t('supplier.batches_title', 'FEFO Batch & Expiry Timeline')}
+          <span>🏷️</span> ${t('supplier.batches_title', 'Batches and expiry dates')}
         </h1>
         <p class="supplier-header__subtitle">
           ${t('supplier.batches_subtitle', 'Automated First-Expired First-Out dispatch, 30/60-day early clearance alerts, and batch recall isolation.')}
@@ -220,7 +220,7 @@ export default function BatchManagerPage(root: HTMLElement) {
         </div>
 
         <div>
-          <div style="font-weight: 800; color: var(--text-primary); font-size: var(--text-sm);">${batch.product_title || 'Product SKU'}</div>
+          <div style="font-weight: 800; color: var(--text-primary); font-size: var(--text-sm);">${batch.product_title || 'Product'}</div>
           <div style="font-size: var(--text-xs); color: var(--text-secondary); margin-top: 2px;">
             Depot: <strong>${batch.warehouse_name || 'Central Depot'}</strong>
           </div>

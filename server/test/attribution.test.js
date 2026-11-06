@@ -1,5 +1,5 @@
 /**
- * attribution.test.js — a sale credits the shop partner whose storefront or link brought the
+ * attribution.test.js — a sale credits the Explooro partner whose storefront or link brought the
  * shopper, and only when that touch is fresh, names a partner who sells the product, and the
  * shopper is not that partner (attribution.service.ts).
  *
@@ -59,7 +59,7 @@ describe('attribution rules', () => {
     assert.equal(await resolveTouch(db, { touch: touch('LINK', 'a1b2c3', 3.1), productId: PRODUCT, now: NOW }), null);
   });
 
-  test('the shop partner buying through their own link earns nothing', async () => {
+  test('the Explooro partner buying through their own link earns nothing', async () => {
     assert.equal(await resolveTouch(fakeDb(), { touch: touch('LINK', 'a1b2c3', 0), productId: PRODUCT, buyerId: SALER, now: NOW }), null);
   });
 
@@ -89,7 +89,7 @@ describe('attribution rules', () => {
   });
 });
 
-describe('one parcel pays one shop partner', () => {
+describe('one parcel pays one Explooro partner', () => {
   test('the partner whose lines are worth most wins a mixed parcel', () => {
     const parcel = pickParcelSaler([
       { salerId: 1, shortLinkId: 4, source: 'SHORT_LINK', lineTotalPaisa: 50000 },

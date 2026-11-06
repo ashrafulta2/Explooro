@@ -1,9 +1,9 @@
 /**
- * SalerOrdersPage.ts — Shop Partner Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
+ * SalerOrdersPage.ts — Explooro Partner Orders & Commission Dashboard (Prompt 11.2 / §AL.2).
  *
  * Route: /saler/orders
  * Implements:
- * 1. Shop Partner-specific orders dashboard with supplier fulfillment tracking & net commission calculations.
+ * 1. Explooro Partner-specific orders dashboard with supplier fulfillment tracking & net commission calculations.
  * 2. Status filter tabs (All, Pending Packing, In Transit, Delivered, Cancelled).
  * 3. Search by Order Ref, Buyer Name, Phone, and Product Title.
  * 4. 1-Tap Buyer WhatsApp Messaging & Direct Phone Call shortcuts.
@@ -50,7 +50,7 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
       orders = res?.data?.orders || [];
       summary = res?.data?.summary || {};
     } catch (err) {
-      toast.error(err.message || 'Failed to load shop partner orders');
+      toast.error(err.message || 'Failed to load Explooro partner orders');
     } finally {
       loading = false;
       render();

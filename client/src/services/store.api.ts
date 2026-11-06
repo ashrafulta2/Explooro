@@ -26,7 +26,7 @@ export async function getStoreBySlug(slug: string): Promise<StoreData> {
 }
 
 /**
- * Retrieves the authenticated shop partner's store profile, shelves & items.
+ * Retrieves the authenticated Explooro partner's store profile, shelves & items.
  */
 export async function getMyStore(): Promise<StoreData> {
   const res = await api.get('/saler/store');
@@ -34,7 +34,7 @@ export async function getMyStore(): Promise<StoreData> {
 }
 
 /**
- * Updates the shop partner's virtual store profile.
+ * Updates the Explooro partner's virtual store profile.
  */
 export async function updateMyStore(payload: StoreData): Promise<StoreData> {
   const res = await api.put('/saler/store', payload);

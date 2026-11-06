@@ -1,5 +1,5 @@
 /**
- * SocialKitPage.ts — Viral Social Shop Partner Marketing Toolkit & Flyer Studio (Prompt 9.7 / §AL.2).
+ * SocialKitPage.ts — Viral Social Explooro Partner Marketing Toolkit & Flyer Studio (Prompt 9.7 / §AL.2).
  *
  * Route: /saler/social-kit
  * Implements:

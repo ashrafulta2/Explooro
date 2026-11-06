@@ -7,7 +7,7 @@
  * 3. Adding a third locale requires no code change.
  * 4. Reels feed does not preload more than one video ahead.
  * 5. Stories feed with embedded buyable products and moderation queue.
- * 6. Shop Partner Academy micro-courses, lesson completion tracking, and certificates.
+ * 6. Explooro Partner Academy micro-courses, lesson completion tracking, and certificates.
  * 7. Fastify HTTP REST API endpoints.
  */
 
@@ -27,7 +27,7 @@ function createMockDb({ queryHandler = null } = {}) {
   };
 }
 
-describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor Dashboard', () => {
+describe('Prompt 10.8 — Content Commerce, Reels, Explooro Partner Academy & Editor Dashboard', () => {
 
   // ---------------------------------------------------------------------------
   // 1. Live Homepage Banner Updates (Acceptance 1)
@@ -308,7 +308,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
       },
     });
 
-    // 1. Shop Partner creates story with embedded product #1
+    // 1. Explooro Partner creates story with embedded product #1
     const created = await contentService.createStory(db, {
       authorId: 5,
       authorRole: 'saler',
@@ -343,9 +343,9 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
   });
 
   // ---------------------------------------------------------------------------
-  // 6. Shop Partner Academy Lessons Progress & Completion Certificate
+  // 6. Explooro Partner Academy Lessons Progress & Completion Certificate
   // ---------------------------------------------------------------------------
-  test('Shop Partner Academy: Lesson progress completion calculation and 100% certificate qualification', async () => {
+  test('Explooro Partner Academy: Lesson progress completion calculation and 100% certificate qualification', async () => {
     const mockCourse = {
       id: 1,
       ref: 'CRS-100',
@@ -418,7 +418,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
                 title_bn: 'কারিগর গল্প',
                 slug: 'artisan-story',
                 embedded_product_ids: '[]',
-                author_name: 'Shop Partner',
+                author_name: 'Explooro Partner',
                 created_at: new Date().toISOString(),
               },
             ],
@@ -434,7 +434,7 @@ describe('Prompt 10.8 — Content Commerce, Reels, Shop Partner Academy & Editor
                 thumbnail_url: 'https://cdn.example.com/t.jpg',
                 caption_en: 'Reel Caption',
                 caption_bn: 'রিল ক্যাপশন',
-                author_name: 'Shop Partner',
+                author_name: 'Explooro Partner',
                 likes_count: 5,
                 views_count: 50,
                 created_at: new Date().toISOString(),

@@ -1,6 +1,6 @@
--- 079_partner_scores.sql — the Partner Score: how well a shop partner promotes and sells (Phase B).
+-- 079_partner_scores.sql — the Partner Score: how well a Explooro partner promotes and sells (Phase B).
 --
--- A shop partner is a promoter: suppliers pay them for bringing buyers. The owner wants earning to
+-- A Explooro partner is a promoter: suppliers pay them for bringing buyers. The owner wants earning to
 -- follow how much and how well a partner promotes, decided by an algorithm, not by a per-product
 -- percentage shown up front. This is the measuring half: one snapshot row per partner, rebuilt daily
 -- by the `partner_score` job from the orders attribution (076) now credits to them.

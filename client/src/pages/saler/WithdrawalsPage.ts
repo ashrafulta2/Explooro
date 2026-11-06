@@ -1,5 +1,5 @@
 /**
- * WithdrawalsPage.ts — Shop Partner Vault Balance, Escrow & Instant Payouts Portal (Prompt 6.5 / §AL.2).
+ * WithdrawalsPage.ts — Explooro Partner Vault Balance, Escrow & Instant Payouts Portal (Prompt 6.5 / §AL.2).
  *
  * Route: /saler/vault/payouts
  * Implements:
@@ -56,7 +56,8 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
   }
 
   function render() {
-    container.innerHTML = '';
+    container.innerHTML = '';
+
 
     // 1. Header
     const header = document.createElement('div');

@@ -1,10 +1,10 @@
 /**
- * attributionAdmin.routes.ts — how long a storefront visit or link click credits a shop partner.
+ * attributionAdmin.routes.ts — how long a storefront visit or link click credits a Explooro partner.
  *
  *   GET  /admin/growth/attribution   growth.attribution.view    (LOW)
  *   PUT  /admin/growth/attribution   growth.attribution.update  (CRITICAL: super admin only)
  *
- * WHY CRITICAL: a longer window credits more sales to shop partners, which moves the partner share
+ * WHY CRITICAL: a longer window credits more sales to Explooro partners, which moves the partner share
  * of those orders from the platform to them. Like the delivery charge and referral rates it is a
  * money rule, so only the super admin sets it, and it applies at once.
  *

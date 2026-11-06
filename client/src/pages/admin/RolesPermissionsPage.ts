@@ -149,12 +149,12 @@ export default function RolesPermissionsPage(root: HTMLElement) {
   const riskControl = document.createElement('label');
   riskControl.className = 'admin-users-select-control';
   const riskSelect = document.createElement('select');
-  riskSelect.setAttribute('aria-label', t('perm_matrix.risk_filter_aria', 'Filter by risk tier'));
+  riskSelect.setAttribute('aria-label', t('perm_matrix.risk_filter_aria', 'Filter by approval level'));
   for (const tier of ['ALL', ...RISK_TIERS]) {
     const opt = document.createElement('option');
     opt.value = tier;
     opt.textContent = tier === 'ALL'
-      ? t('perm_matrix.risk_all', 'All risk tiers')
+      ? t('perm_matrix.risk_all', 'All approval levels')
       : t(`perm_matrix.risk_${tier.toLowerCase()}`, tier);
     riskSelect.append(opt);
   }
@@ -175,7 +175,7 @@ export default function RolesPermissionsPage(root: HTMLElement) {
 
   const legend = document.createElement('ul');
   legend.className = 'perm-legend';
-  legend.setAttribute('aria-label', t('perm_matrix.legend_title', 'Risk tiers'));
+  legend.setAttribute('aria-label', t('perm_matrix.legend_title', 'Approval levels'));
   const LEGEND = [['LOW', 'success'], ['MEDIUM', 'info'], ['HIGH', 'warning'], ['CRITICAL', 'danger']];
   for (const [tier, variant] of LEGEND) {
     const li = document.createElement('li');
@@ -309,7 +309,7 @@ export default function RolesPermissionsPage(root: HTMLElement) {
       });
       matrixWrap.append(EmptyState({
         title: t('perm_matrix.empty_title', 'No permissions match'),
-        description: t('perm_matrix.empty_body', 'Try a different domain, risk tier or search term.'),
+        description: t('perm_matrix.empty_body', 'Try a different area, approval level or search term.'),
         action: clear,
       }));
       return;

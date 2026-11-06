@@ -102,7 +102,7 @@ export function OrderTracker({
     stepper.innerHTML = `
       <div class="order-tracker__cancelled-badge alert alert--danger grid-col-span-4">
         <strong>⚠️ ${t('order_tracking.status_cancelled')}</strong>
-        <p class="text-sm">${subOrder.cancel_reason || 'This sub-order was cancelled and inventory was released back to stock.'}</p>
+        <p class="text-sm">${subOrder.cancel_reason || 'This parcel was cancelled and its items went back into stock.'}</p>
       </div>
     `;
   } else {

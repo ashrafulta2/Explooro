@@ -904,7 +904,7 @@ export function generateContractPdf({
 (PARTIES TO THE AGREEMENT:) Tj
 /F1 10 Tf
 0 -15 Td
-(1. Buyer / Shop Partner: ${buyerName}) Tj
+(1. Buyer / Explooro Partner: ${buyerName}) Tj
 0 -15 Td
 (2. Manufacturer / Supplier: ${supplierName}) Tj
 0 -25 Td

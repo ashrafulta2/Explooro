@@ -182,7 +182,7 @@ async function productBoard(db, scope) {
   return rows.map(entry);
 }
 
-// A supplier ranks Shop Partners by what they sold of its stock (base value); the platform ranks by GMV.
+// A supplier ranks Explooro Partners by what they sold of its stock (base value); the platform ranks by GMV.
 async function salerBoard(db, scope) {
   const s = scoped(scope);
   const money = scope ? 'so.subtotal_base' : 'so.total_amount';
@@ -284,9 +284,9 @@ const OPERATIONS_BOARDS = {
 };
 
 /**
- * Which rankings each role sees. WHY these: a Shop Partner needs to know what sells (their own, and what
+ * Which rankings each role sees. WHY these: a Explooro Partner needs to know what sells (their own, and what
  * is moving on the platform that they could add) and what shoppers look for; a supplier, who sells only
- * through Shop Partners, needs to know which partners and which of its products carry it; operations
+ * through Explooro Partners, needs to know which partners and which of its products carry it; operations
  * staff need the platform's leaders; a moderator, where the queue is piling up and who keeps getting
  * rejected; an editor, what shoppers search and buy, which is what banners and stories should be about.
  */

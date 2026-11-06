@@ -77,7 +77,7 @@ export interface ProductCardData extends ProductImageSource {
   is_verified_supplier?: boolean;
   /** Only drawn when the `physical_shop_status` module is on. */
   store_open?: boolean;
-  /** Only drawn for a shop partner, with the `sourcing` module on. */
+  /** Only drawn for a Explooro partner, with the `sourcing` module on. */
   margin_pct?: number | string;
   rating?: number | string;
   rating_count?: number;
@@ -636,7 +636,7 @@ export function ProductCard({
     }
   }
 
-  // WHY: margin badge only visible to Shop Partners AND only when 'sourcing' module is on —
+  // WHY: margin badge only visible to Explooro Partners AND only when 'sourcing' module is on —
   // a divergence here (client vs server) is a financial bug; the badge is informational only.
   if (role === 'saler' && modules.sourcing && product.margin_pct != null) {
     const marginBadge = document.createElement('span');

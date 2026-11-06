@@ -2,11 +2,11 @@
  * adDestination.test.js — The invariants stated in adDestination.service.ts.
  *
  *   1. A format that needs a product refuses a creative without one.
- *   2. A shop partner's ad for a product in their store lands on /product/:id?store=<slug>.
+ *   2. A Explooro partner's ad for a product in their store lands on /product/:id?store=<slug>.
  *   3. A supplier's ad for their own product lands on the plain /product/:id.
  *   4. Anyone else's product is refused; staff (isPrivileged) skip only that ownership check.
  *   5. With a product attached, the client's destination_url is ignored.
- *   6. Without a product, a shop partner's ad lands on their storefront; anyone else's stays on this site.
+ *   6. Without a product, a Explooro partner's ad lands on their storefront; anyone else's stays on this site.
  */
 
 import { describe, test } from 'node:test';
@@ -39,7 +39,7 @@ describe('resolveCreativeTarget', () => {
     );
   });
 
-  test("without a product, a shop partner's ad lands on their storefront, whatever the client sent", async () => {
+  test("without a product, a Explooro partner's ad lands on their storefront, whatever the client sent", async () => {
     const target = await resolveCreativeTarget(fakeDb({ ownStoreSlug: 'rina-fashion' }), {
       userId: PARTNER, adProduct: noProduct, destinationUrl: '/store/someone-else',
     });
@@ -55,7 +55,7 @@ describe('resolveCreativeTarget', () => {
     assert.equal(offSite.destinationUrl, '/');
   });
 
-  test("a shop partner's ad carries their store, so the sale credits them", async () => {
+  test("a Explooro partner's ad carries their store, so the sale credits them", async () => {
     const target = await resolveCreativeTarget(fakeDb({ storeSlug: 'rina-fashion' }), {
       userId: PARTNER, adProduct: needsProduct, productId: 42,
     });

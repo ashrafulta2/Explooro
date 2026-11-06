@@ -1,5 +1,5 @@
 /**
- * subscription.routes.ts — a merchant's own Shop Partner Pro subscription.
+ * subscription.routes.ts — a merchant's own Explooro Partner Pro subscription.
  *
  * Every route is behind the `subscription_fees` module, so with the admin's switch OFF these answer
  * 403 MODULE_DISABLED and the UI hides the page. The admin-side routes stay in finance.routes.ts
@@ -15,7 +15,7 @@ export default async function subscriptionRoutes(app) {
     app.requireModule('subscription_fees'),
     app.requirePermission('finance.subscription.subscribe_own'),
     // WHY can_sell: the restriction catalog has no subscription capability, and a merchant barred from
-    // selling has no use for a shop partner plan. Inventing a key would need editor UI + locale strings.
+    // selling has no use for a Explooro partner plan. Inventing a key would need editor UI + locale strings.
     requireRestriction('can_sell'),
   ];
 

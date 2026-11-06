@@ -1,5 +1,5 @@
 /**
- * PartnerScoreCard.ts — how well a shop partner promotes and sells, and what to do to improve it.
+ * PartnerScoreCard.ts — how well a Explooro partner promotes and sells, and what to do to improve it.
  *
  * Draws only what GET /saler/partner-score returns (server services/partnerScore.service.ts
  * toOwnView): the score, the band, the boost the band earns, the points each metric contributed and

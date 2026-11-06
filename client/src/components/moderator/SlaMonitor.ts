@@ -75,7 +75,7 @@ export default function SlaMonitor({
     container.innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle, #e2e8f0);">
         <h3 style="margin: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-primary, #0f172a);">
-          ⏱️ ${t('moderator_dashboard.sla_monitor_title', 'SLA Urgency Monitor')}
+          ⏱️ ${t('moderator_dashboard.sla_monitor_title', 'Deadline monitor')}
         </h3>
         <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: var(--success-bg, rgba(5, 150, 105, 0.1)); color: var(--success, #059669); font-weight: 600;">
           ✓ All SLAs Healthy
@@ -83,7 +83,7 @@ export default function SlaMonitor({
       </div>
       <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 10px; text-align: center; color: var(--text-muted, #64748b);">
         <span style="font-size: 28px; margin-bottom: 8px;">🎉</span>
-        <span style="font-size: 13px; font-weight: 500;">${t('moderator_dashboard.sla_all_healthy', 'All pending cases are within target resolution windows.')}</span>
+        <span style="font-size: 13px; font-weight: 500;">${t('moderator_dashboard.sla_all_healthy', 'All queues are on time. Nothing is near or past its deadline.')}</span>
       </div>
     `;
     return container;
@@ -93,7 +93,7 @@ export default function SlaMonitor({
     <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--border-subtle, #e2e8f0);">
       <div style="display: flex; align-items: center; gap: 8px;">
         <h3 style="margin: 0; font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; color: var(--text-primary, #0f172a);">
-          ⏱️ ${t('moderator_dashboard.sla_monitor_title', 'SLA Urgency Monitor')}
+          ⏱️ ${t('moderator_dashboard.sla_monitor_title', 'Deadline monitor')}
         </h3>
         <span style="font-size: 11px; padding: 2px 8px; border-radius: 6px; background: ${breachedCount > 0 ? 'var(--danger-bg, rgba(225, 29, 72, 0.1))' : 'var(--success-bg, rgba(5, 150, 105, 0.1))'}; color: ${breachedCount > 0 ? 'var(--danger, #e11d48)' : 'var(--success, #059669)'}; font-weight: 700;">
           ${breachedCount > 0 ? `${breachedCount} Breached` : 'On Track'}

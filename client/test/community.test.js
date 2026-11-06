@@ -99,7 +99,7 @@ test('a role sees only the audiences meant for it, and a guest sees public posts
 
   setMockRole('customer');
   const asCustomer = call('GET', '/community/posts');
-  assert.ok(!asCustomer.body.data.posts.some((p) => p.type === 'UPDATE'), 'a supplier update is for shop partners, not customers');
+  assert.ok(!asCustomer.body.data.posts.some((p) => p.type === 'UPDATE'), 'a supplier update is for Explooro partners, not customers');
 
   setMockRole('saler');
   assert.ok(call('GET', '/community/posts').body.data.posts.some((p) => p.type === 'UPDATE'));
@@ -324,7 +324,7 @@ test('mock: a comment is live at once, counts on the post, and is readable only 
   const commentsOf = (id, query) => call('GET', `/community/posts/${id}/comments`, null, query);
   const postCount = (id) => call('GET', '/community/posts').body.data.posts.find((p) => p.id === id)?.comment_count;
 
-  // A fresh supplier update (for shop partners), so earlier tests' moderation of the seeded ones cannot matter.
+  // A fresh supplier update (for Explooro partners), so earlier tests' moderation of the seeded ones cannot matter.
   setMockRole('supplier');
   const POST = call('POST', '/community/posts', {
     kind: 'RESTOCK', product_id: 101, body: 'More stock', details: { stock: 10, min_order: 2, wholesale_price: 100 },
@@ -333,7 +333,7 @@ test('mock: a comment is live at once, counts on the post, and is readable only 
   assert.equal(reply.status, 201, 'the author may comment on their own post although they are not in its audience');
 
   setMockRole('customer');
-  assert.equal(commentsOf(POST).status, 404, 'a customer cannot see a post meant for shop partners');
+  assert.equal(commentsOf(POST).status, 404, 'a customer cannot see a post meant for Explooro partners');
   assert.equal(call('POST', `/community/posts/${POST}/comments`, { body: 'hi' }).status, 404);
 
   setMockRole('saler');
@@ -390,7 +390,7 @@ test('mock: saving is private, toggles, and the Saved list is the member\'s own'
 
   // A post you cannot see cannot be saved; a guest cannot save and has no list.
   setMockRole('customer');
-  assert.equal(save(3).status, 404, 'meant for shop partners');
+  assert.equal(save(3).status, 404, 'meant for Explooro partners');
   assert.equal(save(9999).status, 404);
   logOutMock();
   assert.equal(save(2).status, 401);
@@ -422,7 +422,7 @@ const inbox = () => call('GET', '/notifications', null, { category: 'COMMUNITY' 
 const unread = () => call('GET', '/notifications/unread-count').body.data.unread_count;
 
 test('mock: a comment tells the post author, once, with a link that opens the thread, and nobody else', () => {
-  // Post 4 is the shop partner's idea (author role: saler).
+  // Post 4 is the Explooro partner's idea (author role: saler).
   setMockRole('saler');
   const before = inbox().length;
   const unreadBefore = unread();
@@ -500,7 +500,7 @@ test('mock: a link to one post shows just that post, under the same visibility r
   assert.deepEqual(one.map((p) => p.id), [4]);
   assert.equal(call('GET', '/community/posts', null, { post_id: '99999' }).body.data.posts.length, 0);
   setMockRole('customer');
-  assert.equal(call('GET', '/community/posts', null, { post_id: '3' }).body.data.posts.length, 0, 'a post meant for shop partners');
+  assert.equal(call('GET', '/community/posts', null, { post_id: '3' }).body.data.posts.length, 0, 'a post meant for Explooro partners');
   logOutMock();
 });
 

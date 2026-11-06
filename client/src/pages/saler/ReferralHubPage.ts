@@ -1,7 +1,7 @@
 /**
  * ReferralHubPage.ts — Multi-Tier Referral & Network Growth Hub (Prompts 9.3 & 11.3).
  *
- * Provides a viral, high-conversion growth workspace for both Customers & Shop Partners:
+ * Provides a viral, high-conversion growth workspace for both Customers & Explooro Partners:
  * 1. 2-Tier Earnings Model: Tier 1 (Direct 5%) + Tier 2 (Sub-network 2%) + 100 Loyalty Coins / invite.
  * 2. 1-Tap Viral Share Kit: Copy Code, Copy Link, WhatsApp Web/App, Facebook, QR & Social Story Card.
  * 3. 4 Executive Telemetry KPIs: Network Size, Tier 1, Tier 2, Commissions in Escrow & Available.
@@ -176,7 +176,7 @@ export class ReferralHubPage {
                 ${t('referrals.multi_tier_subtitle', 'টিয়ার ১ থেকে ৫% + টিয়ার ২ থেকে ২% কমিশন + প্রতি ইনভাইটে ১০০ কয়েন')}
               </h2>
               <p class="referral-hero__desc">
-                ${t('referrals.multi_tier_desc', 'আপনার ব্যক্তিগত রেফারেল লিংক বা QR কোড বন্ধুদের সাথে শেয়ার করুন। তারা কেনাকাটা বা বিক্রি করলেই কমিশন সরাসরি আপনার এসক্রো ভল্ট এবং কয়েন ব্যালেন্সে জমা হবে।')}
+                ${t('referrals.multi_tier_desc', 'Share your personal invite link or QR code with friends. Every time they shop or sell, commission is added to your Vault and your loyalty coins.')}
               </p>
             </div>
           </div>
@@ -276,7 +276,7 @@ export class ReferralHubPage {
             <span class="referral-kpi-card__label">${t('referrals.total_commissions', 'মোট রেফারেল আয়')}</span>
             <div class="referral-kpi-card__val">৳${Number(earnings.total_earnings || 0).toFixed(2)}</div>
             <span class="referral-kpi-card__sub">
-              ⏳ ৳${Number(earnings.pending_escrow || 0).toFixed(2)} ${t('referrals.in_escrow', 'এসক্রো হোল্ডিংয়ে')}
+              ⏳ ৳${Number(earnings.pending_escrow || 0).toFixed(2)} ${t('referrals.in_escrow', 'on hold')}
             </span>
           </div>
 
@@ -320,7 +320,7 @@ export class ReferralHubPage {
           <button
             class="referral-tab-btn ${this.activeTab === 'statement' ? 'referral-tab-btn--active' : ''}"
             data-tab="statement">
-            📜 ${t('referrals.tab_statement', 'কমিশন স্টেটমেন্ট ও এসক্রো')}
+            📜 ${t('referrals.tab_statement', 'Commission statement')}
             <span class="referral-tab-badge">${this.statement.length}</span>
           </button>
           <button
@@ -346,7 +346,7 @@ export class ReferralHubPage {
         <div class="referral-policy-card">
           <span style="font-size: 1.25rem;">🛡️</span>
           <div>
-            <strong style="color: var(--text-primary);">${t('referrals.anti_fraud_notice', 'জালিয়াতি বিরোধী ও এসক্রো নীতি')}</strong>
+            <strong style="color: var(--text-primary);">${t('referrals.anti_fraud_notice')}</strong>
           </div>
         </div>
       </div>
@@ -494,7 +494,7 @@ export class ReferralHubPage {
               ✓ ${t('referrals.available_balance', 'ওয়ালেটে বিদ্যমান')}
             </button>
             <button class="referral-filter-chip ${this.statementFilter === 'escrow' ? 'referral-filter-chip--active' : ''}" data-statement-filter="escrow">
-              ⏳ ${t('referrals.in_escrow', 'এসক্রো হোল্ডিংয়ে')}
+              ⏳ ${t('referrals.in_escrow', 'on hold')}
             </button>
           </div>
         </div>
@@ -517,7 +517,7 @@ export class ReferralHubPage {
                   <th>${t('referrals.ref_source', 'রেফারেন্স ও রেফারি')}</th>
                   <th>${t('referrals.order_rate', 'অর্ডার ও রেট')}</th>
                   <th>${t('referrals.commission', 'কমিশন')}</th>
-                  <th>${t('referrals.escrow_clearance', 'এসক্রো রিলিজ তারিখ')}</th>
+                  <th>${t('referrals.escrow_clearance', 'Yours from')}</th>
                   <th style="text-align: right;">${t('referrals.status', 'অবস্থা')}</th>
                 </tr>
               </thead>
@@ -543,7 +543,7 @@ export class ReferralHubPage {
                     <td style="text-align: right;">
                       ${item.status === 'AVAILABLE'
                         ? `<span class="badge badge--success" style="font-size: 10px; font-weight: 800;">Available</span>`
-                        : `<span class="badge badge--warning" style="font-size: 10px; font-weight: 800;">In Escrow (7d)</span>`}
+                        : `<span class="badge badge--warning" style="font-size: 10px; font-weight: 800;">${t('referrals.in_escrow', 'on hold')}</span>`}
                     </td>
                   </tr>
                 `).join('')}

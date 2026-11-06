@@ -2,7 +2,7 @@
  * adProducts.service.ts — the ad marketplace catalogue and its governance.
  *
  * Two audiences, one catalogue:
- *   - Shop Partners see the formats they are allowed to buy, each with a price label and the commercial
+ *   - Explooro Partners see the formats they are allowed to buy, each with a price label and the commercial
  *     floors their wizard must respect (GET /ads/products).
  *   - Holders of `growth.ad.govern` see every format including disabled ones, with revenue per
  *     format, and may rewrite any rate card (GET/PATCH /admin/ads/products).
@@ -26,7 +26,7 @@ import {
 const SLOT_BACKED_MODELS = ['FLAT_DAILY', 'FLAT_SLOT'];
 
 /**
- * The trust tier that decides a shop partner's loyalty discount. Falls back to STARTER for a shop partner who
+ * The trust tier that decides a Explooro partner's loyalty discount. Falls back to STARTER for a Explooro partner who
  * has no trust row yet (a brand-new account), which is the no-discount case.
  */
 export async function getSellerTier(db, userId) {
@@ -36,7 +36,7 @@ export async function getSellerTier(db, userId) {
 
 /**
  * The slot inventory key a booking of this product occupies. Category banners are per-category
- * (two shop partners can each own a banner, as long as it is a different category); every other
+ * (two Explooro partners can each own a banner, as long as it is a different category); every other
  * slot-backed format has a single global queue.
  */
 export function resolveSlotKey(product, { categoryId = null }: Record<string, any> = {}) {
@@ -148,7 +148,7 @@ export async function listForAdmin(db, { days = 30 }: Record<string, any> = {}) 
 /**
  * Rewrites one ad format's commercial terms. HIGH-risk per the permission catalogue, so the
  * before/after pair is written to audit_logs exactly as CLAUDE.md constraint 11 requires — a price
- * change is the kind of thing a shop partner will later dispute.
+ * change is the kind of thing a Explooro partner will later dispute.
  */
 export async function updateProductPricing(db, adminId, productId, patch: Record<string, any> = {}, reqMeta: Record<string, any> = {}) {
   const existing = await adProductRepo.getProductById(db, productId);
@@ -192,7 +192,7 @@ export async function updateProductPricing(db, adminId, productId, patch: Record
 }
 
 /**
- * Prices a would-be campaign without creating it. The shop partner's wizard calls this on every change,
+ * Prices a would-be campaign without creating it. The Explooro partner's wizard calls this on every change,
  * so the number on the confirm button is the same number the purchase will charge.
  */
 export async function quoteCampaign(db, userId, input: Record<string, any> = {}) {
@@ -207,7 +207,7 @@ export async function quoteCampaign(db, userId, input: Record<string, any> = {})
   const tier = await getSellerTier(db, userId);
   const result = priceQuote(product, input, { tier });
 
-  // For slot-backed formats the price is only half the answer — the shop partner also needs to know
+  // For slot-backed formats the price is only half the answer — the Explooro partner also needs to know
   // whether the days they picked are still free.
   if (SLOT_BACKED_MODELS.includes(product.pricing_model)) {
     result.availability = await checkAvailability(db, product, input);
@@ -252,7 +252,7 @@ export async function checkAvailability(db, product, input: Record<string, any> 
 
 /**
  * A calendar of remaining capacity, so the wizard can grey out full days instead of failing the
- * purchase after the shop partner has filled in everything.
+ * purchase after the Explooro partner has filled in everything.
  */
 export async function getAvailabilityCalendar(db, productKey, { categoryId = null, days = 30 }: Record<string, any> = {}) {
   const product = await adProductRepo.getProductByKey(db, productKey);

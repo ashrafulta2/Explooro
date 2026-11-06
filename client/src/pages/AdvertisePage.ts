@@ -389,7 +389,7 @@ export default function AdvertisePage(root: HTMLElement) {
       campaigns = await adsApi.listCampaigns().catch(() => campaigns);
       render();
       // Prompt 13.3: the done card says whether the ad waits on review; the result panel above it
-      // adds the next step. Customers, shop partners and suppliers all buy here, each with a journey.
+      // adds the next step. Customers, Explooro partners and suppliers all buy here, each with a journey.
       const role = getCurrentUser()?.roles?.[0];
       showActionResult(root, role === 'saler' ? 'ad_boosted_saler' : role === 'supplier' ? 'ad_boosted_supplier' : 'ad_boosted_customer');
     } catch (err) {

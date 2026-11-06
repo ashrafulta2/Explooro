@@ -1,5 +1,5 @@
 /**
- * socialKit.controller.ts — Route handlers for Social Shop Partner Kit & Short Links (Prompt 9.7).
+ * socialKit.controller.ts — Route handlers for Social Explooro Partner Kit & Short Links (Prompt 9.7).
  */
 
 import * as shortlinkService from '../services/shortlink.service.ts';
@@ -17,7 +17,7 @@ export async function redirectShortLink(req, reply) {
   });
 
   // WHY `?ref=<code>`: the landing page records it as the shopper's touch, which is what credits
-  // the shop partner at add-to-cart (attribution.service.ts).
+  // the Explooro partner at add-to-cart (attribution.service.ts).
   return reply.redirect(landingPathFor(result.target_url, String(code).toLowerCase()), 302);
 }
 

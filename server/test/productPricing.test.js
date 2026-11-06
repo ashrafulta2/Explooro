@@ -257,7 +257,7 @@ function createMockDb() {
         return { rows: s ? [s] : [] };
       }
 
-      // Shop Partner store items upsert
+      // Explooro Partner store items upsert
       if (normalized.startsWith('INSERT INTO saler_store_items')) {
         const item = {
           id: storeItems.length + 1,
@@ -272,7 +272,7 @@ function createMockDb() {
         return { rows: [item] };
       }
 
-      // List shop partner store items
+      // List Explooro partner store items
       if (normalized.startsWith('SELECT ssi.*')) {
         return { rows: storeItems };
       }
@@ -717,7 +717,7 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     });
   });
 
-  test('Shop Partner add-to-store endpoint keeps the supplier price and refuses a partner price (migration 085)', async () => {
+  test('Explooro Partner add-to-store endpoint keeps the supplier price and refuses a partner price (migration 085)', async () => {
     const salerApp = Fastify({ logger: false });
     salerApp.decorate('db', mockDb);
     salerApp.addHook('onRequest', (req, reply, done) => {
@@ -811,7 +811,7 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
     assert.equal(def.pricing_state, 'standard');
     assert.equal(def.wholesale_cost + def.platform_earning + def.saler_earning, 1300.0);
 
-    // 2. Discounted Retail (1200) -> Only shop partner profit decreases, platform profit 100% protected!
+    // 2. Discounted Retail (1200) -> Only Explooro partner profit decreases, platform profit 100% protected!
     const disc = calculatePricingBreakdown({
       baseCost: 1000,
       wholesaleMargin: 0,
@@ -822,11 +822,11 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
       extraMarkupPlatformPct: 20,
     });
     assert.equal(disc.platform_earning, 100.0, 'Platform profit must not decrease');
-    assert.equal(disc.saler_earning, 100.0, 'Shop Partner absorbs entire 100 discount (200 - 100)');
+    assert.equal(disc.saler_earning, 100.0, 'Explooro Partner absorbs entire 100 discount (200 - 100)');
     assert.equal(disc.pricing_state, 'discount');
     assert.equal(disc.wholesale_cost + disc.platform_earning + disc.saler_earning, 1200.0);
 
-    // 3. Min Retail Floor (1100) -> Shop Partner profit drops to 0, platform profit still protected at 100
+    // 3. Min Retail Floor (1100) -> Explooro Partner profit drops to 0, platform profit still protected at 100
     const minFloor = calculatePricingBreakdown({
       baseCost: 1000,
       wholesaleMargin: 0,
@@ -851,7 +851,7 @@ describe('Product & Pricing APIs, Dynamic Split Engine (Prompt 4.3)', () => {
       extraMarkupPlatformPct: 20,
     });
     assert.equal(boost.platform_earning, 140.0, 'Platform gets 100 default + 40 extra split');
-    assert.equal(boost.saler_earning, 360.0, 'Shop Partner gets 200 default + 160 extra split');
+    assert.equal(boost.saler_earning, 360.0, 'Explooro Partner gets 200 default + 160 extra split');
     assert.equal(boost.pricing_state, 'boost');
     assert.equal(boost.wholesale_cost + boost.platform_earning + boost.saler_earning, 1500.0);
 

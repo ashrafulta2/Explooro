@@ -337,7 +337,7 @@ export function openTeamPurchaseModal({
       <a href="/account/team-purchases" class="text-xs text-primary font-bold hover:underline" id="modal-view-my-teams">
         ${isBn ? 'আমার সকল টিম পারচেজ ও ট্র্যাকিং →' : 'View all my team purchases & tracking →'}
       </a>
-      <span class="text-[11px] text-muted font-mono">${quote?.window_hours ?? 24}h SLA Escrow</span>
+      <span class="text-[11px] text-muted font-mono">${quote?.window_hours ?? 24}h</span>
     `;
 
     footerLinks.querySelector('#modal-view-my-teams').addEventListener('click', (e) => {

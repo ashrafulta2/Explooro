@@ -2,18 +2,18 @@
  * HomeTop — the band above the product feed on the marketplace home page.
  *
  * Replaces the old text-only hero. The layout depends on the account type:
- *  - Guest: how-a-Shop Partner-earns panel · campaign slider · shortcut tiles.
+ *  - Guest: how-a-Explooro Partner-earns panel · campaign slider · shortcut tiles.
  *  - Customer: a "for you" panel (price drops, coins, team buys) · campaign slider · orders card + tiles,
  *    plus a "welcome back" strip of quick links.
- *  - Shop Partner, supplier, moderator, editor, admin, super admin: three panels of their own
+ *  - Explooro Partner, supplier, moderator, editor, admin, super admin: three panels of their own
  *    (components/home/homeBands.ts). A supplier has no use for "start earning with zero stock" and an
- *    admin is never a Shop Partner, so none of them get the earn panel, slider or tiles.
+ *    admin is never a Explooro Partner, so none of them get the earn panel, slider or tiles.
  *
  * WHY: the band renders instantly and never waits on the network. The slides and links are static
  * routes; the only fetch is the signed-in role's few numbers (GET /home/summary), filled in after
  * first paint, and a failed request leaves working links with "–" instead of a number.
- * The Become a Shop Partner CTA keeps the one-click flow, now on the earn panel: guests go to register,
- * customers to the /account/become-saler page that runs BecomeSalerCta, shop partners to their dashboard.
+ * The Become a Explooro Partner CTA keeps the one-click flow, now on the earn panel: guests go to register,
+ * customers to the /account/become-saler page that runs BecomeSalerCta, Explooro partners to their dashboard.
  */
 
 import { t } from '../../services/i18n.ts';
@@ -33,7 +33,7 @@ const SLIDES = [
   { id: 'saler', feed: 'saler', key: 'marketplace.top.slide_saler' },
 ];
 
-// i18n keys in the order a Shop Partner experiences them; the number is drawn by a CSS counter.
+// i18n keys in the order a Explooro Partner experiences them; the number is drawn by a CSS counter.
 const EARN_STEPS = ['marketplace.top.earn_step_pick', 'marketplace.top.earn_step_share', 'marketplace.top.earn_step_keep'];
 // Shortcut tiles on the right. `feed` tiles switch the feed tab below; the rest are plain routes
 // (the router sends a signed-out visitor to sign in first). Flash sales has no tile: it is a slide.
@@ -97,10 +97,12 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }: Hom
 
   // ── Earn panel ───────────────────────────────────────────────────────────
   // WHY: this used to be a category rail, but the category chips under the feed tabs already list
-  // the same names. Showing how a Shop Partner earns tells a shopper the platform is also a way to earn.
-  // WHY no Shop Partner branch: a Shop Partner has a band of their own, so this panel only reaches guests
+  // the same names. Showing how a Explooro Partner earns tells a shopper the platform is also a way to earn.
+  // WHY no Explooro Partner branch: a Explooro Partner has a band of their own, so this panel only reaches guests
   // and roles without a band. A signed-in role without one is a customer-like account, hence become-saler.
-  const salerPath = isAuthenticated ? '/account/become-saler' : '/auth/register';
+  // A guest has already declared their intent by using this CTA, so carry that intent into
+  // registration instead of making them select Explooro Partner again.
+  const salerPath = isAuthenticated ? '/account/become-saler' : '/auth/register?role=saler';
   const earn = el('aside', 'home-top__earn');
   earn.setAttribute('aria-label', t('marketplace.top.earn_label'));
   earn.append(

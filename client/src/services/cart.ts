@@ -295,7 +295,7 @@ export async function addToCart({
   // Reported here, not at each button, so every add-to-cart surface is counted exactly once.
   track('ADD_CART', { id: product_id });
 
-  // WHY here, not at each button: every add-to-cart surface must carry the shop partner who sent
+  // WHY here, not at each button: every add-to-cart surface must carry the Explooro partner who sent
   // the shopper, and the server decides whether that touch still credits them.
   const attribution = currentTouch();
 

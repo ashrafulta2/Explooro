@@ -139,7 +139,7 @@ export const JOURNEYS: JourneyStep[] = [
   step('customer', 5, 'receive_order', '/account/orders', 'customer.order_delivered', { blockedBy: ['waiting_for_delivery'] }),
   step('customer', 6, 'write_review', '/account/reviews', 'customer.review_written', { skipWhen: ['module_off'] }),
 
-  // Shop Partner: first real success is the first withdrawal.
+  // Explooro Partner: first real success is the first withdrawal.
   step('saler', 1, 'verify_phone', '/auth/otp', 'user.phone_verified'),
   step('saler', 2, 'submit_kyc', '/seller/kyc', 'kyc.submitted', { skipWhen: ['module_off'] }),
   step('saler', 3, 'name_store', '/saler/store-builder', 'saler.store_named', { skipWhen: ['module_off'] }),
@@ -219,7 +219,7 @@ export function journeyFor(role: JourneyRole): JourneyStep[] {
  * Today's dead ends (Prompt 13.1 REQUIREMENT 4): actions that finish on a bare toast or a plain list
  * with no suggested action. Prompt 13.3 must clear each one; until a journey step says otherwise its
  * result panel offers `followUp`. `where` is the file that ends the action today. `role` is the role
- * the user holds once the action is done (becoming a Shop Partner starts as a customer).
+ * the user holds once the action is done (becoming a Explooro Partner starts as a customer).
  *
  * Since Prompt 13.3 each entry is also the data of its result panel (components/guide/ActionResult.ts):
  * `title_key` is the panel's heading, `hint_key` its body, `follow_up_key` the label of the button to
@@ -259,7 +259,7 @@ export const DEAD_ENDS: DeadEnd[] = [
   // WHY not cleared in 13.3: neither is among 13.3's nine actions (REQUIREMENT 2); 13.4's checklist
   // is where an address and the upgrade are prompted.
   deadEnd('address_saved', 'customer', 'address saved', 'pages/customer/AddressesPage.ts', 'toast; stays on the address list', '/', null),
-  deadEnd('become_saler', 'saler', 'became a Shop Partner', 'pages/customer/BecomeSalerPage.ts', 'toast "your digital store is active"; stays on the upgrade page', '/saler/store-builder', null),
+  deadEnd('become_saler', 'saler', 'became a Explooro Partner', 'pages/customer/BecomeSalerPage.ts', 'toast "your digital store is active"; stays on the upgrade page', '/saler/store-builder', null),
   deadEnd('kyc_saler', 'saler', 'KYC submitted', 'pages/seller/KycSubmissionPage.ts', 'toast; stays on the KYC form', '/saler/store-builder'),
   deadEnd('kyc_supplier', 'supplier', 'KYC submitted', 'pages/seller/KycSubmissionPage.ts', 'toast; stays on the KYC form with no word that listing waits on approval', '/supplier/store-status'),
   deadEnd('product_added_saler', 'saler', 'product added to store', 'components/saler/AddToStoreDrawer.ts', 'toast; the drawer closes on the sourcing list', '/saler/social-kit'),

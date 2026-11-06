@@ -1,5 +1,5 @@
 /**
- * subscriptionRenewal.job.ts — hourly Shop Partner Pro renewal sweep.
+ * subscriptionRenewal.job.ts — hourly Explooro Partner Pro renewal sweep.
  *
  * Bills renewals, runs the grace period, lifts expired waivers and sends renewal reminders
  * (see subscriptionBilling.service.ts). Gated on the `subscription_fees` module by the scheduler:

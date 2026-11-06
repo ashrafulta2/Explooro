@@ -54,7 +54,7 @@ let mockModerationItems: Record<string, any>[] = [
       title_bn: 'রাজশাহী খাঁটি সিল্ক শাড়ি — মূল্য ও বিবরণ হালনাগাদ',
       category: 'Fashion > Sarees',
       price: 7800,
-      description: 'Shop Partner raised retail price by Tk 800 and rewrote the fabric-care section.',
+      description: 'Explooro Partner raised retail price by Tk 800 and rewrote the fabric-care section.',
       images: [
         'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=600',
       ],
@@ -138,7 +138,7 @@ let mockModerationItems: Record<string, any>[] = [
     submitted_by: 15,
     submitter_name: 'Customer_Report_User',
     data: {
-      report_reason: 'Shop Partner requested payment via personal bKash number instead of platform checkout.',
+      report_reason: 'Explooro Partner requested payment via personal bKash number instead of platform checkout.',
       chat_excerpt: 'Please send 500 taka advance to my personal bKash 01811223344',
       reported_user: 'Boutique Store 22',
     },
@@ -149,7 +149,7 @@ let mockModerationItems: Record<string, any>[] = [
       duplicate_risk: 'NONE',
       auto_decision_eligible: false,
       flags: [
-        { code: 'OFF_PLATFORM_PAYMENT', message: 'Shop Partner requested off-platform money transfer.' },
+        { code: 'OFF_PLATFORM_PAYMENT', message: 'Explooro Partner requested off-platform money transfer.' },
       ],
     },
     sla_due_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),

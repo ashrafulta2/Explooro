@@ -356,7 +356,7 @@ export async function executeCheckout(pool, cache, {
     // Revenue each short link brought in this order, recorded after commit (paisa by link id).
     const linkRevenuePaisa = new Map();
 
-    // WHY re-checked here: a guest cart line keeps its shop partner when the guest logs in, and that
+    // WHY re-checked here: a guest cart line keeps its Explooro partner when the guest logs in, and that
     // partner may be the shopper themself. Nobody earns commission on their own purchase.
     const lineSalerOf = (item) => (item.saler_id && Number(item.saler_id) !== Number(userId) ? Number(item.saler_id) : null);
 
@@ -400,7 +400,7 @@ export async function executeCheckout(pool, cache, {
 
         // Calculate Pricing Formula via pricing.service.ts
         // WHY resolved, not 40/60: the split is a business number (platform_settings / overrides), and
-        // the Shop Partner Pro rebate can only reach the order if checkout asks for this shop partner's split.
+        // the Explooro Partner Pro rebate can only reach the order if checkout asks for this Explooro partner's split.
         const lineSalerId = lineSalerOf(item);
         const split = await resolveSplitPercentages(client, {
           productId: prod.id,
@@ -437,7 +437,7 @@ export async function executeCheckout(pool, cache, {
         subOrderBasePaisa += (pricing.paisa.base_cost * itemQty);
         subOrderWholesaleMarginPaisa += (pricing.paisa.wholesale_margin * itemQty);
         subOrderNetRetailMarginPaisa += (pricing.paisa.net_retail_margin * itemQty);
-        // Only lines credited to the parcel's shop partner pay into its commission; any other line's
+        // Only lines credited to the parcel's Explooro partner pay into its commission; any other line's
         // partner share stays with the platform via the reconcile below (kept per line on order_items).
         if (lineSalerId != null && lineSalerId === parcel.salerId) {
           subOrderSalerCommissionPaisa += (pricing.paisa.saler_earning * itemQty);
@@ -545,7 +545,7 @@ export async function executeCheckout(pool, cache, {
     // Background trust score re-calculation
     trustScoreService.calculateAndPersistTrustScore(pool, userId).catch(() => {});
 
-    // Count the sale on each shop partner link that brought one of its lines (Social Seller Kit
+    // Count the sale on each Explooro partner link that brought one of its lines (Social Seller Kit
     // analytics). After commit and on the pool, like the CPA step below: a counter must never undo an order.
     for (const [shortLinkId, paisa] of linkRevenuePaisa) {
       shortlinkService.recordShortLinkConversion(pool, { shortLinkId, orderTotal: toBdtNumber(paisa) }).catch(() => {});

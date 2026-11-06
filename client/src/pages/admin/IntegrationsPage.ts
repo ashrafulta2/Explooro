@@ -149,7 +149,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
       </div>
       <h1 class="admin-page-title">${t('platform_integrations.title', 'Gateway & Service Integrations')}</h1>
       <p class="admin-page-subtitle">
-        ${t('platform_integrations.subtitle', 'Manage payment gateways, courier logistics 3PLs, SMS gateways, and cloud communication credentials')}
+        ${t('platform_integrations.subtitle', 'Manage payment gateways, couriers, SMS gateways and messaging credentials')}
       </p>
     `;
 

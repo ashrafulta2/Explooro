@@ -1,11 +1,11 @@
 /**
- * BecomeSalerPage.ts — 1-Click Zero-Paperwork Shop Partner Upgrade & Onboarding Hub.
+ * BecomeSalerPage.ts — 1-Click Zero-Paperwork Explooro Partner Upgrade & Onboarding Hub.
  *
  * Implements:
- * 1. Low-literacy friendly, high-contrast visual shop partner onboarding with 100% bilingual i18n.
- * 2. Active Shop Partner status detection with direct deep-links to Store Builder, Shop Partner Analytics & Sourcing.
- * 3. Genuine 1-Click Shop Partner upgrade calling customerApi.becomeSaler() with role mutation & vanity store provisioning.
- * 4. How the monthly partner reward pool pays a shop partner (no per-sale profit).
+ * 1. Low-literacy friendly, high-contrast visual Explooro partner onboarding with 100% bilingual i18n.
+ * 2. Active Explooro Partner status detection with direct deep-links to Store Builder, Explooro Partner Analytics & Sourcing.
+ * 3. Genuine 1-Click Explooro Partner upgrade calling customerApi.becomeSaler() with role mutation & vanity store provisioning.
+ * 4. How the monthly partner reward pool pays a Explooro partner (no per-sale profit).
  * 5. Traditional Business vs Explooro Selling comparison matrix.
  * 6. 4-Step visual workflow roadmap & interactive FAQ accordion.
  * 7. 15-Second low-literacy video guide modal.
@@ -45,22 +45,22 @@ export default function BecomeSalerPage(root: HTMLElement, { navigate }: PageCon
       <span>/</span>
       <a href="/account">${t('nav.customer.dashboard', 'Customer Account')}</a>
       <span>/</span>
-      <span class="text-primary font-bold">${t('customer.become_saler.page_title', '1-Click Shop Partner Upgrade')}</span>
+      <span class="text-primary font-bold">${t('customer.become_saler.page_title', '1-Click Explooro Partner Upgrade')}</span>
     </nav>
 
     <div class="account-page__title-wrap">
       <div class="become-saler-page__badge-row">
         <span class="badge badge--primary text-[10px] font-bold uppercase tracking-wider">
-          ✨ ${t('customer.become_saler.badge', 'Zero-Capital Shop Partner Hub')}
+          ✨ ${t('customer.become_saler.badge', 'Zero-Capital Explooro Partner Hub')}
         </span>
       </div>
       <button id="saler-video-guide-btn" class="btn btn--secondary btn--sm flex items-center gap-1 text-xs font-bold">
-        🎬 ${t('customer.become_saler.video_modal_headline', '15-Second Shop Partner Business Walkthrough')}
+        🎬 ${t('customer.become_saler.video_modal_headline', '15-Second Explooro Partner Business Walkthrough')}
       </button>
     </div>
 
     <h1 class="account-page__title">
-      ${t('customer.become_saler.page_title', '1-Click Shop Partner Upgrade')}
+      ${t('customer.become_saler.page_title', '1-Click Explooro Partner Upgrade')}
     </h1>
     <p class="account-page__subtitle">
       ${t('customer.become_saler.page_subtitle', 'Turn wholesale catalog products into your own branded store. No inventory holding, no packaging stress, zero upfront cost.')}
@@ -109,7 +109,7 @@ export default function BecomeSalerPage(root: HTMLElement, { navigate }: PageCon
 }
 
 /**
- * Ensures the session holds full Shop Partner permissions before navigating to Shop Partner routes.
+ * Ensures the session holds full Explooro Partner permissions before navigating to Explooro Partner routes.
  */
 function elevateToSalerRole() {
   try {
@@ -131,14 +131,14 @@ function elevateToSalerRole() {
 }
 
 /**
- * Renders complete sections of Become a Shop Partner page.
+ * Renders complete sections of Become a Explooro Partner page.
  */
 function renderSalerPageContent(container, { is_saler = false } = {}, nav) {
   container.innerHTML = '';
   const wrap = document.createElement('div');
   wrap.className = 'space-y-8';
 
-  // Section A: If user is already a shop partner, show active status banner
+  // Section A: If user is already a Explooro partner, show active status banner
   if (is_saler) {
     const statusBanner = document.createElement('div');
     statusBanner.className = 'become-saler-status';
@@ -147,7 +147,7 @@ function renderSalerPageContent(container, { is_saler = false } = {}, nav) {
         <div class="become-saler-status__icon">🎉</div>
         <div class="become-saler-status__content">
           <h2 class="become-saler-status__title">
-            ${t('customer.become_saler.already_saler_title', 'You are already a registered Shop Partner!')}
+            ${t('customer.become_saler.already_saler_title', 'You are already a registered Explooro Partner!')}
           </h2>
           <p class="become-saler-status__desc">
             ${t('customer.become_saler.already_saler_desc', 'Your virtual storefront is live and ready to take customer orders.')}
@@ -159,7 +159,7 @@ function renderSalerPageContent(container, { is_saler = false } = {}, nav) {
           🏬 ${t('customer.become_saler.btn_store_builder', 'Open Storefront Builder')}
         </button>
         <button id="goto-saler-dash-btn" class="btn btn--secondary btn--sm font-bold">
-          📊 ${t('customer.become_saler.btn_saler_dashboard', 'Shop Partner Analytics Dashboard')}
+          📊 ${t('customer.become_saler.btn_saler_dashboard', 'Explooro Partner Analytics Dashboard')}
         </button>
         <button id="goto-sourcing-btn" class="btn btn--secondary btn--sm font-bold">
           📦 ${t('customer.become_saler.btn_sourcing', 'Browse Sourcing Catalog')}
@@ -289,7 +289,7 @@ function renderProvisioningHero(container, { is_saler }, nav) {
 
       toast.success(data.message_bn || data.message_en || t('customer.become_saler.upgrade_success', 'Congratulations! Your digital store is active.'));
 
-      // Update auth store with full Shop Partner role and permissions
+      // Update auth store with full Explooro Partner role and permissions
       elevateToSalerRole();
 
       // Navigate to store builder
@@ -311,7 +311,7 @@ function renderProvisioningHero(container, { is_saler }, nav) {
 /**
  * How the monthly partner reward works.
  *
- * WHY: a shop partner earns nothing per sale. A sale's partner share goes to the
+ * WHY: a Explooro partner earns nothing per sale. A sale's partner share goes to the
  * PARTNER_REWARD_POOL and the pool is shared out once a month by score (server
  * services/partnerReward.service.ts). The weights are configuration (`partner_reward.rules`)
  * and a customer cannot read them, so this section names the four factors in the order the
@@ -335,7 +335,7 @@ function renderRewardExplainer(container) {
   card.innerHTML = `
     <div class="become-saler-reward__header">
       <span class="badge badge--success text-[10px] font-bold">
-        💰 ${t('customer.become_saler.reward_badge', 'Shop partner income')}
+        💰 ${t('customer.become_saler.reward_badge', 'Explooro Partner income')}
       </span>
       <h2 class="become-saler-reward__title">
         🏆 ${t('customer.become_saler.reward_title', 'How your monthly reward works')}
@@ -391,7 +391,7 @@ function renderComparisonMatrix(container) {
           <tr>
             <td class="become-saler-comparison__cell-feature">${t('customer.become_saler.comparison_row_delivery', 'Packaging & Courier')}</td>
             <td class="become-saler-comparison__cell-trad">${t('customer.become_saler.comparison_trad_delivery', 'Daily manual packing & courier runs')}</td>
-            <td class="become-saler-comparison__cell-exp">🚚 ${t('customer.become_saler.comparison_exp_delivery', 'Suppliers pack & auto-ship via 3PL')}</td>
+            <td class="become-saler-comparison__cell-exp">🚚 ${t('customer.become_saler.comparison_exp_delivery', 'Suppliers pack and ship by courier')}</td>
           </tr>
           <tr>
             <td class="become-saler-comparison__cell-feature">${t('customer.become_saler.comparison_row_payout', 'Earnings')}</td>
@@ -482,7 +482,7 @@ function renderFaqSection(container) {
           <span>▾</span>
         </summary>
         <div class="become-saler-faq__content">
-          ${t('customer.become_saler.faq_a2', 'The verified suppliers and Explooro integrated 3PL logistics handle packing and delivery. In case of returns, standard platform policies protect both you and the customer.')}
+          ${t('customer.become_saler.faq_a2', 'Verified suppliers and Explooro\'s courier partners pack and deliver. If an order is returned, the platform\'s rules protect both you and the customer.')}
         </div>
       </details>
 
@@ -525,12 +525,12 @@ function openSalerWalkthroughModal(nav) {
         ▶
       </div>
       <div>
-        <div class="text-sm font-bold text-primary">${t('customer.become_saler.video_modal_headline', '15-Second Shop Partner Business Walkthrough')}</div>
+        <div class="text-sm font-bold text-primary">${t('customer.become_saler.video_modal_headline', '15-Second Explooro Partner Business Walkthrough')}</div>
         <div class="text-xs text-muted">${t('customer.become_saler.video_modal_sub', 'Learn how to launch your store, share it, and earn your monthly reward.')}</div>
       </div>
     </div>
     <div class="become-saler-video-modal__tips">
-      <div class="font-bold text-foreground">💡 ${t('customer.become_saler.tips_title', '3 Quick Tips for New Shop Partners:')}</div>
+      <div class="font-bold text-foreground">💡 ${t('customer.become_saler.tips_title', '3 Quick Tips for New Explooro Partners:')}</div>
       <ul>
         <li>${t('customer.become_saler.tip_1', 'Launch your store in 1 tap with zero paperwork and no upfront cost.')}</li>
         <li>${t('customer.become_saler.tip_2', 'Add high-demand handloom sarees, fashion, and tech from verified suppliers.')}</li>
@@ -550,7 +550,7 @@ function openSalerWalkthroughModal(nav) {
   });
 
   const upgradeModalBtn = Button({
-    label: `${t('customer.become_saler.cta_btn', 'Click to Become a Shop Partner')}`,
+    label: `${t('customer.become_saler.cta_btn', 'Click to Become a Explooro Partner')}`,
     variant: 'primary',
     size: 'sm',
     onClick: () => {
@@ -563,7 +563,7 @@ function openSalerWalkthroughModal(nav) {
   footer.append(closeBtn, upgradeModalBtn);
 
   modal = Modal({
-    title: `🎬 ${t('customer.become_saler.video_modal_title', 'Explooro Shop Partner Video Guide')}`,
+    title: `🎬 ${t('customer.become_saler.video_modal_title', 'Explooro Explooro Partner Video Guide')}`,
     content: body,
     footer,
     size: 'md',

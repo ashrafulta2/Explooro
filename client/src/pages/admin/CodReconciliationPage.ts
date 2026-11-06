@@ -105,9 +105,9 @@ export default function CodReconciliationPage(root: HTMLElement, { navigate }: P
     }
 
     const headers = [
-      'Consignment ID',
-      'Sub-Order Ref',
-      'Sub-Order ID',
+      'Tracking ID',
+      'Parcel Ref',
+      'Parcel ID',
       'Courier',
       'Expected Amount',
       'Courier Reported',
@@ -784,7 +784,7 @@ export default function CodReconciliationPage(root: HTMLElement, { navigate }: P
         <div class="cod-recon-panel__header">
           <div>
             <h2 class="cod-recon-panel__title">📥 ${t('cod.upload_section_title')}</h2>
-            <p class="cod-recon-panel__subtitle">${t('cod.upload_desc')}</p>
+            <p class="cod-recon-panel__subtitle">${t('cod.upload_desc')} <code>consignment_id,sub_order_ref,courier_reported,deposit_received</code></p>
           </div>
           <div class="cod-recon-tabs" role="tablist">
             <button

@@ -353,7 +353,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     price.textContent = formatCurrency(priceOf(p), { lang });
     panel.append(price);
 
-    // Detail region (supplier, description; read-only variant chips for shop partners). Painted NOW from
+    // Detail region (supplier, description; read-only variant chips for Explooro partners). Painted NOW from
     // the list item — the feed carries the supplier line + description, so this text lands in the
     // same frame as the title/price instead of popping in after the per-slide detail fetch.
     // enrichSlide() re-runs renderDetail with the full product, but the signature guard there makes
@@ -548,7 +548,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
     const secondaryRow = document.createElement('div');
     secondaryRow.className = 'discover-slide__action-row discover-slide__action-row--secondary';
 
-    // Chat with Shop Partner
+    // Chat with Explooro Partner
     if (isFeatureEnabled('chat')) {
       const chatBtn = document.createElement('button');
       chatBtn.type = 'button';
@@ -557,13 +557,13 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       chatIcon.className = 'btn-icon-svg';
       chatIcon.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
       const chatText = document.createElement('span');
-      chatText.textContent = t('product_detail.cta.chat_with_seller') || 'Chat with Shop Partner';
+      chatText.textContent = t('product_detail.cta.chat_with_seller') || 'Chat with Explooro Partner';
       chatBtn.append(chatIcon, chatText);
 
       chatBtn.addEventListener('click', async () => {
         const { auth } = appStore.get();
         if (!auth?.isAuthenticated) {
-          toast.info(lang === 'bn' ? 'শপ পার্টনারর সাথে চ্যাট করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to chat with the shop partner.');
+          toast.info(lang === 'bn' ? 'শপ পার্টনারর সাথে চ্যাট করতে অনুগ্রহ করে সাইন ইন করুন।' : 'Please sign in to chat with the Explooro partner.');
           const redirectUrl = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
           if (navigate) navigate(redirectUrl);
           else window.location.href = redirectUrl;
@@ -592,7 +592,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
           if (navigate) navigate(chatUrl);
           else window.location.href = chatUrl;
         } catch (err) {
-          toast.error(err?.message || (lang === 'bn' ? 'চ্যাট শুরু করতে ব্যর্থ হয়েছে।' : 'Failed to start chat with shop partner.'));
+          toast.error(err?.message || (lang === 'bn' ? 'চ্যাট শুরু করতে ব্যর্থ হয়েছে।' : 'Failed to start chat with Explooro partner.'));
         } finally {
           chatBtn.disabled = false;
         }
@@ -637,7 +637,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   function buildSalerCtas(p) {
     const row = document.createElement('div');
     row.className = 'discover-slide__ctas';
-    // Sourcing CTA: show the shop partner margin and let them add it to their store.
+    // Sourcing CTA: show the Explooro partner margin and let them add it to their store.
     if (p.margin_pct != null || p.pricing?.saler_margin_pct != null) {
       const margin = document.createElement('span');
       margin.className = 'discover-slide__margin';
@@ -694,7 +694,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
   }
 
   // Customer slides get a live, interactive variant selector (reusing the product page's own
-  // VariantSelector) so the whole purchase happens inline. Shop Partner slides show the read-only chips
+  // VariantSelector) so the whole purchase happens inline. Explooro Partner slides show the read-only chips
   // rendered by renderDetail — sourcing to a store doesn't pick a single combination.
   function mountInlineOptions(key: string, full: Record<string, any>) {
     if (audience === 'saler') return;
@@ -774,7 +774,7 @@ export function ProductFeed({ audience = 'customer', navigate, filters = {}, onF
       d.textContent = desc;
       detail.append(d);
     }
-    // Read-only variant chips are for shop partners only; customers get the interactive selector instead.
+    // Read-only variant chips are for Explooro partners only; customers get the interactive selector instead.
     if (audience === 'saler' && full.has_variants && full.variants?.length) {
       const chips = document.createElement('div');
       chips.className = 'discover-slide__variants';

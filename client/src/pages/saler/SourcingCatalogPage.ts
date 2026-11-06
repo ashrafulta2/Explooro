@@ -1,5 +1,5 @@
 /**
- * SourcingCatalogPage.ts — Shop Partner Supplier Catalog & Sourcing Opportunity Feed (Prompt 4.7).
+ * SourcingCatalogPage.ts — Explooro Partner Supplier Catalog & Sourcing Opportunity Feed (Prompt 4.7).
  *
  * Route: /saler/sourcing
  * Gated by: `sourcing` module flag, `saler.sourcing.view` permission, and `can_sell` restriction.
@@ -223,7 +223,7 @@ export default function SourcingCatalogPage(root: HTMLElement) {
   grid.setAttribute('aria-label', t('sourcing.catalog_heading', 'Available Wholesale Products'));
 
   // Paid placements sit above the ranked results, never inside them, so the grid below stays an
-  // honest ordering of the shop partner's chosen sort.
+  // honest ordering of the Explooro partner's chosen sort.
   const sponsoredWrap = document.createElement('section');
   sponsoredWrap.className = 'sourcing-grid__sponsored';
   sponsoredWrap.setAttribute('aria-label', t('sourcing.sponsored.heading'));

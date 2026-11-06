@@ -276,7 +276,7 @@ export default function SystemHealthPage(root: HTMLElement, { navigate }: PageCo
             </div>
             <p class="system-vital-card__hint">
               <span>${isBn ? '৯৫তম পারসেন্টাইল উইন্ডো' : '95th percentile window'}</span>
-              <span class="system-vital-card__badge">${p95Val === null ? '—' : (p95Val <= 100 ? '✓ SLA &lt;100ms' : '⚠ Over 100ms')}</span>
+              <span class="system-vital-card__badge">${p95Val === null ? '—' : (p95Val <= 100 ? '✓ Under 100ms' : '⚠ Over 100ms')}</span>
             </p>
           </div>
 
@@ -286,14 +286,14 @@ export default function SystemHealthPage(root: HTMLElement, { navigate }: PageCo
               <span class="system-vital-card__title">
                 <span>API Latency (p99)</span>
               </span>
-              <span class="system-vital-card__icon" title="Tail SLA budget limit 250ms">⏱️</span>
+              <span class="system-vital-card__icon" title="Target: the slowest 1% of requests under 250ms">⏱️</span>
             </div>
             <div class="system-vital-card__val">${ms(p99Val)}</div>
             <div class="system-vital-card__meter-wrap">
               <div class="system-vital-card__meter-bar ${(p99Val ?? 0) > 200 ? 'system-vital-card__meter-bar--danger' : 'system-vital-card__meter-bar--success'}" style="width: ${Math.min(100, ((p99Val ?? 0) / 250) * 100)}%;"></div>
             </div>
             <p class="system-vital-card__hint">
-              <span>${isBn ? 'সর্বোচ্চ ১% রিকোয়েস্ট লেটেন্সি' : 'Tail SLA budget < 250ms'}</span>
+              <span>${isBn ? 'সর্বোচ্চ ১% রিকোয়েস্ট লেটেন্সি' : 'Slowest 1% under 250ms'}</span>
               <span class="system-vital-card__badge">${p99Val === null ? '—' : (p99Val <= 250 ? '✓ ' + (isBn ? 'সম্মত' : 'Compliant') : '⚠ ' + (isBn ? 'সীমা ছাড়িয়েছে' : 'Over budget'))}</span>
             </p>
           </div>

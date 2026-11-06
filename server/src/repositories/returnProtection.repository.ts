@@ -95,7 +95,7 @@ export async function markDenied(client, coverId, reason, returnRequestId) {
   );
 }
 
-/** What the clawback took from the shop partner on this order (their own escrow entry). */
+/** What the clawback took from the Explooro partner on this order (their own escrow entry). */
 export async function getSalerEscrowEntry(db, subOrderId, salerId) {
   const { rows } = await db.query(
     `SELECT e.id, e.amount, e.status
@@ -209,7 +209,7 @@ export async function listCoversForSaler(db, salerId, limit = 50) {
   return rows;
 }
 
-/** Suppliers a shop partner can currently sell for with cover, with their name where one is known. */
+/** Suppliers a Explooro partner can currently sell for with cover, with their name where one is known. */
 export async function listProtectedSuppliers(db, limit = 100) {
   const { rows } = await db.query(
     `SELECT e.supplier_id, COALESCE(up.display_name, up.full_name) AS supplier_name, e.started_at

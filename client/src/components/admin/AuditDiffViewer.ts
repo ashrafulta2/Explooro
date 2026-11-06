@@ -206,7 +206,7 @@ export function openAuditDiffModal({ record = {}, trigger = null }: { record?: A
  * Serializes an array of audit record objects into CSV format with standard quoting & escaping.
  */
 export function serializeAuditRecordsToCsv(records: AuditRecord[] = []): string {
-  const headers = ['ID', 'Timestamp', 'Actor Role', 'Action', 'Target Type', 'Target Ref', 'IP Address', 'Trace ID', 'Risk Tier'];
+  const headers = ['ID', 'Timestamp', 'Actor Role', 'Action', 'Target Type', 'Target Ref', 'IP Address', 'Trace ID', 'Approval Level'];
   const rows = records.map((r) => [
     r.id ?? '',
     r.created_at ?? '',

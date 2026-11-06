@@ -1,5 +1,5 @@
 /**
- * partnerReward.repository.ts — Raw SQL for the monthly shop partner reward pool (migration 086).
+ * partnerReward.repository.ts — Raw SQL for the monthly Explooro partner reward pool (migration 086).
  *
  * No rules here: services/partnerReward.service.ts decides what the numbers are worth. Every metric
  * takes the period as local dates ('YYYY-MM-DD', inclusive) plus the timezone, and compares in that
@@ -28,7 +28,7 @@ export async function getLocalCalendar(db, timezone: string) {
   return rows[0];
 }
 
-/** Every shop partner who can be paid: the saler role and an ACTIVE, undeleted account. */
+/** Every Explooro partner who can be paid: the saler role and an ACTIVE, undeleted account. */
 export async function listEligiblePartners(db): Promise<number[]> {
   const { rows } = await db.query(
     `SELECT DISTINCT u.id

@@ -2,9 +2,9 @@
  * clawback.service.ts — Return-Triggered Clawback Automation & Deficit Recovery (Prompt 6.2).
  *
  * Handles:
- * 1. Locked Escrow Clawback: Reverses pending escrow balance, zeroes shop partner commission, refunds buyer.
+ * 1. Locked Escrow Clawback: Reverses pending escrow balance, zeroes Explooro partner commission, refunds buyer.
  * 2. Post-Release Clawback: Recovers funds from beneficiary available balance.
- * 3. Insufficient Balance Deficit: When shop partners have already withdrawn earnings, creates a
+ * 3. Insufficient Balance Deficit: When Explooro partners have already withdrawn earnings, creates a
  *    negative_balance_recoveries tracking record and allows negative available balance.
  * 4. Customer Refund: Credits customer refund through wallet available balance.
  * 5. Trust Score Adjustments & Audit Trail: Updates seller/buyer risk metrics and logs audit entries.
@@ -137,7 +137,7 @@ export async function processReturnClawback(db: import('pg').Pool, {
         let deficitPaisa = 0;
 
         if (availPaisa < itemAmtPaisa) {
-          // Insufficient balance edge case: shop partner already withdrew funds
+          // Insufficient balance edge case: Explooro partner already withdrew funds
           recoveredPaisa = Math.max(0, availPaisa);
           deficitPaisa = itemAmtPaisa - recoveredPaisa;
           totalDeficitPaisa += deficitPaisa;
@@ -354,7 +354,7 @@ export async function getPendingRecoveries(db, { walletId = null, limit = 50, cl
  *
  * WHY not processReturnClawback: a warranty card covers one order item, but escrow is held per
  * sub-order. Clawing back the sub-order refunded every item in it (a ৳200 cable refunded ৳1,260)
- * and took the shop partner's and platform's cut for items nobody claimed. See
+ * and took the Explooro partner's and platform's cut for items nobody claimed. See
  * docs/warranty-refund-scope.md (Option B, chosen 2026-10-15).
  *
  * WHY the supplier's AVAILABLE bucket even while escrow is still LOCKED: escrow_entries rows are

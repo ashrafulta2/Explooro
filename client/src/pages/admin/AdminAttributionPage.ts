@@ -1,5 +1,5 @@
 /**
- * AdminAttributionPage.ts — how long a storefront visit or link click credits a Shop Partner with the
+ * AdminAttributionPage.ts — how long a storefront visit or link click credits a Explooro Partner with the
  * sale (/admin/growth/attribution).
  *
  * The shopper's last touch (a partner's storefront or tracked short link) travels with every

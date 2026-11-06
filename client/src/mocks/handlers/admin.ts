@@ -303,7 +303,7 @@ const mockUserRoster = [
   },
   {
     id: 2, ref: 'USR-3M7V2WQ1', phone: '+8801711000002', email: 'fatima.fashion@gmail.com',
-    full_name: 'Fatima Sultana', role_key: 'saler', role_label_en: 'Shop Partner', role_label_bn: 'শপ পার্টনার',
+    full_name: 'Fatima Sultana', role_key: 'saler', role_label_en: 'Explooro Partner', role_label_bn: 'শপ পার্টনার',
     tier: 'PRO_SELLER', district: 'Sylhet', division: 'Sylhet', address_line: 'Flat 3B, Zindabazar',
     status: 'ACTIVE', kyc_status: 'VERIFIED', active_restrictions_count: 1,
     orders_count: 89, gmv_bdt: 185000, created_at: '2026-02-10T11:20:00Z',
@@ -344,7 +344,7 @@ const mockUserRoster = [
   },
   {
     id: 7, ref: 'USR-4H6J9PV3', phone: '+8801711000007', email: 'tanvir.crafts@gmail.com',
-    full_name: 'Tanvir Crafts', role_key: 'saler', role_label_en: 'Shop Partner', role_label_bn: 'শপ পার্টনার',
+    full_name: 'Tanvir Crafts', role_key: 'saler', role_label_en: 'Explooro Partner', role_label_bn: 'শপ পার্টনার',
     tier: 'STARTER', district: 'Bogura', division: 'Rajshahi', address_line: 'Ward 4, Sherpur Road',
     status: 'RESTRICTED', kyc_status: 'PENDING', active_restrictions_count: 2,
     orders_count: 7, gmv_bdt: 12800, created_at: '2026-05-18T13:10:00Z',
@@ -531,7 +531,7 @@ const mockPayoutsStore = [
     fee_amount: '280.00',
     net_amount: '27720.00',
     status: 'HELD',
-    risk_flags_json: [{ code: 'FIRST_WITHDRAWAL', message: 'First withdrawal by this shop partner' }],
+    risk_flags_json: [{ code: 'FIRST_WITHDRAWAL', message: 'First withdrawal by this Explooro partner' }],
     gateway_ref: null,
     failure_reason: null,
     created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
@@ -636,7 +636,7 @@ function buildOverviewResponse(query) {
           channels: [
             { key: 'LIVE', name: 'Live Stream', share_pct: 12.5, volume: Math.round(curGmv * 0.125), orders: 0 },
             { key: 'TEAM', name: 'Team Social Buying', share_pct: 22.3, volume: Math.round(curGmv * 0.223), orders: 0 },
-            { key: 'SALER_STORE', name: 'Shop Partner Storefronts', share_pct: 46.9, volume: Math.round(curGmv * 0.469), orders: 0 },
+            { key: 'SALER_STORE', name: 'Explooro Partner Storefronts', share_pct: 46.9, volume: Math.round(curGmv * 0.469), orders: 0 },
             { key: 'DIRECT', name: 'Direct (Supplier Listing)', share_pct: 18.3, volume: Math.round(curGmv * 0.183), orders: 0 },
           ],
         },
@@ -810,9 +810,9 @@ export const adminHandlers: MockRoute[] = [
           key: 'pending_payouts',
           severity: 'HIGH',
           count: 6,
-          title_en: 'Pending Shop Partner Payout Requests',
+          title_en: 'Pending Explooro Partner Payout Requests',
           title_bn: 'অপেক্ষমাণ পেআউট অনুরোধ',
-          details_en: '৳42,000 in shop partner earnings ready for dual-approval clearance.',
+          details_en: '৳42,000 in Explooro partner earnings ready for dual-approval clearance.',
           details_bn: '৳৪২,০০০ শপ পার্টনার উইথড্রয়াল রিকোয়েস্ট অনুমোদনের অপেক্ষায়।',
           action_url: '/admin/finance/payouts',
           action_label_en: 'Approve Payouts',
@@ -1578,7 +1578,7 @@ export const adminHandlers: MockRoute[] = [
           requester_name: 'Tariq Ahmed (Trust & Safety)',
           permission_key: 'users.restriction.manage',
           risk_tier: 'HIGH',
-          reason: 'Urgent shop partner velocity limit override for verified high-volume Eid merchant.',
+          reason: 'Urgent Explooro partner velocity limit override for verified high-volume Eid merchant.',
           status: 'PENDING',
           created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
           expires_at: new Date(Date.now() + 3600000 * 22).toISOString(),
@@ -1893,7 +1893,7 @@ export const adminHandlers: MockRoute[] = [
           capability_key: 'can_chat',
           mode: 'HARD_BLOCK',
           limit_value: null,
-          reason: 'Inappropriate language in shop partner inquiries.',
+          reason: 'Inappropriate language in Explooro partner inquiries.',
           applied_by: 'Tariq Ahmed (Moderator)',
           created_at: new Date(Date.now() - 3600000 * 24 * 15).toISOString(),
           expires_at: new Date(Date.now() - 3600000 * 24 * 1).toISOString(),
@@ -3085,7 +3085,7 @@ export const adminHandlers: MockRoute[] = [
         body: {
           data: {
             streams: [
-              { id: 1, room_code: 'LIVE-DHK-99', title: 'Eid Exclusive Jamdani Saree Showcase & Flash Sale', host_name: 'Fatima Sultana (Shop Partner)', host_district: 'Sylhet', viewers_count: 1240, in_stream_orders: 34, live_gmv: 68000.00, duration_min: 45, pinned_product: 'Handloom Jamdani Saree (Navy Blue) — ৳2,400', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600' },
+              { id: 1, room_code: 'LIVE-DHK-99', title: 'Eid Exclusive Jamdani Saree Showcase & Flash Sale', host_name: 'Fatima Sultana (Explooro Partner)', host_district: 'Sylhet', viewers_count: 1240, in_stream_orders: 34, live_gmv: 68000.00, duration_min: 45, pinned_product: 'Handloom Jamdani Saree (Navy Blue) — ৳2,400', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600' },
               { id: 2, room_code: 'LIVE-CTG-42', title: 'Sundarban Raw Natural Honey Tasting & Live Extraction', host_name: 'Karim Textile & Honey (Supplier)', host_district: 'Khulna', viewers_count: 600, in_stream_orders: 18, live_gmv: 18400.00, duration_min: 22, pinned_product: 'Raw Forest Honey 1kg Jar — ৳850', status: 'LIVE', thumbnail: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600' },
             ],
           },
@@ -3339,7 +3339,7 @@ export const adminHandlers: MockRoute[] = [
       const extraMarkupPlatform = parseFloat(body?.extra_markup_platform_pct ?? 20);
       const reason = body?.reason || 'Administrative split ratio update';
 
-      const before = `${mockGlobalSplit.saler_split_pct}% Shop Partner / ${mockGlobalSplit.platform_split_pct}% Platform`;
+      const before = `${mockGlobalSplit.saler_split_pct}% Explooro Partner / ${mockGlobalSplit.platform_split_pct}% Platform`;
       mockGlobalSplit.saler_split_pct = saler;
       mockGlobalSplit.platform_split_pct = platform;
       mockGlobalSplit.min_margin_pct = minMargin;
@@ -3353,7 +3353,7 @@ export const adminHandlers: MockRoute[] = [
         actor: 'Super Admin #1',
         scope: 'GLOBAL',
         before,
-        after: `${saler}% Shop Partner / ${platform}% Platform (Platform profit: ${platformDefaultProfit}%, Shop Partner profit: ${salerDefaultProfit}%, Extra share: ${extraMarkupPlatform}%)`,
+        after: `${saler}% Explooro Partner / ${platform}% Platform (Platform profit: ${platformDefaultProfit}%, Explooro Partner profit: ${salerDefaultProfit}%, Extra share: ${extraMarkupPlatform}%)`,
         reason,
         created_at: new Date().toISOString(),
       });
@@ -3397,7 +3397,7 @@ export const adminHandlers: MockRoute[] = [
         actor: 'Super Admin #1',
         scope: `CATEGORY: ${cat.name_en}`,
         before,
-        after: `${cat.saler_split_pct}% Shop Partner / ${cat.platform_split_pct}% Platform`,
+        after: `${cat.saler_split_pct}% Explooro Partner / ${cat.platform_split_pct}% Platform`,
         reason: body?.reason || 'Category commission override updated',
         created_at: new Date().toISOString(),
       });
@@ -4044,16 +4044,16 @@ let mockCategorySplits = [
 
 let mockTierIncentives = [
   { tier: 'BRONZE', name_en: 'Bronze', name_bn: 'ব্রোঞ্জ', bonus_pct: 0.0, criteria_en: 'Entry tier / under ৳50,000 GMV', criteria_bn: 'প্রাথমিক স্তর / ৫০,০০০ টাকার কম জিএমভি' },
-  { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 1.0, criteria_en: 'Consistent shop partner, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক শপ পার্টনার, ৫০হাজার-২লাখ টাকা জিএমভি' },
+  { tier: 'SILVER', name_en: 'Silver', name_bn: 'সিলভার', bonus_pct: 1.0, criteria_en: 'Consistent Explooro partner, ৳50k-৳200k GMV, 4.5+ rating', criteria_bn: 'ধারাবাহিক শপ পার্টনার, ৫০হাজার-২লাখ টাকা জিএমভি' },
   { tier: 'GOLD', name_en: 'Gold', name_bn: 'গোল্ড', bonus_pct: 2.0, criteria_en: 'High volume, ৳200k-৳1M GMV, <1% dispute rate', criteria_bn: 'উচ্চ ভলিউম, ২লাখ-১০লাখ টাকা জিএমভি' },
-  { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 5.0, criteria_en: 'Top 1% elite shop partner, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট শপ পার্টনার, ১০ লাখ টাকার বেশি জিএমভি' },
+  { tier: 'PLATINUM', name_en: 'Platinum / Elite', name_bn: 'প্লাটিনাম / এলিট', bonus_pct: 5.0, criteria_en: 'Top 1% elite Explooro partner, >৳1M GMV, verified store', criteria_bn: 'শীর্ষ ১% এলিট শপ পার্টনার, ১০ লাখ টাকার বেশি জিএমভি' },
 ];
 
 // Mirrors the server's `saler.commission_tiers` setting; ships OFF, like the migration.
 let mockTierRules = { enabled: false, window_days: 30, thresholds: { SILVER: 50000, GOLD: 150000, PLATINUM: 400000 } };
 
 let mockSplitAuditLog = [
-  { id: 101, actor: 'Super Admin #1', scope: 'GLOBAL', before: '38% Shop Partner / 62% Platform', after: '40% Shop Partner / 60% Platform', reason: 'Platform launch baseline normalization', created_at: '2026-08-25T11:20:00Z' },
+  { id: 101, actor: 'Super Admin #1', scope: 'GLOBAL', before: '38% Explooro Partner / 62% Platform', after: '40% Explooro Partner / 60% Platform', reason: 'Platform launch baseline normalization', created_at: '2026-08-25T11:20:00Z' },
   { id: 102, actor: 'Super Admin #2', scope: 'CATEGORY: Grocery', before: '40% / 60%', after: '30% / 70%', reason: 'Low margin grocery perishable category override', created_at: '2026-08-25T11:00:00Z' },
   { id: 103, actor: 'Super Admin #1', scope: 'TIERS: Platinum', before: '+4.0% bonus', after: '+5.0% bonus', reason: 'Q3 Elite partner incentive expansion', created_at: '2026-08-23T15:30:00Z' },
 ];
@@ -4085,7 +4085,7 @@ let mockSubscriptionPlans = [
   },
   {
     id: 'plan_saler_pro',
-    name_en: 'Shop Partner Pro',
+    name_en: 'Explooro Partner Pro',
     name_bn: 'শপ পার্টনার প্রো',
     role: 'saler',
     monthly_fee: 999,
@@ -4128,11 +4128,11 @@ let mockSubscriptionPlans = [
 ];
 
 let mockSubscribers = [
-  { id: 1, merchant_name: 'Tanvir Hossain', store_name: 'Dhaka Style Trends', phone: '+8801711223344', ref: 'SLR-88102', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Shop Partner Pro', monthly_fee: 999, quota_used: 420, quota_total: 1000, next_renewal: '2026-09-28', status: 'ACTIVE', waived: false },
-  { id: 2, merchant_name: 'Nasrin Akter', store_name: 'Boutique Shomahar', phone: '01822334455', ref: 'SLR-88103', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Shop Partner Pro', monthly_fee: 999, quota_used: 980, quota_total: 1000, next_renewal: '2026-09-15', status: 'ACTIVE', waived: false },
+  { id: 1, merchant_name: 'Tanvir Hossain', store_name: 'Dhaka Style Trends', phone: '+8801711223344', ref: 'SLR-88102', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Explooro Partner Pro', monthly_fee: 999, quota_used: 420, quota_total: 1000, next_renewal: '2026-09-28', status: 'ACTIVE', waived: false },
+  { id: 2, merchant_name: 'Nasrin Akter', store_name: 'Boutique Shomahar', phone: '01822334455', ref: 'SLR-88103', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Explooro Partner Pro', monthly_fee: 999, quota_used: 980, quota_total: 1000, next_renewal: '2026-09-15', status: 'ACTIVE', waived: false },
   { id: 3, merchant_name: 'Rahim Textiles Ltd', store_name: 'Rahim Fabrics Depot', phone: '01933445566', ref: 'SUP-44120', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 2850, quota_total: 5000, next_renewal: '2026-09-20', status: 'ACTIVE', waived: false },
   { id: 4, merchant_name: 'Bengal Agro Foods', store_name: 'Organic Harvest BD', phone: '01644556677', ref: 'SUP-44125', role: 'supplier', plan_id: 'plan_enterprise', plan_name: 'Enterprise Wholesale', monthly_fee: 5999, quota_used: 6400, quota_total: 999999, next_renewal: '2026-10-01', status: 'ACTIVE', waived: false },
-  { id: 5, merchant_name: 'Ashiqur Rahman', store_name: 'Gadget Express BD', phone: '01555667788', ref: 'SLR-88109', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Shop Partner Pro', monthly_fee: 999, quota_used: 350, quota_total: 1000, next_renewal: '2026-09-02', status: 'PAST_DUE', waived: false },
+  { id: 5, merchant_name: 'Ashiqur Rahman', store_name: 'Gadget Express BD', phone: '01555667788', ref: 'SLR-88109', role: 'saler', plan_id: 'plan_saler_pro', plan_name: 'Explooro Partner Pro', monthly_fee: 999, quota_used: 350, quota_total: 1000, next_renewal: '2026-09-02', status: 'PAST_DUE', waived: false },
   { id: 6, merchant_name: 'Karupalli Crafts', store_name: 'Karupalli Artisan', phone: '01799887766', ref: 'SUP-44130', role: 'supplier', plan_id: 'plan_supplier_growth', plan_name: 'Supplier Growth', monthly_fee: 2499, quota_used: 1100, quota_total: 5000, next_renewal: '2026-11-30', status: 'WAIVED', waived: true, waiver_reason: 'National SME startup grant' },
   { id: 7, merchant_name: 'Shakil Ahmed', store_name: 'Apex Footwear Store', phone: '01712345678', ref: 'SLR-88115', role: 'saler', plan_id: 'plan_starter', plan_name: 'Free Starter', monthly_fee: 0, quota_used: 65, quota_total: 100, next_renewal: '2026-09-30', status: 'ACTIVE', waived: false },
 ];
@@ -4174,7 +4174,7 @@ let mockIntegrations: Record<string, any>[] = [
     webhook_secret: 'bk_b2c_wh_11092834',
     webhook_url: 'https://api.explooro.com/webhooks/bkash-payouts',
     last_ping_ms: 148,
-    description_en: 'Automated disbursement engine paying shop partner and supplier earnings directly into their personal bKash wallets.',
+    description_en: 'Automated disbursement engine paying Explooro partner and supplier earnings directly into their personal bKash wallets.',
     description_bn: 'শপ পার্টনার ও সরবরাহকারীদের ভল্ট ব্যালেন্স সরাসরি বিকাশ ওয়ালেটে স্বয়ংক্রিয় পেআউট।',
   },
   {
@@ -4326,7 +4326,7 @@ let mockIntegrations: Record<string, any>[] = [
     webhook_secret: 'meta_verify_token_explooro',
     webhook_url: 'https://api.explooro.com/webhooks/whatsapp',
     last_ping_ms: 175,
-    description_en: 'Meta WhatsApp Cloud API v18.0 delivering automated order receipts, 1-tap checkout links, and shop partner conversational bridge.',
+    description_en: 'Meta WhatsApp Cloud API v18.0 delivering automated order receipts, 1-tap checkout links, and Explooro partner conversational bridge.',
     description_bn: 'মেটা হোয়াটসঅ্যাপ ক্লাউড এপিআই সংযোগ।',
   },
   {
@@ -4364,7 +4364,7 @@ let mockIntegrations: Record<string, any>[] = [
     webhook_secret: 'gemini_cb_sec_4410',
     webhook_url: 'https://api.explooro.com/webhooks/ai',
     last_ping_ms: 210,
-    description_en: 'Multimodal generative AI powering shop partner product descriptions in Bengali, auto-categorization, and creative studio banners.',
+    description_en: 'Multimodal generative AI powering Explooro partner product descriptions in Bengali, auto-categorization, and creative studio banners.',
     description_bn: 'গুগল জেমিনাই এআই ইঞ্জিন।',
   },
 ];
@@ -4411,7 +4411,7 @@ let mockPlatformSettings = { ...defaultPlatformSettings, updated_at: '2026-08-25
 
 let mockSettingsAuditLog = [
   { id: 'aud_1', timestamp: '2026-08-25T14:30:00Z', actor: 'Super Admin #1', reason: 'Enforced mandatory Staff 2FA across all admin tiers', changes: [{ key: 'staff_2fa_enforced', old_value: false, new_value: true }] },
-  { id: 'aud_2', timestamp: '2026-08-20T10:15:00Z', actor: 'Super Admin #1', reason: 'Reduced minimum shop partner payout to ৳500 for micro-merchants', changes: [{ key: 'min_saler_payout_bdt', old_value: 1000, new_value: 500 }] },
+  { id: 'aud_2', timestamp: '2026-08-20T10:15:00Z', actor: 'Super Admin #1', reason: 'Reduced minimum Explooro partner payout to ৳500 for micro-merchants', changes: [{ key: 'min_saler_payout_bdt', old_value: 1000, new_value: 500 }] },
   { id: 'aud_3', timestamp: '2026-08-15T09:00:00Z', actor: 'Super Admin #1', reason: 'Initial production system parameter baseline', changes: [{ key: 'ALL', old_value: 'null', new_value: 'baseline' }] },
 ];
 

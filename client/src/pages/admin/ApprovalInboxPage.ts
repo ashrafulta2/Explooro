@@ -64,11 +64,11 @@ export default function ApprovalInboxPage(root: HTMLElement) {
   titleWrap.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
       <span class="badge badge--danger" style="font-weight: 700; text-transform: uppercase; font-size: 11px;">
-        ${ICONS.protection} ${t('approvals.eyebrow', 'Dual-Control Maker-Checker Gate')}
+        ${ICONS.protection} ${t('approvals.eyebrow', 'Second approval')}
       </span>
     </div>
     <h1 class="admin-users__title">${t('approvals.title', 'Approval Inbox')}</h1>
-    <p class="admin-users__subtitle">${t('approvals.subtitle', 'Review Just-in-Time privilege requests and critical state mutations before execution.')}</p>
+    <p class="admin-users__subtitle">${t('approvals.subtitle', 'One queue for temporary access requests and actions waiting for a second approval.')}</p>
   `;
 
   const shortcutBadge = document.createElement('div');
@@ -113,124 +113,6 @@ export default function ApprovalInboxPage(root: HTMLElement) {
     `;
   }
 
-  const defaultSampleJit = [
-    {
-      id: 1,
-      ref: 'JIT-84920',
-      requester_id: 4,
-      requester_phone: '01711000004',
-      requester_name: 'Tariq Ahmed (Trust & Safety)',
-      permission_key: 'users.restriction.manage',
-      risk_tier: 'HIGH',
-      reason: 'Urgent shop partner velocity limit override for verified high-volume Eid merchant.',
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
-      expires_at: new Date(Date.now() + 3600000 * 22).toISOString(),
-    },
-    {
-      id: 2,
-      ref: 'JIT-84921',
-      requester_id: 5,
-      requester_phone: '01711000005',
-      requester_name: 'Nusrat Jahan (Content Commerce)',
-      permission_key: 'catalog.product.delete',
-      risk_tier: 'HIGH',
-      reason: 'Removing counterfeit duplicate batch submitted by flagged vendor.',
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 5).toISOString(),
-      expires_at: new Date(Date.now() + 3600000 * 19).toISOString(),
-    },
-    {
-      id: 3,
-      ref: 'JIT-84922',
-      requester_id: 8,
-      requester_phone: '01711000008',
-      requester_name: 'Kamal Uddin (Finance Compliance)',
-      permission_key: 'finance.payout.approve',
-      risk_tier: 'CRITICAL',
-      reason: 'Escrow release for verified corporate wholesale bulk consignment.',
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-      expires_at: new Date(Date.now() + 3600000 * 16).toISOString(),
-    },
-  ];
-
-  const defaultSampleActions = [
-    {
-      id: 1,
-      action_key: 'platform.module.toggle',
-      action_ref: 'ACT-9021',
-      submitter_id: 4,
-      submitter_name: 'Tariq Ahmed',
-      submitter_role: 'moderator',
-      risk_tier: 'CRITICAL',
-      target_entity_type: 'MODULE',
-      target_entity_id: 'supplier_verification',
-      reason: 'Temporarily relax mandatory trade license for rural artisanal weavers during craft fair.',
-      before_state_json: {
-        module: 'supplier_verification',
-        enabled: true,
-        require_trade_license: true,
-      },
-      payload_json: {
-        module: 'supplier_verification',
-        enabled: true,
-        require_trade_license: false,
-      },
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 1).toISOString(),
-    },
-    {
-      id: 2,
-      action_key: 'finance.payout.batch',
-      action_ref: 'ACT-9022',
-      submitter_id: 8,
-      submitter_name: 'Kamal Uddin',
-      submitter_role: 'moderator',
-      risk_tier: 'CRITICAL',
-      target_entity_type: 'PAYOUT_BATCH',
-      target_entity_id: 'BATCH-2026-W34',
-      reason: 'Weekly aggregated merchant cashouts exceeding standard single-operator threshold.',
-      before_state_json: {
-        batch_id: 'BATCH-2026-W34',
-        total_bdt: 450000.00,
-        status: 'QUEUED',
-        operator: 'SINGLE_USER',
-      },
-      payload_json: {
-        batch_id: 'BATCH-2026-W34',
-        total_bdt: 450000.00,
-        status: 'DISBURSED',
-        gateway: 'bKash Merchant B2C',
-      },
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    },
-    {
-      id: 3,
-      action_key: 'platform.theme.publish',
-      action_ref: 'ACT-9023',
-      submitter_id: 5,
-      submitter_name: 'Nusrat Jahan',
-      submitter_role: 'editor',
-      risk_tier: 'CRITICAL',
-      target_entity_type: 'THEME_PALETTE',
-      target_entity_id: 'preset_jamdani_terracotta',
-      reason: 'Deploying festive Boishakh visual theme across storefront and marketplace.',
-      before_state_json: {
-        active_preset: 'default_dark',
-        brand_primary: 'hsl(220, 80%, 50%)',
-        contrast_ratio: '5.8:1',
-      },
-      payload_json: {
-        active_preset: 'jamdani_terracotta',
-        brand_primary: 'hsl(14, 85%, 45%)',
-        contrast_ratio: '7.2:1',
-      },
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 7).toISOString(),
-    },
-  ];
 
   function updateBadgeCount() {
     const total = jitRequests.length + pendingActions.length;
@@ -250,19 +132,24 @@ export default function ApprovalInboxPage(root: HTMLElement) {
     queueWrap.innerHTML = renderSkeleton();
 
     try {
+      // WHY no sample rows: this page used to fill an empty or failed queue with three made-up
+      // requests, so an admin could never see that nothing was waiting, and approving one failed.
+      let failed = false;
       const [jitRes, actionsRes]: Record<string, any>[] = await Promise.all([
-        api.get('/access-requests', { query: { status: 'PENDING' } }).catch(() => ({ data: { requests: [] } })),
-        api.get('/admin/pending-actions', { query: { status: 'PENDING' } }).catch(() => ({ data: { actions: [] } })),
+        api.get('/access-requests', { query: { status: 'PENDING' } }).catch(() => { failed = true; return { data: { requests: [] } }; }),
+        api.get('/admin/pending-actions', { query: { status: 'PENDING' } }).catch(() => { failed = true; return { data: { actions: [] } }; }),
       ]);
+      if (failed) toast.error(t('approvals.load_failed'));
 
       const fetchedJit = jitRes.data?.requests || jitRes.requests || jitRes.data || [];
       const fetchedActions = actionsRes.data?.actions || actionsRes.actions || actionsRes.data || [];
 
-      jitRequests = Array.isArray(fetchedJit) && fetchedJit.length > 0 ? fetchedJit : defaultSampleJit;
-      pendingActions = Array.isArray(fetchedActions) && fetchedActions.length > 0 ? fetchedActions : defaultSampleActions;
+      jitRequests = Array.isArray(fetchedJit) ? fetchedJit : [];
+      pendingActions = Array.isArray(fetchedActions) ? fetchedActions : [];
     } catch {
-      jitRequests = defaultSampleJit;
-      pendingActions = defaultSampleActions;
+      jitRequests = [];
+      pendingActions = [];
+      toast.error(t('approvals.load_failed'));
     } finally {
       isLoading = false;
       updateBadgeCount();
@@ -277,8 +164,8 @@ export default function ApprovalInboxPage(root: HTMLElement) {
     // rendered empty and the queue could not be switched between JIT and Maker-Checker.
     const tabs = Tabs({
       tabs: [
-        { id: 'jit', label: `${t('approvals.tab_jit', 'Just-In-Time Elevation')} (${formatNumber(jitRequests.length)})` },
-        { id: 'actions', label: `${t('approvals.tab_actions', 'Maker-Checker Actions')} (${formatNumber(pendingActions.length)})` },
+        { id: 'jit', label: `${t('approvals.tab_jit', 'Temporary access requests')} (${formatNumber(jitRequests.length)})` },
+        { id: 'actions', label: `${t('approvals.tab_actions', 'Actions awaiting second approval')} (${formatNumber(pendingActions.length)})` },
       ],
       active: activeTab,
       onChange: (newTab) => {
@@ -327,7 +214,7 @@ export default function ApprovalInboxPage(root: HTMLElement) {
         <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
           <span style="color: var(--text-secondary);">${ICONS.sparkles}</span>
           <p style="font-weight: 700; color: var(--text-primary); margin: 0;">${t('approvals.no_pending', 'All approval queues are completely clear.')}</p>
-          <span style="font-size: 12px; color: var(--text-secondary);">${t('approvals.empty_body', 'No pending access requests or maker-checker actions need a decision.')}</span>
+          <span style="font-size: 12px; color: var(--text-secondary);">${t('approvals.empty_body', 'No access requests or actions need a decision.')}</span>
         </div>
       `;
       queueWrap.append(emptyCard);
@@ -483,7 +370,7 @@ export default function ApprovalInboxPage(root: HTMLElement) {
     let note = '';
     if (status === 'REJECTED') {
       const conf = await confirmDialogWithReason({
-        title: t('approvals.reject_jit_title', 'Reject JIT access request?'),
+        title: t('approvals.reject_jit_title', 'Reject this temporary access request?'),
         description: t('approvals.reject_jit_desc', 'Provide a business justification for rejecting this access request.'),
         reasonRequired: true,
       });
@@ -519,7 +406,7 @@ export default function ApprovalInboxPage(root: HTMLElement) {
     let note = '';
     if (status === 'REJECTED') {
       const conf = await confirmDialogWithReason({
-        title: t('approvals.reject_action_title', 'Reject maker-checker action?'),
+        title: t('approvals.reject_action_title', 'Reject this action?'),
         description: t('approvals.reject_action_desc', 'Provide a justification for rejecting this pending action.'),
         reasonRequired: true,
       });

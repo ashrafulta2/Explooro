@@ -222,7 +222,7 @@ describe('sourcingAgent — grounded recommendations with no margin or profit', 
     assert.ok(text.includes('Premium Phone Case'));
   });
 
-  test('never shows a shop partner a margin or profit figure (owner, 2026-11-02)', async () => {
+  test('never shows a Explooro partner a margin or profit figure (owner, 2026-11-02)', async () => {
     const db = createFakeDb();
     const events = await collect(
       runSourcingTurn(

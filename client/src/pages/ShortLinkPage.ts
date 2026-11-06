@@ -1,5 +1,5 @@
 /**
- * ShortLinkPage — what a shop partner's tracked link (`/s/:code`) opens on the client origin.
+ * ShortLinkPage — what a Explooro partner's tracked link (`/s/:code`) opens on the client origin.
  *
  * The server's own /s/:code redirect only answers when the server serves that origin; the dev
  * server proxies just /api, so the SPA handles the path itself: it remembers the partner as the

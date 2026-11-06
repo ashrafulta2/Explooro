@@ -50,8 +50,8 @@ export default function B2bEscrowPage(root: HTMLElement, ctx: PageContext & { us
   if (!isFeatureEnabled('b2b_escrow')) {
     container.append(
       EmptyState({
-        title: t('b2b_escrow.module_disabled_title', 'B2B Escrow Milestone Settlement'),
-        description: t('b2b_escrow.module_disabled_desc', 'The B2B Escrow module is currently disabled.'),
+        title: t('b2b_escrow.module_disabled_title', 'Protected bulk deals are switched off'),
+        description: t('b2b_escrow.module_disabled_desc', 'Protected bulk deals are not available right now.'),
       })
     );
     root.append(container);
@@ -68,13 +68,13 @@ export default function B2bEscrowPage(root: HTMLElement, ctx: PageContext & { us
       <div class="supplier-header__badge-row">
         <a href="/supplier" class="text-xs font-bold text-muted hover:text-primary">&lt; ${t('supplier.back_to_dashboard', 'Dashboard')}</a>
         <span class="text-muted">/</span>
-        <span class="text-xs text-muted font-mono">B2B Wholesale Escrow</span>
+        <span class="text-xs text-muted font-mono">Protected bulk deals</span>
       </div>
       <h1 class="supplier-header__title">
-        <span>🤝</span> ${t('b2b_escrow.page_title', 'B2B Escrow & Milestone Settlement')}
+        <span>🤝</span> ${t('b2b_escrow.page_title', 'Protected bulk deals')}
       </h1>
       <p class="supplier-header__subtitle">
-        ${t('b2b_escrow.page_subtitle', 'Secure large-scale wholesale supply agreements with milestone-based escrow settlements and digital contracts.')}
+        ${t('b2b_escrow.page_subtitle', 'For large wholesale orders: the buyer\'s money is held safely and paid to the supplier one agreed stage at a time.')}
       </p>
     </div>
     <div class="supplier-header__actions">
@@ -135,9 +135,9 @@ export default function B2bEscrowPage(root: HTMLElement, ctx: PageContext & { us
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('b2b_escrow.metric_total_escrow', 'Total Escrow Committed')}</span>
+        <span class="supplier-kpi-card__label">${t('b2b_escrow.metric_total_escrow', 'Total held safely')}</span>
         <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${formatCurrency(totalEscrow)}</div>
-        <span class="text-xs text-muted">Secured platform escrow</span>
+        <span class="text-xs text-muted">Held safely by Explooro</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
@@ -426,7 +426,7 @@ export default function B2bEscrowPage(root: HTMLElement, ctx: PageContext & { us
       body: `
         <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
           <p>Provide shipment tracking reference, inspection certificate, or photos for <strong>${milestone.title_en}</strong>.</p>
-          <input type="text" id="evidence-text-input" class="input input--sm" placeholder="e.g. Steadfast Consignment #STF-881290" />
+          <input type="text" id="evidence-text-input" class="input input--sm" placeholder="e.g. Steadfast tracking #STF-881290" />
         </div>
       `,
       footer: `
@@ -542,7 +542,7 @@ export default function B2bEscrowPage(root: HTMLElement, ctx: PageContext & { us
       `,
       footer: `
           <button class="btn btn--sm btn--secondary close-modal-btn">Cancel</button>
-          <button class="btn btn--sm btn--danger" id="confirm-dispute-btn">⚠️ Confirm & Freeze Escrow</button>
+          <button class="btn btn--sm btn--danger" id="confirm-dispute-btn">⚠️ Confirm & keep the money held</button>
         `,
     });
     const close = () => modal.close(false);

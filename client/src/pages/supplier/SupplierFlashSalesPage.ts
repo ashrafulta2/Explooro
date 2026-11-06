@@ -4,7 +4,7 @@
  * Route: /supplier/flash-sales (module: flash_sale, permission: growth.flash_sale.manage_own)
  *
  * WHY the payout is shown before the button: the supplier pays the whole discount. The platform's and
- * the shop partner pool's share stay what they are at the regular price, so every taka off the price
+ * the Explooro partner pool's share stay what they are at the regular price, so every taka off the price
  * comes off what the supplier is paid. The figures come from GET /supplier/flash-sales/quote, the same
  * pricing function checkout runs, so the page never works out a payout itself.
  *

@@ -5,7 +5,7 @@
  * 1. Supplier Operational Routine Checklist (interactive progress tracking).
  * 2. Operational FAQ accordion (Escrow, FEFO, Couriers, Vault Withdrawals).
  * 3. 1-Click WhatsApp Concierge & Interactive Priority Support Ticket modal.
- * 4. Direct link to Shop Partner & Supplier Academy courses.
+ * 4. Direct link to Explooro Partner & Supplier Academy courses.
  */
 
 import { t } from '../../services/i18n.ts';
@@ -54,7 +54,7 @@ export default function SupplierHelpPage(root: HTMLElement) {
       </div>
       <div class="supplier-header__actions">
         <a href="/academy" class="btn btn--sm btn--secondary">
-          🎓 ${t('supplier.academy_btn', 'Shop Partner Academy Courses')}
+          🎓 ${t('supplier.academy_btn', 'Explooro Partner Academy Courses')}
         </a>
         <button class="btn btn--sm btn--primary" id="open-ticket-btn">
           🎫 ${t('supplier.ticket_btn', 'Open Support Ticket')}
@@ -99,10 +99,10 @@ export default function SupplierHelpPage(root: HTMLElement) {
               ${t('supplier.step_1_title', '1. Register & Price Your Products')}
             </label>
             <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
-              ${t('supplier.step_1_desc', 'Add your manufacturing SKUs with attractive wholesale margins for Shop Partners to promote.')}
+              ${t('supplier.step_1_desc', 'Add your products with a wholesale price that leaves room for Explooro partners.')}
             </p>
           </div>
-          <a href="/supplier/products" class="btn btn--xs btn--outline">Add SKU →</a>
+          <a href="/supplier/products" class="btn btn--xs btn--outline">Add product →</a>
         </div>
 
         <!-- Step 2 -->
@@ -124,7 +124,7 @@ export default function SupplierHelpPage(root: HTMLElement) {
           <input type="checkbox" id="step-3" style="margin-top: 3px; cursor: pointer;" ${completedSteps.includes('3') ? 'checked' : ''} />
           <div style="flex: 1;">
             <label for="step-3" style="font-weight: 700; font-size: var(--text-sm); color: var(--text-primary); cursor: pointer;">
-              ${t('supplier.step_3_title', '3. Pack Orders Following FEFO Lots')}
+              ${t('supplier.step_3_title', '3. Pack the batch that expires soonest first')}
             </label>
             <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
               ${t('supplier.step_3_desc', 'Dispatch oldest lots first to minimize shelf expiry and maintain 100% freshness.')}
@@ -155,7 +155,7 @@ export default function SupplierHelpPage(root: HTMLElement) {
               ${t('supplier.step_5_title', '5. Settle Wholesale Funds into Bank / MFS')}
             </label>
             <p style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
-              ${t('supplier.step_5_desc', 'Escrow releases T+3 days post-delivery directly to your Explooro Vault for instant withdrawal.')}
+              ${t('supplier.step_5_desc', '3 days after delivery the money moves to your Vault, ready to withdraw.')}
             </p>
           </div>
           <a href="/supplier/vault" class="btn btn--xs btn--outline">View Vault →</a>
@@ -181,11 +181,11 @@ export default function SupplierHelpPage(root: HTMLElement) {
       <!-- FAQ 1 -->
       <div class="supplier-faq-item">
         <button class="supplier-faq-item__header">
-          <span>${t('supplier.faq_q1', 'When are wholesale earnings released from Escrow?')}</span>
+          <span>${t('supplier.faq_q1', 'When do I get the money for an order?')}</span>
           <span class="faq-chevron">▾</span>
         </button>
         <div class="supplier-faq-item__body">
-          ${t('supplier.faq_a1', 'Funds are held in secure escrow during courier transit and released to your Available Balance 72 hours after customer delivery confirmation.')}
+          ${t('supplier.faq_a1', 'While the parcel travels, the shopper\'s money is held safely. It moves to your Vault 72 hours after the customer confirms delivery.')}
         </div>
       </div>
 
@@ -203,11 +203,11 @@ export default function SupplierHelpPage(root: HTMLElement) {
       <!-- FAQ 3 -->
       <div class="supplier-faq-item">
         <button class="supplier-faq-item__header">
-          <span>${t('supplier.faq_q3', 'How does automated FEFO dispatch work?')}</span>
+          <span>${t('supplier.faq_q3', 'Which batch should I pack first?')}</span>
           <span class="faq-chevron">▾</span>
         </button>
         <div class="supplier-faq-item__body">
-          ${t('supplier.faq_a3', "When multiple batches of the same SKU exist, Explooro's allocation engine directs you to pick from the lot with the nearest expiration date.")}
+          ${t('supplier.faq_a3')}
         </div>
       </div>
 
@@ -271,10 +271,10 @@ export default function SupplierHelpPage(root: HTMLElement) {
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <label class="label" style="font-size: var(--text-xs); font-weight: 700;">Issue Category</label>
             <select class="input input--sm" id="ticket-category">
-              <option value="COURIER_PICKUP">🚚 Courier Pickup / Consignment Delay</option>
-              <option value="ESCROW_PAYOUT">💰 Vault Escrow & Bank Payout Inquiry</option>
+              <option value="COURIER_PICKUP">🚚 Courier pickup or delay</option>
+              <option value="ESCROW_PAYOUT">💰 Vault balance or withdrawal question</option>
               <option value="PRODUCT_MODERATION">📦 Product Approval / Catalog Issue</option>
-              <option value="FEFO_BATCH_EXPIRY">🏷️ FEFO Batch & Quality Recall</option>
+              <option value="FEFO_BATCH_EXPIRY">🏷️ Batch expiry or quality recall</option>
               <option value="OTHER">❓ Other Operational Question</option>
             </select>
           </div>

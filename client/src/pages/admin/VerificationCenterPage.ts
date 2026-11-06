@@ -44,71 +44,6 @@ export default function VerificationCenterPage(root: HTMLElement) {
   // from the previous merchant across to the next one.
   let complianceFor = null;
 
-  const defaultSampleQueue = [
-    {
-      id: 1,
-      ref: 'KYC-98210',
-      user_id: 2,
-      applicant_name: 'Anisur Rahman',
-      applicant_phone: '01711000002',
-      applicant_email: 'anisur@jamdani-crafts.bd',
-      business_name: 'Jamdani Heritage Weavers Ltd.',
-      business_address: 'Rupganj, Narayanganj, Dhaka',
-      kyc_type: 'SUPPLIER',
-      current_tier: 'TIER_1',
-      trust_score: 42,
-      doc_count: 3,
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 3).toISOString(),
-      documents: [
-        { id: 101, doc_type: 'National ID (NID Front)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_front_98210.jpg' },
-        { id: 102, doc_type: 'National ID (NID Back)', mime_type: 'image/jpeg', view_count: 1, storage_key: 'kyc/nid_back_98210.jpg' },
-        { id: 103, doc_type: 'Trade License 2025-2026', mime_type: 'application/pdf', view_count: 2, storage_key: 'kyc/trade_lic_98210.pdf' },
-      ],
-    },
-    {
-      id: 2,
-      ref: 'KYC-98211',
-      user_id: 3,
-      applicant_name: 'Farzana Akter',
-      applicant_phone: '01711000003',
-      applicant_email: 'farzana@saffron-glam.com',
-      business_name: 'Saffron Glam Cosmetics',
-      business_address: 'House 42, Road 11, Banani, Dhaka',
-      kyc_type: 'SALER',
-      current_tier: 'TIER_2',
-      trust_score: 68,
-      doc_count: 2,
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 3600000 * 6).toISOString(),
-      documents: [
-        { id: 104, doc_type: 'Smart National ID', mime_type: 'image/jpeg', view_count: 0, storage_key: 'kyc/smart_nid_98211.jpg' },
-        { id: 105, doc_type: 'Selfie with NID', mime_type: 'image/jpeg', view_count: 0, storage_key: 'kyc/selfie_nid_98211.jpg' },
-      ],
-    },
-    {
-      id: 3,
-      ref: 'KYC-98212',
-      user_id: 6,
-      applicant_name: 'Mahmudul Hasan',
-      applicant_phone: '01711000006',
-      applicant_email: 'mahmud@bengal-leather.com',
-      business_name: 'Bengal Leather Crafts',
-      business_address: 'Hazaribagh, Dhaka',
-      kyc_type: 'SUPPLIER',
-      current_tier: 'TIER_3',
-      trust_score: 88,
-      doc_count: 4,
-      status: 'VERIFIED',
-      created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-      documents: [
-        { id: 106, doc_type: 'National ID', mime_type: 'image/jpeg', view_count: 3, storage_key: 'kyc/nid_98212.jpg' },
-        { id: 107, doc_type: 'Trade License', mime_type: 'application/pdf', view_count: 4, storage_key: 'kyc/trade_98212.pdf' },
-        { id: 108, doc_type: 'TIN Certificate', mime_type: 'application/pdf', view_count: 2, storage_key: 'kyc/tin_98212.pdf' },
-        { id: 109, doc_type: 'Warehouse Utility Bill', mime_type: 'image/png', view_count: 2, storage_key: 'kyc/bill_98212.png' },
-      ],
-    },
-  ];
 
   async function init() {
     try {
@@ -135,9 +70,11 @@ export default function VerificationCenterPage(root: HTMLElement) {
         const matched = queueItems.find((k) => k.id === selectedKyc.id);
         selectedKyc = matched || queueItems[0] || null;
       }
-    } catch {
-      queueItems = currentFilter === 'ALL' ? defaultSampleQueue : defaultSampleQueue.filter((k) => k.status === currentFilter);
-      selectedKyc = queueItems[0] || null;
+    } catch (err) {
+      // WHY no sample applicants: a failed load used to show three made-up people to approve.
+      queueItems = [];
+      selectedKyc = null;
+      toast.error(pickMessage(err) || t('kyc.queue_load_failed'));
     } finally {
       loading = false;
       render();
@@ -147,10 +84,11 @@ export default function VerificationCenterPage(root: HTMLElement) {
   async function loadKycDetails(kycId) {
     try {
       const res = await api.get(`/admin/kyc/${kycId}`);
-      selectedKyc = res.data || defaultSampleQueue.find((k) => String(k.id) === String(kycId)) || null;
+      selectedKyc = res.data || null;
       render();
-    } catch {
-      selectedKyc = defaultSampleQueue.find((k) => String(k.id) === String(kycId)) || null;
+    } catch (err) {
+      selectedKyc = null;
+      toast.error(pickMessage(err) || t('kyc.queue_load_failed'));
       render();
     }
   }
@@ -248,7 +186,7 @@ export default function VerificationCenterPage(root: HTMLElement) {
       await api.post(`/admin/kyc/${selectedKyc.id}/decide`, {
         decision: 'VERIFIED',
       });
-      toast.success(t('kyc.approve_success', 'KYC verification approved and Blue-Tick badge issued!'));
+      toast.success(t('kyc.approve_success', 'Identity check approved and the blue tick given.'));
       selectedKyc.status = 'VERIFIED';
       complianceChecks = emptyComplianceChecks();
       complianceFor = null;
@@ -269,8 +207,8 @@ export default function VerificationCenterPage(root: HTMLElement) {
     modalBackdrop.className = 'kyc-modal-backdrop';
 
     modalBackdrop.innerHTML = `
-      <div class="kyc-modal kyc-modal--narrow" role="dialog" aria-modal="true" aria-label="${t('kyc.reject_modal_title', 'Reject KYC Submission')}">
-        <h3 style="font-size: 18px; font-weight: 800; color: var(--danger); margin: 0 0 4px 0;">${esc(t('kyc.reject_modal_title', 'Reject KYC Submission'))}</h3>
+      <div class="kyc-modal kyc-modal--narrow" role="dialog" aria-modal="true" aria-label="${t('kyc.reject_modal_title', 'Reject this identity check')}">
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--danger); margin: 0 0 4px 0;">${esc(t('kyc.reject_modal_title', 'Reject this identity check'))}</h3>
         <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: var(--space-4);">${t('kyc.reject_modal_desc', 'Please provide clear feedback so the applicant can correct their documents.')}</p>
 
         <div style="display: flex; flex-direction: column; gap: var(--space-3); font-size: 12px;">
@@ -308,7 +246,7 @@ export default function VerificationCenterPage(root: HTMLElement) {
           reason_bn: reasonBn || 'তথ্যে অমিল রয়েছে',
         });
         close();
-        toast.success(t('kyc.reject_success', 'KYC submission rejected.'));
+        toast.success(t('kyc.reject_success', 'Identity check rejected.'));
         selectedKyc.status = 'REJECTED';
         fetchQueue();
       } catch (err) {
@@ -334,7 +272,7 @@ export default function VerificationCenterPage(root: HTMLElement) {
     }
 
     if (queueItems.length === 0) {
-      return `<div style="padding: var(--space-8); text-align: center; color: var(--text-muted); font-size: 12px;">${t('kyc.queue_empty', 'No KYC submissions found in this filter.')}</div>`;
+      return `<div style="padding: var(--space-8); text-align: center; color: var(--text-muted); font-size: 12px;">${t('kyc.queue_empty', 'No verification submissions matching filter.')}</div>`;
     }
 
     return `
@@ -491,7 +429,7 @@ export default function VerificationCenterPage(root: HTMLElement) {
               </span>
             </div>
             <h1 class="admin-users__title" style="margin: 0;">
-              ${t('kyc.admin_center_title', 'KYC & Verification Center')}
+              ${t('kyc.admin_center_title', 'Identity checks')}
             </h1>
             <p class="admin-users__subtitle" style="margin-top: 2px;">${t('kyc.admin_center_subtitle', 'Review merchant National IDs, Trade Licenses, and grant Blue-Tick trust badges.')}</p>
           </div>

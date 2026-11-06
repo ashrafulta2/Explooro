@@ -1,5 +1,5 @@
 /**
- * SalerStoreStatusPage.ts — Shop Partner Physical Shop, Showroom & Customer Pickup Desk Status (Prompt 11.1 / §AL.2).
+ * SalerStoreStatusPage.ts — Explooro Partner Physical Shop, Showroom & Customer Pickup Desk Status (Prompt 11.1 / §AL.2).
  *
  * Route: /saler/store-status
  * Implements:
@@ -80,7 +80,7 @@ export default function SalerStoreStatusPage(root: HTMLElement, { navigate }: Pa
         };
       }
     } catch (err) {
-      console.error('Failed to load shop partner store status:', err);
+      console.error('Failed to load Explooro partner store status:', err);
     } finally {
       loading = false;
       render();

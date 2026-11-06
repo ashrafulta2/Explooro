@@ -4,7 +4,7 @@
  * Catalog queries select `p.*` and every catalog response used to send it whole, so a logged-out
  * shopper could read the supplier's cost (`base_cost`), the platform's margin on top of it, the
  * per-unit partner pool share and the full pricing breakdown. Those belong to the supplier who owns
- * the product and to admins; everyone else (shoppers, shop partners, guests) gets the retail price,
+ * the product and to admins; everyone else (shoppers, Explooro partners, guests) gets the retail price,
  * any deal price, stock, variants, images and supplier info.
  *
  * WHY a deny list for the row and an allow list for `pricing`: catalog rows carry 30-odd joined

@@ -309,7 +309,7 @@ export function findMockProductByFlashSaleId(flashSaleId) {
   return activeProducts.find((p) => String(p.flash_sale_id) === String(flashSaleId)) || null;
 }
 
-// In-memory store items for mock shop partner storefront
+// In-memory store items for mock Explooro partner storefront
 const mockSalerStoreItems = [
   {
     id: 1,
@@ -841,7 +841,7 @@ export default [
       let priceStatus = 'DEFAULT';
 
       if (retailPricePaisa < defaultRetailPricePaisa) {
-        // Price dropped below default: Platform profit is fixed; only shop partner profit drops
+        // Price dropped below default: Platform profit is fixed; only Explooro partner profit drops
         priceStatus = 'DISCOUNTED';
         const dropPaisa = defaultRetailPricePaisa - retailPricePaisa;
         platformEarningPaisa = platformDefaultProfitPaisa;
@@ -851,7 +851,7 @@ export default [
         platformEarningPaisa = platformDefaultProfitPaisa;
         salerEarningPaisa = salerDefaultProfitPaisa;
       } else {
-        // Price marked up above default: Extra markup shared between platform and shop partner
+        // Price marked up above default: Extra markup shared between platform and Explooro partner
         priceStatus = 'BOOSTED';
         const extraPaisa = retailPricePaisa - defaultRetailPricePaisa;
         const extraPlatformPaisa = Math.floor((extraPaisa * extraMarkupPlatformPct) / 100);
@@ -1017,8 +1017,8 @@ export default [
           body: {
             error: {
               code: 'PRICE_LOCKED',
-              message_en: 'Prices are set by the supplier. Shop partners cannot change them.',
-              message_bn: 'দাম supplier ঠিক করেন। Shop partner দাম পরিবর্তন করতে পারবেন না।',
+              message_en: 'Prices are set by the supplier. Explooro Partners cannot change them.',
+              message_bn: 'দাম supplier ঠিক করেন। Explooro Partner দাম পরিবর্তন করতে পারবেন না।',
               trace_id: traceId(),
             },
           },

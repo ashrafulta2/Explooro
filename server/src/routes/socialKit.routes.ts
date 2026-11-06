@@ -1,5 +1,5 @@
 /**
- * socialKit.routes.ts — Fastify route definitions for Social Shop Partner Kit & Short Links (Prompt 9.7).
+ * socialKit.routes.ts — Fastify route definitions for Social Explooro Partner Kit & Short Links (Prompt 9.7).
  */
 
 import * as socialKitController from '../controllers/socialKit.controller.ts';
@@ -35,7 +35,7 @@ export default async function socialKitRoutes(app) {
     schema: { querystring: { type: 'object', required: ['code'], properties: { code: { type: 'string', minLength: 1, maxLength: 120 }, format: { type: 'string', maxLength: 20 }, theme: { type: 'string', maxLength: 20 } } } },
   }, socialKitController.renderFlyer);
 
-  // 4. Shop Partner Short Link Analytics
+  // 4. Explooro Partner Short Link Analytics
   app.get('/saler/social-kit/analytics', {
     preHandler: [app.authenticate, requireSocialKit],
   }, socialKitController.getAnalytics);

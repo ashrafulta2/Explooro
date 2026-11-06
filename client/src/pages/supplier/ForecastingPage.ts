@@ -102,7 +102,7 @@ export default function SupplierForecastingPage(root: HTMLElement) {
     const high     = data.filter(f=>f.risk==='HIGH').length;
     const revenueAtRisk = data.reduce((s,f)=>s+(f.revenue_at_risk||0), 0);
     const items = [
-      { label:t('sup_forecast.stat_total', 'Total SKUs'),      value: data.length,    text:'var(--info-700,#1e40af)',    bg:'var(--info-100,#dbeafe)' },
+      { label:t('sup_forecast.stat_total', 'Total products'),      value: data.length,    text:'var(--info-700,#1e40af)',    bg:'var(--info-100,#dbeafe)' },
       { label:t('sup_forecast.stat_critical', 'Critical Stock'),value: critical,       text:'var(--danger-700,#b91c1c)',  bg:'var(--danger-100,#fee2e2)' },
       { label:t('sup_forecast.stat_high', 'High Risk'),        value: high,           text:'var(--warning-800,#9a3412)', bg:'var(--warning-100,#ffedd5)' },
       { label:t('sup_forecast.stat_revenue_risk', 'Revenue at Risk'),  value: revenueAtRisk>0 ? formatCurrency(revenueAtRisk) : '—', text:'var(--info-700,#7e22ce)', bg:'var(--info-100,#fae8ff)' },
@@ -234,7 +234,7 @@ export default function SupplierForecastingPage(root: HTMLElement) {
             color:${riskFilter===r?'var(--brand-contrast,#fff)':'var(--text-secondary,#64748b)'};">${t(RISK_LABEL_KEYS[r] || 'sup_forecast.risk_all', r)}</button>
         `).join('')}
         <!-- Search -->
-        <input id="inp-sku-search" type="text" aria-label="${t('sup_forecast.search_placeholder', 'Search SKU or product…')}" placeholder="${t('sup_forecast.search_placeholder', 'Search SKU or product…')}" value="${searchQuery}"
+        <input id="inp-sku-search" type="text" aria-label="${t('sup_forecast.search_placeholder', 'Search products…')}" placeholder="${t('sup_forecast.search_placeholder', 'Search products…')}" value="${searchQuery}"
           style="margin-left:auto;padding:7px 12px;border-radius:8px;border:1px solid var(--border-default,#e2e8f0);
           font-size:0.82rem;background:var(--surface-0,#f8fafc);min-width:200px;color:var(--text-primary,#0f172a);">
       </div>
@@ -244,7 +244,7 @@ export default function SupplierForecastingPage(root: HTMLElement) {
         ${loading ? pulse+pulse+pulse : data.length===0 ? `
           <div style="text-align:center;padding:48px 0;">
             <div style="font-size:2.5rem;margin-bottom:8px;">📊</div>
-            <p style="margin:0;font-size:0.875rem;color:var(--text-secondary,#64748b);">${t('sup_forecast.empty', 'No SKUs match the current filter.')}</p>
+            <p style="margin:0;font-size:0.875rem;color:var(--text-secondary,#64748b);">${t('sup_forecast.empty', 'No products match this filter.')}</p>
           </div>
         ` : data.map(renderForecastRow).join('')}
       </div>

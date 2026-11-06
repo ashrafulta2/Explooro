@@ -49,7 +49,7 @@ export async function likeReel(id: number | string) {
   return api.post(`/content/reels/${id}/like`, {});
 }
 
-// Shop Partner & Buyer Academy
+// Explooro Partner & Buyer Academy
 export async function listAcademyCourses(params: Params = {}) {
   return api.get('/academy/courses', { query: params });
 }

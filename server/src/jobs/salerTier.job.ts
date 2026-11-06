@@ -1,5 +1,5 @@
 /**
- * salerTier.job.ts — keeps every shop partner's commission tier current (see services/salerTier.service.ts).
+ * salerTier.job.ts — keeps every Explooro partner's commission tier current (see services/salerTier.service.ts).
  *
  * Not gated on a platform module: the `saler.commission_tiers.enabled` setting is the switch, and the
  * service writes nothing while it is off.

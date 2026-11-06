@@ -80,10 +80,10 @@ export default async function productRoutes(app) {
   );
   app.delete('/products/:id', { preHandler: [authenticate] }, productController.deleteProduct);
 
-  // Shop Partner Sourcing & Virtual Storefront
+  // Explooro Partner Sourcing & Virtual Storefront
   app.get('/sourcing/catalog', sourcingController.getSourcingCatalog);
   // Sponsored Sourcing Slot (supplier attraction step 2). Unlike the catalog above this is guarded:
-  // sponsored cards expose a supplier's wholesale pricing to the shop partner it is sold to.
+  // sponsored cards expose a supplier's wholesale pricing to the Explooro partner it is sold to.
   app.get(
     '/sourcing/sponsored',
     {
@@ -96,7 +96,7 @@ export default async function productRoutes(app) {
     },
     sourcingController.getSponsoredSourcing
   );
-  // Volume Incentive from the shop partner's side: progress towards each supplier's tiers, and payouts.
+  // Volume Incentive from the Explooro partner's side: progress towards each supplier's tiers, and payouts.
   app.get(
     '/sourcing/incentives',
     {
@@ -109,14 +109,14 @@ export default async function productRoutes(app) {
     },
     sourcingController.getSalerIncentives
   );
-  // The shop partner's own commission tier (earned by sales volume; what it pays is set at /admin/finance/splits).
-  // No `config.page`: the card is shown on more than one shop partner page, so the endpoint cannot belong to one.
+  // The Explooro partner's own commission tier (earned by sales volume; what it pays is set at /admin/finance/splits).
+  // No `config.page`: the card is shown on more than one Explooro partner page, so the endpoint cannot belong to one.
   app.get(
     '/saler/commission-tier',
     { preHandler: [authenticate, requirePerm('saler.sourcing.view')] },
     sourcingController.getSalerCommissionTier
   );
-  // The shop partner's own Partner Score (partnerScore.service.ts). No `config.page` for the same
+  // The Explooro partner's own Partner Score (partnerScore.service.ts). No `config.page` for the same
   // reason as the tier card: it is a dashboard card, not one page's endpoint.
   app.get(
     '/saler/partner-score',
@@ -131,7 +131,7 @@ export default async function productRoutes(app) {
   );
   // Same issue as above: getMyStore reads req.user.id to find the caller's own store, but with no
   // preHandler that id was always undefined, so this always returned an empty store.
-  // Sample Requests + Marketing Kits (supplier attraction step 4). A request moves the shop partner's own money
+  // Sample Requests + Marketing Kits (supplier attraction step 4). A request moves the Explooro partner's own money
   // (into their HELD bucket), so it has its own permission apart from browsing.
   const sampleGuards = (perm) => [authenticate, ...(app.requireModule ? [app.requireModule('sourcing')] : []), requirePerm(perm)];
   app.get('/sourcing/samples', { config: { page: '/saler/samples' }, preHandler: sampleGuards('saler.sourcing.view') }, sampleKit.getSalerSamples);

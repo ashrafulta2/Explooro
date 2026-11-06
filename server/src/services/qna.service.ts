@@ -19,7 +19,7 @@ export async function answerQuestion(db, { questionId, responderId, body, isSell
   if (!isSellerOrSupplier) {
     throw new AppError(
       'FORBIDDEN',
-      'Only a shop partner or supplier can answer a product question.',
+      'Only a Explooro partner or supplier can answer a product question.',
       'শুধুমাত্র শপ পার্টনার বা সরবরাহকারী পণ্যের প্রশ্নের উত্তর দিতে পারবেন।'
     );
   }

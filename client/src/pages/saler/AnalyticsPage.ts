@@ -1,5 +1,5 @@
 /**
- * AnalyticsPage.ts — Shop Partner Sales, Profit, Traffic & Conversion Analytics (Prompt 11.2 / idea §AL.2).
+ * AnalyticsPage.ts — Explooro Partner Sales, Profit, Traffic & Conversion Analytics (Prompt 11.2 / idea §AL.2).
  *
  * Implements:
  * 1. Time-range selector (7d, 30d, 90d).

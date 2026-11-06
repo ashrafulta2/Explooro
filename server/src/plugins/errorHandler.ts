@@ -51,14 +51,14 @@ const ERROR_STATUS = {
   FLASH_SALE_EXPIRED: 409,
   FLASH_SALE_OUT_OF_STOCK: 409,
   FLASH_SALE_LIMIT_EXCEEDED: 409,
-  // Migration 085: the supplier sets every price; a shop partner sending one is refused, never ignored.
+  // Migration 085: the supplier sets every price; a Explooro partner sending one is refused, never ignored.
   PRICE_LOCKED: 422,
   // Migration 088: a vault top-up over the 24-hour limit.
   TOPUP_DAILY_LIMIT: 422,
   // Live stream commerce: these were thrown by liveStream.service.ts but unmapped, so a bad stream or
   // product id answered 500 INTERNAL_ERROR. Found by an end-to-end run against the dev database.
   STREAM_NOT_FOUND: 404,
-  // An unknown or deleted shop partner short link (shortlink.service.ts) answered 500 the same way.
+  // An unknown or deleted Explooro partner short link (shortlink.service.ts) answered 500 the same way.
   SHORTLINK_NOT_FOUND: 404,
   PRODUCT_NOT_FOUND: 404,
   PRODUCT_NOT_IN_STREAM: 404,

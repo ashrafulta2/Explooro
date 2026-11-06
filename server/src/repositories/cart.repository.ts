@@ -59,8 +59,8 @@ export async function getCartItemsWithDetails(db, cartId) {
       p.title_bn AS product_title_bn,
       p.slug AS product_slug,
       p.status AS product_status,
-      -- WHY: a line sold through a shop partner is priced at that shop partner's own price; the supplier default
-      -- only applies to a direct buy or when the shop partner has no active store item for the product.
+      -- WHY: a line sold through a Explooro partner is priced at that Explooro partner's own price; the supplier default
+      -- only applies to a direct buy or when the Explooro partner has no active store item for the product.
       COALESCE(ssi.custom_retail_price, p.default_retail_price) AS current_product_retail_price,
       p.base_cost AS current_product_base_price,
       p.stock_qty AS current_product_stock_qty,
@@ -124,7 +124,7 @@ export async function getCartItemsWithDetails(db, cartId) {
 
 export async function upsertCartItem(db, { cartId, productId, variantId = null, salerId = null, bundleId = null, qty, priceAtAdd, shortLinkId = null, attributionSource = null }) {
   // Uses ON CONFLICT on the unique expression index
-  // WHY the shop partner columns are overwritten too: price_at_add already follows the latest add, and
+  // WHY the Explooro partner columns are overwritten too: price_at_add already follows the latest add, and
   // it is that partner's price, so the line must credit the same partner (last touch wins).
   const query = `
     INSERT INTO cart_items (cart_id, product_id, variant_id, saler_id, bundle_id, qty, price_at_add, short_link_id, attribution_source, added_at)

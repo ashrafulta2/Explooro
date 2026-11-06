@@ -161,8 +161,8 @@ export const MASTER_PRESETS: Record<string, MasterPreset> = {
     key: 'cobalt_trust',
     name_en: 'Cobalt Trust',
     name_bn: 'কোবাল্ট ট্রাস্ট',
-    description_en: 'Authoritative fintech blue accents on clean neutral surfaces for escrow and vault flows.',
-    description_bn: 'ফিনটেক ব্লু অ্যাকসেন্ট ও পরিষ্কার নিউট্রাল সারফেস — এসক্রো ও ভল্টের জন্য।',
+    description_en: 'Authoritative fintech blue accents on clean neutral surfaces for payment and vault screens.',
+    description_bn: 'ফিনটেক ব্লু অ্যাকসেন্ট ও পরিষ্কার নিউট্রাল সারফেস — পেমেন্ট ও ভল্টের জন্য।',
     group: 'marketplace',
     master: {
       seed: '#1d4ed8',

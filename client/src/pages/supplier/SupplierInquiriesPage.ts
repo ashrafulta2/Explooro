@@ -3,7 +3,7 @@
  *
  * Route: /supplier/inquiries
  * Implements:
- * 1. Bulk buyer and Shop Partner wholesale quotation inquiry queue.
+ * 1. Bulk buyer and Explooro Partner wholesale quotation inquiry queue.
  * 2. Minimum Order Quantity (MOQ) negotiations.
  * 3. 1-Click Custom Wholesale Quote submission.
  * 4. WhatsApp Quick Connect link for real-time deal discussions.
@@ -42,7 +42,7 @@ export default function SupplierInquiriesPage(root: HTMLElement) {
       target_unit_price: 180.0,
       current_wholesale_price: 210.0,
       status: 'QUOTED',
-      message: 'Need 500 bottles dispatched across 2 batches with fresh FEFO lot tags.',
+      message: 'Need 500 bottles sent in 2 batches, with long expiry dates.',
       created_at: '2026-08-30 16:45',
     },
   ];
@@ -66,7 +66,7 @@ export default function SupplierInquiriesPage(root: HTMLElement) {
           <span><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></span> ${t('supplier.inquiries_title', 'Wholesale Quotation Requests & Inquiries')}
         </h1>
         <p class="supplier-header__subtitle">
-          ${t('supplier.inquiries_subtitle', 'Negotiate custom bulk pricing, minimum order quantities (MOQ), and chat with Shop Partners.')}
+          ${t('supplier.inquiries_subtitle', 'Negotiate custom bulk pricing, minimum order quantities (MOQ), and chat with Explooro Partners.')}
         </p>
       </div>
       <div class="supplier-header__actions">
@@ -150,7 +150,7 @@ export default function SupplierInquiriesPage(root: HTMLElement) {
         EmptyState({
           icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>',
           title: 'No inquiries found',
-          description: 'New bulk quotation requests from verified Shop Partners will appear here automatically.',
+          description: 'New bulk quotation requests from verified Explooro Partners will appear here automatically.',
         })
       );
       return;
@@ -249,7 +249,7 @@ export default function SupplierInquiriesPage(root: HTMLElement) {
 
           <div style="display: flex; flex-direction: column; gap: 4px;">
             <label class="label" style="font-weight: 700;">Special Notes for Buyer</label>
-            <textarea id="quote-notes" class="input input--sm" style="height: 60px; resize: vertical;" placeholder="Include details regarding packaging, FEFO lot freshness, or shipping..."></textarea>
+            <textarea id="quote-notes" class="input input--sm" style="height: 60px; resize: vertical;" placeholder="Include details about packaging, expiry dates or shipping..."></textarea>
           </div>
         </div>
       `,

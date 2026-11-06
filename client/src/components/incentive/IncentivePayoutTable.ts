@@ -1,9 +1,9 @@
 /**
- * IncentivePayoutTable — the monthly volume-incentive rebates, as the supplier paid them or the shop partner
+ * IncentivePayoutTable — the monthly volume-incentive rebates, as the supplier paid them or the Explooro partner
  * received them.
  *
  * One table for both audiences because the rows are the same facts; `perspective` only decides which
- * column is first (a supplier looks for the shop partner's share, a shop partner looks for who paid).
+ * column is first (a supplier looks for the Explooro partner's share, a Explooro partner looks for who paid).
  *
  * Invariants:
  *  - Status is always words (Paid / Waiting for funds / Not paid), never colour alone.
@@ -38,7 +38,7 @@ export interface IncentivePayout {
   status: string;
 }
 
-/** `saler` also gets a supplier column (a shop partner wants to know who paid). */
+/** `saler` also gets a supplier column (a Explooro partner wants to know who paid). */
 export function IncentivePayoutTable(
   rows: IncentivePayout[] | null | undefined,
   { perspective = 'supplier' }: { perspective?: 'supplier' | 'saler' } = {},

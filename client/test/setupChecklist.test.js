@@ -77,11 +77,11 @@ describe('setup checklist — where it lives', () => {
     }
   });
 
-  it("the shop partner's old onboarding widget is gone, so two lists never show at once", () => {
+  it("the Explooro partner's old onboarding widget is gone, so two lists never show at once", () => {
     assert.doesNotMatch(read('pages/saler/SalerDashboardPage.ts'), /renderOnboardingWidget/);
   });
 
-  it('Help re-opens it: settings for every role, the supplier help page, the shop partner academy', () => {
+  it('Help re-opens it: settings for every role, the supplier help page, the Explooro partner academy', () => {
     for (const page of ['pages/settings/NotificationPreferencesPage.ts', 'pages/supplier/SupplierHelpPage.ts', 'pages/AcademyPage.ts']) {
       assert.match(read(page), /setupChecklistLink\(\)/, page);
     }

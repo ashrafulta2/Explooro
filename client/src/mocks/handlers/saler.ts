@@ -1,5 +1,5 @@
 /**
- * saler.ts — Mock handlers for the Shop Partner Dashboard, Analytics, Products, Orders, Store Status, Payouts & Quests.
+ * saler.ts — Mock handlers for the Explooro Partner Dashboard, Analytics, Products, Orders, Store Status, Payouts & Quests.
  */
 import { listMockChatThreads, appendMockMessage, SELF } from './chat.ts';
 import type { MockRoute } from '../types.ts';
@@ -65,7 +65,7 @@ function buildTrends(range) {
   return trends;
 }
 
-// ── In-Memory State for Shop Partner Features ──────────────────────────────────────
+// ── In-Memory State for Explooro Partner Features ──────────────────────────────────────
 
 let mockSalerProducts: Record<string, any>[] = [
   {
@@ -396,7 +396,7 @@ let mockSalerQuests = [
     id: 'quest_4',
     title_en: 'Complete 2 Delivered Orders this Week',
     title_bn: 'এই সপ্তাহে ২টি সফল ডেলিভারি সম্পন্ন করুন',
-    desc_en: 'Earn shop partner commission on 2 confirmed and delivered customer orders.',
+    desc_en: 'Earn Explooro partner commission on 2 confirmed and delivered customer orders.',
     category: 'weekly',
     reward_coins: 75,
     target_count: 2,
@@ -430,13 +430,13 @@ let mockSalerLeaderboard = [
   { rank: 7, saler_name: 'Ashraf Ali', store_slug: 'gadget-galaxy', sales_count: 38, gmv: 84500.0, net_profit: 14800.0, tier_badge: 'BRONZE_SELLER', avatar: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', is_current_user: false },
 ];
 
-// Shop Partner Pro mock — mirrors server/src/services/subscriptionBilling.service.ts shapes.
+// Explooro Partner Pro mock — mirrors server/src/services/subscriptionBilling.service.ts shapes.
 const PRO_PERIOD_MS = 30 * 24 * 3600 * 1000;
 const mockProPlans = [
   { id: 1, code: 'starter', name_en: 'Free Starter', name_bn: 'ফ্রি স্টার্টার', role: 'ALL', monthly_fee: 0, free_listings: 100,
     extra_listing_fee: 0, commission_rebate_pct: 0, is_active: true,
     features_en: ['Up to 100 live products', 'Standard escrow release'], features_bn: ['সর্বোচ্চ ১০০টি সক্রিয় পণ্য', 'সাধারণ এসক্রো রিলিজ'] },
-  { id: 2, code: 'saler_pro', name_en: 'Shop Partner Pro', name_bn: 'শপ পার্টনার প্রো', role: 'saler', monthly_fee: 999, free_listings: 1000,
+  { id: 2, code: 'saler_pro', name_en: 'Explooro Partner Pro', name_bn: 'শপ পার্টনার প্রো', role: 'saler', monthly_fee: 999, free_listings: 1000,
     extra_listing_fee: 2, commission_rebate_pct: 2, is_active: true,
     features_en: ['1,000 live products', '+2 points on every sale split', 'Priority support'], features_bn: ['১,০০০টি সক্রিয় পণ্য', 'প্রতিটি বিক্রয়ে +২ পয়েন্ট', 'অগ্রাধিকার সহায়তা'] },
 ];
@@ -627,7 +627,7 @@ export default [
     }),
   },
 
-  // 4. Shop Partner Curated Products (My Products)
+  // 4. Explooro Partner Curated Products (My Products)
   // Mirrors the server (store.service.ts listMyProducts / updateMyProduct / removeMyProduct): `:id` is
   // the store item's id, the list is paged, and nothing behind the shopper's price is sent — no
   // supplier cost, no `partner_profit` (the per-product reward pool amount), no custom price.
@@ -679,8 +679,8 @@ export default [
           body: {
             error: {
               code: 'PRICE_LOCKED',
-              message_en: 'Prices are set by the supplier. Shop partners cannot change them.',
-              message_bn: 'দাম supplier ঠিক করেন। Shop partner দাম পরিবর্তন করতে পারবেন না।',
+              message_en: 'Prices are set by the supplier. Explooro Partners cannot change them.',
+              message_bn: 'দাম supplier ঠিক করেন। Explooro Partner দাম পরিবর্তন করতে পারবেন না।',
             },
           },
         };
@@ -691,8 +691,8 @@ export default [
           body: {
             error: {
               code: 'VALIDATION_FAILED',
-              message_en: 'is_active (true or false) is the only field a shop partner can change on a store item.',
-              message_bn: 'স্টোর আইটেমে shop partner শুধু is_active (true বা false) পরিবর্তন করতে পারবেন।',
+              message_en: 'is_active (true or false) is the only field a Explooro partner can change on a store item.',
+              message_bn: 'স্টোর আইটেমে Explooro partner শুধু is_active (true বা false) পরিবর্তন করতে পারবেন।',
             },
           },
         };
@@ -724,7 +724,7 @@ export default [
     },
   },
 
-  // 5. Shop Partner Physical Store Status
+  // 5. Explooro Partner Physical Store Status
   {
     method: 'GET',
     path: '/saler/store-status',
@@ -748,7 +748,7 @@ export default [
     },
   },
 
-  // 6. Shop Partner Orders
+  // 6. Explooro Partner Orders
   {
     method: 'GET',
     path: '/saler/orders',
@@ -798,7 +798,7 @@ export default [
     },
   },
 
-  // 7. Shop Partner Vault Withdrawals & Payouts
+  // 7. Explooro Partner Vault Withdrawals & Payouts
   {
     method: 'GET',
     path: '/saler/vault/payouts',
@@ -837,7 +837,7 @@ export default [
         amount,
         method: body?.method || 'BKASH',
         account_number: body?.account_number || '01700000000',
-        account_name: body?.account_name || 'Shop Partner Account',
+        account_name: body?.account_name || 'Explooro Partner Account',
         bank_name: body?.bank_name || null,
         status: 'PROCESSING',
         requested_at: new Date().toISOString(),
@@ -869,7 +869,7 @@ export default [
     },
   },
 
-  // 8. Shop Partner Quests & Leaderboard
+  // 8. Explooro Partner Quests & Leaderboard
   {
     method: 'GET',
     path: '/saler/quests',
@@ -1038,7 +1038,7 @@ export default [
       };
     },
   },
-  // Shop Partner Pro subscription (module `subscription_fees`)
+  // Explooro Partner Pro subscription (module `subscription_fees`)
   {
     method: 'GET',
     path: '/subscriptions/me',

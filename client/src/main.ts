@@ -170,7 +170,7 @@ async function bootRouterDemo() {
       { path: '/products/:id', title: 'Product — Explooro', permission: null, module: 'core', load: () => import('./pages/ProductDetailPage.ts') },
       // Prompt 4.8: real virtual storefront page replaces the Prompt 1.5 stub.
       { path: '/store/:slug', title: 'Store — Explooro', permission: null, module: 'virtual_storefront', load: () => import('./pages/StorefrontPage.ts') },
-      // A shop partner's tracked short link: counts the click, remembers the partner, then opens the target.
+      // A Explooro partner's tracked short link: counts the click, remembers the partner, then opens the target.
       { path: '/s/:code', title: 'Explooro', permission: null, module: 'social_seller_kit', load: () => import('./pages/ShortLinkPage.ts') },
       // Full-page shopping cart (replaced the right-side drawer).
       { path: '/cart', title: 'Shopping Cart — Explooro', permission: null, module: 'core', load: () => import('./pages/CartPage.ts') },
@@ -191,7 +191,7 @@ async function bootRouterDemo() {
       // page, so the "Live Streams" nav item under REVIEW QUEUES opened a storefront with a "Host a
       // Live Stream" button and no moderation controls at all.
       { path: '/moderator/live', title: 'Live Moderation — Explooro', requiresAuth: true, permission: 'moderation.live.handle', module: 'live_commerce', load: () => import('./pages/moderator/LiveModerationPage.ts') },
-      // Prompt 4.7: Shop Partner Sourcing Catalog & Profit Calculator
+      // Prompt 4.7: Explooro Partner Sourcing Catalog & Profit Calculator
       {
         path: '/saler/sourcing',
         title: 'Sourcing Catalog — Explooro',
@@ -199,7 +199,7 @@ async function bootRouterDemo() {
         permission: 'saler.sourcing.view',
         module: 'sourcing',
         // WHY the stylesheet is loaded here and not imported by the page: salerPages.test.js imports
-        // every shop partner page under plain node, which cannot load a .css file. Importing it from the
+        // every Explooro partner page under plain node, which cannot load a .css file. Importing it from the
         // route keeps the CSS out of the entry bundle (70KB budget) and the page importable.
         load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./pages/saler/SourcingCatalogPage.ts')]).then(([, , page]) => page),
       },
@@ -498,7 +498,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/academy',
-        title: 'Shop Partner Academy — Explooro',
+        title: 'Explooro Partner Academy — Explooro',
         permission: null,
         module: 'seller_academy',
         load: () => import('./pages/AcademyPage.ts'),
@@ -537,7 +537,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/editor/academy',
-        title: 'Shop Partner Academy — Explooro',
+        title: 'Explooro Partner Academy — Explooro',
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
@@ -658,7 +658,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/supplier/salers',
-        title: 'Shop Partner Network Insights — Explooro',
+        title: 'Explooro Partner Network Insights — Explooro',
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'core',
@@ -761,7 +761,7 @@ async function bootRouterDemo() {
         module: 'physical_shop_status',
         load: () => import('./pages/supplier/StoreStatusPage.ts'),
       },
-      // Prompt 4.8: Shop Partner Virtual Storefront Builder
+      // Prompt 4.8: Explooro Partner Virtual Storefront Builder
       {
         path: '/saler/store-builder',
         title: 'Store Builder — Explooro',
@@ -780,20 +780,20 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/social-kit',
-        title: 'Social Shop Partner Kit — Explooro',
+        title: 'Social Explooro Partner Kit — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'core',
         load: () => import('./pages/saler/SocialKitPage.ts'),
       },
-      // Prompt 11.2: Shop Partner Dashboard & Analytics
+      // Prompt 11.2: Explooro Partner Dashboard & Analytics
       // WHY this is the only `/saler` entry: a Prompt-1.5 guard-demo stub was also registered at
       // this path, ~200 lines earlier. The router matches first-wins, so the stub shadowed the real
-      // dashboard and every shop partner landing on /saler saw a permissions demo. That route and the stub
+      // dashboard and every Explooro partner landing on /saler saw a permissions demo. That route and the stub
       // file (pages/dev/SalerDashboardStub.js) are both deleted now — keep /saler registered once.
       {
         path: '/saler',
-        title: 'Shop Partner Dashboard — Explooro',
+        title: 'Explooro Partner Dashboard — Explooro',
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
@@ -801,7 +801,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/dashboard',
-        title: 'Shop Partner Dashboard — Explooro',
+        title: 'Explooro Partner Dashboard — Explooro',
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
@@ -833,7 +833,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/academy',
-        title: 'Shop Partner Academy — Explooro',
+        title: 'Explooro Partner Academy — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'core',
@@ -906,7 +906,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/account/become-saler',
-        title: '1-Click Shop Partner Upgrade — Explooro',
+        title: '1-Click Explooro Partner Upgrade — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
@@ -914,7 +914,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/customer/become-saler',
-        title: '1-Click Shop Partner Upgrade — Explooro',
+        title: '1-Click Explooro Partner Upgrade — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
@@ -922,7 +922,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/become-saler',
-        title: '1-Click Shop Partner Upgrade — Explooro',
+        title: '1-Click Explooro Partner Upgrade — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'virtual_storefront',
@@ -1015,7 +1015,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/catalog/batches',
-        title: 'Batches & FEFO Expiration — Explooro Admin',
+        title: 'Batches & Expiry — Explooro Admin',
         requiresAuth: true,
         permission: 'catalog.batch.govern',
         module: 'fefo_batches',
@@ -1023,7 +1023,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/batches',
-        title: 'Batches & FEFO Expiration — Explooro Admin',
+        title: 'Batches & Expiry — Explooro Admin',
         requiresAuth: true,
         permission: 'catalog.batch.govern',
         module: 'fefo_batches',
@@ -1057,7 +1057,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/courier',
-        title: '3PL Courier Logistics Hub — Explooro Admin',
+        title: 'Couriers — Explooro Admin',
         requiresAuth: true,
         permission: 'logistics.carrier.manage',
         module: 'courier_hub',
@@ -1067,7 +1067,7 @@ async function bootRouterDemo() {
       // Admin Finance (Ledger, Escrow, B2B Escrow)
       {
         path: '/admin/finance/ledger',
-        title: 'General Ledger — Explooro Admin',
+        title: 'Transaction Records — Explooro Admin',
         requiresAuth: true,
         permission: 'finance.ledger.view',
         module: 'core',
@@ -1075,7 +1075,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/ledger',
-        title: 'General Ledger — Explooro Admin',
+        title: 'Transaction Records — Explooro Admin',
         requiresAuth: true,
         permission: 'finance.ledger.view',
         module: 'core',
@@ -1091,7 +1091,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/escrow',
-        title: 'Escrow Holdings & Sweeps — Explooro Admin',
+        title: 'Held Payments — Explooro Admin',
         requiresAuth: true,
         permission: 'finance.escrow.view',
         module: 'core',
@@ -1184,7 +1184,7 @@ async function bootRouterDemo() {
         module: 'social_seller_kit',
         load: () => import('./pages/admin/AdminAttributionPage.ts'),
       },
-      // Monthly shop partner reward pool. `.view` gates the page; `.update` and `.run` (CRITICAL, super
+      // Monthly Explooro partner reward pool. `.view` gates the page; `.update` and `.run` (CRITICAL, super
       // admin only) gate Save and Close now - see server/src/routes/partnerReward.routes.ts.
       {
         path: '/admin/growth/partner-rewards',
@@ -1222,7 +1222,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/content/academy',
-        title: 'Shop Partner Academy — Explooro Admin',
+        title: 'Explooro Partner Academy — Explooro Admin',
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
@@ -1494,7 +1494,7 @@ async function bootRouterDemo() {
       // Prompt 6.3: Admin Payout Queue
       {
         path: '/admin/finance/payouts',
-        title: 'Payouts Queue — Explooro',
+        title: 'Withdrawal Queue — Explooro',
         requiresAuth: true,
         permission: 'finance.payout.approve',
         module: 'core',
@@ -1502,7 +1502,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/payouts',
-        title: 'Payouts Queue — Explooro',
+        title: 'Withdrawal Queue — Explooro',
         requiresAuth: true,
         permission: 'finance.payout.approve',
         module: 'core',
@@ -1716,7 +1716,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/products',
-        title: 'Shop Partner Store Products — Explooro',
+        title: 'Explooro Partner Store Products — Explooro',
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'virtual_storefront',
@@ -1741,7 +1741,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/verification',
-        title: 'KYC Verification Center — Explooro',
+        title: 'Identity Checks — Explooro',
         requiresAuth: true,
         permission: 'users.kyc.approve',
         module: 'supplier_verification',
@@ -1749,7 +1749,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/admin/users/verification',
-        title: 'KYC Verification Center — Explooro',
+        title: 'Identity Checks — Explooro',
         requiresAuth: true,
         permission: 'users.kyc.approve',
         module: 'supplier_verification',
@@ -1757,7 +1757,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/moderator/kyc',
-        title: 'KYC Verification Center — Explooro',
+        title: 'Identity Checks — Explooro',
         requiresAuth: true,
         permission: 'users.kyc.approve',
         module: 'supplier_verification',
@@ -2066,7 +2066,7 @@ async function bootRouterDemo() {
       },
       {
         path: '/saler/leaderboard',
-        title: 'Shop Partner Leaderboard — Explooro',
+        title: 'Explooro Partner Leaderboard — Explooro',
         requiresAuth: true,
         permission: null,
         module: 'gamification',
@@ -2137,7 +2137,7 @@ async function bootRouterDemo() {
   ];
 
   // WHY: every route above was authored with a hardcoded English `title` string, so the browser
-  // tab said "Escrow Holdings & Sweeps — Explooro Admin" while the page itself rendered in Bangla,
+  // tab said "Held Payments — Explooro Admin" while the page itself rendered in Bangla,
   // and switching language left the tab frozen in English forever (router.refresh() re-reads the
   // title, but only a function can produce a different string on the second read). navigation.ts
   // already holds a translated label for each of these paths — reuse it, so the tab, the sidebar
@@ -2190,7 +2190,7 @@ async function bootRouterDemo() {
     },
     // Keeps Sidebar/MobileNav's active-item highlight correct after every navigation and scans DOM module gates
     beforeEach: ({ query }) => {
-      // A page opened through a shop partner's short link carries ?ref=<code> (services/attribution.ts).
+      // A page opened through a Explooro partner's short link carries ?ref=<code> (services/attribution.ts).
       captureTouchFromQuery(query);
       appShell.render();
       scanDomForModuleGates();

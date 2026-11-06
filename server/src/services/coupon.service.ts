@@ -272,7 +272,7 @@ export function lineInCouponScope(coupon, line) {
  * The discount checkout charges for a coupon, in paisa, and which supplier parcels it belongs to.
  *
  * WHY this exists: checkout used to apply every coupon to the whole cart. A coupon scoped to one
- * supplier, product, category or shop partner discounted every other supplier's items too, and the
+ * supplier, product, category or Explooro partner discounted every other supplier's items too, and the
  * discount was spread over all sub-orders, so suppliers who never offered it paid for it from their
  * escrow. Only in-scope lines count now — for min spend, for the discount and for who bears it.
  *

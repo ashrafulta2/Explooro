@@ -53,7 +53,7 @@ export default function WarrantyClaimsPage(root: HTMLElement) {
         <span>🛡️</span> ${t('warranty.supplier_hub_title', 'Supplier Warranty & Claims Hub')}
       </h1>
       <p class="supplier-header__subtitle">
-        ${t('warranty.supplier_hub_subtitle', 'Review customer warranty claims, manage 72-hour SLA resolutions, and audit product quality metrics.')}
+        ${t('warranty.supplier_hub_subtitle', 'Answer customers\' warranty claims within the response time, book return couriers and watch product quality.')}
       </p>
     </div>
     <div class="supplier-header__actions">
@@ -146,15 +146,15 @@ export default function WarrantyClaimsPage(root: HTMLElement) {
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('warranty.kpi_pending_review', 'Pending SLA Review')}</span>
+        <span class="supplier-kpi-card__label">${t('warranty.kpi_pending_review', 'Pending Supplier Review')}</span>
         <div class="supplier-kpi-card__value ${pendingClaims > 0 ? 'supplier-kpi-card__value--warning' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
           ${pendingClaims}
         </div>
-        <span class="text-xs text-muted">72h SLA commitment</span>
+        <span class="text-xs text-muted">Answer within 72 hours</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('warranty.kpi_sla_breaches', 'SLA Breaches')}</span>
+        <span class="supplier-kpi-card__label">${t('warranty.kpi_sla_breaches', 'Answered late')}</span>
         <div class="supplier-kpi-card__value ${breachedClaims > 0 ? 'supplier-kpi-card__value--danger' : 'supplier-kpi-card__value--success'}" style="font-size: 1.5rem; margin: 4px 0;">
           ${breachedClaims}
         </div>
@@ -221,7 +221,7 @@ export default function WarrantyClaimsPage(root: HTMLElement) {
               <th>Claim Ref</th>
               <th>Product / Category</th>
               <th>Customer Issue</th>
-              <th>SLA Status</th>
+              <th>Answer due</th>
               <th>Status</th>
               <th style="text-align: right;">Action</th>
             </tr>
@@ -314,7 +314,7 @@ export default function WarrantyClaimsPage(root: HTMLElement) {
         <table class="supplier-table">
           <thead>
             <tr>
-              <th>Product SKU</th>
+              <th>Product</th>
               <th>Warranties Issued</th>
               <th>Claims Filed</th>
               <th>Defect Claim Rate</th>

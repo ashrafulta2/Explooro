@@ -1,5 +1,5 @@
 /**
- * SupplierScorecardPage.ts — How shop partners see this supplier, and exactly what they are judged on.
+ * SupplierScorecardPage.ts — How Explooro partners see this supplier, and exactly what they are judged on.
  *
  * Route: /supplier/scorecard  (module: sourcing, permission: supplier.analytics.view)
  *

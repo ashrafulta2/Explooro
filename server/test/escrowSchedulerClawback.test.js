@@ -45,7 +45,7 @@ function createMockDb() {
     { id: 1, ref: 'USR-SUPER1', full_name: 'Dev Super Admin', role: 'super_admin' },
     { id: 10, ref: 'USR-CUST1', phone: '+8801700000010', full_name: 'Customer Karim', role: 'customer' },
     { id: 101, ref: 'USR-SUPP1', phone: '+8801700000101', full_name: 'Supplier Aarong', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Shop Partner Jamila', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', phone: '+8801700000201', full_name: 'Explooro Partner Jamila', role: 'saler' },
   ];
 
   const wallets = [];
@@ -477,7 +477,7 @@ function createMockDb() {
             payment_method: 'BKASH',
             customer_name: 'Customer',
             supplier_name: 'Supplier',
-            saler_name: 'Shop Partner',
+            saler_name: 'Explooro Partner',
             cod_status: null,
             delivered_at: null,
             total_count: bySub.size,
@@ -704,7 +704,7 @@ describe('Prompt 6.2 — Escrow Release Scheduler & Clawback Automation', () => 
     assert.equal(parseFloat(db.poolWallet().available_balance), poolAvailBefore - 120.00);
   });
 
-  test('Acceptance 6: Insufficient Balance Deficit — creates negative_balance_recoveries record when shop partner has withdrawn funds', async () => {
+  test('Acceptance 6: Insufficient Balance Deficit — creates negative_balance_recoveries record when Explooro partner has withdrawn funds', async () => {
     // Setup sub-order 602: release its funds first
     const raw = db.getRawData();
     for (const e of raw.escrowEntries) {

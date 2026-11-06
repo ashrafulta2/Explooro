@@ -8,7 +8,7 @@
  * 2. Attempting to write a single-sided or unbalanced ledger entry fails with UNBALANCED_TRANSACTION_GROUP.
  * 3. Calling releaseEscrow twice for the same sub-order credits exactly once (strict idempotency).
  * 4. High concurrency test: 50 simultaneous credits to one wallet ends with exact correct balance (row-locking).
- * 5. Clawback automation correctly reverses pending/released escrow, zeroes shop partner commission, and refunds buyer.
+ * 5. Clawback automation correctly reverses pending/released escrow, zeroes Explooro partner commission, and refunds buyer.
  * 6. After a full order lifecycle, the integrity check endpoint reports zero drift across all wallets.
  */
 
@@ -43,7 +43,7 @@ function createMockFinanceDb() {
     { id: 2, ref: 'USR-ADMIN1', full_name: 'Dev Admin', role: 'admin' },
     { id: 10, ref: 'USR-CUST1', full_name: 'Customer Rahim', role: 'customer' },
     { id: 101, ref: 'USR-SUPP1', full_name: 'Supplier Aarong', role: 'supplier' },
-    { id: 201, ref: 'USR-SALER1', full_name: 'Shop Partner Jamila', role: 'saler' },
+    { id: 201, ref: 'USR-SALER1', full_name: 'Explooro Partner Jamila', role: 'saler' },
   ];
 
   const wallets = [];
@@ -481,8 +481,8 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
     assert.equal(parseFloat(updatedW2.available_balance), initW2 + 250.00);
   });
 
-  test('Acceptance 4: Deposit to escrow locks funds into pending_escrow_balance across supplier, shop partner, and platform', async () => {
-    // Sub-order 501: subtotal 1000 + margin 200 + shipping 60 = supplier 1260, shop partner 120, platform 180 (total 1560)
+  test('Acceptance 4: Deposit to escrow locks funds into pending_escrow_balance across supplier, Explooro partner, and platform', async () => {
+    // Sub-order 501: subtotal 1000 + margin 200 + shipping 60 = supplier 1260, Explooro partner 120, platform 180 (total 1560)
     const depositResult = await vaultService.depositToEscrow(db, {
       subOrderId: 501,
       holdDays: 7,
@@ -490,7 +490,7 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
 
     assert.equal(depositResult.success, true);
     assert.equal(depositResult.totalDeposited, '1560.00');
-    assert.equal(depositResult.escrowEntries.length, 3, 'Must create 3 escrow entries: Supplier, Shop Partner, Platform');
+    assert.equal(depositResult.escrowEntries.length, 3, 'Must create 3 escrow entries: Supplier, Explooro Partner, Platform');
 
     const supplierWallet = await walletRepo.getWalletByUserId(db, 101);
     const platformWallet = await walletRepo.getWalletByUserId(db, 1);
@@ -539,7 +539,7 @@ describe('Prompt 6.1 — Double-Entry Ledger & Escrow Engine', () => {
     assert.equal(db.poolWallet().available_balance, poolAfter.available_balance, 'Pool balance must NOT change on replay');
   });
 
-  test('Acceptance 6: Clawback reverses released funds, zeroes shop partner commission, and refunds buyer', async () => {
+  test('Acceptance 6: Clawback reverses released funds, zeroes Explooro partner commission, and refunds buyer', async () => {
     const custWalletBefore = await walletRepo.getWalletByUserId(db, 10);
     const supplierWalletBefore = await walletRepo.getWalletByUserId(db, 101);
 

@@ -611,7 +611,7 @@ export class TeamPurchasePage {
               <span>💡</span>
               <span>${isBn ? 'সোশ্যাল গ্রুপ বাই কীভাবে কাজ করে?' : 'How Social Team Buying Works'}</span>
             </h2>
-            <span class="badge badge--success badge--sm">${isBn ? '১০০% রিফান্ড গ্যারান্টি' : '100% Escrow Guarantee'}</span>
+            <span class="badge badge--success badge--sm">${isBn ? '১০০% রিফান্ড গ্যারান্টি' : '100% refund guarantee'}</span>
           </div>
           <div class="team-explore-steps">
             <div class="team-explore-step">
@@ -792,7 +792,7 @@ export class TeamPurchasePage {
         <div class="team-card__foot">
           <div class="team-card__status-text">
             <span>✨</span>
-            <span>${isBn ? '২৪ ঘণ্টার উইন্ডো' : '24h SLA Escrow'}</span>
+            <span>${isBn ? '২৪ ঘণ্টার উইন্ডো' : '24-hour window'}</span>
           </div>
 
           <div class="team-card__actions">

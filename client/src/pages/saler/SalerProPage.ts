@@ -1,5 +1,5 @@
 /**
- * SalerProPage.ts — Shop Partner Pro subscription: choose a plan, see the renewal date, cancel or resume.
+ * SalerProPage.ts — Explooro Partner Pro subscription: choose a plan, see the renewal date, cancel or resume.
  *
  * Route: /saler/pro  (guard: finance.subscription.subscribe_own AND module `subscription_fees`).
  * With the module OFF the route and its nav entry disappear, and the API refuses — nothing here
@@ -160,7 +160,7 @@ export default function SalerProPage(root: HTMLElement) {
     btn.type = 'button';
     btn.className = 'btn btn--primary btn--sm';
     btn.textContent = t('saler_pro.btn_subscribe');
-    // WHY disabled rather than hidden: the shop partner can see what else exists, and the reason is shown.
+    // WHY disabled rather than hidden: the Explooro partner can see what else exists, and the reason is shown.
     btn.disabled = busy || hasLive;
     if (hasLive) btn.title = t('saler_pro.already_subscribed');
     btn.addEventListener('click', () => onSubscribe(plan));
@@ -214,7 +214,7 @@ export default function SalerProPage(root: HTMLElement) {
     const grid = document.createElement('div');
     grid.className = 'saler-pro__plans';
     for (const plan of data.plans || []) {
-      // The plan the shop partner is already on is shown in the current-plan card, not offered again.
+      // The plan the Explooro partner is already on is shown in the current-plan card, not offered again.
       if (hasLive && plan.code === data.subscription.plan_code) continue;
       grid.append(planCard(plan, hasLive));
     }

@@ -1,5 +1,5 @@
 /**
- * saler.controller.ts — Fastify Controller for Shop Partner Dashboard & Analytics (Prompt 11.2).
+ * saler.controller.ts — Fastify Controller for Explooro Partner Dashboard & Analytics (Prompt 11.2).
  */
 
 import * as salerService from '../services/salerDashboard.service.ts';

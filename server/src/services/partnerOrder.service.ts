@@ -5,7 +5,7 @@
  * Decisions (2026-10-30):
  *  - The buyer is the customer, not the partner: customer.phone finds their account or creates a
  *    bare one (shadowCustomer.service.ts), so the order lands in the customer's own history and the
- *    COD risk gate judges the customer. The API key's owner is credited as the shop partner on each
+ *    COD risk gate judges the customer. The API key's owner is credited as the Explooro partner on each
  *    line they carry in their store, exactly as a storefront visit would credit them.
  *  - Cash on Delivery only. Nobody is at a browser to finish a bKash/Nagad redirect. A risky COD
  *    order answers 422 COD_OTP_REQUIRED and texts the customer a code; the partner repeats the call

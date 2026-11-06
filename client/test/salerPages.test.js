@@ -1,17 +1,17 @@
 /**
- * salerPages.test.js — Invariant & Unit Tests for Shop Partner Account Portal Pages & Handlers.
+ * salerPages.test.js — Invariant & Unit Tests for Explooro Partner Account Portal Pages & Handlers.
  *
  * Tests:
- * 1. Shop Partner API and mock handlers contracts across all 19 saler pages.
- * 2. Shop Partner curated products price markup updates, stock levels, and margin calculations.
+ * 1. Explooro Partner API and mock handlers contracts across all 19 saler pages.
+ * 2. Explooro Partner curated products price markup updates, stock levels, and margin calculations.
  * 3. Physical shop status toggle, master hours presets, and 7-day schedule consistency.
- * 4. Shop Partner order tracking, sub-item profits, courier consignment, and escrow release status.
+ * 4. Explooro Partner order tracking, sub-item profits, courier consignment, and escrow release status.
  * 5. Instant payout request validation (min ৳100, max available balance) & cancellation.
  * 6. Daily & weekly quest completion and 1-click reward claiming.
- * 7. Top 50 national shop partner leaderboard ranking and podium tiers.
+ * 7. Top 50 national Explooro partner leaderboard ranking and podium tiers.
  * 8. Social flyer generator SVG template rendering & QR code integration.
- * 9. Locale integrity across en.json and bn.json for all shop partner translation keys.
- * 10. Navigation configuration completeness for shop partner role.
+ * 9. Locale integrity across en.json and bn.json for all Explooro partner translation keys.
+ * 10. Navigation configuration completeness for Explooro partner role.
  */
 
 import test from 'node:test';
@@ -26,7 +26,7 @@ import { navItems, navGroups, SIMPLE_MODE_ITEMS } from '../src/config/navigation
 
 const clientRoot = path.resolve(import.meta.dirname, '..');
 
-test('1. Shop Partner Locale Integrity across en.json and bn.json', async (t) => {
+test('1. Explooro Partner Locale Integrity across en.json and bn.json', async (t) => {
   const namespaces = [
     'saler_products',
     'saler_store_status',
@@ -53,8 +53,8 @@ test('1. Shop Partner Locale Integrity across en.json and bn.json', async (t) =>
   }
 });
 
-test('2. Navigation Structure for Shop Partner Portal', async (t) => {
-  await t.test('Shop Partner nav has all required routes', () => {
+test('2. Navigation Structure for Explooro Partner Portal', async (t) => {
+  await t.test('Explooro Partner nav has all required routes', () => {
     assert.ok(Array.isArray(navItems), 'navItems must be an array');
     const salerPaths = navItems.filter((i) => i.roles?.includes('saler')).map((i) => i.path);
 
@@ -82,17 +82,17 @@ test('2. Navigation Structure for Shop Partner Portal', async (t) => {
     ];
 
     for (const route of requiredRoutes) {
-      assert.ok(salerPaths.includes(route), `Shop Partner nav must include route: ${route}`);
+      assert.ok(salerPaths.includes(route), `Explooro Partner nav must include route: ${route}`);
     }
   });
 
-  await t.test('Shop Partner Simple Mode has its journey items (Prompt 13.5)', () => {
+  await t.test('Explooro Partner Simple Mode has its journey items (Prompt 13.5)', () => {
     assert.ok(SIMPLE_MODE_ITEMS.saler, 'SIMPLE_MODE_ITEMS.saler must exist');
     assert.ok(SIMPLE_MODE_ITEMS.saler.length >= 1 && SIMPLE_MODE_ITEMS.saler.length <= 7, 'Simple mode shows 1 to 7 items');
   });
 });
 
-test('3. Shop Partner Mock Endpoints & Business Logic', async (t) => {
+test('3. Explooro Partner Mock Endpoints & Business Logic', async (t) => {
   function findHandler(method, path) {
     return salerHandlers.find((h) => h.method === method && h.path === path);
   }
@@ -117,7 +117,7 @@ test('3. Shop Partner Mock Endpoints & Business Logic', async (t) => {
     // Mirrors the server (server/test/salerMyProducts.test.js): nothing behind the shopper's price.
     for (const p of res.body.data.products) {
       for (const key of ['partner_profit', 'base_wholesale_price', 'custom_retail_price', 'min_retail_price']) {
-        assert.equal(key in p, false, `${key} must not reach a shop partner`);
+        assert.equal(key in p, false, `${key} must not reach a Explooro partner`);
       }
     }
   });
@@ -183,7 +183,7 @@ test('3. Shop Partner Mock Endpoints & Business Logic', async (t) => {
     assert.equal(claimRes.body?.data?.quest?.is_claimed, true);
   });
 
-  await t.test('GET /saler/leaderboard returns ranked shop partners with podium prizes', () => {
+  await t.test('GET /saler/leaderboard returns ranked Explooro partners with podium prizes', () => {
     const h = findHandler('GET', '/saler/leaderboard');
     assert.ok(h, 'Handler for GET /saler/leaderboard exists');
     const res = h.handler();
@@ -201,7 +201,7 @@ test('3. Shop Partner Mock Endpoints & Business Logic', async (t) => {
   });
 });
 
-test('4. Shop Partner Route Registration Invariants in main.ts', async (t) => {
+test('4. Explooro Partner Route Registration Invariants in main.ts', async (t) => {
   const mainSrc = fs.readFileSync(path.join(clientRoot, 'src/main.ts'), 'utf8');
 
   const salerPaths = [
@@ -229,7 +229,7 @@ test('4. Shop Partner Route Registration Invariants in main.ts', async (t) => {
     '/saler/inbox',
   ];
 
-  await t.test('All 22 Shop Partner routes are explicitly registered in main.ts', () => {
+  await t.test('All 22 Explooro Partner routes are explicitly registered in main.ts', () => {
     for (const p of salerPaths) {
       assert.ok(
         mainSrc.includes(`path: '${p}'`),
@@ -238,7 +238,7 @@ test('4. Shop Partner Route Registration Invariants in main.ts', async (t) => {
     }
   });
 
-  await t.test('No duplicate route declarations for shop partner routes in main.ts', () => {
+  await t.test('No duplicate route declarations for Explooro partner routes in main.ts', () => {
     for (const p of salerPaths) {
       const count = (mainSrc.match(new RegExp(`path:\\s*['"]${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`, 'g')) || []).length;
       assert.equal(
@@ -249,7 +249,7 @@ test('4. Shop Partner Route Registration Invariants in main.ts', async (t) => {
     }
   });
 
-  await t.test('All 18 Shop Partner page modules export a default mount/render function', async () => {
+  await t.test('All 18 Explooro Partner page modules export a default mount/render function', async () => {
     const pageFiles = [
       'AdCampaignPage.ts',
       'AnalyticsPage.ts',

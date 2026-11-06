@@ -2,7 +2,7 @@
  * GrowthAssistant.ts — Prescriptive AI Next-Step Growth Recommendations (Prompt 11.2 / 10.3).
  *
  * Renders grounded advice with direct 1-click executable actions,
- * converting raw analytics into concrete daily shop partner tasks.
+ * converting raw analytics into concrete daily Explooro partner tasks.
  */
 
 import { salerApi } from '../../services/saler.api.ts';

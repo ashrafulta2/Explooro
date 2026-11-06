@@ -1,5 +1,5 @@
 /**
- * partnerReward.job.ts — closes each finished month of the shop partner reward pool and pays it out.
+ * partnerReward.job.ts — closes each finished month of the Explooro partner reward pool and pays it out.
  *
  * Gated on the `virtual_storefront` module: with storefronts off there are no partners to pay, and the
  * pool simply waits. Runs daily; a month closes on the first run after `settle_lag_days` past its end,

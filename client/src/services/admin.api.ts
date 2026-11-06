@@ -222,8 +222,8 @@ export const adminApi = {
   },
 
   /**
-   * Updates Shop Partner trust tier commission incentive bonuses and, optionally, the volume ladder
-   * ({ enabled, window_days, thresholds }) that decides which tier a shop partner is in. One request, so a
+   * Updates Explooro Partner trust tier commission incentive bonuses and, optionally, the volume ladder
+   * ({ enabled, window_days, thresholds }) that decides which tier a Explooro partner is in. One request, so a
    * rejected ladder never leaves the bonuses half-saved.
    */
   async updateTierBonuses(tiers: Params, reason: string, rules?: Params) {

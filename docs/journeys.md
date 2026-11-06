@@ -65,7 +65,7 @@ next** (the `next` sentence, in short), **Waits on** (blocks and skip rules).
 | 5 | `customer.receive_order` | `/account/orders` | `customer.order_delivered`: a `DELIVERED` sub-order on their order | Supplier packs it, courier brings it | `waiting_for_delivery` |
 | 6 | `customer.write_review` | `/account/reviews` | `customer.review_written`: a `reviews` row | The review helps other shoppers | `module_off` |
 
-### 2.2 Shop Partner: first withdrawal
+### 2.2 Explooro Partner: first withdrawal
 
 | # | Step | Page | Done when | What happens next | Waits on |
 | :- | :--- | :--- | :--- | :--- | :--- |
@@ -77,18 +77,18 @@ next** (the `next` sentence, in short), **Waits on** (blocks and skip rules).
 | 6 | `saler.first_order` | `/saler/orders` | `saler.order_received`: a sub-order as `saler_id` | Keep sharing; orders show up here | `waiting_for_buyer` |
 | 7 | `saler.first_withdrawal` | `/saler/vault/payouts` | `wallet.payout_requested`: a `payout_requests` row | Send vault money to bKash or Nagad | `balance_empty` |
 
-The Shop Partner copy says nothing about how partners are paid. Partners are shown no reward
+The Explooro Partner copy says nothing about how partners are paid. Partners are shown no reward
 mechanics (owner decision, 2026-11-02).
 
 ### 2.3 Supplier: first withdrawal from a shipped order
 
 | # | Step | Page | Done when | What happens next | Waits on |
 | :- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `supplier.verify_phone` | `/auth/otp` | `user.phone_verified` | Shop partners and couriers reach them on it | |
+| 1 | `supplier.verify_phone` | `/auth/otp` | `user.phone_verified` | Explooro Partners and couriers reach them on it | |
 | 2 | `supplier.submit_kyc` | `/seller/kyc` | `kyc.submitted` | Listing opens once an admin approves | `module_off` |
 | 3 | `supplier.add_product` | `/supplier/products` | `supplier.product_listed`: a product not `ARCHIVED` | Add photos, price and stock | `kyc_review` (product.service answers `KYC_REQUIRED` until the KYC is `VERIFIED`) |
 | 4 | `supplier.stock_product` | `/supplier/inventory` | `supplier.product_live`: an `ACTIVE` product with `stock_qty > 0` | A moderator checks each new product | `product_review` |
-| 5 | `supplier.first_order` | `/supplier/orders` | `supplier.order_received`: a sub-order as `supplier_id` | Shop partners sell it; orders show up here | `waiting_for_buyer` |
+| 5 | `supplier.first_order` | `/supplier/orders` | `supplier.order_received`: a sub-order as `supplier_id` | Explooro Partners sell it; orders show up here | `waiting_for_buyer` |
 | 6 | `supplier.ship_order` | `/supplier/fulfilment` | `supplier.order_shipped`: a `shipments` row on their sub-order | Book a courier, or record a hand delivery | `module_off` |
 | 7 | `supplier.first_withdrawal` | `/supplier/vault` | `wallet.payout_requested` | Withdraw once the order is delivered and settled | `balance_empty` |
 
@@ -153,20 +153,20 @@ choice and that every cleared row is really shown by a page.
 | :- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | `checkout` | Customer | Order placed | `pages/CheckoutPage.ts` (and `components/cart/QuickBuyModal.ts`) | Toast, then the order page with nothing on what happens next | `/account/orders`: "we will tell you when it ships" | 13.3: the order page opens with `?placed=1` and shows the panel |
 | 2 | `address_saved` | Customer | Address saved | `pages/customer/AddressesPage.ts` | Toast; stays on the list | `/`: find something to buy | Open: not one of 13.3's nine actions; 13.4's checklist prompts for it |
-| 3 | `become_saler` | Shop Partner (was a customer) | Became a Shop Partner | `pages/customer/BecomeSalerPage.ts` | Toast "your digital store is active"; stays on the upgrade page | `/saler/store-builder`: name the store | Open: not one of 13.3's nine actions |
-| 4 | `kyc_saler` | Shop Partner | KYC submitted | `pages/seller/KycSubmissionPage.ts` | Toast; stays on the form | `/saler/store-builder`: set up the store while the admin checks | 13.3 |
+| 3 | `become_saler` | Explooro Partner (was a customer) | Became a Explooro Partner | `pages/customer/BecomeSalerPage.ts` | Toast "your digital store is active"; stays on the upgrade page | `/saler/store-builder`: name the store | Open: not one of 13.3's nine actions |
+| 4 | `kyc_saler` | Explooro Partner | KYC submitted | `pages/seller/KycSubmissionPage.ts` | Toast; stays on the form | `/saler/store-builder`: set up the store while the admin checks | 13.3 |
 | 5 | `kyc_supplier` | Supplier | KYC submitted | `pages/seller/KycSubmissionPage.ts` | Toast; nothing says listing waits on approval | `/supplier/store-status`: shop details while waiting | 13.3 |
-| 6 | `product_added_saler` | Shop Partner | Product added to store | `components/saler/AddToStoreDrawer.ts` | Toast; drawer closes on the sourcing list | `/saler/social-kit`: share it | 13.3 (the sourcing page shows it) |
+| 6 | `product_added_saler` | Explooro Partner | Product added to store | `components/saler/AddToStoreDrawer.ts` | Toast; drawer closes on the sourcing list | `/saler/social-kit`: share it | 13.3 (the sourcing page shows it) |
 | 7 | `product_added_supplier` | Supplier | Product added | `pages/admin/CatalogProductsPage.ts` | Toast "Product registered in catalog!"; nothing says it waits on review | `/supplier/inventory`: check stock while it is reviewed | 13.3 (supplier view only; an admin keeps the toast) |
-| 8 | `withdrawal_requested` | Shop Partner | Withdrawal requested | `pages/saler/WithdrawalsPage.ts` (and `/saler/vault`) | Toast; stays on the form | `/saler/vault`: follow the request | 13.3 |
+| 8 | `withdrawal_requested` | Explooro Partner | Withdrawal requested | `pages/saler/WithdrawalsPage.ts` (and `/saler/vault`) | Toast; stays on the form | `/saler/vault`: follow the request | 13.3 |
 | 9 | `order_shipped` | Supplier | Order shipped | `pages/supplier/FulfilmentPage.ts` (and `SupplierOrdersPage.ts`) | Toast "consignment booked"; stays on the list | `/supplier/shipments`: follow the parcel | 13.3 (courier booking and hand delivery) |
-| 10 | `store_published` | Shop Partner | Store published | `pages/saler/StoreBuilderPage.ts` | Toast "Store settings and shelves updated"; stays on the builder | `/saler/social-kit`: share it | 13.3 |
+| 10 | `store_published` | Explooro Partner | Store published | `pages/saler/StoreBuilderPage.ts` | Toast "Store settings and shelves updated"; stays on the builder | `/saler/social-kit`: share it | 13.3 |
 | 11 | `withdrawal_requested_supplier` | Supplier | Withdrawal requested | `components/vault/PayoutRequestModal.ts` | Toast; the modal closes on the vault | `/supplier/vault`: follow the request | 13.3 |
 | 12 | `return_approved_moderator` | Moderator | Return approved | `pages/admin/ReturnsQueuePage.ts` | Toast; the queue reloads with nothing on what happens next | `/moderator/returns`: the next return | 13.3 |
 | 13 | `return_approved_admin` | Admin | Return approved | `pages/admin/ReturnsQueuePage.ts` | Same page as row 12 | `/admin/returns`: the next return | 13.3 |
-| 14 | `sample_requested` | Shop Partner | Sample requested | `pages/saler/SalerSamplesPage.ts` | Toast; stays on the samples list | `/saler/sourcing`: keep choosing products | 13.3 |
-| 15 | `ad_created_saler` | Shop Partner | Ad campaign created | `pages/saler/AdCampaignPage.ts` | Toast "Your ad is created!"; back on the campaign list | `/saler/social-kit`: share the store meanwhile | 13.3 |
-| 16 | `ad_boosted_saler` | Shop Partner | Ad campaign created | `pages/AdvertisePage.ts` | A done card with only "create another" | `/saler/ads`: all their ads | 13.3 |
+| 14 | `sample_requested` | Explooro Partner | Sample requested | `pages/saler/SalerSamplesPage.ts` | Toast; stays on the samples list | `/saler/sourcing`: keep choosing products | 13.3 |
+| 15 | `ad_created_saler` | Explooro Partner | Ad campaign created | `pages/saler/AdCampaignPage.ts` | Toast "Your ad is created!"; back on the campaign list | `/saler/social-kit`: share the store meanwhile | 13.3 |
+| 16 | `ad_boosted_saler` | Explooro Partner | Ad campaign created | `pages/AdvertisePage.ts` | A done card with only "create another" | `/saler/ads`: all their ads | 13.3 |
 | 17 | `ad_boosted_supplier` | Supplier | Ad campaign created | `pages/AdvertisePage.ts` (and `AdCampaignPage.ts`) | Same as row 16 | `/saler/ads`: all their ads | 13.3 |
 | 18 | `ad_boosted_customer` | Customer | Ad campaign created | `pages/AdvertisePage.ts` | Same as row 16 | `/advertise`: the list below | 13.3 |
 
@@ -181,9 +181,9 @@ Things found while mapping. None is fixed in 13.1; each names the prompt that sh
 - **F1. KYC is hard to find.** `/seller/kyc` and `/account/kyc` are registered routes but not sidebar
   items. The only link is on the profile page. The Next-Step card (13.2) becomes the main way in;
   13.5 should decide whether it earns a `core` slot for suppliers.
-- **F2. A Shop Partner's KYC gates nothing today.** `product.service` refuses a supplier listing with
-  `KYC_REQUIRED`, but no Shop Partner action checks KYC, payouts included. The step stays in the
-  journey (the owner's own example lists it), with no `kyc_review` block on later Shop Partner
+- **F2. A Explooro Partner's KYC gates nothing today.** `product.service` refuses a supplier listing with
+  `KYC_REQUIRED`, but no Explooro Partner action checks KYC, payouts included. The step stays in the
+  journey (the owner's own example lists it), with no `kyc_review` block on later Explooro Partner
   steps. If partner payouts should wait on KYC, that is a server change, not a journey change.
 - **F3. Banners and What's New notes have no author.** `banners` has no `created_by` and banner
   creation writes no audit row (only `banner.delete` does); `release_notes` has no author either. So
@@ -196,7 +196,7 @@ Things found while mapping. None is fixed in 13.1; each names the prompt that sh
   run by hand by default (`operations.modes`, migration 097), so the super admin's
   `set_operations` step is the one that decides whether a gateway is needed at all, and a step that
   can only be finished by editing `.env` would never be one click away.
-- **F5. The old Shop Partner checklist disagrees on "shared".** `GET /saler/onboarding`
+- **F5. The old Explooro Partner checklist disagrees on "shared".** `GET /saler/onboarding`
   (`salerDashboard.service.ts`) counts sharing as done only after a link is *clicked*, which the
   partner does not control. The journey counts the partner's own act: a link created. 13.2 replaces
   that logic and keeps the endpoint answering from this map.
@@ -209,7 +209,7 @@ Things found while mapping. None is fixed in 13.1; each names the prompt that sh
 Every dashboard (`/account`, `/saler`, `/supplier`, `/moderator`, `/editor`, `/admin`) opens
 with `components/guide/SetupChecklist.ts`. It lists the whole journey from the `steps` field of
 `GET /me/next-step`, so it can never disagree with the result panels. It replaced the Next-Step card
-on those pages and the shop partner's old four-step onboarding widget.
+on those pages and the Explooro partner's old four-step onboarding widget.
 
 | Done | What the user sees |
 | :--- | :--- |

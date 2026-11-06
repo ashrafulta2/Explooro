@@ -685,7 +685,7 @@ export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, wit
   const hasMore = rows.length > pageSize;
   let page = hasMore ? rows.slice(0, pageSize) : rows;
 
-  // WHY margin is filtered here and not in SQL: shop partner margin % is derived by the pricing service
+  // WHY margin is filtered here and not in SQL: Explooro partner margin % is derived by the pricing service
   // from the commission split, which is configuration — there is no column to put in a WHERE.
   // The consequence is honest and documented: with min_margin set a page can come back short
   // while `has_more` stays true, so the grid keeps scrolling rather than stopping early.
@@ -714,7 +714,7 @@ export async function listCatalogPage(db, { limit, offset = 0, minMarginPct, wit
 
 export async function listSourcingCatalog(db, filters: Record<string, any> = {}) {
   const { minMarginPct, categoryId, brand, limit = 50, offset = 0 } = filters;
-  // WHY net: a shop partner (and the AI sourcing agent) reads this to decide how much can be sold, and units
+  // WHY net: a Explooro partner (and the AI sourcing agent) reads this to decide how much can be sold, and units
   // an open team is counting on cannot be.
   const products = await netOfReservations(
     db,
@@ -739,7 +739,7 @@ export async function listSourcingCatalog(db, filters: Record<string, any> = {})
     enriched.push(toSourcingItem(p, pricing));
   }
 
-  // WHY here and not in the page: the catalog is the one place a shop partner compares suppliers, and the
+  // WHY here and not in the page: the catalog is the one place a Explooro partner compares suppliers, and the
   // AI sourcing agent reads this same list, so it sees the same measured reputation.
   return attachScorecards(db, enriched);
 }
@@ -798,7 +798,7 @@ export async function listSponsoredSourcing(db, cache, { viewerId = null, catego
 }
 
 /**
- * Refuses a shop partner's own price. Since migration 085 the supplier sets every price and partners
+ * Refuses a Explooro partner's own price. Since migration 085 the supplier sets every price and partners
  * promote, so a price arriving from a partner is an old client or a crafted request; saying so beats
  * silently dropping it and letting the partner think it took.
  */
@@ -806,8 +806,8 @@ export function assertNoPartnerPrice(price) {
   if (price === undefined || price === null || price === '') return;
   throw new AppError(
     'PRICE_LOCKED',
-    'Prices are set by the supplier. Shop partners cannot change them.',
-    'দাম supplier ঠিক করেন। Shop partner দাম পরিবর্তন করতে পারবেন না।'
+    'Prices are set by the supplier. Explooro Partners cannot change them.',
+    'দাম supplier ঠিক করেন। Explooro Partner দাম পরিবর্তন করতে পারবেন না।'
   );
 }
 
@@ -817,7 +817,7 @@ export async function addProductToSalerStore(db, { salerId, productId, customRet
     throw new AppError('NOT_FOUND', 'Product not found or not active.', 'প্রোডাক্ট পাওয়া যায়নি অথবা সক্রিয় নয়।');
   }
 
-  // Ensure shop partner has a virtual store
+  // Ensure Explooro partner has a virtual store
   let store = await productRepo.getVirtualStoreBySalerId(db, salerId);
   if (!store) {
     const storeRef = `STR-${Date.now().toString(36).toUpperCase()}`;
@@ -852,7 +852,7 @@ export async function getSalerStoreItems(db, salerId) {
   const store = await productRepo.getVirtualStoreBySalerId(db, salerId);
   if (!store) return [];
 
-  // WHY net: the shop partner decides what to promote from this count; units open teams hold are not sellable.
+  // WHY net: the Explooro partner decides what to promote from this count; units open teams hold are not sellable.
   const items = await withAvailableStock(db, await productRepo.listSalerStoreItems(db, store.id), { idKey: 'product_id' });
   const enriched = await Promise.all(
     items.map(async (item) => {

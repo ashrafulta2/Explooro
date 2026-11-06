@@ -502,7 +502,7 @@ export default function ProfilePage(root: HTMLElement, { navigate }: PageContext
       'profile.section_contact',
       'Contact & verification',
       'profile.section_contact_desc',
-      'How Explooro reaches you about orders, payouts and security.',
+      'How Explooro reaches you about orders, withdrawals and security.',
       [fields.phone, fields.email]
     );
   }
@@ -578,7 +578,7 @@ export default function ProfilePage(root: HTMLElement, { navigate }: PageContext
       'profile.section_location',
       'Location',
       'profile.section_location_desc',
-      'Where you are, so Explooro can show relevant shop partners and delivery estimates.',
+      'Where you are, so Explooro can show relevant Explooro partners and delivery estimates.',
       [fields.division, fields.district, fields.upazila, fields.postal_code, fields.address_line, linkRow]
     );
 

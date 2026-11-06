@@ -1,5 +1,5 @@
 /**
- * partnerReward.routes.ts — the monthly shop partner reward pool (Phase B; partnerReward.service.ts).
+ * partnerReward.routes.ts — the monthly Explooro partner reward pool (Phase B; partnerReward.service.ts).
  *
  *   GET  /admin/growth/partner-rewards                  growth.partner_reward.view    (LOW)
  *   GET  /admin/growth/partner-rewards/runs/:id/payouts growth.partner_reward.view    (LOW, paginated)

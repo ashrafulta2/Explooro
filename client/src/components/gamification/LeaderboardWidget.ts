@@ -1,5 +1,5 @@
 /**
- * LeaderboardWidget.ts — Shop Partner & Earner Monthly Performance Leaderboard (Prompt 9.4).
+ * LeaderboardWidget.ts — Explooro Partner & Earner Monthly Performance Leaderboard (Prompt 9.4).
  *
  * Implements:
  * 1. Top 3 podium layout with Gold, Silver, and Bronze badges.
@@ -83,7 +83,7 @@ export class LeaderboardWidget {
             <div class="flex items-center gap-2">
               <span class="text-xl">🏆</span>
               <h3 class="font-bold text-base text-foreground">
-                ${isBn ? 'মাসিক সুপার শপ পার্টনার লিডারবোর্ড' : 'Monthly Super Shop Partner Leaderboard'}
+                ${isBn ? 'মাসিক সুপার শপ পার্টনার লিডারবোর্ড' : 'Monthly Super Explooro Partner Leaderboard'}
               </h3>
             </div>
             <p class="text-xs text-muted mt-0.5">
@@ -144,7 +144,7 @@ export class LeaderboardWidget {
                 <thead>
                   <tr class="border-b border-border text-muted uppercase">
                     <th class="py-2.5 px-3">#</th>
-                    <th class="py-2.5 px-3">${isBn ? 'শপ পার্টনার নাম' : 'Shop Partner Name'}</th>
+                    <th class="py-2.5 px-3">${isBn ? 'শপ পার্টনার নাম' : 'Explooro Partner Name'}</th>
                     <th class="py-2.5 px-3 text-right">${this.category === 'SALER_REVENUE' ? (isBn ? 'মোট বিক্রয়' : 'Total Revenue') : (isBn ? 'মোট অর্ডার' : 'Total Orders')}</th>
                   </tr>
                 </thead>
@@ -152,7 +152,7 @@ export class LeaderboardWidget {
                   ${restRankings.map(r => `
                     <tr class="border-b border-border hover:bg-muted/5">
                       <td class="py-2.5 px-3 font-mono font-bold text-muted">#${r.rank}</td>
-                      <td class="py-2.5 px-3 font-semibold">${r.user_name || 'Shop Partner'}</td>
+                      <td class="py-2.5 px-3 font-semibold">${r.user_name || 'Explooro Partner'}</td>
                       <td class="py-2.5 px-3 text-right font-mono font-bold text-primary">
                         ${this.category === 'SALER_REVENUE' ? `৳${Number(r.metric_value).toFixed(2)}` : `${Number(r.metric_value)} orders`}
                       </td>

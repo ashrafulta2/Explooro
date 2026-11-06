@@ -160,7 +160,7 @@ describe('next step — each role from first step to last', () => {
 });
 
 describe('next step — the answer follows the data', () => {
-  test('a fresh shop partner is told to verify KYC; once a KYC row exists, to name the store', async () => {
+  test('a fresh Explooro partner is told to verify KYC; once a KYC row exists, to name the store', async () => {
     const before = await computeNextStep(fakeDb({ done: new Set(['user.phone_verified']) }), null, user('saler'), deps({ role: 'saler' }));
     assert.equal(before.current.id, 'submit_kyc');
     assert.equal(before.current.route, '/seller/kyc');

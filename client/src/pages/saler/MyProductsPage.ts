@@ -1,5 +1,5 @@
 /**
- * MyProductsPage.ts — Shop Partner Curated Store Products (Prompt 4.8 / idea §AL.2).
+ * MyProductsPage.ts — Explooro Partner Curated Store Products (Prompt 4.8 / idea §AL.2).
  *
  * Route: /saler/products
  * Implements:

@@ -1,7 +1,7 @@
 /**
  * splitSimulator.ts — the Profit Split page's simulator arithmetic, the way a sale is really split.
  *
- * WHY its own file: the old simulator modelled shop partners pricing above a suggested retail
+ * WHY its own file: the old simulator modelled Explooro partners pricing above a suggested retail
  * (default/discount/boost tiers with an 80/20 surplus split). Partner prices are locked since
  * migration 085, so that arithmetic described sales that cannot happen. This mirrors the live path:
  *   - the supplier enters their own price; the platform adds the markup and rounds the retail price up

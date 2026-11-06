@@ -1,10 +1,10 @@
 /**
- * plainLanguage.test.js — customers, shop partners and suppliers never read internal vocabulary
+ * plainLanguage.test.js — customers, Explooro partners and suppliers never read internal vocabulary
  * (Prompt 13.6, docs/glossary.md).
  *
  * Which strings count as theirs is decided by the files that read them, not by locale namespace,
  * because several namespaces (payout, kyc, returns, dispute) are shared with staff screens. A string
- * is checked when a customer / shop partner / supplier source file reads its key literally, reads a
+ * is checked when a customer / Explooro partner / supplier source file reads its key literally, reads a
  * key under a `${...}` prefix, labels one of their sidebar items, or is one of their journey strings.
  */
 
@@ -102,10 +102,33 @@ function userFacingKeys() {
   return keys;
 }
 
+/** Banned terms in prose written straight into source files (not through a translation key). */
+function proseHits(files) {
+  const banned = (p) => BANNED_EN.some((re) => re.test(p)) || BANNED_BN.some((re) => re.test(p));
+  const found = [];
+  for (const file of files) {
+    const rel = relative(src, file).replace(/\\/g, '/');
+    readFileSync(file, 'utf8').split(/\r?\n/).forEach((raw, i) => {
+      const line = raw.replace(/class="[^"]*"/g, '');
+      if (/^\s*(\/\/|\*|\/\*|import )/.test(line)) return;
+      const pieces = [...line.matchAll(/>([^<>]+)</g), ...line.matchAll(/'([^'\n]+)'|"([^"\n]+)"/g)].map((m) => (m[1] ?? m[2] ?? '').replace(/\$\{[^}]*\}/g, ''));
+      // A template line holding nothing but text (its tags on the lines around it).
+      if (/^[^<>=(){};'"`]+$/.test(line.trim()) && !/^\w+:\s/.test(line.trim())) pieces.push(line.trim());
+      // WHY only text with a space that is not all identifiers: one-word values, class lists and
+      // CSV column names are data (ESCROW:CUSTOMER_HOLD, 'JIT', escrow-page, sub_order_ref).
+      const prose = (p) => /\s/.test(p.trim()) && !/`|\bt\(/.test(p) && !p.trim().split(/[\s,]+/).filter(Boolean).every((w) => /^[a-z0-9]+([._-][a-z0-9]+)*$/.test(w));
+      // A URL path such as /saler/b2b-escrow is an address, not a word.
+      const hit = pieces.map((p) => p.replace(/(^|\s)\/[\w/-]+/g, '$1')).find((p) => prose(p) && banned(p));
+      if (hit) found.push(`${rel}:${i + 1}: ${hit.trim().slice(0, 80)}`);
+    });
+  }
+  return found;
+}
+
 describe('plain language', () => {
   const keys = userFacingKeys();
 
-  it('finds a large set of customer, shop partner and supplier strings to check', () => {
+  it('finds a large set of customer, Explooro partner and supplier strings to check', () => {
     assert.ok(keys.size > 2000, `only ${keys.size} keys found; the scan may have broken`);
   });
 
@@ -121,6 +144,15 @@ describe('plain language', () => {
       if (enHit || bnHit) found.push(`${key} (${from}): ${enHit ? `en ${enHit}` : ''} ${bnHit ? `bn ${bnHit}` : ''}`.trim());
     }
     assert.deepEqual(found, []);
+  });
+
+  it('no banned term in prose written straight into a customer, partner or supplier page', () => {
+    const files = walk(src).filter((path) => {
+      const rel = relative(src, path).replace(/\\/g, '/');
+      // config/journeys.ts holds developer notes mirrored in docs/journeys.md; users read its i18n keys.
+      return rel !== 'main.ts' && rel !== 'config/journeys.ts' && (ALSO.includes(rel) || !STAFF_DIRS.some((d) => rel.startsWith(`${d}/`)));
+    });
+    assert.deepEqual(proseHits(files), []);
   });
 
   it('every one of those strings exists in both locales', () => {
@@ -168,7 +200,7 @@ describe('plain language', () => {
     }
   });
 
-  it('no customer, shop partner or supplier page title (the browser tab) uses a banned term', () => {
+  it('no customer, Explooro partner or supplier page title (the browser tab) uses a banned term', () => {
     const main = readFileSync(join(src, 'main.ts'), 'utf8');
     const bad = [...main.matchAll(/\{\s*path:\s*'([^']+)',\s*title:\s*'([^']+)'/gs)]
       .filter(([, path]) => !/^\/(admin|moderator|editor|dev)\b/.test(path))
@@ -187,5 +219,61 @@ describe('plain language', () => {
       assert.ok(glossary.includes(`| ${term}`), `glossary lacks ${term}`);
     }
     assert.match(glossary, /\| Vault \| kept \|/);
+  });
+});
+
+// REQUIREMENT 2, admin second: staff screens use the same plain words. A technical term may stay
+// only as data (an account code, a CSV column, a header name), never in prose a person reads.
+describe('plain language on staff screens', () => {
+  const STAFF_ROLES = ['super_admin', 'admin', 'moderator', 'editor'];
+  // The dev gallery is a developer tool, not a staff screen.
+  const STAFF_ONLY = ['pages/admin', 'pages/moderator', 'pages/editor', 'components/admin', 'components/moderator', 'components/editor'];
+  const staffFiles = walk(src).filter((path) => STAFF_ONLY.some((d) => relative(src, path).replace(/\\/g, '/').startsWith(`${d}/`)));
+  const shown = (s) => (typeof s === 'string' ? s.replace(/\{\{\w+\}\}/g, '') : s);
+  const banned = (e, b) => (typeof e === 'string' && BANNED_EN.find((re) => re.test(e))) || (typeof b === 'string' && BANNED_BN.find((re) => re.test(b)));
+
+  function staffKeys() {
+    const keys = new Map();
+    for (const file of staffFiles) {
+      const rel = relative(src, file).replace(/\\/g, '/');
+      const text = readFileSync(file, 'utf8');
+      for (const m of text.matchAll(/\bt\(\s*'([a-z0-9_]+\.[a-zA-Z0-9_.]+)'/g)) if (!keys.has(m[1])) keys.set(m[1], rel);
+      for (const m of text.matchAll(/\bt\(\s*`([a-z0-9_]+\.[a-zA-Z0-9_.]*)\$\{/g)) {
+        const prefix = m[1];
+        const parent = prefix.endsWith('.') ? prefix.slice(0, -1) : prefix.slice(0, prefix.lastIndexOf('.'));
+        const leaf = prefix.endsWith('.') ? '' : prefix.slice(prefix.lastIndexOf('.') + 1);
+        for (const key of flatKeys(resolve(en, parent), parent)) {
+          if (key.slice(parent.length + 1).startsWith(leaf) && !keys.has(key)) keys.set(key, `${rel} (dynamic)`);
+        }
+      }
+    }
+    for (const role of STAFF_ROLES) for (const item of navItemsForRole(role)) if (!keys.has(item.label_i18n_key)) keys.set(item.label_i18n_key, `nav:${role}`);
+    return keys;
+  }
+
+  it('no banned term in any translated string a staff screen reads', () => {
+    const keys = staffKeys();
+    assert.ok(keys.size > 2000, `only ${keys.size} staff keys found; the scan may have broken`);
+    const found = [...keys].filter(([key]) => banned(shown(resolve(en, key)), shown(resolve(bn, key)))).map(([key, from]) => `${key} (${from})`);
+    assert.deepEqual(found, []);
+  });
+
+  it('no banned term in prose written straight into a staff page', () => {
+    assert.deepEqual(proseHits(staffFiles), []);
+  });
+
+  it('no staff page title (the browser tab) uses a banned term', () => {
+    const main = readFileSync(join(src, 'main.ts'), 'utf8');
+    const bad = [...main.matchAll(/\{\s*path:\s*'([^']+)',\s*title:\s*'([^']+)'/gs)]
+      .filter(([, path]) => /^\/(admin|moderator|editor)\b/.test(path))
+      .filter(([, , title]) => BANNED_EN.some((re) => re.test(title)))
+      .map(([, path, title]) => `${path}: ${title}`);
+    assert.deepEqual(bad, []);
+  });
+
+  it('the approval inbox and identity checks never fill an empty queue with made-up rows', () => {
+    for (const file of ['pages/admin/ApprovalInboxPage.ts', 'pages/admin/VerificationCenterPage.ts']) {
+      assert.doesNotMatch(readFileSync(join(src, file), 'utf8'), /defaultSample/, file);
+    }
   });
 });

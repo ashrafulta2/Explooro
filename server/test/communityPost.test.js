@@ -366,7 +366,7 @@ test('a comment goes live at once and counts on the post', async () => {
 
 test('a viewer can comment on and read only posts they can see; a hidden post has no comments to anyone', async () => {
   const db = makeDb();
-  // The post is for shop partners (audience SHOP_PARTNERS) and written by user 10, a supplier.
+  // The post is for Explooro partners (audience SHOP_PARTNERS) and written by user 10, a supplier.
   await assert.rejects(() => addComment(db, { id: 30, roles: ['customer'] }, 7, { body: 'hi' }), { code: 'NOT_FOUND' });
   await assert.rejects(() => listPostComments(db, null, 7), { code: 'NOT_FOUND' });
   await assert.rejects(() => listPostComments(db, { id: 30, roles: ['customer'] }, 7), { code: 'NOT_FOUND' });
@@ -551,7 +551,7 @@ test('saving toggles on and off, and is private to the member', async () => {
 
 test('a post you cannot see cannot be saved', async () => {
   const db = makeDb();
-  await assert.rejects(() => toggleSave(db, { id: 30, roles: ['customer'] }, 7), { code: 'NOT_FOUND' }, 'meant for shop partners');
+  await assert.rejects(() => toggleSave(db, { id: 30, roles: ['customer'] }, 7), { code: 'NOT_FOUND' }, 'meant for Explooro partners');
   await assert.rejects(() => toggleSave(makeDb({ postRow: { status: 'HIDDEN' } }), { id: 20, roles: ['saler'] }, 7), { code: 'NOT_FOUND' });
   assert.equal(db.saves.size, 0);
 });

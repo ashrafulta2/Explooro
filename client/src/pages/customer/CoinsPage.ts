@@ -476,7 +476,7 @@ export class CoinsPage {
           </div>
           
           <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">
-            ${isBn ? 'ডাবল-এন্ট্রি একাউন্টিং লেজার' : 'Double-Entry Liability Ledger'}
+            ${isBn ? 'কয়েনের লেনদেনের ইতিহাস' : 'Coin transaction history'}
           </span>
         </div>
 

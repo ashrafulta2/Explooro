@@ -5,7 +5,7 @@
  * 1. General & regional configuration (Platform name, support contacts, base currency, timezone).
  * 2. Escrow & settlement rules (Holding periods, auto-sweep schedule, dispute freezes).
  * 3. Vault & payout governance (Min/max payout thresholds, fee coverage, cutoff windows).
- * 4. Marketplace commission guardrails (Baseline take rate, shop partner margin floor, free listing quotas).
+ * 4. Marketplace commission guardrails (Baseline take rate, Explooro partner margin floor, free listing quotas).
  * 5. Security & staff access policies (Mandatory 2FA enforcement, inactivity timeouts, login lockouts).
  * 6. Emergency killswitches (Live platform maintenance mode & read-only mutation freeze).
  * 7. Change justification audit log drawer tracking historical revisions.
@@ -105,7 +105,7 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
 
     modalContent.innerHTML = `
       <p class="text-xs text-secondary leading-relaxed">
-        ${t('platform_settings.modal_save_desc', 'Applying changes to global platform parameters alters core escrow, payout, and security behaviors across all accounts.')}
+        ${t('platform_settings.modal_save_desc', 'These settings change how money is held, how withdrawals work and how accounts are protected, for every account.')}
       </p>
 
       <div class="form-group">
@@ -176,7 +176,7 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
       </div>
       <h1 class="admin-page-title">${t('platform_settings.title', 'Platform Governance & Global Settings')}</h1>
       <p class="admin-page-subtitle">
-        ${t('platform_settings.subtitle', 'Master configuration engine governing escrow settlement rules, payout thresholds, commission guardrails, and emergency killswitches')}
+        ${t('platform_settings.subtitle', 'Rules for how long money is held, withdrawal limits, commission limits and emergency switches')}
       </p>
     `;
 
@@ -297,27 +297,27 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
     sec2.innerHTML = `
       <div class="settings-section-card__header">
         <div>
-          <h2 class="settings-section-title">⏳ ${t('platform_settings.sec_escrow', 'Escrow & Settlement Governance')}</h2>
-          <p class="settings-section-desc">Safety escrow holding rules protecting buyer deliveries and B2B wholesale milestones.</p>
+          <h2 class="settings-section-title">⏳ ${t('platform_settings.sec_escrow', 'Holding money until delivery')}</h2>
+          <p class="settings-section-desc">${t('platform_settings.sec_escrow_desc')}</p>
         </div>
         ${Badge({ label: 'CRITICAL AUDITED', variant: 'danger' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
-          <label class="settings-field__label" for="set-escrow-days">${t('platform_settings.field_escrow_period_days', 'Customer Escrow Holding Period (Days)')}</label>
+          <label class="settings-field__label" for="set-escrow-days">${t('platform_settings.field_escrow_period_days', 'Days a customer\'s payment is held after delivery')}</label>
           <input type="number" min="1" max="30" class="input input--sm font-mono" id="set-escrow-days" value="${formState.escrow_period_days || 7}" />
           <span class="settings-field__helper">Days after verified courier delivery before earner wallet credit.</span>
         </div>
         <div class="settings-field">
-          <label class="settings-field__label" for="set-b2b-escrow-days">${t('platform_settings.field_b2b_escrow_days', 'B2B Milestone Escrow Holding Period (Days)')}</label>
+          <label class="settings-field__label" for="set-b2b-escrow-days">${t('platform_settings.field_b2b_escrow_days', 'Days a bulk-deal stage payment is held')}</label>
           <input type="number" min="1" max="60" class="input input--sm font-mono" id="set-b2b-escrow-days" value="${formState.b2b_escrow_days || 14}" />
           <span class="settings-field__helper">Holding window for manufacturer batch procurement contracts.</span>
         </div>
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <label class="settings-toggle-title" for="set-auto-sweep">${t('platform_settings.field_auto_sweep', 'Automated Daily Escrow Sweep')}</label>
-              <span class="settings-toggle-desc">Automatically executes scheduled midnight cron job to mature eligible escrow entries.</span>
+              <label class="settings-toggle-title" for="set-auto-sweep">${t('platform_settings.field_auto_sweep', 'Release due money automatically every day')}</label>
+              <span class="settings-toggle-desc">${t('platform_settings.field_auto_sweep_desc')}</span>
             </div>
             <input type="checkbox" id="set-auto-sweep" ${formState.auto_sweep_enabled ? 'checked' : ''} />
           </div>
@@ -325,8 +325,8 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <label class="settings-toggle-title" for="set-dispute-freeze">${t('platform_settings.field_dispute_freeze', 'Auto-Freeze Escrow on Active Buyer Dispute')}</label>
-              <span class="settings-toggle-desc">Instantly locks payout disbursement if a customer raises a formal return or damage claim.</span>
+              <label class="settings-toggle-title" for="set-dispute-freeze">${t('platform_settings.field_dispute_freeze', 'Keep holding the money while a buyer\'s dispute is open')}</label>
+              <span class="settings-toggle-desc">${t('platform_settings.field_dispute_freeze_desc')}</span>
             </div>
             <input type="checkbox" id="set-dispute-freeze" ${formState.dispute_auto_freeze ? 'checked' : ''} />
           </div>
@@ -340,32 +340,32 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
     sec3.innerHTML = `
       <div class="settings-section-card__header">
         <div>
-          <h2 class="settings-section-title">💸 ${t('platform_settings.sec_payout', 'Vault & Payout Thresholds')}</h2>
+          <h2 class="settings-section-title">💸 ${t('platform_settings.sec_payout', 'Vault & withdrawal limits')}</h2>
           <p class="settings-section-desc">Earner withdrawal minimums, maximum batch caps, and cutoff windows for bKash/Nagad/Bank.</p>
         </div>
         ${Badge({ label: 'Vault Policy', variant: 'warning' }).outerHTML}
       </div>
       <div class="settings-fields-grid">
         <div class="settings-field">
-          <label class="settings-field__label" for="set-min-saler-payout">${t('platform_settings.field_min_saler_payout', 'Minimum Shop Partner Payout Threshold (৳)')}</label>
+          <label class="settings-field__label" for="set-min-saler-payout">${t('platform_settings.field_min_saler_payout', 'Smallest Explooro partner withdrawal (৳)')}</label>
           <input type="number" min="100" step="50" class="input input--sm font-mono" id="set-min-saler-payout" value="${formState.min_saler_payout_bdt || 500}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label" for="set-min-sup-payout">${t('platform_settings.field_min_supplier_payout', 'Minimum Supplier Payout Threshold (৳)')}</label>
+          <label class="settings-field__label" for="set-min-sup-payout">${t('platform_settings.field_min_supplier_payout', 'Smallest supplier withdrawal (৳)')}</label>
           <input type="number" min="500" step="100" class="input input--sm font-mono" id="set-min-sup-payout" value="${formState.min_supplier_payout_bdt || 1000}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label" for="set-max-payout">${t('platform_settings.field_max_payout', 'Maximum Single Payout Cap (৳)')}</label>
+          <label class="settings-field__label" for="set-max-payout">${t('platform_settings.field_max_payout', 'Largest single withdrawal (৳)')}</label>
           <input type="number" min="5000" step="5000" class="input input--sm font-mono" id="set-max-payout" value="${formState.max_single_payout_bdt || 100000}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label" for="set-cutoff-time">${t('platform_settings.field_cutoff_time', 'Daily Payout Batch Cutoff Time')}</label>
+          <label class="settings-field__label" for="set-cutoff-time">${t('platform_settings.field_cutoff_time', 'Daily cut-off for sending withdrawals')}</label>
           <input type="time" class="input input--sm font-mono" id="set-cutoff-time" value="${formState.payout_cutoff_time || '17:00'}" />
         </div>
         <div class="settings-field--full">
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
-              <label class="settings-toggle-title" for="set-payout-fee">${t('platform_settings.field_payout_fee_covered', 'Platform Absorbs Payout Disbursement Fees')}</label>
+              <label class="settings-toggle-title" for="set-payout-fee">${t('platform_settings.field_payout_fee_covered', 'Platform pays the sending fee')}</label>
               <span class="settings-toggle-desc">Platform covers 1.5% bKash/Nagad B2C merchant cash-out fee so earners receive 100% of requested amount.</span>
             </div>
             <input type="checkbox" id="set-payout-fee" ${formState.payout_fee_covered ? 'checked' : ''} />
@@ -391,7 +391,7 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
           <input type="number" min="0" max="100" step="0.5" class="input input--sm font-mono" id="set-platform-take" value="${formState.platform_take_pct || 10.0}" />
         </div>
         <div class="settings-field">
-          <label class="settings-field__label" for="set-min-seller-margin">${t('platform_settings.field_min_seller_margin', 'Minimum Shop Partner Margin Floor (%)')}</label>
+          <label class="settings-field__label" for="set-min-seller-margin">${t('platform_settings.field_min_seller_margin', 'Minimum Explooro Partner Margin Floor (%)')}</label>
           <input type="number" min="1" max="50" step="0.5" class="input input--sm font-mono" id="set-min-seller-margin" value="${formState.min_seller_margin_pct || 5.0}" />
         </div>
         <div class="settings-field">
@@ -459,7 +459,7 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
           <div class="settings-toggle-row">
             <div class="settings-toggle-info">
               <label class="settings-toggle-title text-danger" for="set-read-only-mode">${t('platform_settings.field_read_only_mode', 'Read-Only Mode (Freeze Mutations)')}</label>
-              <span class="settings-toggle-desc">Freezes all catalog creation, store edits, and payouts during major system upgrades.</span>
+              <span class="settings-toggle-desc">${t('platform_settings.field_read_only_mode_desc')}</span>
             </div>
             <input type="checkbox" id="set-read-only-mode" ${formState.read_only_mode ? 'checked' : ''} />
           </div>

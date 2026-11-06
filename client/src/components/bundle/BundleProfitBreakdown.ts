@@ -6,7 +6,7 @@
  * - Itemized discount apportionment & effective retail prices
  * - Platform Share, only when a caller passes showPlatformShare (none does on a partner page)
  *
- * WHY no partner profit, wholesale cost or supplier payouts (owner, 2026-11-02): the shop partner
+ * WHY no partner profit, wholesale cost or supplier payouts (owner, 2026-11-02): the Explooro partner
  * building the bundle is shown no per-product profit and never the supplier's cost.
  */
 

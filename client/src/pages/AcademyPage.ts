@@ -1,8 +1,8 @@
 /**
- * AcademyPage.ts — Shop Partner Academy Micro-Learning, Video/Audio Lessons & Certificate Portal (Prompt 10.8).
+ * AcademyPage.ts — Explooro Partner Academy Micro-Learning, Video/Audio Lessons & Certificate Portal (Prompt 10.8).
  *
  * Implements idea proposition.md §T & Prompt 10.8 Requirement 4:
- * - Structured micro-courses for shop partners & suppliers (Sourcing, Marketing, Finance).
+ * - Structured micro-courses for Explooro partners & suppliers (Sourcing, Marketing, Finance).
  * - Video & Audio lesson player with interactive completion checklist.
  * - Digital Completion Certificate modal upon achieving 100% course progress.
  */
@@ -61,7 +61,7 @@ export default function AcademyPage(root: HTMLElement, ctx: PageContext = {}) {
       </button>
     </div>
   `;
-  // Prompt 13.4: the academy is the shop partner's Help, where the finished setup checklist can be
+  // Prompt 13.4: the academy is the Explooro partner's Help, where the finished setup checklist can be
   // opened again. Guests on the public /academy get no link.
   const reopen = setupChecklistLink();
   if (reopen) header.querySelector('div')?.append(reopen);
@@ -85,7 +85,7 @@ export default function AcademyPage(root: HTMLElement, ctx: PageContext = {}) {
 
   async function loadCourses() {
     try {
-      workspace.innerHTML = `<div class="text-center p-8 text-muted text-xs">Loading Shop Partner Academy...</div>`;
+      workspace.innerHTML = `<div class="text-center p-8 text-muted text-xs">Loading Explooro Partner Academy...</div>`;
       const res = await listAcademyCourses();
       courses = res?.data || [];
       renderCourseCatalog();
@@ -326,7 +326,7 @@ export default function AcademyPage(root: HTMLElement, ctx: PageContext = {}) {
     modalContent.innerHTML = `
       <div class="text-4xl">🏆</div>
       <div class="uppercase tracking-widest text-xs font-bold text-primary font-mono">Certificate of Mastery</div>
-      <h3 class="text-xl font-bold text-slate-900 m-0">Explooro Shop Partner Academy</h3>
+      <h3 class="text-xl font-bold text-slate-900 m-0">Explooro Explooro Partner Academy</h3>
       <p class="text-xs text-muted">This certifies that</p>
       <div class="text-lg font-bold text-slate-900 border-b-2 border-slate-300 pb-1 max-w-xs mx-auto">
         Habib Traders (Dhaka)

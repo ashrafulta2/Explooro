@@ -80,7 +80,7 @@ export default [
           body: {
             error: {
               code: 'FORBIDDEN',
-              message_en: 'Only a shop partner or supplier can answer a product question.',
+              message_en: 'Only a Explooro partner or supplier can answer a product question.',
               message_bn: 'শুধুমাত্র শপ পার্টনার বা সরবরাহকারী পণ্যের প্রশ্নের উত্তর দিতে পারবেন।',
               trace_id: traceId(),
             },

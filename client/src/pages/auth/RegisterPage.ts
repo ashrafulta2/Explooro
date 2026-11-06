@@ -1,7 +1,7 @@
 /**
  * RegisterPage.ts — User registration page (Prompt 2.8).
  *
- * Supports account creation for Customer, Shop Partner, and Supplier roles.
+ * Supports account creation for Customer, Explooro Partner, and Supplier roles.
  * Advances to OTP verification on submission.
  */
 
@@ -69,7 +69,15 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
   form.className = 'auth-form';
 
   // Role selector
-  let selectedRole = 'customer';
+  // Public registration defaults to Customer. Purpose-built entry points may declare a valid
+  // role in the URL so their matching card is selected immediately.
+  // Read the browser URL as a fallback too: it keeps an intent link reliable if this page is
+  // mounted by another caller that does not supply parsed router query values.
+  const roleFromUrl = new URLSearchParams(window.location.search).get('role');
+  const requestedRole = String(query.role || roleFromUrl || '').toLowerCase();
+  let selectedRole = ['customer', 'saler', 'supplier'].includes(requestedRole)
+    ? requestedRole
+    : 'customer';
   const roleSection = document.createElement('div');
   roleSection.className = 'auth-field';
   const roleLabel = document.createElement('label');

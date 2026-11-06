@@ -84,7 +84,7 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
   }
 
   function exportCsv() {
-    const headers = ['Transaction Group', 'Type', 'Sub Order', 'Debit Account', 'Credit Account', 'Amount BDT', 'Status', 'Timestamp'];
+    const headers = ['Transaction Group', 'Type', 'Parcel', 'Debit Account', 'Credit Account', 'Amount BDT', 'Status', 'Timestamp'];
     const rows = transactions.map((t) => [
       t.group_ref,
       t.tx_type,
@@ -105,7 +105,7 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success(isBn ? 'লেজার সিএসভি সফলভাবে এক্সপোর্ট হয়েছে!' : 'General Ledger CSV exported successfully!');
+    toast.success(isBn ? 'লেনদেনের খাতা সিএসভিতে এক্সপোর্ট হয়েছে।' : 'Transaction records exported to CSV.');
   }
 
   function render() {
@@ -132,11 +132,11 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
       <div class="admin-page-header">
         <div>
           <div class="admin-page-eyebrow">
-            <span class="badge badge--neutral">💰 ${isBn ? 'ফিনান্সিয়াল অডিটিং' : 'Double-Entry Accounting'}</span>
+            <span class="badge badge--neutral">💰 ${isBn ? 'হিসাব' : 'Accounting'}</span>
           </div>
-          <h1 class="admin-page-title">${isBn ? 'ডাবল-এন্ট্রি জেনারেল লেজার' : 'General Ledger & Journal Entries'}</h1>
+          <h1 class="admin-page-title">${isBn ? 'লেনদেনের খাতা' : 'Transaction records'}</h1>
           <p class="admin-page-subtitle">
-            ${isBn ? 'জিরো-ড্রিফট গ্যারান্টি সহ প্ল্যাটফর্মের সকল ডেবিট ও ক্রেডিট লেনদেনের সম্পূর্ণ অপরিবর্তনীয় অডিট লগ।' : 'Real-time double-entry journal ensuring zero financial drift across escrow, revenue, and beneficiary balances.'}
+            ${isBn ? 'জিরো-ড্রিফট গ্যারান্টি সহ প্ল্যাটফর্মের সকল ডেবিট ও ক্রেডিট লেনদেনের সম্পূর্ণ অপরিবর্তনীয় অডিট লগ।' : 'Every money movement on the platform, written once out of one account and once into another, so the totals always balance.'}
           </p>
         </div>
 
@@ -156,7 +156,7 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
       <div class="system-backup-banner" style="background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.25);">
         <span class="system-backup-banner__icon">🛡️</span>
         <div>
-          <strong style="color: var(--success);">${isBn ? 'জিরো-ড্রিফট ব্যালেন্স নিশ্চিত' : 'Double-Entry Zero-Drift Invariant Verified'}</strong>
+          <strong style="color: var(--success);">${isBn ? 'জিরো-ড্রিফট ব্যালেন্স নিশ্চিত' : 'Money records balance'}</strong>
           <div>${isBn ? 'সকল ডেবিট ও ক্রেডিটের মোট সমষ্টি ১০০.০০% ভারসাম্যপূর্ণ। সিস্টেম কোনো ধরনের অমিল বা অসামঞ্জস্য খুঁজে পায়নি।' : 'Sum of Debits equals Sum of Credits exactly across all journal records. No reconciliation drift detected.'}</div>
         </div>
       </div>
@@ -166,7 +166,7 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মোট জার্নাল এন্ট্রি' : 'Journal Records'}</div>
           <div class="admin-kpi-card__val font-mono">${stats.transaction_count}</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'ভারসাম্যপূর্ণ দ্বিমুখী এন্ট্রি' : '100% Balanced Double-Entry'}</div>
+          <div class="admin-kpi-card__hint">${isBn ? 'ভারসাম্যপূর্ণ দ্বিমুখী এন্ট্রি' : 'Every entry balanced'}</div>
         </div>
 
         <div class="admin-kpi-card">
@@ -184,14 +184,14 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'অডিট ড্রিফট' : 'Reconciliation Drift'}</div>
           <div class="admin-kpi-card__val font-mono text-emerald-600">৳0.00</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'নিখুঁত অ্যাকাউন্টিং' : 'Zero Ledger Variance'}</div>
+          <div class="admin-kpi-card__hint">${isBn ? 'নিখুঁত অ্যাকাউন্টিং' : 'No difference in the records'}</div>
         </div>
       </div>
 
       <!-- Toolbar -->
       <div class="admin-toolbar">
         <div class="admin-toolbar__search">
-          <input type="search" id="ledger-search-input" class="input" aria-label="${isBn ? 'ট্রানজ্যাকশন গ্রুপ, সাব-অর্ডার বা হিসাব দিয়ে খুঁজুন...' : 'Search group #, sub-order ref, account...'}" placeholder="${isBn ? 'ট্রানজ্যাকশন গ্রুপ, সাব-অর্ডার বা হিসাব দিয়ে খুঁজুন...' : 'Search group #, sub-order ref, account...'}" value="${searchQuery}" />
+          <input type="search" id="ledger-search-input" class="input" aria-label="${isBn ? 'লেনদেন গ্রুপ, পার্সেল বা হিসাব দিয়ে খুঁজুন...' : 'Search group #, parcel ref, account...'}" placeholder="${isBn ? 'লেনদেন গ্রুপ, পার্সেল বা হিসাব দিয়ে খুঁজুন...' : 'Search group #, parcel ref, account...'}" value="${searchQuery}" />
         </div>
 
         <div class="admin-toolbar__filters">
@@ -214,7 +214,7 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
             <thead>
               <tr>
                 <th>${isBn ? 'ট্রানজ্যাকশন গ্রুপ' : 'Group Ref'}</th>
-                <th>${isBn ? 'ধরন ও সাব-অর্ডার' : 'Type & Source'}</th>
+                <th>${isBn ? 'ধরন ও পার্সেল' : 'Type & Source'}</th>
                 <th>${isBn ? 'ডেবিট হিসাব (ডান)' : 'Debit Account (Dr)'}</th>
                 <th>${isBn ? 'ক্রেডিট হিসাব (বাম)' : 'Credit Account (Cr)'}</th>
                 <th>${isBn ? 'পরিমাণ' : 'Amount'}</th>

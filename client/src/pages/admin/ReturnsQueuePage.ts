@@ -92,11 +92,11 @@ export default function ReturnsQueuePage(root: HTMLElement) {
   }
 
   async function handleRefund(returnId) {
-    if (!confirm(t('returns.confirm_execute_refund', 'Confirm refund payout & ledger clawback execution?'))) return;
+    if (!confirm(t('returns.confirm_execute_refund', 'Refund the buyer in full and take the Explooro partner\'s share back for this return?'))) return;
 
     try {
       await api.post(`/admin/returns/${returnId}/refund`, {});
-      toast.success(t('returns.refund_executed_success', 'Refund payout executed successfully.'));
+      toast.success(t('returns.refund_executed_success', 'Refund executed successfully! Funds credited and stock restored.'));
       await fetchQueue();
     } catch (err) {
       toast.error(err.message || 'Failed to execute refund.');
@@ -349,7 +349,7 @@ export default function ReturnsQueuePage(root: HTMLElement) {
                     ret.status === 'INSPECTED'
                       ? `
                     <button class="btn-execute-refund" data-id="${ret.id}" style="padding: 6px 18px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--success, #059669); color: #ffffff; cursor: pointer;">
-                      💰 ${t('returns.btn_execute_refund', 'Execute Refund Payout')}
+                      💰 ${t('returns.btn_execute_refund', 'Execute Refund & Clawback')}
                     </button>
                   `
                       : ''

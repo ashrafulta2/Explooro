@@ -5,7 +5,7 @@
  * its chunk instead of the entry CSS, which sits close to the 70KB gzip budget.
  */
 
-/* ── Shop Partner Social Kit Flyer Studio ── */
+/* ── Explooro Partner Social Kit Flyer Studio ── */
 .saler-social-kit-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

@@ -10,7 +10,7 @@
  * 4. Direct Operational Action buttons (Escrow Release Sweep, Payout Queue, COD Reconciliation).
  */
 
-import { api } from '../../core/api.ts';
+import { api, pickMessage } from '../../core/api.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { formatCompactBdt } from '../../services/adminDashboard.model.ts';
 import { toast } from '../../services/toast.ts';
@@ -56,7 +56,7 @@ export default function FinanceDashboardPage(root: HTMLElement, { navigate }: Pa
       );
       await loadDashboard();
     } catch (err) {
-      toast.error(err.message || 'Escrow sweep failed');
+      toast.error(pickMessage(err) || t('finance_admin.sweep_failed'));
     } finally {
       isSweeping = false;
       render();
@@ -269,7 +269,7 @@ export default function FinanceDashboardPage(root: HTMLElement, { navigate }: Pa
               🔁 ${t('admin_subscriptions.page_title', 'Subscriptions')}
             </a>
             <a href="/admin/finance/b2b-escrow" class="btn btn--secondary">
-              🤝 B2B Escrow
+              🤝 Protected bulk deals
             </a>
             <a href="/admin/finance/escrow" class="btn btn--secondary">
               ⏳ ${t('finance_admin.goto_escrow')}

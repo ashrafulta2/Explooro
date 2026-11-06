@@ -237,7 +237,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
   const subtitle = document.createElement('p');
   subtitle.className = 'catalog-page__subtitle';
   subtitle.textContent = isSupplierView
-    ? t('supplier.products_subtitle', 'Manage your manufacturing SKUs, adjust physical stock counts, set wholesale margins, and publish new products.')
+    ? t('supplier.products_subtitle', 'Add products, keep their stock right, set your price and publish them.')
     : t(
         'admin_catalog.subtitle',
         'Oversee platform inventory, audit commercial margins, manage live supplier listings, and register new sample products.'
@@ -330,8 +330,8 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     <input 
       type="search" 
       class="catalog-toolbar__search-input" 
-      placeholder="${t('admin_catalog.search_placeholder', 'Search by title, SKU ref, store, district…')}" 
-      aria-label="${t('admin_catalog.search_placeholder', 'Search by title, SKU ref, store, district…')}"
+      placeholder="${t('admin_catalog.search_placeholder', 'Search by title, product code, store, district…')}" 
+      aria-label="${t('admin_catalog.search_placeholder', 'Search by title, product code, store, district…')}"
     />
   `;
 
@@ -635,7 +635,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
       <thead>
         <tr>
           <th style="width: 36px;"><input type="checkbox" id="select-all-header" ${allChecked ? 'checked' : ''} aria-label="Select all" /></th>
-          <th>${t('admin_catalog.col_product', 'Product & SKU')}</th>
+          <th>${t('admin_catalog.col_product', 'Product')}</th>
           <th>${t('admin_catalog.col_category', 'Category & District')}</th>
           <th>${t('admin_catalog.col_supplier', 'Supplier & Tier')}</th>
           <th>${t('admin_catalog.col_pricing', 'Retail / Margin')}</th>
@@ -921,7 +921,7 @@ export default function CatalogProductsPage(root: HTMLElement, { navigate }: Pag
     splitEl.insertAdjacentHTML('beforeend', `<p class="catalog-drawer__empty">${t('common.loading', 'Loading…')}</p>`);
     pricingRequest
       .then((pr) => {
-        // WHY the supplier gate: the Shop Partner's earning and the platform's escrow fee are the
+        // WHY the supplier gate: the Explooro Partner's earning and the platform's escrow fee are the
         // downstream settlement split — none of the supplier's business. A supplier sees only the
         // retail price and their own price per unit; the full split stays admin-only.
         // WHY these labels: the supplier form names this figure "Your price per unit", so the popup

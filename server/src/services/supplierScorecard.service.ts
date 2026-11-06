@@ -1,5 +1,5 @@
 /**
- * supplierScorecard.service.ts — The measured reputation of a supplier, shown to shop partners.
+ * supplierScorecard.service.ts — The measured reputation of a supplier, shown to Explooro partners.
  *
  * Invariants:
  *   1. A supplier with fewer than `min_sample_orders` orders in the window has NO grade (grade and
@@ -138,7 +138,7 @@ export async function refreshAll(db) {
 }
 
 /**
- * What a shop partner may see. WHY a whitelist and not `...row`: the row is internal, and a column added
+ * What a Explooro partner may see. WHY a whitelist and not `...row`: the row is internal, and a column added
  * later must not leak to the public catalog by default.
  */
 export function toPublicView(row, rules: Record<string, any> = DEFAULT_RULES) {

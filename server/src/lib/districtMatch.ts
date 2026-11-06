@@ -2,7 +2,7 @@
  * districtMatch.ts — comparing district names that were typed or chosen in different spellings.
  *
  * A district reaches the database as free text (an address form, a profile) and reaches an ad
- * campaign as the name the shop partner picked from the client's list, and Bangladesh has official
+ * campaign as the name the Explooro partner picked from the client's list, and Bangladesh has official
  * respellings in common use: "Barishal"/"Barisal", "Chattogram"/"Chittagong". Comparing the raw strings
  * would silently drop a shopper whose address says "Chittagong" from a campaign aimed at "Chattogram".
  *

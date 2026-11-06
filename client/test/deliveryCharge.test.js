@@ -92,7 +92,7 @@ describe('Delivery charge', () => {
   });
 
   it('checkout no longer prints one delivery time for every address', () => {
-    // (A shop partner's canned chat reply may still say "2-3 business days"; that is their own words.)
+    // (A Explooro partner's canned chat reply may still say "2-3 business days"; that is their own words.)
     for (const lang of ['en', 'bn']) {
       assert.ok(!/2-3 business days|২-৩ কার্যদিবস/.test(JSON.stringify(JSON.parse(read(`locales/${lang}.json`)).checkout)), lang);
     }

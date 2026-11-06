@@ -148,11 +148,11 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
       <div class="admin-page-header">
         <div>
           <div class="admin-page-eyebrow">
-            <span class="badge badge--neutral">🚚 ${isBn ? 'লজিস্টিকস গভর্নেন্স' : '3PL Logistics Hub'}</span>
+            <span class="badge badge--neutral">🚚 ${isBn ? 'কুরিয়ার' : 'Couriers'}</span>
           </div>
-          <h1 class="admin-page-title">${isBn ? '৩PL কুরিয়ার ইন্টিগ্রেশন ও রাউটিং' : '3PL Courier Hub & Logistics Gateway'}</h1>
+          <h1 class="admin-page-title">${isBn ? 'কুরিয়ার সংযোগ ও ডেলিভারি রাউটিং' : 'Couriers & delivery routing'}</h1>
           <p class="admin-page-subtitle">
-            ${isBn ? 'স্টেডফাস্ট, পাঠাও, রেডএক্স ও ই-কুরিয়ার এপিআই ইন্টিগ্রেশন, রিয়েল-টাইম ওয়েবহুক ডেলিভারি ট্র্যাকিং ও রাউটিং পলিসি।' : 'Manage 3PL carrier integrations, SLA success meters, automated routing priorities, and incoming delivery webhooks.'}
+            ${isBn ? 'স্টেডফাস্ট, পাঠাও, রেডএক্স ও ই-কুরিয়ার এপিআই ইন্টিগ্রেশন, রিয়েল-টাইম ওয়েবহুক ডেলিভারি ট্র্যাকিং ও রাউটিং পলিসি।' : 'Manage courier connections, delivery success rates, routing priorities and incoming delivery updates.'}
           </p>
         </div>
 
@@ -166,7 +166,7 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
       <!-- KPI Metrics Strip -->
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
-          <div class="admin-kpi-card__label">${isBn ? 'মোট কনসাইনমেন্ট' : 'Total Consignments'}</div>
+          <div class="admin-kpi-card__label">${isBn ? 'মোট পার্সেল' : 'Total parcels'}</div>
           <div class="admin-kpi-card__val font-mono">${formatNumber(stats.total_consignments)}</div>
           <div class="admin-kpi-card__hint">${formatNumber(stats.active_couriers)} ${isBn ? 'সক্রিয় কুরিয়ার পার্টনার' : 'Connected Carriers'}</div>
         </div>
@@ -174,7 +174,7 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'সার্বিক ডেলিভারি সাকসেস' : 'Delivery Success Rate'}</div>
           <div class="admin-kpi-card__val text-emerald-600">${formatNumber(stats.delivered_rate)}%</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'SLA স্ট্যান্ডার্ডের চেয়ে বেশি' : 'Above SLA Target (95%)'}</div>
+          <div class="admin-kpi-card__hint">${isBn ? '৯৫% লক্ষ্যের উপরে' : 'Above the 95% target'}</div>
         </div>
 
         <div class="admin-kpi-card">
@@ -210,7 +210,7 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
             <!-- Performance Gauge -->
             <div class="system-infra-card__gauge">
               <div class="system-infra-card__gauge-head">
-                <span>${isBn ? 'ডেলিভারি সাকসেস' : 'Delivery SLA'}</span>
+                <span>${isBn ? 'ডেলিভারি সাকসেস' : 'Delivery success'}</span>
                 <span class="font-mono font-bold text-emerald-600">${c.delivery_rate_pct}%</span>
               </div>
               <div class="system-infra-card__gauge-bar">
@@ -250,7 +250,7 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
               <span>🪝 ${isBn ? 'রিয়েল-টাইম ইনবাউন্ড ওয়েবহুক স্ট্রিম' : 'Inbound Delivery Webhooks Log'}</span>
             </h3>
             <p class="system-panel__sub">
-              ${isBn ? 'কুরিয়ার পার্টনারদের ডেলিভারি স্ট্যাটাস পুশ ইভেন্ট ও HMAC সিগনেচার ভ্যালিডেশন।' : 'Live webhook events from 3PL logistics with cryptographic signature checks.'}
+              ${isBn ? 'কুরিয়ার পার্টনারদের ডেলিভারি স্ট্যাটাস পুশ ইভেন্ট ও HMAC সিগনেচার ভ্যালিডেশন।' : 'Live delivery updates from couriers, each with a signature check.'}
             </p>
           </div>
         </div>
@@ -261,7 +261,7 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
               <tr>
                 <th>${isBn ? 'কুরিয়ার' : 'Carrier'}</th>
                 <th>${isBn ? 'ইভেন্ট টাইপ' : 'Event'}</th>
-                <th>${isBn ? 'ট্র্যাকিং আইডি' : 'Consignment Tracking ID'}</th>
+                <th>${isBn ? 'ট্র্যাকিং আইডি' : 'Tracking ID'}</th>
                 <th>${isBn ? 'সিগনেচার স্ট্যাটাস' : 'Verification'}</th>
                 <th>${isBn ? 'লেটেন্সি' : 'Latency'}</th>
                 <th>${isBn ? 'সময়' : 'Timestamp'}</th>

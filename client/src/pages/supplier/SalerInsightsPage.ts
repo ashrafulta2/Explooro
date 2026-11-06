@@ -1,10 +1,10 @@
 /**
- * SalerInsightsPage.ts — Supplier Shop Partner Network Analytics & Curators Leaderboard (Prompt 11.1).
+ * SalerInsightsPage.ts — Supplier Explooro Partner Network Analytics & Curators Leaderboard (Prompt 11.1).
  *
  * Implements `idea proposition.md` §AL.1:
- * - Real-time analytics on which Shop Partners curate and sell the supplier's products most effectively.
+ * - Real-time analytics on which Explooro Partners curate and sell the supplier's products most effectively.
  * - Revenue, commission, and order volume breakdowns.
- * - Full-width Top Shop Partners Leaderboard with instant search and curator detail modals.
+ * - Full-width Top Explooro Partners Leaderboard with instant search and curator detail modals.
  * - Full-width Regional Demand Breakdown card placed underneath with spacious 4-column district grid.
  */
 
@@ -32,8 +32,8 @@ export default function SalerInsightsPage(root: HTMLElement) {
       const res = await supplierApi.getSalerInsights();
       insights = res.data || res || { top_salers: [], regional_distribution: [] };
     } catch (err) {
-      console.error('Failed to load shop partner insights:', err);
-      toast.error(t('supplier.salers_load_failed', 'Failed to load shop partner insights.'));
+      console.error('Failed to load Explooro partner insights:', err);
+      toast.error(t('supplier.salers_load_failed', 'Failed to load Explooro partner insights.'));
       insights = { top_salers: [], regional_distribution: [] };
     } finally {
       loading = false;
@@ -186,10 +186,10 @@ export default function SalerInsightsPage(root: HTMLElement) {
           <span class="text-xs text-muted font-mono">${t('supplier.si_breadcrumb')}</span>
         </div>
         <h1 class="supplier-header__title">
-          <span>👥</span> ${t('supplier.saler_insights_title', 'Shop Partner Network Insights & Curators')}
+          <span>👥</span> ${t('supplier.saler_insights_title', 'Explooro Partner Network Insights & Curators')}
         </h1>
         <p class="supplier-header__subtitle">
-          ${t('supplier.saler_insights_subtitle', 'Identify your top-performing virtual storefront shop partners, sales conversion, and geographic distribution.')}
+          ${t('supplier.saler_insights_subtitle', 'Identify your top-performing virtual storefront Explooro partners, sales conversion, and geographic distribution.')}
         </p>
       </div>
       <div class="supplier-header__actions">
@@ -211,7 +211,7 @@ export default function SalerInsightsPage(root: HTMLElement) {
       loader.className = 'p-12 text-center text-muted';
       loader.innerHTML = `
         <div class="spinner" style="margin: 0 auto 16px auto;"></div>
-        <p>${t('common.loading', 'Loading shop partner network analytics...')}</p>
+        <p>${t('common.loading', 'Loading Explooro partner network analytics...')}</p>
       `;
       container.appendChild(loader);
       return;
@@ -220,7 +220,7 @@ export default function SalerInsightsPage(root: HTMLElement) {
     const rawTopSalers = insights?.top_salers || [];
     const regionalDist = insights?.regional_distribution || [];
 
-    // Filter Shop Partners by search
+    // Filter Explooro Partners by search
     const topSalers = rawTopSalers.filter((s) => {
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
@@ -249,19 +249,19 @@ export default function SalerInsightsPage(root: HTMLElement) {
     kpiSummary.className = 'supplier-kpi-grid';
     kpiSummary.innerHTML = `
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('supplier.total_active_curators', 'Active Shop Partners Sourcing Your SKUs')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.total_active_curators', 'Explooro Partners selling your products')}</span>
         <div class="supplier-kpi-card__value text-primary" style="font-size: 1.5rem; margin: 4px 0;">${t('supplier.si_curators_count', { n: rawTopSalers.length })}</div>
         <span class="text-xs text-muted">${t('supplier.si_curators_sub')}</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('supplier.saler_order_volume', 'Total Orders via Shop Partners')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.saler_order_volume', 'Total Orders via Explooro Partners')}</span>
         <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 4px 0;">${t('supplier.si_orders_count', { n: totalOrders })}</div>
         <span class="text-xs text-muted">${t('supplier.si_orders_sub')}</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">
-        <span class="supplier-kpi-card__label">${t('supplier.saler_gross_sales', 'Shop Partner Generated Sales')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.saler_gross_sales', 'Explooro Partner Generated Sales')}</span>
         <div class="supplier-kpi-card__value supplier-kpi-card__value--success" style="font-size: 1.5rem; margin: 4px 0;">
           ${formatCurrency(totalRevenue)}
         </div>
@@ -284,7 +284,7 @@ export default function SalerInsightsPage(root: HTMLElement) {
     const mainStack = document.createElement('div');
     mainStack.className = 'supplier-saler-stack';
 
-    // 3.1 Full-Width Top Shop Partners Leaderboard
+    // 3.1 Full-Width Top Explooro Partners Leaderboard
     const tableCard = document.createElement('div');
     tableCard.className = 'supplier-leaderboard-card';
 
@@ -299,7 +299,7 @@ export default function SalerInsightsPage(root: HTMLElement) {
     tableHeader.innerHTML = `
       <div>
         <h3 style="font-size: var(--text-base); font-weight: 800; color: var(--text-primary); margin: 0;">
-          🏆 ${t('supplier.top_curators_leaderboard', 'Top Shop Partners Leaderboard')}
+          🏆 ${t('supplier.top_curators_leaderboard', 'Top Explooro Partners Leaderboard')}
         </h3>
         <p data-page-info style="font-size: var(--text-xs); color: var(--text-secondary); margin: 2px 0 0 0;">
           ${t('supplier.si_ranked_by')}
@@ -321,8 +321,8 @@ export default function SalerInsightsPage(root: HTMLElement) {
       tableCard.appendChild(
         EmptyState({
           icon: '👥',
-          title: t('supplier.no_salers_yet', 'No shop partners found'),
-          description: t('supplier.no_salers_desc', 'Offer attractive wholesale margins to entice Shop Partners to feature your SKUs on their storefronts.'),
+          title: t('supplier.no_salers_yet', 'No Explooro partners found'),
+          description: t('supplier.no_salers_desc', 'Set a wholesale price that leaves room for Explooro partners, so they add your products to their stores.'),
         })
       );
     } else {
@@ -335,8 +335,8 @@ export default function SalerInsightsPage(root: HTMLElement) {
         <thead>
           <tr>
             <th style="width: 70px;">${t('supplier.si_rank')}</th>
-            <th>${t('supplier.saler', 'Shop Partner Storefront')}</th>
-            <th>${t('supplier.curated_skus', 'Curated SKUs')}</th>
+            <th>${t('supplier.saler', 'Explooro Partner Storefront')}</th>
+            <th>${t('supplier.curated_skus', 'Products chosen')}</th>
             <th>${t('supplier.orders_sold', 'Orders Fulfilled')}</th>
             <th style="text-align: right;">${t('supplier.revenue_generated', 'Revenue Generated')}</th>
             <th style="text-align: right; width: 110px;">${t('supplier.si_action')}</th>

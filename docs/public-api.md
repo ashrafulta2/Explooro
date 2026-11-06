@@ -28,7 +28,7 @@ Authenticate requests using either of the following HTTP headers:
 | Scope | Description |
 |---|---|
 | `catalog.products.read` | Read-only access to products, variants, and stock availability |
-| `catalog.stores.read` | Read-only access to published shop partner stores and curated items |
+| `catalog.stores.read` | Read-only access to published Explooro partner stores and curated items |
 | `catalog.categories.read` | Read-only access to categories and navigation trees |
 | `orders.create` | Write permission to inject partner orders on behalf of customers |
 | `webhooks.manage` | Permission to register, update, and inspect webhook endpoints |
@@ -37,7 +37,7 @@ Authenticate requests using either of the following HTTP headers:
 A partner places a **Cash on Delivery** order for one of their customers. The order goes through the same checkout as the website (stock locks, pricing, supplier parcels, escrow on delivery); the partner never sets a price.
 
 - **The buyer is the customer, not the partner.** `customer.phone` finds the customer's Explooro account, or creates a bare one they can claim later by signing up with that phone. The order appears in the customer's own order history.
-- **The partner is credited as the shop partner** on every line whose product is active in their storefront, exactly as if the customer had bought from that storefront. Lines they do not carry, or an order placed for the partner's own phone, earn nothing.
+- **The partner is credited as the Explooro partner** on every line whose product is active in their storefront, exactly as if the customer had bought from that storefront. Lines they do not carry, or an order placed for the partner's own phone, earn nothing.
 - **COD only.** `payment_method` may be omitted or `COD`; anything else is `400`. When the customer's trust score makes the order risky, the answer is `422 COD_OTP_REQUIRED` and the customer receives an SMS code. Repeat the same request, with the same `Idempotency-Key`, adding `otp_code`.
 - **`Idempotency-Key` header is required** (at most 200 characters) and belongs to your API key, so two partners can never collide on the same value. Repeating a key with the same customer and items returns the original order with `200` and `Idempotency-Replayed: true`; reusing it for a different order is `409 IDEMPOTENCY_MISMATCH`. Always retry a timed-out call with the same key.
 
@@ -166,7 +166,7 @@ paths:
         - Stores
       responses:
         '200':
-          description: List of active shop partner stores
+          description: List of active Explooro partner stores
 
   /public/stores/{idOrSlug}:
     get:

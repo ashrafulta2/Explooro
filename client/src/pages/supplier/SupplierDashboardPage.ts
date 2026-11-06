@@ -4,7 +4,7 @@
  * Implements `idea proposition.md` §AL.1 & Prompt 11.1 REQUIREMENTS 3, 4, 5:
  * - Simple Mode: Surfaces 4 primary KPI action cards + 6 essential daily task tiles.
  * - Pro Mode: Full 6-metric telemetry grid, operational control matrix (Live stock, FEFO batches,
- *   Multi-Depot routing, 3PL fulfilment queue, Shop Partner analytics, Digital Vault, Physical Shop Status).
+ *   Multi-Depot routing, 3PL fulfilment queue, Explooro Partner analytics, Digital Vault, Physical Shop Status).
  * - Styled with native design tokens and CSS in `supplier.css`.
  */
 
@@ -83,7 +83,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
           <span>🏭</span> ${t('supplier.dashboard_title', 'Supplier / Manufacturer Dashboard')}
         </h1>
         <p class="supplier-header__subtitle">
-          ${t('supplier.dashboard_subtitle', 'Live physical inventory, FEFO batch routing, multi-depot fulfilment & wholesale analytics.')}
+          ${t('supplier.dashboard_subtitle', 'Your stock, orders to pack, deliveries and earnings in one place.')}
         </p>
       </div>
       <div class="supplier-header__actions">
@@ -182,7 +182,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
               ${metrics.low_stock_count || 0}
             </div>
             <p class="supplier-kpi-card__hint">
-              ${metrics.low_stock_count > 0 ? t('supplier.items_below_threshold', 'SKUs below safety threshold') : t('supplier.all_stocks_healthy', 'Stock levels healthy')}
+              ${metrics.low_stock_count > 0 ? t('supplier.items_below_threshold', 'Products running low') : t('supplier.all_stocks_healthy', 'Stock levels healthy')}
             </p>
           </div>
           <div class="supplier-kpi-card__footer">
@@ -278,7 +278,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
     proKpiGrid.className = 'supplier-kpi-grid supplier-kpi-grid--6';
     proKpiGrid.innerHTML = `
       <div class="supplier-kpi-card">
-        <span class="supplier-kpi-card__label">${t('supplier.total_sku', 'Active SKUs')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.total_sku', 'Active products')}</span>
         <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 8px 0;">${metrics.total_products || 0}</div>
         <span class="text-xs text-muted">${metrics.total_units || 0} ${t('supplier.units_stored', 'units stored')}</span>
       </div>
@@ -310,7 +310,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
       </div>
 
       <div class="supplier-kpi-card">
-        <span class="supplier-kpi-card__label">${t('supplier.active_batches', 'FEFO Batches')}</span>
+        <span class="supplier-kpi-card__label">${t('supplier.active_batches', 'Batches by expiry')}</span>
         <div class="supplier-kpi-card__value" style="font-size: 1.5rem; margin: 8px 0;">
           ${metrics.total_active_batches || 0}
         </div>
@@ -346,12 +346,12 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
           <span class="badge badge--success text-xs font-mono font-bold">${metrics.total_products || 0} SKUs</span>
         </div>
         <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
-          ${t('supplier.inventory_desc', 'Track real-time SKU counts, configure low-stock reorder thresholds, and distribute inventory across regional warehouses.')}
+          ${t('supplier.inventory_desc', 'Track stock in real time, set low-stock alerts and share stock across your warehouses.')}
         </p>
       </div>
       <div class="supplier-matrix-card__footer">
         <a href="/supplier/inventory" class="btn btn--sm btn--primary" style="flex: 1; text-align: center;">${t('supplier.view_inventory', 'View Live Stock')}</a>
-        <a href="/supplier/products" class="btn btn--sm btn--secondary">${t('supplier.add_sku', '+ Add SKU')}</a>
+        <a href="/supplier/products" class="btn btn--sm btn--secondary">${t('supplier.add_sku', '+ Add product')}</a>
       </div>
     `;
     matrixGrid.appendChild(inventoryCard);
@@ -364,7 +364,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
         <div class="supplier-matrix-card__header">
           <div class="supplier-matrix-card__title-group">
             <span style="font-size: 1.25rem;">🏷️</span>
-            <h3 class="supplier-matrix-card__title">${t('supplier.batch_fefo_title', 'FEFO Batch Manager')}</h3>
+            <h3 class="supplier-matrix-card__title">${t('supplier.batch_fefo_title', 'Batches & expiry')}</h3>
           </div>
           <span class="badge ${metrics.expiring_soon_count > 0 ? 'badge--warning' : 'badge--neutral'} text-xs font-mono">
             ${metrics.expiring_soon_count || 0} near expiry
@@ -412,7 +412,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
         <div class="supplier-matrix-card__header">
           <div class="supplier-matrix-card__title-group">
             <span style="font-size: 1.25rem;">🚚</span>
-            <h3 class="supplier-matrix-card__title">${t('supplier.fulfilment_queue', '3PL Fulfilment Queue')}</h3>
+            <h3 class="supplier-matrix-card__title">${t('supplier.fulfilment_queue', 'Parcels to send')}</h3>
           </div>
           <span class="badge badge--warning text-xs font-mono font-bold">${metrics.pending_orders_count || 0} to pack</span>
         </div>
@@ -427,7 +427,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
     `;
     matrixGrid.appendChild(fulfilmentCard);
 
-    // Matrix Card 5: Shop Partner Network Insights
+    // Matrix Card 5: Explooro Partner Network Insights
     const salerCard = document.createElement('div');
     salerCard.className = 'supplier-matrix-card';
     salerCard.innerHTML = `
@@ -435,16 +435,16 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
         <div class="supplier-matrix-card__header">
           <div class="supplier-matrix-card__title-group">
             <span style="font-size: 1.25rem;">👥</span>
-            <h3 class="supplier-matrix-card__title">${t('supplier.saler_insights_title', 'Shop Partner Network')}</h3>
+            <h3 class="supplier-matrix-card__title">${t('supplier.saler_insights_title', 'Explooro Partner Network')}</h3>
           </div>
           <span class="badge badge--success text-xs font-mono">${metrics.active_curators_count || 0} salers</span>
         </div>
         <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
-          ${t('supplier.saler_insights_desc', 'See which Shop Partners curate and sell your products most effectively, top conversion districts, and sales volume analytics.')}
+          ${t('supplier.saler_insights_desc', 'See which Explooro Partners curate and sell your products most effectively, top conversion districts, and sales volume analytics.')}
         </p>
       </div>
       <div class="supplier-matrix-card__footer">
-        <a href="/supplier/salers" class="btn btn--sm btn--secondary" style="flex: 1; text-align: center;">${t('supplier.view_salers', 'View Shop Partner Stats')}</a>
+        <a href="/supplier/salers" class="btn btn--sm btn--secondary" style="flex: 1; text-align: center;">${t('supplier.view_salers', 'View Explooro Partner Stats')}</a>
       </div>
     `;
     matrixGrid.appendChild(salerCard);
@@ -462,7 +462,7 @@ export default function SupplierDashboardPage(root: HTMLElement, { navigate, que
           <span class="badge badge--success text-xs font-mono">${formatCurrency(metrics.total_settled_earnings || 0)} settled</span>
         </div>
         <p class="supplier-matrix-card__desc" style="margin-top: 10px;">
-          ${t('supplier.vault_desc', 'Track delivered order payouts, pending escrow settlements, and request instant bank or bKash withdrawals.')}
+          ${t('supplier.vault_desc', 'See money from delivered orders, money still held safely, and withdraw to bKash or a bank.')}
         </p>
       </div>
       <div class="supplier-matrix-card__footer">

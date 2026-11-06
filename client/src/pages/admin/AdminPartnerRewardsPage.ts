@@ -1,7 +1,7 @@
 /**
- * AdminPartnerRewardsPage.ts — the monthly shop partner reward pool (/admin/growth/partner-rewards).
+ * AdminPartnerRewardsPage.ts — the monthly Explooro partner reward pool (/admin/growth/partner-rewards).
  *
- * A shop partner earns nothing per sale. Every month the pool (the supplier-set partner share of
+ * A Explooro partner earns nothing per sale. Every month the pool (the supplier-set partner share of
  * every partner-brought sale, plus a share of ad revenue) is split by score: store sales > social
  * shares > community posts > activity. server/src/services/partnerReward.service.ts does all of it;
  * this page shows the month so far, the closed months, and the rules.

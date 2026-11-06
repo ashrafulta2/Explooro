@@ -17,8 +17,8 @@
  * - One-click Reference clipboard copy with instant feedback
  */
 
-import { api } from '../../core/api.ts';
-import { formatCurrency, formatDate } from '../../services/format.ts';
+import { api, pickMessage } from '../../core/api.ts';
+import { formatCurrency, formatDate, formatNumber } from '../../services/format.ts';
 import { toast } from '../../services/toast.ts';
 import { t } from '../../services/i18n.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
@@ -58,7 +58,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
       payouts = res.data?.payouts || res.payouts || [];
       payoutMode = res.meta?.payout_mode || 'MANUAL';
     } catch (err) {
-      toast.error(err.message || 'Failed to load payout queue');
+      toast.error(pickMessage(err) || t('payout.queue_load_failed'));
       payouts = [];
     } finally {
       isLoading = false;
@@ -131,7 +131,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
   async function handleApprove(payout) {
     try {
       const res = await api.post(`/admin/finance/payouts/${payout.id}/approve`, {
-        note: 'Approved from Admin Payout Queue',
+        note: 'Approved from the withdrawal queue',
       });
 
       if (res.meta?.maker_checker?.requires_super_admin) {
@@ -229,8 +229,8 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
       title: `${t('payout.btn_reject')}: ${payout.ref}`,
       description: t('payout.enter_reject_reason'),
       reasonRequired: true,
-      reasonLabel: 'Rejection Reason / কারণ',
-      reasonHint: 'This reason will be recorded in the audit ledger and visible to the shop partner.',
+      reasonLabel: t('payout.reject_reason_label'),
+      reasonHint: t('payout.reject_reason_hint'),
       confirmLabel: t('payout.btn_reject'),
       variant: 'danger',
     });
@@ -787,7 +787,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
                           type="button"
                           class="btn btn--ghost btn--sm payout-queue-page__details-btn"
                           data-id="${p.id}"
-                          title="Inspect complete payout details"
+                          title="${t('payout.inspect_details')}"
                         >
                           👁️
                         </button>
@@ -799,8 +799,8 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
             </tbody>
           </table>
           <div style="display: flex; justify-content: space-between; align-items: center; padding: var(--space-3) var(--space-4); background: var(--surface-2); border-top: 1px solid var(--border-subtle); font-size: var(--text-xs); color: var(--text-secondary);">
-            <span>Showing ${visiblePayouts.length} of ${payouts.length} payout requests</span>
-            <span class="font-mono">Queue Balance: ${formatCurrency(totalPendingAmount)}</span>
+            <span>${t('payout.showing_count', { shown: formatNumber(visiblePayouts.length), total: formatNumber(payouts.length) })}</span>
+            <span class="font-mono">${t('payout.queue_balance', { amount: formatCurrency(totalPendingAmount) })}</span>
           </div>
         `}
       </div>

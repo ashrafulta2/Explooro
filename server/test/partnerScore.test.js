@@ -1,5 +1,5 @@
 /**
- * partnerScore.test.js — the Partner Score rewards how much and how well a shop partner promotes,
+ * partnerScore.test.js — the Partner Score rewards how much and how well a Explooro partner promotes,
  * and never judges a partner on too little evidence (partnerScore.service.ts).
  *
  * Scoring is a pure function, so these tests need no database. The two source-reading tests guard

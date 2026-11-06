@@ -1,5 +1,5 @@
 /**
- * saler.css — High-contrast design tokens & component styles for Shop Partner portal pages.
+ * saler.css — High-contrast design tokens & component styles for Explooro Partner portal pages.
  * Zero external CSS frameworks — pure modular CSS using platform design tokens.
  */
 
@@ -18,7 +18,7 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Common Shop Partner Header ── */
+/* ── Common Explooro Partner Header ── */
 .saler-header-row {
   display: flex;
   flex-wrap: wrap;
@@ -67,7 +67,7 @@
   flex-wrap: wrap;
 }
 
-/* ── Shop Partner KPI Strip ── */
+/* ── Explooro Partner KPI Strip ── */
 .saler-kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
@@ -118,7 +118,7 @@
   color: var(--text-muted, #64748b);
 }
 
-/* ── Shop Partner Filter & Toolbar Bar ── */
+/* ── Explooro Partner Filter & Toolbar Bar ── */
 .saler-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -146,7 +146,7 @@
   flex-wrap: wrap;
 }
 
-/* ── Shop Partner Table & Card Deck Views ── */
+/* ── Explooro Partner Table & Card Deck Views ── */
 .saler-table-wrap {
   background: var(--surface-0, #ffffff);
   border: 1px solid var(--border-subtle, #e2e8f0);
@@ -254,7 +254,7 @@
   outline: none;
 }
 
-/* ── Shop Partner Orders Card ── */
+/* ── Explooro Partner Orders Card ── */
 .saler-order-card {
   background: var(--surface-0, #ffffff);
   border: 1px solid var(--border-subtle, #e2e8f0);
@@ -386,7 +386,7 @@
 }
 .social-kit-modal__note { margin: 0; font-family: var(--font-mono); font-size: var(--text-2xs); color: var(--text-muted); text-align: center; }
 
-/* ── Shop Partner Quests & Leaderboard ── */
+/* ── Explooro Partner Quests & Leaderboard ── */
 .saler-quest-card {
   background: var(--surface-0, #ffffff);
   border: 1px solid var(--border-subtle, #e2e8f0);
@@ -453,7 +453,7 @@
   background: linear-gradient(180deg, rgba(217, 119, 6, 0.08) 0%, var(--surface-0, #ffffff) 100%);
 }
 
-/* ── Shop Partner Dashboard Header & Mode Toggle ── */
+/* ── Explooro Partner Dashboard Header & Mode Toggle ── */
 .saler-dashboard-header {
   display: flex;
   flex-wrap: wrap;
@@ -711,7 +711,7 @@
   background: var(--surface-0, #ffffff);
 }
 
-/* ── Shop Partner Tool Suite Grid ── */
+/* ── Explooro Partner Tool Suite Grid ── */
 .saler-tools-section {
   display: flex;
   flex-direction: column;
@@ -789,7 +789,7 @@
   line-height: 1.4;
 }
 
-/* ── Shop Partner Analytics Page ── */
+/* ── Explooro Partner Analytics Page ── */
 .saler-analytics-charts-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -821,7 +821,7 @@
   gap: var(--space-2, 8px);
 }
 
-/* ── Shop Partner Universal Layout Stacks & Rows ── */
+/* ── Explooro Partner Universal Layout Stacks & Rows ── */
 .saler-stack {
   display: flex;
   flex-direction: column;
@@ -903,7 +903,7 @@
   gap: var(--space-4, 16px);
 }
 
-/* ── Shop Partner Universal Card ── */
+/* ── Explooro Partner Universal Card ── */
 .saler-card {
   background: var(--surface-0, #ffffff);
   border: 1px solid var(--border-subtle, #e2e8f0);
@@ -943,14 +943,14 @@
   margin: 0;
 }
 
-/* ── Shop Partner Orders List ── */
+/* ── Explooro Partner Orders List ── */
 .saler-orders-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-4, 16px);
 }
 
-/* ── Shop Partner Form & Method Picker ── */
+/* ── Explooro Partner Form & Method Picker ── */
 .saler-method-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

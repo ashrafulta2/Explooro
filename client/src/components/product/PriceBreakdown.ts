@@ -1,7 +1,7 @@
 /**
  * PriceBreakdown — retail price for everyone, full margin breakdown for admins only (Prompt 4.6).
  *
- * WHY not Shop Partners any more (owner, 2026-11-02): the breakdown showed a partner the supplier's
+ * WHY not Explooro Partners any more (owner, 2026-11-02): the breakdown showed a partner the supplier's
  * cost, the margins and "Goes to the partner reward pool ৳X" for each product. A partner never
  * earns per product, and the owner wants them shown no reward amounts or pool mechanics at all.
  *

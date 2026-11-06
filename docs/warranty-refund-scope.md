@@ -34,7 +34,7 @@ partner, platform) marked `CLAWED_BACK`.
 5. **Released escrow is the normal case here, not the edge case.** Warranty runs for months; the
    return window is days. So a warranty REFUND almost always takes the "Post-Release" branch: it
    debits `AVAILABLE` and creates `negative_balance_recoveries` deficits for anyone who already
-   withdrew — today that includes the shop partner and platform for items nobody claimed.
+   withdrew — today that includes the Explooro partner and platform for items nobody claimed.
 
 ## 3. Fix options
 
@@ -61,25 +61,25 @@ the refund exactly. Shipping is excluded from the base (it stays with the suppli
 otherwise.
 
 - Plus: same economics as a return; every party loses exactly its cut of that item.
-- Minus: needs the escrow-adjustment migration; the shop partner and platform lose margin for a
+- Minus: needs the escrow-adjustment migration; the Explooro partner and platform lose margin for a
   product defect they did not cause.
 
 ### Option B — supplier bears the warranty
 
 Refund = `line_total`, debited entirely from the **supplier** (its escrow row while LOCKED, else its
-AVAILABLE balance with the existing deficit-recovery path). Shop partner and platform keep their cut.
+AVAILABLE balance with the existing deficit-recovery path). Explooro Partner and platform keep their cut.
 
 - Plus: matches who issues the warranty (`warranty_cards.supplier_id`); simplest arithmetic (no
-  split); a warranty claim never touches a shop partner's wallet.
+  split); a warranty claim never touches a Explooro partner's wallet.
 - Minus: the supplier funds the retail price, i.e. more than it was paid for the item; a deficit is
   likelier.
 
 ### Option C — supplier bears its share, platform absorbs the rest
 
 Supplier pays back its own per-item amount (`base_price × qty` + its wholesale margin); the platform
-treasury covers the shop partner's and platform's slice. The customer still gets `line_total`.
+treasury covers the Explooro partner's and platform's slice. The customer still gets `line_total`.
 
-- Plus: shop partner protected, supplier not over-charged.
+- Plus: Explooro partner protected, supplier not over-charged.
 - Minus: the platform pays for supplier defects; needs a setting/limit so it is not open-ended.
 
 Recommendation: **Option A mechanics behind a module setting** that names who bears the
@@ -89,7 +89,7 @@ B is the smallest safe change.
 
 ## 4. Open business questions
 
-1. On a warranty REFUND, does the **platform keep its margin**? Does the **shop partner keep its
+1. On a warranty REFUND, does the **platform keep its margin**? Does the **Explooro partner keep its
    commission**? (Chooses A / B / C.)
 2. If escrow was **already released** and the bearer has withdrawn, is a negative balance / deficit
    recovery acceptable, or should the platform front the refund and recover later?
@@ -110,7 +110,7 @@ Q4 → the refund is always the full `line_total`.
 | Defect | Now |
 | :--- | :--- |
 | Over-refund of the whole sub-order | `clawback.service.ts` `processWarrantyRefund` credits the customer the claimed item's `line_total` only |
-| Shop partner and platform lose their cut | Only the supplier's wallet is debited |
+| Explooro Partner and platform lose their cut | Only the supplier's wallet is debited |
 | Second claim on the same sub-order refunds ৳0 | Escrow rows are no longer touched, so every item stays refundable |
 | Failures swallowed | The `try/catch` is gone: a failed refund throws and the approval rolls back with it |
 | Audit has a null actor | The `finance.clawback.execute` row carries the real approver and role |
@@ -150,7 +150,7 @@ shipping is not refunded on a partial return.
 - **No double refund of a unit.** A partial return refuses an item already returned (more units
   than ordered across REFUNDED requests) or already refunded by warranty. A warranty REFUND
   refuses an item already returned.
-- **Return protection** receives the shop partner's actual share via `clawedBackAmount`, because a
+- **Return protection** receives the Explooro partner's actual share via `clawedBackAmount`, because a
   partial return leaves the escrow row's status unchanged.
 
 ### Still open

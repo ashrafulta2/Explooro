@@ -1,11 +1,11 @@
 /**
- * SalerIncentivesPage.ts — A shop partner's progress towards each supplier's monthly volume rebate.
+ * SalerIncentivesPage.ts — A Explooro partner's progress towards each supplier's monthly volume rebate.
  *
- * Route: /saler/incentives  (module: sourcing, permission: shop partner.sourcing.view)
+ * Route: /saler/incentives  (module: sourcing, permission: Explooro partner.sourcing.view)
  *
  * WHY progress is shown against the NEXT tier: "you sold 30,000" says nothing about what to do next;
  * "20,000 more reaches 2%" does. The amount shown as "on course" is net of the platform's share, so
- * it is what actually lands in the shop partner's vault.
+ * it is what actually lands in the Explooro partner's vault.
  */
 import { api } from '../../core/api.ts';
 import { IncentivePayoutTable } from '../../components/incentive/IncentivePayoutTable.ts';

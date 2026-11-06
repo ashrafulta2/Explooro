@@ -9,7 +9,7 @@ export async function getRulesRow(db) {
 }
 
 /**
- * Measures every shop partner credited with a parcel in the window, one row each.
+ * Measures every Explooro partner credited with a parcel in the window, one row each.
  *
  * The sample is every sub-order attributed to the partner (sub_orders.saler_id, set by
  * attribution.service.ts) and created inside the window, cancelled ones included, because how often

@@ -1,5 +1,5 @@
 /**
- * sourcingAndCalculator.test.js — Invariants for Shop Partner Sourcing, Profit Calculator & Margin Projections (Prompt 4.7).
+ * sourcingAndCalculator.test.js — Invariants for Explooro Partner Sourcing, Profit Calculator & Margin Projections (Prompt 4.7).
  *
  * Pins the core business invariants:
  *   1. Locale integrity — en/bn parity for sourcing.* keys.
@@ -44,7 +44,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const salerEarning = salerPaisa / 100;
     const platformEarning = platformPaisa / 100;
 
-    assert.equal(salerEarning, 80.00, 'Shop Partner receives exactly ৳80.00');
+    assert.equal(salerEarning, 80.00, 'Explooro Partner receives exactly ৳80.00');
     assert.equal(platformEarning, 120.00, 'Platform receives exactly ৳120.00');
     assert.equal(salerEarning + platformEarning, netRetailMargin, 'Sum of earnings matches net margin exactly');
   });
@@ -66,7 +66,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const salerEarning = salerPaisa / 100;
     const platformEarning = platformPaisa / 100;
 
-    assert.equal(salerEarning, 120.00, 'Shop Partner earns exactly ৳120.00');
+    assert.equal(salerEarning, 120.00, 'Explooro Partner earns exactly ৳120.00');
     assert.equal(platformEarning, 180.00, 'Platform earns exactly ৳180.00');
   });
 
@@ -139,7 +139,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const wholesaleCost = product.base_cost + product.wholesale_margin; // 450
     const elevatedMargin = customPriceValid - wholesaleCost; // 200
     const salerProfit = Math.floor((elevatedMargin * 40) / 100);
-    assert.equal(salerProfit, 80, 'Higher retail price increases shop partner profit');
+    assert.equal(salerProfit, 80, 'Higher retail price increases Explooro partner profit');
 
     // Invalid custom price (below min_retail_price)
     const customPriceInvalid = 480;
@@ -156,10 +156,10 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(content.includes("const isAdmin = role === 'admin' || role === 'super_admin';"), 'Must gate admin role');
     assert.ok(content.includes('if (isAdmin)'), 'Must condition platform fields on admin role');
     assert.ok(!content.includes("details.append(\n    row('product_detail.price.platform_earning'"), 'Must not append platform earning unconditionally');
-    assert.ok(content.includes('const canViewMargins = isAdmin &&'), 'Shop partners must not see the margin breakdown or a per-product pool amount');
+    assert.ok(content.includes('const canViewMargins = isAdmin &&'), 'Explooro Partners must not see the margin breakdown or a per-product pool amount');
   });
 
-  // 9. No profit calculator or earnings projection for shop partners (owner, 2026-11-02)
+  // 9. No profit calculator or earnings projection for Explooro partners (owner, 2026-11-02)
   await t.test('9. ProfitCalculator and MarginProjection are gone: partners have no per-product profit to calculate', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
@@ -180,7 +180,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(content.includes('${showPlatformShare && total_platform_margin !== undefined'), 'Platform share tag must be guarded by showPlatformShare');
   });
 
-  // 11. Shop Partner Confidentiality & Price Lock — wholesale cost hidden; the supplier's price cannot be changed
+  // 11. Explooro Partner Confidentiality & Price Lock — wholesale cost hidden; the supplier's price cannot be changed
   await t.test('11. Sourcing catalog cards and drawer hide wholesale cost and offer no price to change (migration 085)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
@@ -205,8 +205,8 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     assert.ok(!myProductsContent.includes("partner_profit"), 'My Products must not show or sort by a per-product reward pool amount');
   });
 
-  // 12. Tiered Shop Partner Pricing Engine Client Math
-  await t.test('12. Tiered Shop Partner Pricing: discount absorbs shop partner profit with platform protected; boost shares extra markup', () => {
+  // 12. Tiered Explooro Partner Pricing Engine Client Math
+  await t.test('12. Tiered Explooro Partner Pricing: discount absorbs Explooro partner profit with platform protected; boost shares extra markup', () => {
     const supplierCost = 1000;
     const platDefPct = 10;
     const salerDefPct = 20;
@@ -225,7 +225,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const discountPlatProfit = platDefProfit; // 100 (100% protected)
     const discountSalerProfit = discountPrice - minPrice; // 100 (saler absorbs discount)
     assert.equal(discountPlatProfit, 100, 'Platform profit must not decrease');
-    assert.equal(discountSalerProfit, 100, 'Shop Partner profit drops by 100');
+    assert.equal(discountSalerProfit, 100, 'Explooro Partner profit drops by 100');
     assert.equal(supplierCost + discountPlatProfit + discountSalerProfit, discountPrice, 'Funds conserved');
 
     // Case B: Boosted customer price = 1500 (extra 200)
@@ -236,7 +236,7 @@ test('Prompt 4.7: Sourcing Catalog & Profit Calculator — Client Invariants', a
     const boostPlatProfit = platDefProfit + extraPlat; // 140
     const boostSalerProfit = salerDefProfit + extraSaler; // 360
     assert.equal(boostPlatProfit, 140, 'Platform gets 100 + 40 extra markup share');
-    assert.equal(boostSalerProfit, 360, 'Shop Partner gets 200 + 160 extra markup share');
+    assert.equal(boostSalerProfit, 360, 'Explooro Partner gets 200 + 160 extra markup share');
     assert.equal(supplierCost + boostPlatProfit + boostSalerProfit, boostPrice, 'Funds conserved');
   });
 });

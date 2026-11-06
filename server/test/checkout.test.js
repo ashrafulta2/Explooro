@@ -38,7 +38,7 @@ function createMockDb() {
     { id: 2, full_name: 'Customer Rahim (Low Trust)', phone: '+8801722222222', is_phone_verified: false, is_email_verified: false, created_at: new Date() },
     { id: 101, full_name: 'Supplier Alpha (Aarong)', phone: '+8801733333333' },
     { id: 102, full_name: 'Supplier Beta (Yellow)', phone: '+8801744444444' },
-    { id: 201, full_name: 'Shop Partner Jamila', phone: '+8801755555555' },
+    { id: 201, full_name: 'Explooro Partner Jamila', phone: '+8801755555555' },
   ];
 
   const products = [
@@ -629,7 +629,7 @@ function createMockDb() {
             ...s,
             supplier_name: supp?.full_name || 'Supplier',
             supplier_phone: supp?.phone || '',
-            saler_name: saler?.full_name || 'Shop Partner',
+            saler_name: saler?.full_name || 'Explooro Partner',
           };
         });
         return { rows: matchingSubs };
@@ -960,7 +960,7 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     paymentMethod: 'BKASH',
   };
 
-  test('A line that came through a short link pays its shop partner and counts on the link', async () => {
+  test('A line that came through a short link pays its Explooro partner and counts on the link', async () => {
     const fresh = createMockDb();
     for (const ci of fresh.cartItems.filter((c) => c.cart_id === 1)) {
       Object.assign(ci, { short_link_id: 5, attribution_source: 'SHORT_LINK' });
@@ -972,7 +972,7 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
     assert.equal(sub1.short_link_id, 5);
     assert.equal(sub1.attribution_source, 'SHORT_LINK');
     assert.equal(Number(sub1.saler_commission), 140);
-    assert.ok(fresh.orderItems.every((i) => i.saler_id === 201), 'each sold line keeps its shop partner');
+    assert.ok(fresh.orderItems.every((i) => i.saler_id === 201), 'each sold line keeps its Explooro partner');
 
     await new Promise((r) => setImmediate(r)); // the conversion is counted after commit
     const counted = fresh.linkConversions.filter((c) => c.shortLinkId === 5);
@@ -982,7 +982,7 @@ describe('Prompt 5.2 — Checkout, Row Locking, Order Splitting, COD Anti-Fraud'
 
   test('Nobody earns commission on their own purchase: the partner share stays with the platform', async () => {
     const fresh = createMockDb();
-    // The shopper (user 1) is the shop partner on every line, e.g. a guest cart merged on login.
+    // The shopper (user 1) is the Explooro partner on every line, e.g. a guest cart merged on login.
     for (const ci of fresh.cartItems.filter((c) => c.cart_id === 1)) ci.saler_id = 1;
     await executeCheckout(fresh, createMemoryCache(), { ...attributionInput, idempotencyKey: 'idem-attr-self' });
 

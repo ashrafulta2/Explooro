@@ -6,7 +6,7 @@
  */
 
 // One SELECT shape for every read, so a post looks identical in the timeline, the moderation queue
-// and the response to a write. The author's shown name is the shop name for a shop partner and the
+// and the response to a write. The author's shown name is the shop name for a Explooro partner and the
 // profile name for everyone else.
 const POST_SELECT = `
   SELECT p.id, p.ref, p.author_id, p.author_role, p.post_type, p.kind, p.product_id, p.order_item_id,
@@ -60,7 +60,7 @@ export async function listPosts(db, { viewerId = null, type = null, role = null,
   if (savedOnly) where.push(`EXISTS (SELECT 1 FROM community_post_saves sv WHERE sv.post_id = p.id AND sv.user_id = $1)`);
   params.push(audiences);
   // An author always sees their own post, whatever audience it targets (a supplier's update is for
-  // shop partners, but the supplier must still find it on their own timeline).
+  // Explooro partners, but the supplier must still find it on their own timeline).
   where.push(`(p.audience = ANY($${params.length}::text[]) OR p.author_id = $1)`);
   params.push(limit, offset);
   const order = sort === 'top' ? 'p.like_count DESC, p.id DESC' : 'p.created_at DESC, p.id DESC';
@@ -126,7 +126,7 @@ export async function listMediaForPosts(db, postIds) {
   return rows;
 }
 
-// A comment reads like a post author: the shop name for a shop partner, the profile name otherwise,
+// A comment reads like a post author: the shop name for a Explooro partner, the profile name otherwise,
 // and the highest role the account holds for the little role chip.
 const COMMENT_SELECT = `
   SELECT c.id, c.post_id, c.author_id, c.body, c.status, c.created_at,

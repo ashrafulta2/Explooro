@@ -407,7 +407,7 @@ export default function EditorDashboardPage(root: HTMLElement, { navigate, query
           <span>✍️</span> ${t('editor.dashboard_title', 'Content & Editorial Management Studio')}
         </h1>
         <p class="editor-header__subtitle">
-          Manage storefront hero banners, shoppable reels, shop partner tutorials, and live localization phrases.
+          Manage storefront hero banners, shoppable reels, Explooro partner tutorials, and live localization phrases.
         </p>
       </div>
 
@@ -470,7 +470,7 @@ export default function EditorDashboardPage(root: HTMLElement, { navigate, query
       <a href="/editor/academy" class="editor-kpi-card" style="text-decoration: none; cursor: pointer;">
         <span class="editor-kpi-card__label">Academy Modules Active</span>
         <div class="editor-kpi-card__value text-primary">${courses.length} Courses</div>
-        <span class="editor-kpi-card__subtext">Sourcing, Escrow & Sales guides →</span>
+        <span class="editor-kpi-card__subtext">Sourcing, payments & sales guides →</span>
       </a>
 
       <a href="/editor/translations" class="editor-kpi-card" style="text-decoration: none; cursor: pointer;">
@@ -505,13 +505,13 @@ export default function EditorDashboardPage(root: HTMLElement, { navigate, query
       {
         icon: '🎬',
         title: 'Stories & Shoppable Reels',
-        desc: 'Curate product discovery video reels, artisan spotlights, and tag purchasable SKUs.',
+        desc: 'Curate product discovery video reels, artisan spotlights, and tag products shoppers can buy.',
         path: '/editor/stories',
         badge: `${stories.length + reels.length} Items`,
       },
       {
         icon: '🎓',
-        title: 'Shop Partner & Buyer Academy',
+        title: 'Explooro Partner & Buyer Academy',
         desc: 'Manage educational courses, video lessons, and sourcing best practices.',
         path: '/editor/academy',
         badge: `${courses.length} Courses`,
@@ -526,7 +526,7 @@ export default function EditorDashboardPage(root: HTMLElement, { navigate, query
       {
         icon: '❓',
         title: 'Help Centre & Knowledge Base',
-        desc: 'Maintain customer FAQs, escrow guides, and return policies across categories.',
+        desc: 'Maintain customer FAQs, payment-protection guides and return policies across categories.',
         path: '/editor/help-center',
         badge: `${helpArticles.length} Articles`,
       },

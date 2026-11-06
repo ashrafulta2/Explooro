@@ -6,7 +6,7 @@
  * which reads like a guard and enforces nothing. Fastify stores `config` on `routeOptions.config`
  * for the handler to read; this server has no `onRoute` hook and no code that reads it, so those
  * four routes ran behind `authenticate` alone — any signed-in customer could read and write their
- * own shop partner storefront, with both modules switched off.
+ * own Explooro partner storefront, with both modules switched off.
  *
  * The failure is silent by construction: the keys are spelled correctly, the route works, and only
  * a negative test (a user WITHOUT the permission getting a 200) would ever reveal it. So the check
@@ -164,7 +164,7 @@ describe('Route guard enforcement (structural)', () => {
     );
   });
 
-  test('every /saler/store and /saler/products route is gated by its module AND shop partner.store.manage via preHandler', async () => {
+  test('every /saler/store and /saler/products route is gated by its module AND Explooro partner.store.manage via preHandler', async () => {
     const { default: storeRoutes } = await import('../src/routes/store.routes.ts');
 
     const routes = [];
@@ -207,7 +207,7 @@ describe('Route guard enforcement (structural)', () => {
       { method: 'DELETE', url: '/saler/products/:id', module: 'virtual_storefront' },
     ];
 
-    // Every shop partner route the plugin registers must be one we expect to be gated — a new one added
+    // Every Explooro partner route the plugin registers must be one we expect to be gated — a new one added
     // without guards should fail here rather than slip through unnoticed.
     const salerRoutes = routes.filter((r) => r.url.startsWith('/saler/'));
     assert.equal(
@@ -215,7 +215,7 @@ describe('Route guard enforcement (structural)', () => {
       expected.length,
       `Expected ${expected.length} /saler/* routes, found ${salerRoutes.length}: ` +
         `${salerRoutes.map((r) => `${r.method} ${r.url}`).join(', ')}. ` +
-        'A new shop partner route needs its own expectation here, with real preHandler guards.'
+        'A new Explooro partner route needs its own expectation here, with real preHandler guards.'
     );
 
     for (const want of expected) {
@@ -236,10 +236,10 @@ describe('Route guard enforcement (structural)', () => {
       assert.equal(route.config, undefined, `${want.method} ${want.url} still carries a dead config: block`);
     }
 
-    // authenticate must still run for the whole shop partner scope.
+    // authenticate must still run for the whole Explooro partner scope.
     assert.ok(
       hooks.some((h) => h.name === 'onRequest' && h.fn.guard === 'authenticate'),
-      'The shop partner store scope must still authenticate every request.'
+      'The Explooro partner store scope must still authenticate every request.'
     );
   });
 });

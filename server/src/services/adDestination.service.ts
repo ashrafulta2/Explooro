@@ -2,15 +2,15 @@
  * adDestination.service.ts — which catalog product an ad may promote, and where its click lands.
  *
  * Two kinds of advertiser buy the same formats, and they own products differently:
- *   - a shop partner sells a product through their storefront (an active `saler_store_items` row);
+ *   - a Explooro partner sells a product through their storefront (an active `saler_store_items` row);
  *   - a supplier owns the product itself (`products.supplier_id`).
  *
  * The click destination follows from that, and the server alone decides it:
- *   - shop partner → `/product/:id?store=<slug>`. The client records `store` as a STORE touch, so the
+ *   - Explooro partner → `/product/:id?store=<slug>`. The client records `store` as a STORE touch, so the
  *     sale credits the partner who paid for the ad (attribution.service.ts still checks they sell it).
  *   - supplier     → `/product/:id`, the plain product page. A supplier has no storefront; the partner
  *     share goes to whoever the shopper's last touch names, or stays with the platform.
- * A format without a product sends a shop partner's ad to `/store/<slug>`, and anyone else's to the
+ * A format without a product sends a Explooro partner's ad to `/store/<slug>`, and anyone else's to the
  * internal path they named, or the home page.
  *
  * WHY the server builds the URL instead of accepting the client's: a client-chosen destination would
@@ -24,13 +24,13 @@ export const LIST_LIMITS = Object.freeze({ defaultLimit: 100, maxLimit: 200 });
 
 export const SOURCE = Object.freeze({ STORE: 'STORE', OWN: 'OWN' });
 
-/** The landing path for a promoted product. `storeSlug` is set only for a shop partner's ad. */
+/** The landing path for a promoted product. `storeSlug` is set only for a Explooro partner's ad. */
 export function productDestination(productId: number, storeSlug: string | null = null): string {
   const base = `/product/${Number(productId)}`;
   return storeSlug ? `${base}?store=${encodeURIComponent(storeSlug)}` : base;
 }
 
-/** A shop partner's storefront page. */
+/** A Explooro partner's storefront page. */
 export function postDestination(postId: number): string {
   return `/community?post=${Number(postId)}`;
 }
@@ -90,7 +90,7 @@ export async function resolveCreativeTarget(
       );
     }
     // A format without a product (spotlight, banner, storefront boost, live, push) promotes the
-    // advertiser, so a shop partner's lands on their storefront, which also records the STORE touch.
+    // advertiser, so a Explooro partner's lands on their storefront, which also records the STORE touch.
     const { rows: ownStore } = await db.query(
       `SELECT slug FROM virtual_stores
        WHERE saler_id = $1 AND is_active AND deleted_at IS NULL

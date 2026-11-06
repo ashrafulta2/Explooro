@@ -3,7 +3,7 @@
  *
  * One mixed feed for everyone, narrowed by tabs (Ideas / Updates / News / Reviews) and two small
  * filters (who posted, sort). Each role gets its own post window:
- *   customer review · supplier update · shop partner idea · admin announcement.
+ *   customer review · supplier update · Explooro partner idea · admin announcement.
  * Staff with `community.post.moderate` also get a Moderation tab: posts go live at once and are
  * reviewed after a report.
  *

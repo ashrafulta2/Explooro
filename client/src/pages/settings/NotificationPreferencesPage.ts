@@ -45,8 +45,8 @@ const CATEGORIES = [
     key: 'FINANCE',
     icon: '💰',
     i18n: 'notifications.cat_finance',
-    fallbackTitle: 'Wallet & Payouts',
-    fallbackDesc: 'Escrow releases, earnings, and payout disbursements.',
+    fallbackTitle: 'Wallet & withdrawals',
+    fallbackDesc: 'Money released after delivery, earnings, and withdrawals sent.',
   },
   {
     key: 'SECURITY',

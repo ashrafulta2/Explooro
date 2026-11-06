@@ -4,7 +4,7 @@
  * Rules this file owns:
  *   - What each role may post is decided here, from the account's roles, never from the request.
  *     Each role has its own type — customer → REVIEW (verified purchase only), supplier → UPDATE,
- *     shop partner → IDEA, admin → ANNOUNCEMENT — and every member may also write an Idea or a
+ *     Explooro partner → IDEA, admin → ANNOUNCEMENT — and every member may also write an Idea or a
  *     News post. A body that names a kind outside the role's list is refused.
  *   - The stored type comes from the kind (KIND_TYPE), never from the request. A member's News post
  *     is stored as ANNOUNCEMENT with kind NEWS, so it lands on the News tab beside staff notices,

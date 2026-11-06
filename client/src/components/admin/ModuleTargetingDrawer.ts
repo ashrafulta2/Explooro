@@ -106,7 +106,7 @@ export function openModuleTargetingDrawer({ module, trigger, onSuccess }: Module
     options: [
       { value: 'DISTRICT', label: 'DISTRICT (e.g. Dhaka, Sylhet)' },
       { value: 'TIER', label: 'TIER (STARTER, VERIFIED_TRADER, ELITE_PARTNER)' },
-      { value: 'ROLE', label: 'ROLE (customer, shop partner, supplier, moderator)' },
+      { value: 'ROLE', label: 'ROLE (customer, Explooro partner, supplier, moderator)' },
       { value: 'USER', label: 'USER ID / Ref' },
       { value: 'PERCENTAGE', label: 'PERCENTAGE (1-100)' },
     ],

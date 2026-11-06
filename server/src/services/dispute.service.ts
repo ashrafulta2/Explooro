@@ -2,7 +2,7 @@
  * dispute.service.ts — Three-Way Dispute Arbitration & Mediation Engine (Prompt 7.3).
  *
  * Implements:
- * 1. Three-way dispute workspace connecting Buyer (Customer), Shop Partner, and Supplier with Platform Moderator.
+ * 1. Three-way dispute workspace connecting Buyer (Customer), Explooro Partner, and Supplier with Platform Moderator.
  * 2. Strict SLA timer enforcement per stage and automated breach escalation.
  * 3. Granular privacy isolation: moderator internal notes never leak to customer/saler/supplier.
  * 4. Maker-Checker authorization: High-tier arbitration above configured amount threshold routes to Super Admin approval.
@@ -751,7 +751,7 @@ export async function arbitrateDispute(db, cache, {
 
     if (outcome === 'FULL_REFUND') {
       customerRefundPaisa = totalDisputedPaisa;
-      // Default: Supplier absorbs base cost, Shop Partner absorbs commission
+      // Default: Supplier absorbs base cost, Explooro Partner absorbs commission
       const salerCommissionPaisa = toPaisa(dispute.saler_commission || 0);
       salerClawbackPaisa = Math.min(salerCommissionPaisa, totalDisputedPaisa);
       supplierClawbackPaisa = totalDisputedPaisa - salerClawbackPaisa;
@@ -806,7 +806,7 @@ export async function arbitrateDispute(db, cache, {
         });
       }
 
-      // 3. Debit Shop Partner if commission reversed
+      // 3. Debit Explooro Partner if commission reversed
       if (salerClawbackPaisa > 0 && salerWallet) {
         entries.push({
           walletId: salerWallet.id,
@@ -816,7 +816,7 @@ export async function arbitrateDispute(db, cache, {
           category: 'CLAWBACK',
           referenceType: 'DISPUTE',
           referenceId: dispute.id,
-          memo: `Dispute ${dispute.ref} commission clawback from shop partner`,
+          memo: `Dispute ${dispute.ref} commission clawback from Explooro partner`,
           createdBy: arbitratorId,
         });
       }

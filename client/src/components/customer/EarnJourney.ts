@@ -23,14 +23,14 @@ const BECOME_SALER_PATH = '/account/become-saler';
 export function EarnJourney({ onNavigate }: { onNavigate: (path: string) => void }): { element: HTMLElement } {
   const section = document.createElement('section');
   section.className = 'earn-journey';
-  section.setAttribute('aria-label', t('customer.dashboard.earn_label', 'How a Shop Partner earns'));
+  section.setAttribute('aria-label', t('customer.dashboard.earn_label', 'How a Explooro Partner earns'));
 
   const head = document.createElement('div');
   head.className = 'earn-journey__head';
   const text = document.createElement('div');
   const kicker = document.createElement('p');
   kicker.className = 'earn-journey__kicker';
-  kicker.textContent = t('customer.dashboard.earn_kicker', 'Shopper today, Shop Partner tomorrow');
+  kicker.textContent = t('customer.dashboard.earn_kicker', 'Shopper today, Explooro Partner tomorrow');
   const title = document.createElement('h2');
   title.className = 'earn-journey__title';
   title.textContent = t('customer.dashboard.earn_title', 'Start earning with zero stock');
@@ -39,7 +39,7 @@ export function EarnJourney({ onNavigate }: { onNavigate: (path: string) => void
   const cta = document.createElement('a');
   cta.className = 'earn-journey__cta';
   cta.href = BECOME_SALER_PATH;
-  cta.textContent = t('customer.dashboard.earn_cta', 'Become a Shop Partner');
+  cta.textContent = t('customer.dashboard.earn_cta', 'Become a Explooro Partner');
   cta.addEventListener('click', (e) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
     e.preventDefault();

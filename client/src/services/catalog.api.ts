@@ -291,7 +291,7 @@ export async function previewPricing({ baseCost, wholesaleMargin = 0, retailPric
 }
 
 /**
- * Lists supplier products suitable for shop partner sourcing with margin info.
+ * Lists supplier products suitable for Explooro partner sourcing with margin info.
  */
 export interface SourcingFilters {
   minMarginPct?: number | string;
@@ -330,7 +330,7 @@ export async function listSourcingCatalog(filters: SourcingFilters = {}) {
 // Sponsored Sourcing Slot: see services/sponsoredSourcing.ts (fetch + billable-event beacons).
 
 /**
- * Shop Partner adds a product to their virtual storefront. The supplier's price applies (migration 085),
+ * Explooro Partner adds a product to their virtual storefront. The supplier's price applies (migration 085),
  * so no price is sent; the server answers 422 PRICE_LOCKED if one is.
  */
 export async function addToSalerStore({ productId, collectionName }: { productId: number | string; collectionName?: string }) {
@@ -343,7 +343,7 @@ export async function addToSalerStore({ productId, collectionName }: { productId
 }
 
 /**
- * Gets all curated items in the shop partner's store.
+ * Gets all curated items in the Explooro partner's store.
  */
 export async function getSalerStoreItems() {
   const { data } = await api.get('/sourcing/my-store');

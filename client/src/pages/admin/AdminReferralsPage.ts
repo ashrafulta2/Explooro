@@ -34,7 +34,7 @@ const QUALIFY_EVENTS = [
   { value: 'SIGNUP', en: 'On signup', bn: 'সাইন-আপে' },
   { value: 'FIRST_ORDER', en: 'On first order', bn: 'প্রথম অর্ডারে' },
   { value: 'FIRST_SALE', en: 'On first sale', bn: 'প্রথম বিক্রয়ে' },
-  { value: 'KYC_VERIFIED', en: 'On KYC verified', bn: 'কেওয়াইসি যাচাই হলে' },
+  { value: 'KYC_VERIFIED', en: 'On identity check passed', bn: 'পরিচয় যাচাই হলে' },
 ];
 
 export default function AdminReferralsPage(root: HTMLElement) {
@@ -225,8 +225,8 @@ export default function AdminReferralsPage(root: HTMLElement) {
           <h1 class="admin-page-title">${isBn ? 'রেফারেল প্রোগ্রাম নীতিমালা' : 'Referral Programme Rules'}</h1>
           <p class="admin-page-subtitle">
             ${isBn
-              ? 'টিয়ার হার, অ্যাট্রিবিউশন উইন্ডো, পেআউট সীমা ও জালিয়াতি নিয়ন্ত্রণ — এবং আটকে থাকা কমিশনের সিদ্ধান্ত।'
-              : 'Tier rates, attribution window, payout caps and fraud controls — plus decisions on held commission.'}
+              ? 'টিয়ার হার, অ্যাট্রিবিউশন উইন্ডো, উত্তোলনের সীমা ও জালিয়াতি নিয়ন্ত্রণ — এবং আটকে থাকা কমিশনের সিদ্ধান্ত।'
+              : 'Tier rates, attribution window, withdrawal caps and fraud controls — plus decisions on held commission.'}
           </p>
         </div>
         <div class="admin-page-actions">
@@ -317,7 +317,7 @@ export default function AdminReferralsPage(root: HTMLElement) {
             <input class="form-input" id="ref-bonus-first-sale" type="number" min="0" max="5000" step="1" value="${rules.first_sale_bonus_bdt}" />
           </div>
           <div>
-            <label class="form-label" for="ref-bonus-kyc">${isBn ? 'KYC যাচাই বোনাস (৳)' : 'KYC verified bonus (৳)'}</label>
+            <label class="form-label" for="ref-bonus-kyc">${isBn ? 'পরিচয় যাচাই বোনাস (৳)' : 'Identity check bonus (৳)'}</label>
             <input class="form-input" id="ref-bonus-kyc" type="number" min="0" max="5000" step="1" value="${rules.kyc_bonus_bdt}" />
           </div>
           <div style="display: flex; align-items: flex-end;">

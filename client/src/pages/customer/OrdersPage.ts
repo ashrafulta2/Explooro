@@ -88,7 +88,7 @@ export default function OrdersPage(root: HTMLElement, { navigate }: PageContext 
   container.append(ordersListSlot);
 
   // WHY: My Orders is the account page a customer returns to most, and right after a purchase is when
-  // "earn from products like these" lands. Customers only: a Shop Partner already earns.
+  // "earn from products like these" lands. Customers only: a Explooro Partner already earns.
   if (appStore.get()?.auth?.role === 'customer') {
     container.append(EarnJourney({ onNavigate: nav }).element);
   }

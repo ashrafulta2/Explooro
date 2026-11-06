@@ -1,5 +1,5 @@
 /**
- * AcademyManagerPage.ts — Explooro Shop Partner & Buyer Academy Course Manager.
+ * AcademyManagerPage.ts — Explooro Explooro Partner & Buyer Academy Course Manager.
  *
  * Implements /editor/academy:
  * - Educational tutorials, sourcing masterclasses, social commerce playbooks.
@@ -48,7 +48,7 @@ export default function AcademyManagerPage(root: HTMLElement) {
         <div class="supplier-form-field">
           <label for="course-role">Target Audience *</label>
           <select class="form-select" id="course-role">
-            <option value="saler" ${existingCourse?.target_role === 'saler' ? 'selected' : ''}>🛍️ Shop Partners</option>
+            <option value="saler" ${existingCourse?.target_role === 'saler' ? 'selected' : ''}>🛍️ Explooro Partners</option>
             <option value="supplier" ${existingCourse?.target_role === 'supplier' ? 'selected' : ''}>🏭 Factory Suppliers</option>
             <option value="all" ${existingCourse?.target_role === 'all' ? 'selected' : ''}>🌐 All Platform Members</option>
           </select>
@@ -89,7 +89,7 @@ export default function AcademyManagerPage(root: HTMLElement) {
           <select class="form-select" id="course-cat">
             <option value="sourcing" ${existingCourse?.category === 'sourcing' ? 'selected' : ''}>🏭 Factory Sourcing</option>
             <option value="marketing" ${existingCourse?.category === 'marketing' ? 'selected' : ''}><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> Social Marketing</option>
-            <option value="finance" ${existingCourse?.category === 'finance' ? 'selected' : ''}>💰 Vault & Escrow</option>
+            <option value="finance" ${existingCourse?.category === 'finance' ? 'selected' : ''}>💰 Vault & held payments</option>
           </select>
         </div>
         <div class="supplier-form-field">
@@ -184,10 +184,10 @@ export default function AcademyManagerPage(root: HTMLElement) {
           <span class="badge badge--primary font-bold font-mono">SELLER ACADEMY</span>
         </div>
         <h1 class="editor-header__title">
-          <span>🎓</span> ${t('editor.academy_title', 'Explooro Shop Partner & Buyer Academy')}
+          <span>🎓</span> ${t('editor.academy_title', 'Explooro Explooro Partner & Buyer Academy')}
         </h1>
         <p class="editor-header__subtitle">
-          Manage step-by-step masterclasses, wholesale escrow guides, and video lessons for growing entrepreneurs.
+          Manage step-by-step masterclasses, guides to protected bulk deals, and video lessons for growing entrepreneurs.
         </p>
       </div>
       <div class="editor-header__actions">
@@ -219,7 +219,7 @@ export default function AcademyManagerPage(root: HTMLElement) {
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg> Social Commerce
           </button>
           <button class="editor-chip ${activeCategory === 'finance' ? 'editor-chip--active' : ''}" data-cat="finance">
-            💰 Escrow & Finance
+            💰 Payments & finance
           </button>
         </div>
         <input type="search" id="course-search" aria-label="Search course title..." placeholder="Search course title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
@@ -262,7 +262,7 @@ export default function AcademyManagerPage(root: HTMLElement) {
         EmptyState({
           icon: '🎓',
           title: 'No academy courses found',
-          description: 'Create an educational tutorial to help shop partners and buyers grow.',
+          description: 'Create an educational tutorial to help Explooro partners and buyers grow.',
         })
       );
       return;

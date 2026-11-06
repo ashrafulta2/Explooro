@@ -1,10 +1,10 @@
 # Glossary: internal terms and what users read instead
 
 > Prompt 13.6 (Phase 13, Guided Experience). Written 2026-11-04.
-> Customers, shop partners and suppliers never see the words in the first column. They read the
+> Customers, Explooro partners and suppliers never see the words in the first column. They read the
 > label in the second, in English and Bangla. Staff screens may keep a technical term only inside a
 > "details" panel. `client/test/plainLanguage.test.js` fails if a banned term (marked ✗) appears in a
-> string that a customer, shop partner or supplier screen reads.
+> string that a customer, Explooro partner or supplier screen reads.
 
 | Internal term | Banned on user screens | What users read (en / bn) | One-line explanation |
 | :--- | :---: | :--- | :--- |
@@ -27,6 +27,34 @@
 | Clearing wallet | ✗ | Outside-money account / বাইরের টাকার হিসাব | The account that records money entering or leaving through gateways and couriers. Staff only |
 | Idempotency | ✗ | (never shown) | A safeguard so that pressing a button twice does not do the action twice |
 | JIT access | ✗ | Temporary access / সাময়িক অনুমতি | Permission given for a limited time. Staff only |
+
+## Staff screens (admin, moderator, editor)
+
+Staff read the same plain words, in the labels below (Prompt 13.6 REQUIREMENT 2, "admin second").
+A technical term may stay only as **data**: a ledger account code (`ESCROW:CUSTOMER_HOLD`), a CSV
+column name (`sub_order_ref`), a URL path or an HTTP header. The second `describe` block of
+`client/test/plainLanguage.test.js` checks every translated string a staff screen reads, the prose
+written straight into staff pages, and the staff browser-tab titles.
+
+| Internal term | Staff label (en / bn) |
+| :--- | :--- |
+| Escrow, escrow holdings | Held payments / আটকে রাখা টাকা |
+| Escrow liability | Held until delivery / ডেলিভারি পর্যন্ত আটকে রাখা |
+| Escrow sweep | Release all due / সময় হওয়া সব টাকা ছাড়ুন |
+| B2B escrow | Protected bulk deals / সুরক্ষিত পাইকারি চুক্তি |
+| Payout, payout queue | Withdrawal, withdrawal queue / উত্তোলন, উত্তোলনের সারি |
+| Ledger, general ledger | Transaction records / লেনদেনের খাতা |
+| Double-entry ledger integrity | Money records balance / টাকার হিসাব মিলছে কিনা |
+| KYC verification | Identity checks / পরিচয় যাচাই |
+| Maker-checker | Second approval / দ্বিতীয় অনুমোদন |
+| JIT access | Temporary access / সাময়িক অনুমতি |
+| Risk tier | Approval level / অনুমোদনের স্তর (the values LOW–CRITICAL stay) |
+| SLA | Deadline / সময়সীমা |
+| Sub-order | Parcel / পার্সেল |
+| Consignment ID | Tracking ID / ট্র্যাকিং আইডি |
+| SKU | Product code / পণ্যের কোড |
+| FEFO | Expiry first / আগে মেয়াদ শেষ হবে এমনটা আগে |
+| 3PL | Courier / কুরিয়ার |
 
 ## Rules for new copy
 

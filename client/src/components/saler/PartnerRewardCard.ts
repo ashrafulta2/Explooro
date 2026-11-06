@@ -1,5 +1,5 @@
 /**
- * PartnerRewardCard.ts — this month's partner reward estimate on the shop partner dashboard.
+ * PartnerRewardCard.ts — this month's partner reward estimate on the Explooro partner dashboard.
  *
  * Draws only what GET /saler/partner-reward returns (server services/partnerReward.service.ts
  * getOwnView): the taka the partner's share would be if the month closed today, plus their last

@@ -59,7 +59,7 @@ export default function WhatsNewManagerPage(root: HTMLElement) {
           <select class="form-select" id="update-cat">
             <option value="FEATURE" ${existing?.category === 'FEATURE' ? 'selected' : ''}>✨ New Feature</option>
             <option value="IMPROVEMENT" ${existing?.category === 'IMPROVEMENT' ? 'selected' : ''}>⚡ Improvement</option>
-            <option value="SECURITY" ${existing?.category === 'SECURITY' ? 'selected' : ''}>🛡️ Security & Escrow</option>
+            <option value="SECURITY" ${existing?.category === 'SECURITY' ? 'selected' : ''}>🛡️ Security & payment protection</option>
             <option value="FIX" ${existing?.category === 'FIX' ? 'selected' : ''}>🐛 Bug Fix</option>
           </select>
         </div>
@@ -67,7 +67,7 @@ export default function WhatsNewManagerPage(root: HTMLElement) {
           <label for="update-aud">Target Audience *</label>
           <select class="form-select" id="update-aud">
             <option value="ALL" ${existing?.target_audience === 'ALL' ? 'selected' : ''}>🌐 All Users</option>
-            <option value="SALERS" ${existing?.target_audience === 'SALERS' ? 'selected' : ''}>🛍️ Shop Partners Only</option>
+            <option value="SALERS" ${existing?.target_audience === 'SALERS' ? 'selected' : ''}>🛍️ Explooro Partners Only</option>
             <option value="SUPPLIERS" ${existing?.target_audience === 'SUPPLIERS' ? 'selected' : ''}>🏭 Suppliers Only</option>
           </select>
         </div>
@@ -277,7 +277,7 @@ export default function WhatsNewManagerPage(root: HTMLElement) {
             ⚡ Improvements
           </button>
           <button class="editor-chip ${activeCategory === 'SECURITY' ? 'editor-chip--active' : ''}" data-cat="SECURITY">
-            🛡️ Security & Escrow
+            🛡️ Security & payment protection
           </button>
         </div>
         <input type="search" id="update-search" aria-label="Search release notes..." placeholder="Search release notes..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />

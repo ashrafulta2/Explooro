@@ -158,7 +158,7 @@ describe('GET /saler/products', () => {
     const { data } = (await app.inject({ method: 'GET', url: '/api/v1/saler/products' })).json();
     const forbidden = ['base_cost', 'wholesale_margin', 'base_wholesale_price', 'partner_profit', 'custom_retail_price', 'min_retail_price', 'pricing'];
     for (const p of data.products) {
-      for (const key of forbidden) assert.equal(key in p, false, `${key} must not reach a shop partner`);
+      for (const key of forbidden) assert.equal(key in p, false, `${key} must not reach a Explooro partner`);
     }
     assert.equal('avg_margin_pct' in data.summary, false);
     await app.close();

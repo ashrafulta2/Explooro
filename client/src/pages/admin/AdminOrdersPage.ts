@@ -41,8 +41,8 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
   };
   const paymentStatusLabels = {
     PENDING_DELIVERY: isBn ? 'ডেলিভারি সাপেক্ষে বকেয়া' : 'Pending delivery',
-    ESCROW_HELD: isBn ? 'এসক্রোতে জমা' : 'Escrow held',
-    ESCROW_RELEASED: isBn ? 'এসক্রো থেকে ছাড় হয়েছে' : 'Escrow released',
+    ESCROW_HELD: isBn ? 'ডেলিভারি পর্যন্ত আটকে' : 'Held until delivery',
+    ESCROW_RELEASED: isBn ? 'টাকা ছাড়া হয়েছে' : 'Money released',
     CANCELLED: isBn ? 'বাতিল' : 'Cancelled',
   };
 
@@ -245,7 +245,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
 
       <!-- Sub-Orders Multi-Supplier Splits Table -->
       <div class="p-4 bg-surface-1 rounded-xl border border-border-subtle">
-        <div class="text-xs font-bold text-muted uppercase mb-3">📦 ${isBn ? 'সাব-অর্ডার ফিনান্সিয়াল স্প্লিট' : 'Sub-Orders Financial Split'}</div>
+        <div class="text-xs font-bold text-muted uppercase mb-3">📦 ${isBn ? 'পার্সেল অনুযায়ী টাকার ভাগ' : 'Money split by parcel'}</div>
         <div class="space-y-3">
           ${order.sub_orders.map((so) => `
             <div class="p-3 bg-surface-0 rounded-lg border border-border-subtle">
@@ -259,7 +259,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
               </div>
               <div class="grid grid-cols-4 gap-2 pt-2 border-t border-dashed border-border-subtle text-xs">
                 <div><span class="text-muted">Retail:</span> <strong class="font-mono">${formatCurrency(so.unit_price)}</strong></div>
-                <div><span class="text-muted">Shop Partner Comm:</span> <strong class="font-mono text-brand">${formatCurrency(so.saler_commission)}</strong></div>
+                <div><span class="text-muted">Explooro Partner Comm:</span> <strong class="font-mono text-brand">${formatCurrency(so.saler_commission)}</strong></div>
                 <div><span class="text-muted">Platform Fee:</span> <strong class="font-mono text-emerald-600">${formatCurrency(so.platform_fee)}</strong></div>
                 <div><span class="text-muted">Supplier Net:</span> <strong class="font-mono">${formatCurrency(so.supplier_payout)}</strong></div>
               </div>
@@ -360,7 +360,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
           </div>
           <h1 class="admin-page-title">${isBn ? 'সার্বিক অর্ডার ও ফুলফিলমেন্ট' : 'Platform Orders & Multi-Supplier Splits'}</h1>
           <p class="admin-page-subtitle">
-            ${isBn ? 'প্ল্যাটফর্মের সকল অর্ডার, সাব-অর্ডার কমিশন স্প্লিট, ডেলিভারি স্টেজ ও কুরিয়ার ট্র্যাকিং পর্যবেক্ষণ ও পরিচালনা।' : 'Inspect multi-supplier split orders, revenue attribution, 3PL courier tracking, and fulfillment lifecycle overrides.'}
+            ${isBn ? 'প্ল্যাটফর্মের সকল অর্ডার, পার্সেল অনুযায়ী কমিশনের ভাগ, ডেলিভারির ধাপ ও কুরিয়ার ট্র্যাকিং দেখুন ও পরিচালনা করুন।' : 'See every order, how its money splits by parcel, its courier tracking, and change its delivery stage.'}
           </p>
         </div>
 
@@ -388,7 +388,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'ইন-ট্রানজিট / প্যাকেজিং' : 'Active In-Transit'}</div>
           <div class="admin-kpi-card__val text-brand">${stats.in_transit_count}</div>
-          <div class="admin-kpi-card__hint">${isBn ? 'কুরিয়ার ডেলিভারি পথে' : 'With 3PL Logistics'}</div>
+          <div class="admin-kpi-card__hint">${isBn ? 'কুরিয়ার ডেলিভারি পথে' : 'With the courier'}</div>
         </div>
 
         <div class="admin-kpi-card">
@@ -432,7 +432,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
               <tr>
                 <th>${isBn ? 'অর্ডার নম্বর' : 'Order Ref'}</th>
                 <th>${isBn ? 'ক্রেতা ও ঠিকানা' : 'Customer & Shipping'}</th>
-                <th>${isBn ? 'সাব-অর্ডার' : 'Sub-Orders'}</th>
+                <th>${isBn ? 'পার্সেল' : 'Parcels'}</th>
                 <th>${isBn ? 'মূল্য' : 'Amount'}</th>
                 <th>${isBn ? 'পেমেন্ট' : 'Payment'}</th>
                 <th>${isBn ? 'স্ট্যাটাস' : 'Fulfillment'}</th>
@@ -458,7 +458,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
                     </td>
                     <td>
                       <span class="badge badge--neutral font-mono text-xs">
-                        ${o.sub_orders.length} ${isBn ? 'টি সাব-অর্ডার' : 'sub-orders'}
+                        ${o.sub_orders.length} ${isBn ? 'টি পার্সেল' : 'parcels'}
                       </span>
                     </td>
                     <td>

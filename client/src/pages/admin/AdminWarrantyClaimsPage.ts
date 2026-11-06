@@ -95,7 +95,7 @@ export default function AdminWarrantyClaimsPage(root: HTMLElement) {
         <dl style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 0; font-size: var(--text-sm);">
           <div><dt style="color: var(--text-secondary);">${t('warranty_admin.customer', 'Customer')}</dt><dd style="margin: 0;">${escapeHtml(claim.customer_name || '—')}</dd></div>
           <div><dt style="color: var(--text-secondary);">${t('warranty_admin.supplier', 'Supplier')}</dt><dd style="margin: 0;">${escapeHtml(claim.supplier_name || '—')}</dd></div>
-          <div><dt style="color: var(--text-secondary);">${t('warranty_admin.sub_order', 'Sub-order')}</dt><dd style="margin: 0;">${escapeHtml(claim.sub_order_ref || '—')}</dd></div>
+          <div><dt style="color: var(--text-secondary);">${t('warranty_admin.sub_order', 'Parcel')}</dt><dd style="margin: 0;">${escapeHtml(claim.sub_order_ref || '—')}</dd></div>
           <div><dt style="color: var(--text-secondary);">${t('warranty_admin.filed', 'Filed')}</dt><dd style="margin: 0;">${claim.created_at ? formatDate(claim.created_at) : '—'}</dd></div>
           ${isRefundProposal ? `<div><dt style="color: var(--text-secondary);">${t('warranty_admin.refund_amount', 'Refund (one unit, paid by the supplier)')}</dt><dd style="margin: 0; font-weight: 700;">${formatCurrency(unitRefundAmount(claim))}</dd></div>` : ''}
         </dl>
