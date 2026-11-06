@@ -11,9 +11,10 @@
  * 3. Background sync & message event forwarding.
  */
 
-// WHY bumped to 1.2.0: manifest.json sits in the cache-first shell cache, so without a new version
-// an installed copy would keep the old SVG-only manifest and never see the PNG icons.
-const CACHE_VERSION = 'explooro-v1.2.0';
+// WHY bumped: manifest.json sits in the cache-first shell cache, so an installed copy only sees a
+// manifest change after a new version. 1.2.0 brought the PNG icons; 1.2.1 drops the "screenshots"
+// entry, which pointed at the link-preview banner rather than at a picture of the app.
+const CACHE_VERSION = 'explooro-v1.2.1';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const CATALOG_CACHE = `${CACHE_VERSION}-catalog`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;

@@ -18,6 +18,8 @@
  *   client/public/icons/icon-maskable-512.png         — PNG copy of the maskable icon
  *   client/public/icons/apple-touch-icon.png          — 180×180 full-bleed square for iOS, which
  *                                                        ignores SVG and rounds the corners itself
+ *   client/public/og-banner.png                       — 1200×630 link preview (Facebook, WhatsApp, X), the
+ *                                                        mark and wordmark painted by scripts/ogBanner.mjs
  *   client/public/icons/brand/{preset-key}.svg        — one per Master Colour preset, prepared for
  *                                                        any context that needs a themed mark outside
  *                                                        the running app (share images, docs, a future
@@ -33,7 +35,8 @@ import { dirname, join } from 'node:path';
 import { generatePalette } from '../client/src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/master-themes.ts';
 import { buildLogoMarkSvg, buildLogoMaskableSvg } from '../client/src/services/logoMark.ts';
-import { renderLogoPng } from './logoPng.mjs';
+import { renderLogoPng, encodePng } from './logoPng.mjs';
+import { renderOgBannerRgba, OG_WIDTH, OG_HEIGHT } from './ogBanner.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = join(ROOT, 'client', 'public');
@@ -73,6 +76,20 @@ writeFileSync(join(ICONS_DIR, 'icon-maskable-512.png'), renderLogoPng({ size: 51
 writeFileSync(join(ICONS_DIR, 'apple-touch-icon.png'), renderLogoPng({ size: 180, maskable: true, ...defaultColors }));
 
 console.log('wrote icons/icon-192.png, icons/icon-512.png, icons/icon-maskable-512.png, icons/apple-touch-icon.png');
+
+// The wordmark's ink is the lightest neutral and its accent letter is the brand step the seed pins
+// (the colour --brand paints the top bar's accent "O" with), so both follow a re-seed like the icons.
+const defaultPalette = generatePalette(MASTER_PRESETS[DEFAULT_MASTER_PRESET].master);
+writeFileSync(
+  join(PUBLIC_DIR, 'og-banner.png'),
+  encodePng(OG_WIDTH, OG_HEIGHT, renderOgBannerRgba({
+    bg: defaultColors.bg,
+    text: defaultPalette.neutral[0],
+    accent: defaultPalette.brand[defaultPalette.meta.anchorStep],
+  })),
+);
+
+console.log(`wrote og-banner.png (${OG_WIDTH}×${OG_HEIGHT})`);
 
 for (const key of Object.keys(MASTER_PRESETS)) {
   const colors = colorsFor(key);

@@ -189,6 +189,8 @@ export async function renderOnDemandHtml(db, cache, pathname = '/', userLocale =
   <meta property="og:site_name" content="Explooro" />
   <meta property="og:locale" content="${userLocale === 'bn' ? 'bn_BD' : 'en_BD'}" />
   <meta property="og:image" content="${SITE_URL}/og-banner.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)} — Explooro" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />

@@ -66,14 +66,5 @@
       "url": "/account",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
-  ],
-  "screenshots": [
-    {
-      "src": "/og-banner.png",
-      "sizes": "1200x630",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Explooro Social Commerce Marketplace"
-    }
   ]
 }
