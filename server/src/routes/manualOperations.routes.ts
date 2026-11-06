@@ -3,6 +3,7 @@
  *
  *   GET  /admin/platform/operations              platform.operations.view    (LOW)
  *   PUT  /admin/platform/operations              platform.operations.update  (CRITICAL: super admin only)
+ *   PUT  /admin/platform/operations/return-address  platform.operations.update (CRITICAL)
  *   POST /admin/finance/payouts/:id/mark-paid    finance.payout.complete_manual (CRITICAL)
  *   GET  /supplier/shipments                     courier_hub + logistics.shipment.view
  *   POST /supplier/fulfilment/manual-ship        courier_hub + logistics.consignment.create
@@ -49,6 +50,35 @@ export default async function manualOperationsRoutes(app) {
       },
     },
     controller.updateAdminModes
+  );
+
+  // WHY the same permission as the modes: the returns address decides where real parcels go once
+  // couriers are INTEGRATED, so it is the same owner decision (reversePickup.service.ts).
+  app.put(
+    '/admin/platform/operations/return-address',
+    {
+      config: { page: '/admin/platform/operations' },
+      preHandler: [auth, reqPerm('platform.operations.update')],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['name', 'phone', 'division', 'district', 'address_line', 'reason'],
+          additionalProperties: false,
+          properties: {
+            // Types and outer bounds only: the rules are the service's (validateReturnAddress).
+            name: { type: 'string', maxLength: 200 },
+            phone: { type: 'string', maxLength: 30 },
+            division: { type: 'string', maxLength: 40 },
+            district: { type: 'string', maxLength: 40 },
+            upazila: { type: 'string', maxLength: 200 },
+            address_line: { type: 'string', maxLength: 400 },
+            reason: { type: 'string', minLength: 10, maxLength: 500 },
+            base_updated_at: { type: ['string', 'null'] },
+          },
+        },
+      },
+    },
+    controller.updateReturnAddress
   );
 
   app.post(

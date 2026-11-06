@@ -12,7 +12,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { getCourierAdapter } from '../integrations/courier/index.ts';
+import * as reversePickupService from './reversePickup.service.ts';
 import * as clawbackService from './clawback.service.ts';
 import * as returnProtection from './returnProtection.service.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
@@ -380,28 +380,32 @@ export async function reviewReturnRequest(db, cache, {
       return { success: true, status: 'PICKUP_SCHEDULED', reverseTrackingNumber: null, carrier: 'MANUAL', manual: true, returnRequestId };
     }
 
-    // APPROVE -> Book reverse courier consignment & set status to PICKUP_SCHEDULED
-    const courierAdapter = getCourierAdapter(process.env.COURIER_DRIVER || 'MOCK');
-    const reverseConsignment = await courierAdapter.createConsignment({
-      subOrderRef: `REV-${returnReq.sub_order_ref}`,
-      recipientName: 'Explooro Returns Warehouse',
-      recipientPhone: '+8801700000000',
-      deliveryAddress: { street: 'Tejgaon Industrial Area', district: 'Dhaka', division: 'Dhaka' },
-      codAmount: 0.00,
+    // APPROVE with couriers INTEGRATED: a courier collects the product from the customer and takes
+    // it to the returns address (reversePickup.service). WHY refused when that address is empty:
+    // the old code booked every return to a made-up warehouse and phone number written in here.
+    const destination = await reversePickupService.requireReturnDestination(txClient);
+    const address = typeof returnReq.delivery_address_json === 'string'
+      ? JSON.parse(returnReq.delivery_address_json)
+      : returnReq.delivery_address_json || {};
+    const pickup = await reversePickupService.bookReversePickup(txClient, {
+      kind: 'RETURN',
+      returnRequestId,
+      parentRef: returnReq.ref,
+      pickup: { name: returnReq.recipient_name, phone: returnReq.recipient_phone, address },
+      destination,
     });
-
-    const reverseTracking = reverseConsignment.trackingNumber || `REV-${Date.now()}`;
 
     await txClient.query(
       `UPDATE return_requests
        SET status = 'PICKUP_SCHEDULED',
            reverse_tracking_number = $2,
            reverse_carrier = $3,
+           reverse_pickup_id = $5,
            reviewed_by = $4,
            reviewed_at = now(),
            updated_at = now()
        WHERE id = $1`,
-      [returnRequestId, reverseTracking, courierAdapter.name, reviewedBy]
+      [returnRequestId, pickup.tracking_number, pickup.carrier, reviewedBy, pickup.id]
     );
 
     await writeAudit(txClient, {
@@ -410,15 +414,21 @@ export async function reviewReturnRequest(db, cache, {
       targetType: 'return_request',
       targetRef: returnReq.ref,
       beforeJson: { status: returnReq.status },
-      afterJson: { status: 'PICKUP_SCHEDULED', reverse_tracking_number: reverseTracking, reverse_carrier: courierAdapter.name },
+      afterJson: {
+        status: 'PICKUP_SCHEDULED',
+        reverse_tracking_number: pickup.tracking_number,
+        reverse_carrier: pickup.carrier,
+        reverse_pickup_ref: pickup.ref,
+      },
       riskTier: 'MEDIUM',
     });
 
     return {
       success: true,
       status: 'PICKUP_SCHEDULED',
-      reverseTrackingNumber: reverseTracking,
-      carrier: courierAdapter.name,
+      reverseTrackingNumber: pickup.tracking_number,
+      carrier: pickup.carrier,
+      reversePickupId: pickup.id,
       returnRequestId,
     };
   };

@@ -5954,6 +5954,21 @@
         "payout_gateway": "Approve sends it through the bKash gateway",
         "courier_manual": "Suppliers record the courier and mark delivery",
         "courier_integrated": "Booked and tracked through the courier API"
+      },
+      "return_address": {
+        "title": "Returns address",
+        "desc": "Where a courier takes returned products when deliveries are automatic (courier API). A product sent in for warranty repair goes to the supplier's own warehouse when they have one, otherwise here.",
+        "missing_integrated": "Not filled in yet. Return pickups cannot be booked until it is, because deliveries are automatic.",
+        "missing_manual": "Not filled in yet. Fill it in before you switch deliveries to automatic.",
+        "name": "Name on the parcel",
+        "phone": "Mobile number",
+        "division": "Division",
+        "district": "District",
+        "choose": "Choose",
+        "upazila": "Area (optional)",
+        "address_line": "Full address",
+        "save": "Save returns address",
+        "saved": "Returns address saved."
       }
     },
     "legal": {

@@ -16,6 +16,7 @@ import * as vaultService from './vault.service.ts';
 import * as clawbackService from './clawback.service.ts';
 import * as warrantyService from './warranty.service.ts';
 import * as referralService from './referral.service.ts';
+import * as reversePickupService from './reversePickup.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
 
@@ -281,7 +282,27 @@ export async function handleCourierWebhook(db, cache, {
       }
     }
 
-    // 4. Find matching shipment
+    // 4a. A reverse parcel (a return or warranty pickup, migration 105)? WHY checked first and
+    // returned from here: its DELIVERED means "reached the warehouse", and falling through to the
+    // forward lifecycle below would deliver the sub-order and deposit escrow a second time.
+    const reversePickup = await reversePickupService.findReversePickupForEvent(txClient, adapter.name, normalized);
+    if (reversePickup) {
+      const applied = await reversePickupService.applyReversePickupEvent(txClient, reversePickup, normalized);
+      return {
+        success: true,
+        reversePickup: true,
+        reversePickupId: reversePickup.id,
+        kind: reversePickup.kind,
+        duplicate: applied.duplicate,
+        previousStatus: reversePickup.status,
+        currentStatus: applied.status,
+        isDelivered: false,
+        isReturned: false,
+        event: normalized,
+      };
+    }
+
+    // 4b. Find matching shipment
     const { rows: shipmentRows } = await txClient.query(
       `SELECT s.id, s.sub_order_id, s.carrier, s.tracking_number, s.status, s.delivered_at,
               so.ref AS sub_order_ref, so.status AS sub_order_status

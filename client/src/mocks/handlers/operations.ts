@@ -31,6 +31,11 @@ function loadModes() {
 let mockModes = loadModes();
 let mockHistory = [];
 
+// The returns address (migration 105), empty as shipped, like the server's seed row.
+const RETURN_ADDRESS_REQUIRED = ['name', 'phone', 'division', 'district', 'address_line'];
+let mockReturnAddress = { name: '', phone: '', division: '', district: '', upazila: '', address_line: '', updated_at: null, updated_by: null };
+const missingReturnAddress = () => RETURN_ADDRESS_REQUIRED.filter((f) => !String(mockReturnAddress[f] || '').trim());
+
 /** The live mock modes, for the payout queue and supplier handlers. */
 export function mockOperationsModes() {
   return mockModes;
@@ -43,7 +48,18 @@ export const operationsHandlers = [
     method: 'GET',
     path: '/admin/platform/operations',
     handler() {
-      return { status: 200, body: { modes: { ...mockModes }, options: OPTIONS, history: mockHistory, can_update: true } };
+      return {
+        status: 200,
+        body: {
+          modes: { ...mockModes },
+          options: OPTIONS,
+          history: mockHistory,
+          return_address: { ...mockReturnAddress },
+          return_address_missing: missingReturnAddress(),
+          return_address_history: [],
+          can_update: true,
+        },
+      };
     },
   },
   {
@@ -81,6 +97,41 @@ export const operationsHandlers = [
           modes: { ...mockModes },
           message_en: 'Operations mode updated. It applies from the next action.',
           message_bn: 'অপারেশন মোড হালনাগাদ হয়েছে। পরের কাজ থেকেই এটি প্রযোজ্য।',
+        },
+      };
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/admin/platform/operations/return-address',
+    handler({ body = {} } = {}) {
+      // The server's rules in short (reversePickup.service validateReturnAddress).
+      if (String(body.name || '').trim().length < 2) return bad('The name must be 2–80 characters.', 'নাম ২–৮০ অক্ষরের হতে হবে।');
+      if (!/^(\+?880|0)?1[3-9]\d{8}$/.test(String(body.phone || '').replace(/[\s-]/g, ''))) {
+        return bad('Enter a valid Bangladeshi mobile number.', 'সঠিক বাংলাদেশি মোবাইল নম্বর দিন।');
+      }
+      if (!body.division || !body.district) return bad('Choose a district in that division.', 'ওই বিভাগের একটি জেলা বাছুন।');
+      if (String(body.address_line || '').trim().length < 5) return bad('The address must be 5–200 characters.', 'ঠিকানা ৫–২০০ অক্ষরের হতে হবে।');
+      if (typeof body.reason !== 'string' || body.reason.trim().length < 10) {
+        return bad('Give a reason of at least 10 characters for this change.', 'এই পরিবর্তনের জন্য অন্তত ১০ অক্ষরের একটি কারণ লিখুন।');
+      }
+      mockReturnAddress = {
+        name: body.name.trim(),
+        phone: body.phone.trim(),
+        division: body.division,
+        district: body.district,
+        upazila: String(body.upazila || '').trim(),
+        address_line: body.address_line.trim(),
+        updated_at: new Date().toISOString(),
+        updated_by: 1,
+      };
+      return {
+        status: 200,
+        body: {
+          return_address: { ...mockReturnAddress },
+          return_address_missing: missingReturnAddress(),
+          message_en: 'Returns address saved. Couriers take returned products there from now on.',
+          message_bn: 'ফেরতের ঠিকানা সংরক্ষিত হয়েছে। এখন থেকে কুরিয়ার ফেরত পণ্য সেখানে নেবে।',
         },
       };
     },

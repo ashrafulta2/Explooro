@@ -13,7 +13,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { withTransaction } from '../config/db.ts';
-import { getCourierAdapter } from '../integrations/courier/index.ts';
+import * as reversePickupService from './reversePickup.service.ts';
 import * as notificationService from './notification.service.ts';
 import * as clawbackService from './clawback.service.ts';
 import { writeAudit } from '../lib/audit.ts';
@@ -267,8 +267,14 @@ export async function getWarrantyCardById(db, cardIdOrRef, { customerId = null, 
             s.business_name AS supplier_shop_name,
             so.ref AS sub_order_ref,
             (
-              SELECT json_agg(c.* ORDER BY c.created_at DESC)
+              -- The courier pickup's tracking number, which the claim timeline offers to copy.
+              SELECT json_agg(to_jsonb(c) || jsonb_build_object(
+                       'reverse_tracking_number', rp.tracking_number,
+                       'reverse_carrier', rp.carrier,
+                       'reverse_pickup_status', rp.status
+                     ) ORDER BY c.created_at DESC)
               FROM warranty_claims c
+              LEFT JOIN reverse_pickups rp ON rp.id = c.reverse_pickup_id
               WHERE c.warranty_card_id = wc.id
             ) AS claims_json
      FROM warranty_cards wc
@@ -531,7 +537,7 @@ export async function reviewWarrantyClaim(db, {
 
     // 3. Approve Flow (REPAIR | REPLACE | REFUND)
     const finalResolution = ['REPAIR', 'REPLACE', 'REFUND'].includes(resolution) ? resolution : 'REPAIR';
-    let reverseShipmentId = null;
+    let reversePickupId = null;
 
     // WHY: a supplier may not refund on their own (decided 2026-10-15). Their REFUND is a proposal:
     // the claim is escalated to the admin queue and the money moves only when an admin approves it.
@@ -575,38 +581,22 @@ export async function reviewWarrantyClaim(db, {
     if ((finalResolution === 'REPAIR' || finalResolution === 'REPLACE') && (await courierBookingAvailable(txClient))) {
       await txClient.query('SAVEPOINT warranty_reverse_pickup');
       try {
-        const courierAdapter = getCourierAdapter(process.env.COURIER_DRIVER || 'MOCK');
         const address = typeof claim.delivery_address_json === 'string'
           ? JSON.parse(claim.delivery_address_json)
           : claim.delivery_address_json || {};
 
-        const consignment = await courierAdapter.createConsignment({
-          subOrderRef: `REV-${claim.ref}`,
-          recipientName: claim.recipient_name || 'Customer',
-          recipientPhone: claim.recipient_phone || '+8801700000000',
-          deliveryAddress: address,
-          codAmount: 0,
-          weightKg: 0.5,
+        // WHY reverse_pickups and not shipments: a reverse parcel in `shipments` would deliver the
+        // sub-order and deposit escrow again on its DELIVERED webhook (migration 105). The item goes
+        // FROM the customer TO the supplier who repairs it (or the returns address).
+        const destination = await reversePickupService.resolveWarrantyDestination(txClient, claim.supplier_id);
+        const pickup = await reversePickupService.bookReversePickup(txClient, {
+          kind: 'WARRANTY',
+          warrantyClaimId: claim.id,
+          parentRef: claim.ref,
+          pickup: { name: claim.recipient_name, phone: claim.recipient_phone, address },
+          destination,
         });
-
-        // Insert into shipments table
-        const { rows: shipRows } = await txClient.query(
-          `INSERT INTO shipments (
-             sub_order_id, carrier, tracking_number, courier_consignment_id, status, created_at, updated_at
-           )
-           VALUES ($1, $2, $3, $4, 'BOOKED', now(), now())
-           RETURNING id`,
-          [
-            claim.sub_order_id,
-            courierAdapter.name,
-            consignment.trackingNumber || `REV-${claim.ref}`,
-            consignment.courierConsignmentId || `CNG-${claim.ref}`,
-          ]
-        );
-
-        if (shipRows.length > 0) {
-          reverseShipmentId = shipRows[0].id;
-        }
+        reversePickupId = pickup.id;
         await txClient.query('RELEASE SAVEPOINT warranty_reverse_pickup');
       } catch (err) {
         await txClient.query('ROLLBACK TO SAVEPOINT warranty_reverse_pickup').catch(() => {});
@@ -644,13 +634,13 @@ export async function reviewWarrantyClaim(db, {
       `UPDATE warranty_claims
        SET status = 'APPROVED',
            resolution = $2,
-           reverse_shipment_id = $3,
+           reverse_pickup_id = $3,
            supplier_notes = $4,
            decided_by = $5,
            decided_at = now(),
            updated_at = now()
        WHERE id = $1`,
-      [claimId, finalResolution, reverseShipmentId, supplierNotes || null, decidBy]
+      [claimId, finalResolution, reversePickupId, supplierNotes || null, decidBy]
     );
 
     // Notify customer
@@ -676,7 +666,7 @@ export async function reviewWarrantyClaim(db, {
       afterJson: {
         status: 'APPROVED',
         resolution: finalResolution,
-        reverse_shipment_id: reverseShipmentId,
+        reverse_pickup_id: reversePickupId,
         refund_amount: refund ? refund.refundAmount : null,
       },
       riskTier: isStaffOverride ? 'HIGH' : 'LOW',
@@ -686,7 +676,7 @@ export async function reviewWarrantyClaim(db, {
       success: true,
       status: 'APPROVED',
       resolution: finalResolution,
-      reverseShipmentId,
+      reversePickupId,
       claimId,
       refundAmount: refund ? refund.refundAmount : null,
     };
@@ -1020,7 +1010,8 @@ export async function getSupplierClaims(db, supplierId, { status = null, limit =
             p.id AS product_id, p.title_en AS product_title_en, p.title_bn AS product_title_bn,
             COALESCE(up.display_name, up.full_name) AS customer_name, u.phone AS customer_phone,
             so.ref AS sub_order_ref,
-            sh.tracking_number AS reverse_tracking_number, sh.carrier AS reverse_carrier
+            rp.tracking_number AS reverse_tracking_number, rp.carrier AS reverse_carrier,
+            rp.status AS reverse_pickup_status
      FROM warranty_claims c
      JOIN warranty_cards wc ON wc.id = c.warranty_card_id
      JOIN order_items oi ON oi.id = wc.order_item_id
@@ -1028,7 +1019,7 @@ export async function getSupplierClaims(db, supplierId, { status = null, limit =
      JOIN products p ON p.id = oi.product_id
      JOIN users u ON u.id = c.customer_id
      LEFT JOIN user_profiles up ON up.user_id = u.id
-     LEFT JOIN shipments sh ON sh.id = c.reverse_shipment_id
+     LEFT JOIN reverse_pickups rp ON rp.id = c.reverse_pickup_id
      WHERE wc.supplier_id = $1 ${statusClause}
      ORDER BY c.created_at DESC
      LIMIT $2 OFFSET $3`,

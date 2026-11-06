@@ -33,6 +33,34 @@ export class RedxCourierAdapter {
     };
   }
 
+  /**
+   * Books a pickup FROM the customer TO the given address (a return or a warranty item).
+   * WHY its own method: couriers book reverse parcels through a separate return/pickup request, not
+   * as a delivery from the merchant's registered pickup point. Until this carrier's live API is
+   * wired, it books like a delivery to the destination so the flow can be exercised end to end.
+   */
+  async createReturnPickup({
+    ref,
+    pickupName,
+    pickupPhone,
+    pickupAddress,
+    recipientName,
+    recipientPhone,
+    deliveryAddress,
+    weightKg = 0.5,
+  }: Record<string, any> = {}) {
+    const booked = await this.createConsignment({
+      subOrderRef: ref,
+      recipientName,
+      recipientPhone,
+      deliveryAddress,
+      codAmount: 0,
+      weightKg,
+      itemDescription: `Return pickup from ${pickupName || 'customer'} (${pickupPhone || '-'}, ${pickupAddress?.district || '-'})`,
+    } as any);
+    return { ...booked, pickup: { name: pickupName, phone: pickupPhone, address: pickupAddress } };
+  }
+
   async getStatus(trackingNumber) {
     return { success: true, trackingNumber, status: 'IN_TRANSIT', carrier: 'REDX' };
   }

@@ -215,6 +215,17 @@ function createMockDb() {
         return { rows: [{ key: 'operations.modes', value_json: { payout_mode: 'MANUAL', courier_mode: 'INTEGRATED' } }] };
       }
 
+      // The returns address a courier pickup goes to (migration 105); empty refuses the booking.
+      if (q.includes('FROM platform_settings') && params[0] === 'operations.return_address') {
+        return { rows: [{ key: 'operations.return_address', value_json: {
+          name: 'Returns Desk', phone: '+8801711000000', division: 'dhaka', district: 'dhaka_city', upazila: 'Tejgaon', address_line: 'House 1, Road 2',
+        } }] };
+      }
+
+      if (q.includes('INSERT INTO reverse_pickups')) {
+        return { rows: [{ id: 901, ref: params[0], kind: params[1], carrier: params[4], tracking_number: params[5], courier_consignment_id: params[6], status: 'PENDING' }] };
+      }
+
       // SELECT wallets WHERE user_id = $1
       if (q.includes('FROM wallets') && q.includes('WHERE user_id = $1')) {
         const userId = params[0];

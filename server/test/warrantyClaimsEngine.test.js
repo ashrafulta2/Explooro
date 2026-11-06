@@ -212,9 +212,10 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
     assert.ok(new Date(insertedClaim.sla_due_at).getTime() > Date.now(), 'SLA deadline must be in the future');
   });
 
-  test('reviewWarrantyClaim on REPAIR resolution books reverse consignment via courier adapter', async () => {
+  test('reviewWarrantyClaim on REPAIR resolution books a reverse pickup to the supplier warehouse', async () => {
     let updatedClaim = null;
-    let createdShipment = null;
+    let createdPickup = null;
+    let shipmentInsert = false;
 
     const db = createMockDb({
       queryHandler: async (sql, params) => {
@@ -237,9 +238,19 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
           };
         }
 
-        if (sql.includes('INSERT INTO shipments')) {
-          createdShipment = { id: 77, tracking_number: params[2], courier_consignment_id: params[3] };
-          return { rows: [createdShipment] };
+        if (sql.includes('FROM warehouse_nodes wn')) {
+          return { rows: [{ name: 'Supplier Hub', division: 'dhaka', district: 'gazipur', upazila: 'Tongi', address_line: 'Plot 4, BSCIC', phone: '+8801811000000' }] };
+        }
+
+        if (sql.includes('INSERT INTO shipments')) shipmentInsert = true;
+
+        if (sql.includes('INSERT INTO reverse_pickups')) {
+          createdPickup = {
+            id: 77, ref: params[0], kind: params[1], warranty_claim_id: params[3], carrier: params[4],
+            tracking_number: params[5], courier_consignment_id: params[6],
+            pickup_name: params[7], destination_name: params[10], destination_address: JSON.parse(params[12]),
+          };
+          return { rows: [createdPickup] };
         }
 
         if (sql.includes('UPDATE warranty_claims') && sql.includes('status = \'APPROVED\'')) {
@@ -247,7 +258,7 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
             id: params[0],
             status: 'APPROVED',
             resolution: params[1],
-            reverse_shipment_id: params[2],
+            reverse_pickup_id: params[2],
           };
           return { rows: [updatedClaim] };
         }
@@ -267,10 +278,18 @@ describe('Prompt 10.4 — Digital Warranty & Claims Engine', () => {
     assert.equal(result.success, true);
     assert.equal(result.status, 'APPROVED');
     assert.equal(result.resolution, 'REPAIR');
-    assert.ok(result.reverseShipmentId, 'Reverse consignment shipment must be booked on repair approval');
+    assert.equal(result.reversePickupId, 77, 'a reverse pickup is booked on repair approval');
+    assert.equal(updatedClaim.reverse_pickup_id, 77);
+    // WHY: a reverse parcel in `shipments` would run escrow again on its DELIVERED webhook (migration 105).
+    assert.equal(shipmentInsert, false, 'nothing is written to shipments');
+    assert.equal(createdPickup.kind, 'WARRANTY');
+    assert.equal(createdPickup.warranty_claim_id, 10);
+    assert.equal(createdPickup.pickup_name, 'Sadia Rahman', 'collected from the customer');
+    assert.equal(createdPickup.destination_name, 'Supplier Hub', 'taken to the supplier who repairs it');
+    assert.equal(createdPickup.destination_address.district, 'gazipur');
     // The adapter returns courierConsignmentId. Reading consignmentId stored the CNG- fallback instead
     // (found when the courier adapters moved to TypeScript).
-    assert.match(createdShipment.courier_consignment_id, /^MOCK-CN-/, 'the real consignment id is stored');
+    assert.match(createdPickup.courier_consignment_id, /^MOCK-CN-/, 'the real consignment id is stored');
   });
 
   test('reviewWarrantyClaim on REJECT requires rejection reason', async () => {

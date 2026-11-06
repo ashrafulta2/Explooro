@@ -3,6 +3,7 @@
  */
 
 import * as manualOps from '../services/manualOperations.service.ts';
+import * as reversePickups from '../services/reversePickup.service.ts';
 import * as auditService from '../services/audit.service.ts';
 import * as auditRepo from '../repositories/audit.repository.ts';
 
@@ -13,6 +14,7 @@ const roleOf = (req) => req.user?.roles?.[0] ?? req.user?.role ?? null;
 export async function getAdminModes(req, reply) {
   const db = dbOf(req);
   const modes = await manualOps.getModes(db, cacheOf(req));
+  const returnAddress = await reversePickups.getReturnAddress(db);
 
   let history = [];
   try {
@@ -21,11 +23,23 @@ export async function getAdminModes(req, reply) {
   } catch {
     // The page still works without history.
   }
+  let returnAddressHistory = [];
+  try {
+    const result = await auditRepo.listAuditLogs(db, { action: 'platform.operations.return_address.update', limit: 5 });
+    returnAddressHistory = result?.items ?? [];
+  } catch {
+    // As above.
+  }
 
   return reply.send({
     modes,
     options: { payout_mode: manualOps.PAYOUT_MODES, courier_mode: manualOps.COURIER_MODES },
     history,
+    // Where a courier takes returned products (migration 105). `missing` lists the empty required
+    // fields; with couriers INTEGRATED a return cannot be booked until it is empty.
+    return_address: returnAddress,
+    return_address_missing: reversePickups.missingReturnAddressFields(returnAddress),
+    return_address_history: returnAddressHistory,
     can_update: Boolean(req.userPermissions?.has?.('platform.operations.update')),
   });
 }
@@ -44,6 +58,25 @@ export async function updateAdminModes(req, reply) {
     modes,
     message_en: 'Operations mode updated. It applies from the next action.',
     message_bn: 'অপারেশন মোড হালনাগাদ হয়েছে। পরের কাজ থেকেই এটি প্রযোজ্য।',
+  });
+}
+
+export async function updateReturnAddress(req, reply) {
+  const body = req.body || {};
+  const { reason, base_updated_at: baseUpdatedAt, ...address } = body;
+  const saved = await reversePickups.updateReturnAddress(dbOf(req), auditService, {
+    address,
+    reason,
+    baseUpdatedAt,
+    userId: req.user?.id ?? null,
+    actorRole: roleOf(req),
+    reqContext: { traceId: req.traceId, ip: req.ip, userAgent: req.headers?.['user-agent'] },
+  });
+  return reply.send({
+    return_address: saved,
+    return_address_missing: reversePickups.missingReturnAddressFields(saved),
+    message_en: 'Returns address saved. Couriers take returned products there from now on.',
+    message_bn: 'ফেরতের ঠিকানা সংরক্ষিত হয়েছে। এখন থেকে কুরিয়ার ফেরত পণ্য সেখানে নেবে।',
   });
 }
 

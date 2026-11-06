@@ -11,6 +11,8 @@
  *
  * `platform.operations.view` (LOW) opens the page; `platform.operations.update` (CRITICAL, super
  * admin only) enables Save. Every save needs a reason and writes an audit row, listed at the bottom.
+ * The returns address card (migration 105) says where a courier takes returned products when
+ * couriers are automatic; it is saved on its own, with its own reason.
  * WHY the options come from the API: the server refuses any other value, and the page must never
  * offer one it would refuse.
  */
@@ -26,6 +28,7 @@ import { t, getLanguage } from '../../services/i18n.ts';
 import { formatRelativeTime } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
+import { getDivisions, getDistrictsByDivision } from '../../data/bangladeshGeo.ts';
 import type { PageContext } from '../types.ts';
 
 const MIN_REASON_LENGTH = 10;
@@ -143,6 +146,122 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
     return panel;
   }
 
+  /**
+   * Where a courier takes returned products once couriers are INTEGRATED (migration 105). It ships
+   * empty, and the server refuses to book a return pickup until it is filled; the warning says so
+   * while the courier mode is automatic. Division and district are the checkout form's ids, which
+   * the server checks against its own copy (server/src/config/bdDistricts.ts).
+   */
+  function returnAddressCard() {
+    const address = data.return_address || {};
+    const missing = data.return_address_missing || [];
+    const canUpdate = data.can_update !== false && can('platform.operations.update');
+    const nameOf = (item) => (isBn ? item.name_bn : item.name_en);
+
+    const panel = document.createElement('section');
+    panel.className = 'admin-panel group-buy-settings mt-4';
+    panel.innerHTML = `
+      <h2 class="admin-panel__title">${escapeHtml(t('admin.operations.return_address.title'))}</h2>
+      <p data-page-info class="text-sm text-secondary">${escapeHtml(t('admin.operations.return_address.desc'))}</p>
+    `;
+    if (missing.length > 0) {
+      const warn = document.createElement('p');
+      warn.className = 'text-sm mt-2';
+      warn.setAttribute('role', 'status');
+      warn.dataset.returnAddressMissing = '';
+      warn.textContent = data.modes?.courier_mode === 'INTEGRATED'
+        ? t('admin.operations.return_address.missing_integrated')
+        : t('admin.operations.return_address.missing_manual');
+      panel.append(warn);
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'group-buy-settings__grid';
+
+    const text = (name, label, value, maxLength, required = true) => {
+      const field = Input({ label, type: name === 'phone' ? 'tel' : 'text', name, value: value || '', maxLength, required });
+      field.input.disabled = !canUpdate;
+      return field;
+    };
+    const name = text('name', t('admin.operations.return_address.name'), address.name, 80);
+    const phone = text('phone', t('admin.operations.return_address.phone'), address.phone, 20);
+    const division = Select({
+      label: t('admin.operations.return_address.division'),
+      name: 'division',
+      placeholder: t('admin.operations.return_address.choose'),
+      options: getDivisions().map((d) => ({ value: d.id, label: nameOf(d) })),
+      value: address.division || '',
+      disabled: !canUpdate,
+      required: true,
+    });
+    const district = Select({
+      label: t('admin.operations.return_address.district'),
+      name: 'district',
+      placeholder: t('admin.operations.return_address.choose'),
+      options: getDistrictsByDivision(address.division).map((d) => ({ value: d.id, label: nameOf(d) })),
+      value: address.district || '',
+      disabled: !canUpdate,
+      required: true,
+    });
+    // A district belongs to one division, so a new division resets the district list.
+    division.input.addEventListener('change', () => {
+      const select = district.input;
+      select.querySelectorAll('option:not([value=""])').forEach((o) => o.remove());
+      for (const d of getDistrictsByDivision(division.value)) {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = nameOf(d);
+        select.append(opt);
+      }
+      select.value = '';
+    });
+    const upazila = text('upazila', t('admin.operations.return_address.upazila'), address.upazila, 60, false);
+    const line = text('address_line', t('admin.operations.return_address.address_line'), address.address_line, 200);
+    const reason = text('reason', t('admin.operations.reason'), '', 500);
+
+    grid.append(name, phone, division, district, upazila, line, reason);
+
+    const save = Button({
+      label: t('admin.operations.return_address.save'),
+      variant: 'primary',
+      size: 'sm',
+      disabled: !canUpdate,
+      onClick: async () => {
+        if (reason.value.trim().length < MIN_REASON_LENGTH) {
+          toast.error(t('admin.operations.reason_hint', { min: MIN_REASON_LENGTH }));
+          reason.input.focus();
+          return;
+        }
+        save.disabled = true;
+        try {
+          const res = await api.put('/admin/platform/operations/return-address', {
+            name: name.value.trim(),
+            phone: phone.value.trim(),
+            division: division.value,
+            district: district.value,
+            upazila: upazila.value.trim(),
+            address_line: line.value.trim(),
+            reason: reason.value.trim(),
+            // WHY: the server refuses a save made on top of someone else's newer one.
+            base_updated_at: address.updated_at ?? null,
+          });
+          toast.success((isBn ? res?.message_bn : res?.message_en) || t('admin.operations.return_address.saved'));
+          await loadData();
+        } catch (err) {
+          toast.error(err?.message || t('common.error_generic'));
+        } finally {
+          save.disabled = false;
+        }
+      },
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'group-buy-settings__actions';
+    actions.append(save);
+    panel.append(grid, actions);
+    return panel;
+  }
+
   function kpis() {
     const { modes } = data;
     const grid = document.createElement('div');
@@ -229,7 +348,7 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
       error.textContent = loadError;
       container.append(error);
     } else if (data) {
-      container.append(kpis(), modesCard(), historyPanel());
+      container.append(kpis(), modesCard(), returnAddressCard(), historyPanel());
     }
 
     root.appendChild(container);
