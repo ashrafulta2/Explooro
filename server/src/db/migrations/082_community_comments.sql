@@ -1,7 +1,7 @@
 -- 082_community_comments.sql — comments on community posts.
 --
 -- One level only: a comment answers a post, not another comment. A thread of replies needs its own
--- notion of depth, ordering and collapsing; a flat list is what a product review or a Explooro partner's
+-- notion of depth, ordering and collapsing; a flat list is what a product review or a shop partner's
 -- tip needs ("does it shrink?" "which size?").
 --
 -- WHY status and no DELETE: the same publish-first rule as posts. A comment is live at once; its

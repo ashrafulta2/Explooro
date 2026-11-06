@@ -5,7 +5,7 @@
 -- services/communityPost.service.ts:
 --   REVIEW        customer  — a verified-purchase review with a rating and a usability tip
 --   UPDATE        supplier  — a new arrival / restock / bulk offer with stock and price tiers
---   IDEA          Explooro partner — a usability tip, creative idea or product story with steps
+--   IDEA          shop partner — a usability tip, creative idea or product story with steps
 --   ANNOUNCEMENT  admin     — a pinned notice to a chosen audience
 --
 -- WHY posts go live at once (status PUBLISHED, not PENDING): the product decision is publish first,

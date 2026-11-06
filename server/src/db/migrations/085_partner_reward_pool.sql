@@ -1,9 +1,9 @@
 -- 085_partner_reward_pool.sql
 --
--- Explooro Partners become advertisers, not shopkeepers (Phase A of the partner reward pool).
+-- Shop partners become advertisers, not shopkeepers (Phase A of the partner reward pool).
 --
 --   * The supplier sets the price AND the partner's profit per product (products.partner_profit, a
---     per-unit BDT amount). A Explooro partner can no longer change a price, so saler_store_items stops
+--     per-unit BDT amount). A shop partner can no longer change a price, so saler_store_items stops
 --     holding one: every existing custom price is cleared and a CHECK keeps it NULL from now on. Every
 --     reader already does COALESCE(custom_retail_price, default_retail_price), so they all fall back
 --     to the supplier's price without further changes.

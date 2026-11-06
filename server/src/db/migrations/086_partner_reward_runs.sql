@@ -1,12 +1,12 @@
 -- 086_partner_reward_runs.sql
 --
--- Phase B of the partner reward pool: once a month the pool is shared out to Explooro partners by score.
+-- Phase B of the partner reward pool: once a month the pool is shared out to shop partners by score.
 --
 -- Migration 085 sends the partner share of every partner-brought sale to the PARTNER_REWARD_POOL
 -- wallet. Each month the `partner_reward` job (services/partnerReward.service.ts) closes the month
 -- that ended:
 --   1. moves `ad_revenue_share_pct` of that month's ad revenue from the treasury into the pool;
---   2. scores every active Explooro partner on four factors, store sales > social shares > community
+--   2. scores every active shop partner on four factors, store sales > social shares > community
 --      posts > activity (the weights are this row's setting, never constants);
 --   3. pays the pool's released balance out in proportion to score, one balanced ledger group.
 -- Rounding paisa, and money still in escrow, stay in the pool for the next month.
@@ -95,6 +95,6 @@ VALUES (
     "settle_lag_days": 7,
     "timezone": "Asia/Dhaka"}'::jsonb
     || jsonb_build_object('first_month', to_char(date_trunc('month', now() AT TIME ZONE 'Asia/Dhaka'), 'YYYY-MM-DD')),
-  'OBJECT', 'Explooro Partner reward pool rules', 'শপ পার্টনার রিওয়ার্ড পুলের নিয়ম', 'growth', false
+  'OBJECT', 'Shop partner reward pool rules', 'শপ পার্টনার রিওয়ার্ড পুলের নিয়ম', 'growth', false
 )
 ON CONFLICT (key) DO NOTHING;

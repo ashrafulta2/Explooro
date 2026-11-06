@@ -1,6 +1,6 @@
 -- 091_partner_pool_ad_share_55.sql
 --
--- The Explooro partner reward pool's share of monthly ad revenue moves from 20 % to 55 % by default
+-- The shop partner reward pool's share of monthly ad revenue moves from 20 % to 55 % by default
 -- (owner decision 2026-10-30): the pool receives 55 % of a month's ad revenue, the platform keeps 45 %.
 --
 -- 086 seeded `partner_reward.rules.ad_revenue_share_pct` = 20. Only a row still at exactly 20 is moved,

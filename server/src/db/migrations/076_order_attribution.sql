@@ -1,25 +1,25 @@
--- 076_order_attribution.sql — record which Explooro partner's promotion brought each sale.
+-- 076_order_attribution.sql — record which shop partner's promotion brought each sale.
 --
--- WHY: a Explooro partner earns for promoting a supplier's product, so an order must remember whose
+-- WHY: a shop partner earns for promoting a supplier's product, so an order must remember whose
 -- storefront or tracked link the shopper came through. Before this, nothing did: the client never
--- sent a Explooro partner on add-to-cart, `saler_ref` in a short link's target was never read, and
+-- sent a shop partner on add-to-cart, `saler_ref` in a short link's target was never read, and
 -- `recordShortLinkConversion` had no caller. Every order was therefore unattributed and the shop
 -- partner's share fell to the platform (see vault.service.ts).
 --
 -- The shopper's last touch (a storefront visit or a short link click) travels with the cart line;
 -- attribution.service.ts decides whether it still counts. Idempotent: safe to run twice.
 
--- 1. Where a cart line's Explooro partner came from.
+-- 1. Where a cart line's shop partner came from.
 ALTER TABLE cart_items
   ADD COLUMN IF NOT EXISTS short_link_id      BIGINT REFERENCES short_links(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS attribution_source TEXT;
 
--- 2. The same on the parcel that pays the Explooro partner.
+-- 2. The same on the parcel that pays the shop partner.
 ALTER TABLE sub_orders
   ADD COLUMN IF NOT EXISTS short_link_id      BIGINT REFERENCES short_links(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS attribution_source TEXT;
 
--- 3. Each sold line keeps its own Explooro partner. A parcel pays one Explooro partner, so when one
+-- 3. Each sold line keeps its own shop partner. A parcel pays one shop partner, so when one
 --    supplier's parcel mixes lines from two partners the per-line truth is kept here for the
 --    earning engine (Phase C) instead of being lost.
 ALTER TABLE order_items

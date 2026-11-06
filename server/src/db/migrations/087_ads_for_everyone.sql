@@ -4,7 +4,7 @@
 --
 --   * `easy_boost` — "Boost": a native card in the home feed, priced per thousand views (CPM, the same
 --     model and auction as Home Feed Promotion). It needs no product, so a customer can boost their
---     own community post, a Explooro partner their store, a supplier a product. Open to every account
+--     own community post, a shop partner their store, a supplier a product. Open to every account
 --     type; the nine existing formats keep their own `allowed_roles` and the full wizard.
 --   * `ads.audience` — the business numbers behind audience selection (services/adAudience.service.ts):
 --       min_audience_size     a narrowed audience smaller than this is refused, so an ad can never be
