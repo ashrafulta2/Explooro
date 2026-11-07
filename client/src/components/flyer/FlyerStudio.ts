@@ -26,6 +26,7 @@ import { escapeHtml } from '../../services/html.ts';
 import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { renderFlyer, fillCaption, type FlyerContent, type FlyerItem } from '../../lib/flyerEngine.ts';
+import { zipBlob, type ZipEntry } from '../../lib/zip.ts';
 import {
   FORMATS, OCCASIONS, designAt, designCount, designKey, parseDesignKey, occasionById, paletteById,
   type DesignRef, type FormatId, type Occasion,
@@ -62,6 +63,10 @@ export interface StudioSource {
 }
 
 const GALLERY_PAGE = 24;
+// WHY a cap on one batch: every image is drawn and held in memory until the ZIP is written
+// (~0.3-1 MB a PNG), and a partner's batch also asks the server for one tracked link per product.
+// 40 keeps a batch well inside a mid-range phone's memory and finishes in seconds.
+export const BULK_LIMIT = 40;
 const SAVED_LIMIT = 60;
 const SAVED = 'saved';
 
@@ -168,8 +173,8 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
 
   // ── Content ──────────────────────────────────────────────────────────────────────────────────
   /** Items in flyer order: the chosen product first, then others for the collage. */
-  function flyerItems(): StudioItem[] {
-    const hero = currentItem();
+  function flyerItems(target: number | 'ALL' = selected): StudioItem[] {
+    const hero = target === 'ALL' ? null : items.find((i) => i.id === target) || null;
     const rest = items.filter((i) => i !== hero);
     return hero ? [hero, ...rest].slice(0, 4) : items.slice(0, 4);
   }
@@ -185,12 +190,16 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
     return pick(occ.tags[(tagIndex ?? d.headline) % occ.tags.length]);
   }
 
-  function contentFor(d: DesignRef, forExport: boolean): FlyerContent {
+  /**
+   * What a flyer shows. `target` and `qr` default to what is on screen; the bulk export passes
+   * each product and its own link instead.
+   */
+  function contentFor(d: DesignRef, forExport: boolean, target: number | 'ALL' = selected, qr?: string): FlyerContent {
     const photo = (url: string | null) => (forExport ? (url ? photos.get(url) ?? null : null) : photoFor(url));
-    const list = flyerItems();
+    const list = flyerItems(target);
     const asItem = (it: StudioItem): FlyerItem => ({ title: titleOf(it), subtitle: otherTitle(it), price: money(it.price), photo: photo(it.image_url) });
     let flyer: FlyerItem[];
-    if (currentItem() || d.layout === 'collage') {
+    if (target !== 'ALL' || d.layout === 'collage') {
       flyer = list.map(asItem);
     } else {
       // The whole store: the store's own headline, shown with its first product's photo.
@@ -205,23 +214,34 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
       scanLine: t('flyer.scan_line'),
       scanSub: t('flyer.scan_sub'),
       items: flyer.length ? flyer : [{ title: t('flyer.store_title'), price: '', photo: null }],
-      qrText: linkState === 'ready' && link ? link.url : '',
+      qrText: qr ?? (linkState === 'ready' && link ? link.url : ''),
       showPrice,
     };
   }
 
-  function designFor(d: DesignRef) {
-    return { layout: d.layout, palette: paletteById(d.palette), pattern: d.pattern, format };
+  function designFor(d: DesignRef, fmt: FormatId = format) {
+    return { layout: d.layout, palette: paletteById(d.palette), pattern: d.pattern, format: fmt };
   }
 
-  function captionText(): string {
+  /** A link for any product and channel, cached with the on-screen ones; does not touch the panel. */
+  async function linkFor(target: number | 'ALL', ch: LinkChannel): Promise<StudioLink> {
+    const key = `${target}|${ch}`;
+    const cached = links.get(key);
+    if (cached) return cached;
+    const made = await source.link(target, ch);
+    if (!made?.url) throw new Error('NO_LINK');
+    links.set(key, made);
+    return made;
+  }
+
+  function captionText(target: number | 'ALL' = selected, url = link?.url || ''): string {
     const occ = occasion();
-    const item = currentItem();
+    const item = target === 'ALL' ? null : items.find((i) => i.id === target) || null;
     const text = fillCaption(pick(occ.caption), {
       headline: headlineFor(current),
       product: item ? titleOf(item) : (brand || t('flyer.brand_fallback')),
       price: item && showPrice ? money(item.price) : '',
-      link: link?.url || '',
+      link: url,
     });
     return `${text}\n\n${occ.hashtags}`;
   }
@@ -534,6 +554,18 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
         <p class="flyer-studio__hint">${t(source.linkNoteKey)}</p>
       </div>
 
+      <div class="flyer-studio__bulk">
+        <span class="flyer-studio__label">${t('flyer.bulk_title')}</span>
+        <button type="button" class="btn btn--sm btn--secondary btn--full" data-action="bulk-products" ${items.length < 2 ? 'hidden' : ''}>🗂 ${t('flyer.bulk_products', { count: Math.min(items.length, BULK_LIMIT) })}</button>
+        <button type="button" class="btn btn--sm btn--secondary btn--full" data-action="bulk-sizes">📐 ${t('flyer.bulk_sizes')}</button>
+        ${items.length > BULK_LIMIT ? `<p class="flyer-studio__hint">${t('flyer.bulk_limit', { count: BULK_LIMIT })}</p>` : ''}
+        <div class="flyer-studio__progress" data-ref="bulk-progress" hidden>
+          <progress max="1" value="0" data-ref="bulk-bar" aria-label="${t('flyer.bulk_title')}"></progress>
+          <span role="status" aria-live="polite" data-ref="bulk-text"></span>
+          <button type="button" class="btn btn--sm btn--ghost" data-action="bulk-cancel">${t('flyer.bulk_cancel')}</button>
+        </div>
+      </div>
+
       <div class="flyer-studio__secondary">
         <button type="button" class="btn btn--sm btn--ghost" data-action="svg">${t('flyer.download_svg')}</button>
         <button type="button" class="btn btn--sm btn--ghost" data-action="print">${t('flyer.print')}</button>
@@ -575,6 +607,14 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
     q('[data-action="copy-caption"]').onclick = () => copyText(q<HTMLTextAreaElement>('[data-ref="caption"]').value, t('flyer.caption_copied'));
     q('[data-action="copy-link"]').onclick = () => link && copyText(link.url, t('flyer.link_copied'));
     q('[data-action="retry-link"]').onclick = () => ensureLink();
+    q('[data-action="bulk-products"]').onclick = () => runBulk('products');
+    q('[data-action="bulk-sizes"]').onclick = () => runBulk('sizes');
+    q('[data-action="bulk-cancel"]').onclick = () => {
+      // The image being drawn finishes first; say so at once instead of looking frozen.
+      bulkCancelled = true;
+      q('[data-ref="bulk-text"]').textContent = t('flyer.bulk_stopping');
+      q<HTMLButtonElement>('[data-action="bulk-cancel"]').disabled = true;
+    };
     panel.querySelectorAll<HTMLAnchorElement>('[data-share]').forEach((a) => {
       a.addEventListener('click', (e) => { if (linkState !== 'ready') e.preventDefault(); });
     });
@@ -668,6 +708,7 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
     q<HTMLInputElement>('[data-ref="url"]').value = ready ? link!.url : (linkState === 'loading' ? t('flyer.link_creating') : '');
     q('[data-ref="link-error"]').hidden = linkState !== 'error';
     panel.querySelectorAll<HTMLButtonElement>('[data-action="png"], [data-action="svg"], [data-action="print"], [data-action="share-image"], [data-action="copy-link"]').forEach((b) => { b.disabled = !ready; });
+    panel.querySelectorAll<HTMLButtonElement>('[data-action="bulk-products"], [data-action="bulk-sizes"]').forEach((b) => { b.disabled = !ready || bulkRunning; });
 
     const wa = q<HTMLAnchorElement>('[data-share="whatsapp"]');
     const fb = q<HTMLAnchorElement>('[data-share="facebook"]');
@@ -683,9 +724,10 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
   }
 
   // ── Export ───────────────────────────────────────────────────────────────────────────────────
-  async function exportSvg(): Promise<string> {
-    await Promise.all(flyerItems().map((i) => (i.image_url ? loadPhoto(i.image_url) : null)));
-    return renderFlyer(designFor(current), contentFor(current, true), { uid: 'x' });
+  /** The downloadable SVG: photos inlined, the real QR. Defaults to what is on screen. */
+  async function exportSvg(target: number | 'ALL' = selected, fmt: FormatId = format, qr?: string): Promise<string> {
+    await Promise.all(flyerItems(target).map((i) => (i.image_url ? loadPhoto(i.image_url) : null)));
+    return renderFlyer(designFor(current, fmt), contentFor(current, true, target, qr), { uid: 'x' });
   }
 
   function fileName(ext: string) {
@@ -705,9 +747,9 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  async function pngBlob(): Promise<Blob> {
-    const { width, height } = FORMATS[format];
-    const url = URL.createObjectURL(new Blob([await exportSvg()], { type: 'image/svg+xml;charset=utf-8' }));
+  async function pngBlob(svg?: string, fmt: FormatId = format): Promise<Blob> {
+    const { width, height } = FORMATS[fmt];
+    const url = URL.createObjectURL(new Blob([svg ?? await exportSvg()], { type: 'image/svg+xml;charset=utf-8' }));
     try {
       const img = new Image();
       await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(new Error('IMG')); img.src = url; });
@@ -718,6 +760,84 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
       return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG'))), 'image/png'));
     } finally {
       URL.revokeObjectURL(url);
+    }
+  }
+
+  // -- Bulk export ------------------------------------------------------------------------------
+  let bulkRunning = false;
+  let bulkCancelled = false;
+
+  /** "Jamdani Saree (Red)" -> "jamdani-saree-red"; Bangla letters are kept (ZIP names are UTF-8). */
+  function slug(text: string): string {
+    return String(text || '').toLowerCase().replace(/[^\p{L}\p{M}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'flyer';
+  }
+
+  /**
+   * One ZIP of flyers in the chosen design: either every product (one image each, up to BULK_LIMIT)
+   * or this flyer in all four sizes. Each image gets its own QR link (a partner's tracked link per
+   * product, and the print channel for the A4 poster, exactly as a single download would) and the
+   * ZIP carries a captions.txt with every image's ready post text.
+   *
+   * WHY one image at a time: drawing them all at once would hold every canvas in memory together;
+   * in sequence only the finished PNG bytes accumulate, and the progress bar can say where it is.
+   */
+  async function runBulk(kind: 'products' | 'sizes') {
+    if (bulkRunning) return;
+    const jobs: { target: number | 'ALL'; fmt: FormatId }[] = kind === 'products'
+      ? items.slice(0, BULK_LIMIT).map((it) => ({ target: it.id, fmt: format }))
+      : (Object.keys(FORMATS) as FormatId[]).map((fmt) => ({ target: selected, fmt }));
+    if (!jobs.length) return;
+    bulkRunning = true;
+    bulkCancelled = false;
+    const box = container.querySelector<HTMLElement>('[data-ref="bulk-progress"]')!;
+    const bar = container.querySelector<HTMLProgressElement>('[data-ref="bulk-bar"]')!;
+    const text = container.querySelector<HTMLElement>('[data-ref="bulk-text"]')!;
+    box.hidden = false;
+    container.querySelector<HTMLButtonElement>('[data-action="bulk-cancel"]')!.disabled = false;
+    bar.max = jobs.length;
+    refreshPanel();
+    const entries: ZipEntry[] = [];
+    const captions: string[] = [];
+    let failed = 0;
+    try {
+      for (const [i, job] of jobs.entries()) {
+        if (bulkCancelled) break;
+        bar.value = i;
+        text.textContent = t('flyer.bulk_progress', { done: i + 1, total: jobs.length });
+        const item = job.target === 'ALL' ? null : items.find((it) => it.id === job.target) || null;
+        try {
+          const ch: LinkChannel = job.fmt === 'A4_PRINT' ? 'PRINT_FLYER' : 'QR_CODE';
+          const url = (await linkFor(job.target, ch)).url;
+          const png = await pngBlob(await exportSvg(job.target, job.fmt, url), job.fmt);
+          const label = item ? titleOf(item) : (brand || 'store');
+          const name = `${String(i + 1).padStart(2, '0')}-${slug(label)}-${job.fmt.toLowerCase()}.png`;
+          entries.push({ name, data: new Uint8Array(await png.arrayBuffer()) });
+          captions.push(`${name}\n${captionText(job.target, url)}`);
+        } catch {
+          // One product without a link or an image must not sink the whole batch.
+          failed += 1;
+        }
+      }
+      if (bulkCancelled) {
+        toast.info(t('flyer.bulk_cancelled'));
+        return;
+      }
+      if (!entries.length) {
+        toast.error(t('flyer.bulk_failed'));
+        return;
+      }
+      bar.value = jobs.length;
+      text.textContent = t('flyer.bulk_zipping');
+      entries.push({ name: 'captions.txt', data: new TextEncoder().encode(`${captions.join('\n\n----------\n\n')}\n`) });
+      const what = kind === 'products' ? 'all-products' : (selected === 'ALL' ? 'store' : slug(titleOf(currentItem()!)));
+      saveBlob(zipBlob(entries), `explooro-${source.role}-${what}-${current.layout}-${kind === 'products' ? format.toLowerCase() : 'all-sizes'}.zip`);
+      toast.success(failed
+        ? t('flyer.bulk_done_partial', { count: entries.length - 1, failed })
+        : t('flyer.bulk_done', { count: entries.length - 1 }));
+    } finally {
+      bulkRunning = false;
+      box.hidden = true;
+      refreshPanel();
     }
   }
 
@@ -797,6 +917,7 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
     observer?.disconnect();
     if (previewFrame) cancelAnimationFrame(previewFrame);
     linkRequest += 1;
+    bulkCancelled = true;
     container.remove();
   };
 }

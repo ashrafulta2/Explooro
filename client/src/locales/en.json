@@ -9109,6 +9109,18 @@
     "store_sub": "আমার পুরো কালেকশন দেখুন",
     "cta": "Order now",
     "scan_line": "Scan the QR to shop & order",
-    "scan_sub": "ক্যামেরা দিয়ে স্ক্যান করে অর্ডার করুন"
+    "scan_sub": "ক্যামেরা দিয়ে স্ক্যান করে অর্ডার করুন",
+    "bulk_title": "Download many at once",
+    "bulk_products": "This design for all {{count}} products (ZIP)",
+    "bulk_sizes": "This flyer in all 4 sizes (ZIP)",
+    "bulk_limit": "One ZIP holds up to {{count}} products. Pick a single product for the rest.",
+    "bulk_cancel": "Stop",
+    "bulk_progress": "Making image {{done}} of {{total}}…",
+    "bulk_zipping": "Packing the ZIP…",
+    "bulk_cancelled": "Stopped. Nothing was downloaded.",
+    "bulk_failed": "No image could be made. Check your connection and try again.",
+    "bulk_done": "ZIP with {{count}} images is downloading. Post texts are in captions.txt.",
+    "bulk_done_partial": "ZIP with {{count}} images is downloading; {{failed}} could not be made.",
+    "bulk_stopping": "Stopping after this image…"
   }
 }

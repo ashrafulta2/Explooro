@@ -9109,6 +9109,18 @@
     "store_sub": "Shop my full collection",
     "cta": "এখনই অর্ডার করুন",
     "scan_line": "QR স্ক্যান করে অর্ডার করুন",
-    "scan_sub": "Scan with your phone camera to order"
+    "scan_sub": "Scan with your phone camera to order",
+    "bulk_title": "একসাথে অনেকগুলো ডাউনলোড",
+    "bulk_products": "এই ডিজাইনে সব {{count}}টি পণ্য (ZIP)",
+    "bulk_sizes": "এই ফ্লায়ার ৪টি সাইজেই (ZIP)",
+    "bulk_limit": "একটি ZIP-এ সর্বোচ্চ {{count}}টি পণ্য থাকে। বাকিগুলোর জন্য একটি করে পণ্য বেছে নিন।",
+    "bulk_cancel": "থামান",
+    "bulk_progress": "{{total}}টির মধ্যে {{done}} নম্বর ছবি তৈরি হচ্ছে…",
+    "bulk_zipping": "ZIP তৈরি হচ্ছে…",
+    "bulk_cancelled": "থামানো হয়েছে। কিছু ডাউনলোড হয়নি।",
+    "bulk_failed": "কোনো ছবি তৈরি করা যায়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।",
+    "bulk_done": "{{count}}টি ছবির ZIP ডাউনলোড হচ্ছে। পোস্টের লেখা captions.txt ফাইলে আছে।",
+    "bulk_done_partial": "{{count}}টি ছবির ZIP ডাউনলোড হচ্ছে; {{failed}}টি তৈরি করা যায়নি।",
+    "bulk_stopping": "এই ছবিটি শেষ হলে থামবে…"
   }
 }
