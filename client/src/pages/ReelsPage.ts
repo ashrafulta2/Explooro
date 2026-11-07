@@ -9,7 +9,7 @@ import type { PageContext } from './types.ts';
 
 export default function ReelsPage(root: HTMLElement, ctx: PageContext = {}) {
   const container = document.createElement('div');
-  container.className = 'reels-page py-4 px-2 md:px-4 max-w-lg mx-auto flex items-center justify-center';
+  container.className = 'reels-page';
 
   const reelsInstance = ShoppableReels({
     onBuyProduct: (product: { slug?: string; id?: string | number }) => {

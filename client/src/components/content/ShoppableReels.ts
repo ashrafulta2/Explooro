@@ -11,6 +11,7 @@ import { listReels, likeReel } from '../../services/content.api.ts';
 import { Button } from '../ui/Button.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
+import '../../styles/components/shoppable-reels.css';
 
 /** A shoppable video clip with the product it sells. */
 export interface Reel {
@@ -33,7 +34,7 @@ export interface ShoppableReelsParts {
 
 export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((product: unknown) => void) | null } = {}): ShoppableReelsParts {
   const container = document.createElement('div');
-  container.className = 'shoppable-reels-container relative w-full max-w-md mx-auto h-[85vh] max-h-[780px] bg-black rounded-2xl overflow-hidden shadow-2xl flex flex-col select-none';
+  container.className = 'shoppable-reels-container reels';
 
   let reels: Reel[] = [];
   let currentIndex = 0;
@@ -41,17 +42,15 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
 
   // Top Bar with Data Saver Toggle
   const topBar = document.createElement('div');
-  topBar.className = 'absolute top-0 left-0 right-0 z-30 flex-between p-4 bg-gradient-to-b from-black/80 to-transparent';
+  topBar.className = 'reels__top';
   topBar.innerHTML = `
-    <div class="flex items-center gap-2">
-      <span class="text-xl">🎬</span>
-      <span class="font-bold text-white text-sm tracking-wide">Explooro Reels</span>
+    <div class="reels__brand">
+      <span aria-hidden="true">🎬</span>
+      <span>Explooro Reels</span>
     </div>
-    <div class="flex items-center gap-2">
-      <button class="data-saver-toggle badge text-xs font-mono cursor-pointer ${isDataSaver ? 'badge-warning' : 'badge-neutral bg-white/20 text-white border-0'}" title="Toggle Data Saver Mode">
-        📶 ${isDataSaver ? 'Data Saver: ON' : 'Data Saver: OFF'}
-      </button>
-    </div>
+    <button type="button" class="data-saver-toggle badge badge--md reels__saver ${isDataSaver ? 'reels__saver--on' : ''}" title="Toggle Data Saver Mode">
+      📶 ${isDataSaver ? 'Data Saver: ON' : 'Data Saver: OFF'}
+    </button>
   `;
   container.append(topBar);
 
@@ -59,7 +58,7 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
     isDataSaver = !isDataSaver;
     const btn = topBar.querySelector('.data-saver-toggle');
     if (btn) {
-      btn.className = `data-saver-toggle badge text-xs font-mono cursor-pointer ${isDataSaver ? 'badge-warning' : 'badge-neutral bg-white/20 text-white border-0'}`;
+      btn.className = `data-saver-toggle badge badge--md reels__saver ${isDataSaver ? 'reels__saver--on' : ''}`;
       btn.textContent = `📶 ${isDataSaver ? 'Data Saver: ON' : 'Data Saver: OFF'}`;
     }
     toast.info(isDataSaver ? t('content.data_saver_on') : t('content.data_saver_off'));
@@ -68,17 +67,17 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
 
   // Reel Stage
   const stage = document.createElement('div');
-  stage.className = 'relative flex-1 w-full h-full flex items-center justify-center bg-black overflow-hidden';
+  stage.className = 'reels__stage';
   container.append(stage);
 
   // Navigation Arrows (Vertical Prev / Next)
   const navOverlay = document.createElement('div');
-  navOverlay.className = 'absolute right-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3';
+  navOverlay.className = 'reels__nav';
   navOverlay.innerHTML = `
-    <button class="nav-up-btn w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center text-lg backdrop-blur-sm transition-transform active:scale-95" title="Previous Reel">
+    <button type="button" class="nav-up-btn reels__nav-btn" title="Previous Reel" aria-label="Previous Reel">
       ▲
     </button>
-    <button class="nav-down-btn w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center text-lg backdrop-blur-sm transition-transform active:scale-95" title="Next Reel">
+    <button type="button" class="nav-down-btn reels__nav-btn" title="Next Reel" aria-label="Next Reel">
       ▼
     </button>
   `;
@@ -118,16 +117,16 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
 
   async function loadReels() {
     try {
-      stage.innerHTML = `<div class="text-white text-xs animate-pulse">Loading Shoppable Reels...</div>`;
+      stage.innerHTML = `<p class="reels__status">Loading Shoppable Reels...</p>`;
       const res = await listReels({ limit: 10 });
       reels = res?.data || [];
       if (reels.length === 0) {
-        stage.innerHTML = `<div class="text-white/60 text-xs">No reels available.</div>`;
+        stage.innerHTML = `<p class="reels__status">No reels available.</p>`;
         return;
       }
       renderCurrentReel();
     } catch {
-      stage.innerHTML = `<div class="text-danger text-xs">Failed to load reels.</div>`;
+      stage.innerHTML = `<p class="reels__status reels__status--error">Failed to load reels.</p>`;
     }
   }
 
@@ -143,21 +142,21 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
 
     // Video Container
     const videoWrap = document.createElement('div');
-    videoWrap.className = 'w-full h-full relative flex items-center justify-center';
+    videoWrap.className = 'reels__media';
 
     if (isDataSaver) {
       // Data saver mode: Show poster thumbnail with Play Button
       videoWrap.innerHTML = `
-        <img src="${reel.thumbnail_url}" alt="${caption}" class="w-full h-full object-cover" />
-        <div class="absolute inset-0 bg-black/30 flex items-center justify-center">
-          <button class="play-media-btn w-16 h-16 rounded-full bg-primary/90 text-white text-2xl flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+        <img src="${reel.thumbnail_url}" alt="${caption}" />
+        <div class="reels__shade">
+          <button type="button" class="play-media-btn reels__play" aria-label="Play">
             ▶
           </button>
         </div>
       `;
       videoWrap.querySelector('.play-media-btn')?.addEventListener('click', () => {
         videoWrap.innerHTML = `
-          <video src="${reel.video_url}" autoplay playsinline loop class="w-full h-full object-cover" preload="metadata"></video>
+          <video src="${reel.video_url}" autoplay playsinline loop preload="metadata"></video>
         `;
       });
     } else {
@@ -170,7 +169,6 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
       videoEl.loop = true;
       videoEl.muted = true; // allow autoplay
       videoEl.preload = 'metadata';
-      videoEl.className = 'w-full h-full object-cover';
 
       // Tap to toggle sound / pause
       videoEl.addEventListener('click', () => {
@@ -199,15 +197,15 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
 
     // Right Action Column (Likes & Share)
     const actionsCol = document.createElement('div');
-    actionsCol.className = 'absolute right-4 bottom-24 z-20 flex flex-col items-center gap-4';
+    actionsCol.className = 'reels__actions';
     actionsCol.innerHTML = `
-      <button class="like-btn flex flex-col items-center text-white gap-1 active:scale-125 transition-transform">
-        <span class="text-2xl drop-shadow-md">❤️</span>
-        <span class="text-xs font-mono font-bold like-count">${reel.likes_count || 0}</span>
+      <button type="button" class="like-btn reels__action" aria-label="Like">
+        <span class="reels__action-icon">❤️</span>
+        <span class="like-count">${reel.likes_count || 0}</span>
       </button>
-      <button class="share-btn flex flex-col items-center text-white gap-1 active:scale-125 transition-transform">
-        <span class="text-2xl drop-shadow-md"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M9 17H7A5 5 0 0 1 7 7h2"></path><path d="M15 7h2a5 5 0 1 1 0 10h-2"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></span>
-        <span class="text-[10px] font-mono">Share</span>
+      <button type="button" class="share-btn reels__action" aria-label="Share">
+        <span class="reels__action-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><path d="M9 17H7A5 5 0 0 1 7 7h2"></path><path d="M15 7h2a5 5 0 1 1 0 10h-2"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></span>
+        <span>Share</span>
       </button>
     `;
 
@@ -227,20 +225,20 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
 
     // Bottom Overlay (Caption & Pinned Product)
     const bottomOverlay = document.createElement('div');
-    bottomOverlay.className = 'absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/90 via-black/50 to-transparent space-y-3';
+    bottomOverlay.className = 'reels__bottom';
 
     let productCardHtml = '';
     if (prod) {
       const media = Array.isArray(prod.media) ? prod.media[0] : null;
       const imgSrc = media?.url || 'https://placehold.co/100x100';
       productCardHtml = `
-        <div class="pinned-product-card bg-white/95 backdrop-blur-md p-2.5 rounded-xl flex items-center justify-between gap-3 shadow-lg border border-white/20">
-          <img src="${imgSrc}" alt="${prodTitle}" class="w-12 h-12 object-cover rounded-lg shrink-0" />
-          <div class="flex-1 min-w-0">
-            <h5 class="text-xs font-bold text-slate-900 truncate m-0">${prodTitle}</h5>
-            <div class="font-mono text-xs font-bold text-primary">৳${prod.retail_price?.toLocaleString()}</div>
+        <div class="pinned-product-card reels__product">
+          <img src="${imgSrc}" alt="${prodTitle}" class="reels__product-img" />
+          <div class="reels__product-body">
+            <h5 class="reels__product-title">${prodTitle}</h5>
+            <div class="reels__product-price">৳${prod.retail_price?.toLocaleString()}</div>
           </div>
-          <button class="buy-now-btn btn btn-sm btn-primary text-xs shrink-0 py-1.5 px-3">
+          <button type="button" class="buy-now-btn btn btn--sm btn--primary reels__buy">
             ⚡ ${t('common.buy_now')}
           </button>
         </div>
@@ -248,12 +246,9 @@ export function ShoppableReels({ onBuyProduct = null }: { onBuyProduct?: ((produ
     }
 
     bottomOverlay.innerHTML = `
-      <div class="text-white space-y-1 pr-12">
-        <div class="font-bold text-xs flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-success inline-block"></span>
-          @${reel.author_name || 'Artisan Explooro Partner'}
-        </div>
-        <p class="text-xs text-white/90 line-clamp-2 m-0">${caption}</p>
+      <div class="reels__meta">
+        <div class="reels__author">@${reel.author_name || 'Artisan Explooro Partner'}</div>
+        <p class="reels__caption">${caption}</p>
       </div>
       ${productCardHtml}
     `;
