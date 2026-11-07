@@ -1074,6 +1074,75 @@
 /* ==========================================================================
    8. Platform Integrations Suite
    ========================================================================== */
+/* WHY: these filter classes are used by /admin/platform/integrations and /admin/platform/api-keys
+   but had no rules at all, so the category buttons rendered as bare, borderless text running into
+   one line ("All IntegrationsPayments & MFS…") with the search box jammed beneath. */
+.admin-filter-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.admin-filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.admin-filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-filter-tab:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.admin-filter-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.admin-filter-tab--active,
+.admin-filter-tab--active:hover {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-contrast);
+}
+
+.admin-search-box {
+  flex: 1 1 260px;
+  max-width: 360px;
+  min-width: 0;
+}
+
+.admin-search-box .input {
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .admin-search-box {
+    max-width: none;
+  }
+}
+
 .integrations-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1113,18 +1182,41 @@
   background: var(--surface-2);
 }
 
+.integration-card {
+  min-width: 0;
+}
+
 .integration-card__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
   margin-bottom: var(--space-3);
 }
 
+/* WHY min-width:0 + the badge's flex-shrink:0: without them the badge squeezed the name column
+   down to a few characters, so "bKash Tokenized" and its category wrapped one word per line. */
 .integration-card__brand {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.integration-card__brand > div:last-child {
+  min-width: 0;
+}
+
+.integration-card__header > .badge,
+.integration-card__header > :last-child {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.integration-card__icon svg {
+  width: 22px;
+  height: 22px;
 }
 
 .integration-card__icon {
@@ -1149,7 +1241,9 @@
 }
 
 .integration-card__type {
+  display: block;
   font-size: var(--text-xs);
+  line-height: 1.4;
   color: var(--text-secondary);
   margin-top: 2px;
 }
@@ -1178,26 +1272,41 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-3);
+  min-height: 28px;
 }
 
 .integration-card__meta-label {
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .integration-card__meta-value {
   font-family: var(--font-mono);
   color: var(--text-primary);
   font-weight: var(--weight-semibold);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* WHY wrap: Configure + Test Connection + Pause do not fit one row in a 3-column card, and the
+   un-wrapping row pushed Pause past the card edge into the next card. */
 .integration-card__footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
   padding-top: var(--space-3);
   border-top: 1px solid var(--border-subtle);
   margin-top: auto;
+}
+
+.integration-card__footer .btn {
+  flex: 1 1 auto;
+  justify-content: center;
+  white-space: nowrap;
 }
 
 .test-latency-pill {

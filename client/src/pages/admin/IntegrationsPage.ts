@@ -357,14 +357,12 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         </div>
 
         <div class="integration-card__footer">
-          <div class="flex items-center gap-2">
-            <button class="btn btn--secondary btn--sm config-btn">
-              ⚙️ ${t('platform_integrations.btn_configure', 'Configure')}
-            </button>
-            <button class="btn btn--secondary btn--sm test-btn" ${isTesting ? 'disabled' : ''}>
-              ${isTesting ? '⏳ ' + t('platform_integrations.btn_testing', 'Pinging...') : '🧪 ' + t('platform_integrations.btn_test', 'Test')}
-            </button>
-          </div>
+          <button class="btn btn--secondary btn--sm config-btn">
+            ⚙️ ${t('platform_integrations.btn_configure', 'Configure')}
+          </button>
+          <button class="btn btn--secondary btn--sm test-btn" ${isTesting ? 'disabled' : ''}>
+            ${isTesting ? '⏳ ' + t('platform_integrations.btn_testing', 'Pinging...') : '🧪 ' + t('platform_integrations.btn_test', 'Test')}
+          </button>
           <button class="btn btn--sm ${gateway.is_enabled ? 'btn--secondary' : 'btn--primary'} toggle-btn">
             ${gateway.is_enabled ? (isBn ? 'পজ করুন' : 'Pause') : (isBn ? 'চালু করুন' : 'Enable')}
           </button>
