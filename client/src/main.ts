@@ -733,6 +733,14 @@ async function bootRouterDemo() {
         load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierMarketingKitsPage.ts')]).then(([, , page]) => page),
       },
       {
+        path: '/supplier/social-kit',
+        title: 'Flyer Studio — Explooro',
+        requiresAuth: true,
+        permission: 'catalog.product.manage_own',
+        module: 'social_seller_kit',
+        load: () => import('./pages/supplier/SupplierSocialKitPage.ts'),
+      },
+      {
         path: '/supplier/fast-payout',
         title: 'Early Withdrawal — Explooro',
         requiresAuth: true,

@@ -19,6 +19,8 @@
 import '../../styles/components/customer-warranties.css';
 import '../../styles/components/community.css';
 import { PostCard } from '../../components/community/PostCard.ts';
+import { renderFlyer } from '../../lib/flyerEngine.ts';
+import { LAYOUTS as FLYER_LAYOUTS, PALETTES as FLYER_PALETTES, PATTERNS as FLYER_PATTERNS } from '../../config/flyerTemplates.ts';
 import { PostComposer } from '../../components/community/PostComposer.ts';
 import { MediaPicker } from '../../components/community/MediaPicker.ts';
 import { Button } from '../../components/ui/Button.ts';
@@ -1593,6 +1595,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'cart-insights', label: 'CartInsights', group: 'Conversion & Social Selling', render: renderCartInsightsSpecimen },
     // Prompt 9.7 — Social Explooro Partner Kit
     { id: 'social-seller-kit', label: 'SocialSellerKit', group: 'Conversion & Social Selling', render: renderSocialSellerKitSpecimen },
+    { id: 'flyer-engine', label: 'FlyerStudio designs (flyerEngine)', group: 'Conversion & Social Selling', render: renderFlyerEngineSpecimen },
 
     // ── AI & Intelligence ────────────────────────────────────────────────────
     // Prompt 10.2 — AI Service Layer & Conversational Assistants
@@ -2599,6 +2602,34 @@ function renderCartInsightsSpecimen() {
   `;
 
   wrap.append(specimen('Cart Recovery Analytics & Offer CTA', insightCard));
+  return wrap;
+}
+
+/**
+ * The Flyer Studio's renderer (lib/flyerEngine.ts) — every layout once, each in a different palette,
+ * in the square format. The studio page itself (components/flyer/FlyerStudio.ts) needs a store and
+ * a link from the API, so the gallery shows what it draws rather than mounting it.
+ */
+function renderFlyerEngineSpecimen() {
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-section space-y-4';
+  wrap.append(subgroup('Flyer Studio — 12 layouts × 24 palettes × 8 patterns (square, draft QR)'));
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px';
+  const content = {
+    brand: 'Priyo Collection', brandLine: 'Verified Explooro Partner', headline: 'Make this Eid special', tag: 'Eid Special',
+    cta: 'Order now', scanLine: 'Scan the QR to shop & order', scanSub: 'ক্যামেরা দিয়ে স্ক্যান করে অর্ডার করুন',
+    items: ['Jamdani Saree', 'Cotton Panjabi', 'Leather Wallet', 'Smart Watch'].map((title) => ({ title, subtitle: 'প্রিমিয়াম কালেকশন', price: '৳1,250', photo: null })),
+    qrText: '', showPrice: true,
+  };
+  FLYER_LAYOUTS.forEach((layout, i) => {
+    const cell = document.createElement('div');
+    cell.innerHTML = renderFlyer({ layout, palette: FLYER_PALETTES[(i * 5) % FLYER_PALETTES.length], pattern: FLYER_PATTERNS[i % FLYER_PATTERNS.length], format: 'SQUARE' }, content, { uid: `g${i}`, draft: true })
+      + `<div class="text-xs text-muted">${layout}</div>`;
+    cell.querySelector('svg')?.setAttribute('style', 'width:100%;height:auto;display:block;border-radius:8px');
+    grid.append(cell);
+  });
+  wrap.append(grid);
   return wrap;
 }
 
