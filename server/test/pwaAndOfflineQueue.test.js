@@ -33,8 +33,10 @@ describe('Prompt 11.6 — PWA, Offline Resilience & Performance Pass', () => {
     assert.equal(manifest.short_name, 'Explooro');
     assert.equal(manifest.display, 'standalone');
     assert.equal(manifest.start_url, '/');
-    assert.equal(manifest.theme_color, '#485b75');
-    assert.equal(manifest.background_color, '#fbfdfe');
+    // WHY not exact values: they follow the default theme, and client/test/pwaColors.test.js checks them
+    // against the Master Colour engine. Pinning literals here is what let them go stale.
+    assert.match(manifest.theme_color, /^#[0-9a-f]{6}$/i);
+    assert.match(manifest.background_color, /^#[0-9a-f]{6}$/i);
 
     // Icons check
     assert.ok(Array.isArray(manifest.icons) && manifest.icons.length >= 3);

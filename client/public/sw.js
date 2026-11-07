@@ -14,7 +14,7 @@
 // WHY bumped: manifest.json sits in the cache-first shell cache, so an installed copy only sees a
 // manifest change after a new version. 1.2.0 brought the PNG icons; 1.2.1 drops the "screenshots"
 // entry, which pointed at the link-preview banner rather than at a picture of the app.
-const CACHE_VERSION = 'explooro-v1.2.1';
+const CACHE_VERSION = 'explooro-v1.2.2';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const CATALOG_CACHE = `${CACHE_VERSION}-catalog`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;

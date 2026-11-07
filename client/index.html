@@ -23,8 +23,8 @@
     <!-- PNG, full-bleed square: iOS ignores an SVG touch icon and rounds the corners itself -->
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
 
-    <!-- Theme-color for mobile browsers (matches --brand-700, the active/pressed brand step) -->
-    <meta name="theme-color" content="#485b75" />
+    <!-- Theme-color for mobile browsers: the brand colour (--brand), kept equal to manifest.json by client/test/pwaColors.test.js -->
+    <meta name="theme-color" content="#ffbc00" />
 
     <style>
       /*
@@ -42,12 +42,12 @@
         -moz-osx-font-smoothing: grayscale;
       }
       body {
-        background: #fbfdfe; /* --neutral-0 fallback before tokens load */
-        color: #192026;      /* --neutral-900 fallback */
+        background: #f8f8f8; /* --surface-0 (neutral-50) fallback before tokens load */
+        color: #1f1f1f;      /* --text-primary (neutral-900) fallback */
       }
       /* Dark mode pre-load (avoids white flash on dark OS) */
       @media (prefers-color-scheme: dark) {
-        body { background: #0c1217; color: #fbfdfe; }
+        body { background: #121212; color: #f2f2f2; }
       }
 
       /* Language-toggle (fixed, appended by main.ts) */
