@@ -11,12 +11,14 @@
 
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, copyFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { generatePalette } from '../src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.ts';
+import { syncPwaColors } from '../../scripts/pwaColors.mjs';
 
 const CLIENT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (...p) => readFileSync(join(CLIENT, ...p), 'utf8');
@@ -52,5 +54,30 @@ describe('PWA colours follow the default theme', () => {
     assert.ok(!/theme-color" content="#485b75/.test(indexHtml), 'index.html theme-color is not Midnight Slate');
     assert.ok(offline.includes(`background: ${brand};`), 'primary button is the brand colour');
     assert.ok(offline.includes(`background: ${neutral[50]};`), 'page canvas');
+  });
+});
+
+describe('scripts/pwaColors.mjs (run by scripts/logo.mjs)', () => {
+  test('the committed files are already what the generator writes for the default theme', () => {
+    assert.deepEqual(syncPwaColors(palette, CLIENT, { write: false }), [], 'run: node scripts/logo.mjs --write');
+  });
+
+  test('a re-seed rewrites all three files, and going back restores them byte for byte', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'pwa-colors-'));
+    try {
+      mkdirSync(join(dir, 'public'));
+      const files = ['index.html', 'public/manifest.json', 'public/offline.html'];
+      for (const file of files) copyFileSync(join(CLIENT, file), join(dir, file));
+
+      const other = generatePalette(MASTER_PRESETS.cobalt_trust.master);
+      assert.deepEqual(syncPwaColors(other, dir).sort(), [...files].sort());
+      assert.equal(JSON.parse(readFileSync(join(dir, 'public', 'manifest.json'), 'utf8')).theme_color, other.brand[other.meta.anchorStep]);
+      assert.deepEqual(syncPwaColors(other, dir), [], 'a second run changes nothing');
+
+      syncPwaColors(palette, dir);
+      for (const file of files) assert.equal(readFileSync(join(dir, file), 'utf8'), readFileSync(join(CLIENT, file), 'utf8'), file);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

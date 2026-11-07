@@ -20,6 +20,9 @@
  *                                                        ignores SVG and rounds the corners itself
  *   client/public/og-banner.png                       — 1200×630 link preview (Facebook, WhatsApp, X), the
  *                                                        mark and wordmark painted by scripts/ogBanner.mjs
+ *   client/public/manifest.json                       — theme_color (--brand) and background_color (--surface-0)
+ *   client/index.html, client/public/offline.html     — theme-color meta, pre-CSS body and offline page colours
+ *                                                        (scripts/pwaColors.mjs); only the hex values change
  *   client/public/icons/brand/{preset-key}.svg        — one per Master Colour preset, prepared for
  *                                                        any context that needs a themed mark outside
  *                                                        the running app (share images, docs, a future
@@ -37,6 +40,7 @@ import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/mast
 import { buildLogoMarkSvg, buildLogoMaskableSvg } from '../client/src/services/logoMark.ts';
 import { renderLogoPng, encodePng } from './logoPng.mjs';
 import { renderOgBannerRgba, OG_WIDTH, OG_HEIGHT } from './ogBanner.mjs';
+import { syncPwaColors } from './pwaColors.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = join(ROOT, 'client', 'public');
@@ -90,6 +94,12 @@ writeFileSync(
 );
 
 console.log(`wrote og-banner.png (${OG_WIDTH}×${OG_HEIGHT})`);
+
+// The literal colours a browser needs before any CSS loads: manifest splash and toolbar, the
+// theme-color meta, index.html's pre-CSS body and the offline page.
+const recoloured = syncPwaColors(defaultPalette, join(ROOT, 'client'));
+
+console.log(recoloured.length ? `recoloured ${recoloured.join(', ')}` : 'pwa colours already current (manifest.json, index.html, offline.html)');
 
 for (const key of Object.keys(MASTER_PRESETS)) {
   const colors = colorsFor(key);
