@@ -1309,6 +1309,24 @@
   white-space: nowrap;
 }
 
+/* WHY the repeated :not(): input-affordance.css gives `.input:not(.field__control .input)` three
+   classes of specificity and `flex: none`, which beat `.flex-1` — the secret and webhook inputs in
+   the Configure modal stayed 100% wide and pushed the show/copy buttons out of the dialog. */
+.integration-config__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.integration-config__row > .input:not(.field__control .input) {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.integration-config__row > .btn {
+  flex: none;
+}
+
 .test-latency-pill {
   display: inline-flex;
   align-items: center;

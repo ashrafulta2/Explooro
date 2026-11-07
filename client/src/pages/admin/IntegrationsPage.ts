@@ -20,6 +20,7 @@ import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatNumber } from '../../services/format.ts';
+import { escapeHtml } from '../../services/html.ts';
 import type { PageContext } from '../types.ts';
 
 export default function IntegrationsPage(root: HTMLElement, { navigate }: PageContext = {}) {
@@ -33,22 +34,25 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
   let searchQuery = '';
   let testingGatewayId = null;
 
-  // Drawer / Modal states
-  let activeModalIntegration = null;
-  let isSavingModal = false;
+  // Drawer states
   let showLogsDrawer = false;
   let logsData = [];
   let isLoadingLogs = false;
 
-  async function loadData() {
-    isLoading = true;
-    render();
+  // WHY always 'ALL': the category tabs filter on the client. Fetching only the active category
+  // meant a Refresh on "Logistics" kept just the couriers, and switching back to "All" showed them alone.
+  // `quiet` re-reads the KPI strip after a save or pause without flashing the loading card.
+  async function loadData({ quiet = false } = {}) {
+    if (!quiet) {
+      isLoading = true;
+      render();
+    }
     try {
-      const res = await adminApi.getIntegrations(activeCategory);
+      const res = await adminApi.getIntegrations('ALL');
       integrationsData = res || { metrics: {}, integrations: [] };
     } catch (err) {
       toast.error(err?.message || 'Failed to load integrations');
-      integrationsData = { metrics: {}, integrations: [] };
+      if (!quiet) integrationsData = { metrics: {}, integrations: [] };
     } finally {
       isLoading = false;
       render();
@@ -106,8 +110,13 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         gateway.is_enabled = nextState;
         gateway.status = nextState ? 'CONNECTED' : 'DISCONNECTED';
       }
-      toast.success(t('platform_integrations.toast_save_success', 'Credentials updated and verified.'));
+      toast.success(
+        nextState
+          ? t('platform_integrations.toast_enabled', '{name} is switched on.').replace('{name}', gateway.name)
+          : t('platform_integrations.toast_paused', '{name} is paused.').replace('{name}', gateway.name)
+      );
       render();
+      loadData({ quiet: true });
     } catch (err) {
       toast.error(err?.message || 'Failed to update gateway status');
     }
@@ -129,9 +138,10 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     }
   }
 
-  function openConfigModal(gateway) {
-    activeModalIntegration = { ...gateway };
-    renderModal();
+  // WHY no "already open" guard: the open modal's scrim already blocks a second click, and a
+  // guard kept Configure dead for the ~1.5s a just-closed modal spends animating out.
+  function openConfigModal(gateway, trigger = null) {
+    renderModal({ ...gateway }, trigger);
   }
 
   function render() {
@@ -165,7 +175,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     const refreshBtn = Button({
       label: `🔄 ${t('common.refresh', 'Refresh')}`,
       variant: 'secondary',
-      onClick: loadData,
+      onClick: () => loadData(),
     });
 
     actionsCol.append(logsBtn, refreshBtn);
@@ -247,7 +257,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         class="input input--sm"
         aria-label="${isBn ? 'গেটওয়ে খুঁজুন' : 'Search gateways'}"
         placeholder="${isBn ? 'গেটওয়ে নাম বা কোড দিয়ে খুঁজুন...' : 'Search by gateway name or identifier...'}"
-        value="${searchQuery}"
+        value="${escapeHtml(searchQuery)}"
         id="integration-search"
       />
     `;
@@ -314,7 +324,9 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
 
     filtered.forEach((gateway) => {
       const card = document.createElement('div');
-      const isConnected = gateway.status === 'CONNECTED' && gateway.is_enabled;
+      // WHY not `status === 'CONNECTED'`: a gateway saved in sandbox mode is stored as status
+      // 'SANDBOX', and that check showed it as Disconnected although it was switched on.
+      const isConnected = gateway.is_enabled && gateway.status !== 'DISCONNECTED';
       card.className = `integration-card ${!gateway.is_enabled ? 'integration-card--disconnected' : ''}`;
 
       const statusBadge = isConnected
@@ -342,7 +354,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         <div class="integration-card__meta-box">
           <div class="integration-card__meta-item">
             <span class="integration-card__meta-label">${isBn ? 'মার্চেন্ট / একাউন্ট ID' : 'Account Identifier'}:</span>
-            <span class="integration-card__meta-value">${gateway.merchant_id || gateway.account_id || 'N/A'}</span>
+            <span class="integration-card__meta-value">${escapeHtml(gateway.merchant_id || gateway.account_id || 'N/A')}</span>
           </div>
           <div class="integration-card__meta-item">
             <span class="integration-card__meta-label">${isBn ? 'এনভায়রনমেন্ট' : 'Environment'}:</span>
@@ -357,7 +369,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         </div>
 
         <div class="integration-card__footer">
-          <button class="btn btn--secondary btn--sm config-btn">
+          <button type="button" class="btn btn--secondary btn--sm config-btn">
             ⚙️ ${t('platform_integrations.btn_configure', 'Configure')}
           </button>
           <button class="btn btn--secondary btn--sm test-btn" ${isTesting ? 'disabled' : ''}>
@@ -369,7 +381,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         </div>
       `;
 
-      card.querySelector('.config-btn')?.addEventListener('click', () => openConfigModal(gateway));
+      card.querySelector('.config-btn')?.addEventListener('click', (e) => openConfigModal(gateway, e.currentTarget));
       card.querySelector('.test-btn')?.addEventListener('click', () => handleTestConnection(gateway));
       card.querySelector('.toggle-btn')?.addEventListener('click', () => handleToggleStatus(gateway));
 
@@ -379,9 +391,9 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     gridMount.append(grid);
   }
 
-  function renderModal() {
-    if (!activeModalIntegration) return;
-    const g = activeModalIntegration;
+  function renderModal(g, trigger = null) {
+    // Per modal, so a previous modal still animating out cannot reset this one mid-save.
+    let isSaving = false;
 
     const modalContent = document.createElement('div');
     modalContent.className = 'space-y-4';
@@ -389,40 +401,40 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     modalContent.innerHTML = `
       <div class="p-3 bg-surface-2 border rounded-lg text-xs flex-between">
         <div>
-          <span class="font-bold block text-sm">${g.name}</span>
-          <span class="text-secondary">${g.category_label || g.type}</span>
+          <span class="font-bold block text-sm">${escapeHtml(g.name)}</span>
+          <span class="text-secondary">${escapeHtml(g.category_label || g.type)}</span>
         </div>
         ${Badge({ label: g.environment === 'SANDBOX' ? (isBn ? 'স্যান্ডবক্স' : 'Sandbox') : (isBn ? 'লাইভ' : 'Live'), variant: g.environment === 'SANDBOX' ? 'warning' : 'success' }).outerHTML}
       </div>
 
       <div class="form-group">
         <label for="modal-merchant-id" class="form-label">${t('platform_integrations.field_merchant_id', 'Merchant ID / Store Code')}</label>
-        <input type="text" id="modal-merchant-id" class="input input--sm w-full" value="${g.merchant_id || ''}" />
+        <input type="text" id="modal-merchant-id" class="input input--sm w-full" value="${escapeHtml(g.merchant_id)}" />
       </div>
 
       <div class="form-group">
         <label for="modal-app-key" class="form-label">${t('platform_integrations.field_app_key', 'App Key / Public Identifier')}</label>
-        <input type="text" id="modal-app-key" class="input input--sm w-full" value="${g.app_key || ''}" />
+        <input type="text" id="modal-app-key" class="input input--sm w-full" value="${escapeHtml(g.app_key)}" />
       </div>
 
       <div class="form-group">
         <label for="modal-app-secret" class="form-label">${t('platform_integrations.field_app_secret', 'App Secret / API Key')}</label>
-        <div class="flex items-center gap-2">
-          <input type="password" id="modal-app-secret" class="input input--sm flex-1 font-mono" value="${g.app_secret || ''}" />
-          <button type="button" id="toggle-secret-btn" class="btn btn--secondary btn--sm">👁️</button>
+        <div class="integration-config__row">
+          <input type="password" id="modal-app-secret" class="input input--sm flex-1 font-mono" value="${escapeHtml(g.app_secret)}" />
+          <button type="button" id="toggle-secret-btn" class="btn btn--secondary btn--sm" aria-label="${isBn ? 'সিক্রেট দেখান / লুকান' : 'Show or hide secret'}">👁️</button>
         </div>
       </div>
 
       <div class="form-group">
         <label for="modal-webhook-secret" class="form-label">${t('platform_integrations.field_webhook_secret', 'Webhook Signature Secret')}</label>
-        <input type="password" id="modal-webhook-secret" class="input input--sm w-full font-mono" value="${g.webhook_secret || ''}" />
+        <input type="password" id="modal-webhook-secret" class="input input--sm w-full font-mono" value="${escapeHtml(g.webhook_secret)}" />
       </div>
 
       <div class="form-group">
         <label for="modal-webhook-url" class="form-label">${t('platform_integrations.field_callback_url', 'Webhook Callback URL')}</label>
-        <div class="flex items-center gap-2">
-          <input type="text" id="modal-webhook-url" class="input input--sm flex-1 font-mono text-muted" value="${g.webhook_url || 'https://api.explooro.com/webhooks'}" readonly />
-          <button type="button" id="copy-webhook-btn" class="btn btn--secondary btn--sm"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></button>
+        <div class="integration-config__row">
+          <input type="text" id="modal-webhook-url" class="input input--sm flex-1 font-mono text-muted" value="${escapeHtml(g.webhook_url || 'https://api.explooro.com/webhooks')}" readonly />
+          <button type="button" id="copy-webhook-btn" class="btn btn--secondary btn--sm" aria-label="${isBn ? 'ওয়েবহুক লিঙ্ক কপি করুন' : 'Copy webhook URL'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></button>
         </div>
       </div>
 
@@ -438,23 +450,28 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         <label for="modal-audit-reason" class="form-label">${t('platform_integrations.field_audit_reason', 'Change Reason / Audit Justification')}</label>
         <input type="text" id="modal-audit-reason" class="input input--sm w-full" placeholder="${isBn ? 'ক্রেডেনশিয়াল পরিবর্তনের কারণ লিখুন...' : 'e.g. Scheduled quarterly API key rotation'}" />
       </div>
-
-      <div class="flex justify-end gap-2 pt-3 border-t">
-        <button type="button" class="btn btn--secondary btn--sm cancel-modal-btn">
-          ${t('common.cancel', 'Cancel')}
-        </button>
-        <button type="button" class="btn btn--primary btn--sm save-modal-btn" ${isSavingModal ? 'disabled' : ''}>
-          ${isSavingModal ? 'Saving...' : t('platform_integrations.btn_save_credentials', 'Save & Deploy Credentials')}
-        </button>
-      </div>
     `;
 
+    const footer = document.createElement('div');
+    footer.className = 'flex justify-end gap-2';
+    footer.innerHTML = `
+      <button type="button" class="btn btn--secondary btn--sm cancel-modal-btn">
+        ${t('common.cancel', 'Cancel')}
+      </button>
+      <button type="button" class="btn btn--primary btn--sm save-modal-btn">
+        ${t('platform_integrations.btn_save_credentials', 'Save & Deploy Credentials')}
+      </button>
+    `;
+    const saveBtn = footer.querySelector<HTMLButtonElement>('.save-modal-btn');
+    const saveLabel = saveBtn?.innerHTML ?? '';
+
+    // WHY .open() below: this Modal used to be built and never opened, so Configure did nothing.
     const modal = Modal({
       title: t('platform_integrations.modal_config_title', 'Configure Integration Credentials'),
       content: modalContent,
-      onClose: () => {
-        activeModalIntegration = null;
-      },
+      footer,
+      size: 'lg',
+      onClose: () => modal.remove(),
     });
 
     const secretInput = modalContent.querySelector<HTMLInputElement>('#modal-app-secret');
@@ -472,12 +489,10 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
       }
     });
 
-    modalContent.querySelector('.cancel-modal-btn')?.addEventListener('click', () => {
-      modal.close();
-      activeModalIntegration = null;
-    });
+    footer.querySelector('.cancel-modal-btn')?.addEventListener('click', () => modal.close(false));
 
-    modalContent.querySelector('.save-modal-btn')?.addEventListener('click', async () => {
+    saveBtn?.addEventListener('click', async () => {
+      if (isSaving) return;
       const merchantId = modalContent.querySelector<HTMLInputElement>('#modal-merchant-id')?.value.trim();
       const appKey = modalContent.querySelector<HTMLInputElement>('#modal-app-key')?.value.trim();
       const appSecret = modalContent.querySelector<HTMLInputElement>('#modal-app-secret')?.value.trim();
@@ -485,7 +500,11 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
       const isSandbox = modalContent.querySelector<HTMLInputElement>('#modal-sandbox-mode')?.checked;
       const reason = modalContent.querySelector<HTMLInputElement>('#modal-audit-reason')?.value.trim();
 
-      isSavingModal = true;
+      isSaving = true;
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = isBn ? 'সংরক্ষণ হচ্ছে...' : 'Saving...';
+      }
       try {
         const patch = {
           merchant_id: merchantId,
@@ -504,15 +523,20 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         }
 
         toast.success(t('platform_integrations.toast_save_success', 'Credentials updated and verified.'));
-        modal.close();
-        activeModalIntegration = null;
+        modal.close(true);
         render();
+        loadData({ quiet: true });
       } catch (err) {
         toast.error(err?.message || 'Failed to save credentials');
-      } finally {
-        isSavingModal = false;
+        isSaving = false;
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = saveLabel;
+        }
       }
     });
+
+    modal.open(trigger);
   }
 
   // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.

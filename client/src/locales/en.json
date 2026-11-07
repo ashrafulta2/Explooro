@@ -7455,6 +7455,8 @@
     "toast_save_success": "Credentials updated and verified.",
     "toast_test_success": "Handshake successful! Response time: {latency}ms.",
     "toast_test_error": "Connection test failed: {error}.",
+    "toast_enabled": "{name} is switched on.",
+    "toast_paused": "{name} is paused.",
     "logs_drawer_title": "Gateway Webhook & Callback Logs",
     "logs_empty": "No recent webhook callback events found."
   },
