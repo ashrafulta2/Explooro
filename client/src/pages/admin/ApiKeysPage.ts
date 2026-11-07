@@ -200,10 +200,10 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
     }
 
     const tableWrap = document.createElement('div');
-    tableWrap.className = 'border rounded overflow-x-auto bg-surface shadow-sm';
+    tableWrap.className = 'admin-table-wrap';
     tableWrap.innerHTML = `
-      <table class="table w-full text-left text-xs">
-        <thead class="bg-surface-subtle border-b font-mono uppercase text-muted">
+      <table class="admin-table text-xs">
+        <thead>
           <tr>
             <th class="p-3">Key Name / Ref</th>
             <th class="p-3">Prefix / Hash</th>
@@ -216,7 +216,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
         </thead>
         <tbody>
           ${apiKeys.map((k) => `
-            <tr class="border-b hover:bg-surface-subtle" data-key-id="${k.id}">
+            <tr data-key-id="${k.id}">
               <td class="p-3">
                 <div class="font-bold text-sm">${k.name}</div>
                 <span class="badge badge-neutral text-xs font-mono">${k.ref}</span>
@@ -238,15 +238,17 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
               <td class="p-3 text-muted">
                 ${k.last_used_at ? new Date(k.last_used_at).toLocaleDateString() : 'Never'}
               </td>
-              <td class="p-3 text-right space-x-2">
+              <td class="p-3 text-right">
                 ${k.status === 'ACTIVE' ? `
-                  <button class="rotate-btn btn btn-sm btn-secondary text-xs" data-id="${k.id}">
-                    🔄 ${t('developer.btn_rotate')}
-                  </button>
-                  <button class="revoke-btn btn btn-sm btn-danger text-xs" data-id="${k.id}">
-                    ⛔ ${t('developer.btn_revoke')}
-                  </button>
-                ` : '<span class="text-muted text-xs">Revoked</span>'}
+                  <div class="flex justify-end gap-2">
+                    <button class="rotate-btn btn btn--sm btn--secondary text-xs" data-id="${k.id}">
+                      🔄 ${t('developer.btn_rotate')}
+                    </button>
+                    <button class="revoke-btn btn btn--sm btn--danger text-xs" data-id="${k.id}">
+                      ⛔ ${t('developer.btn_revoke')}
+                    </button>
+                  </div>
+                ` :'<span class="text-muted text-xs">Revoked</span>'}
               </td>
             </tr>
           `).join('')}
@@ -394,7 +396,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
     modalContent.className = 'space-y-4 p-2';
 
     modalContent.innerHTML = `
-      <div class="p-3 border rounded bg-warning-soft text-xs text-warning">
+      <div class="card p-3 text-xs text-warning">
         ⚠️ <b>Important:</b> This is the only time this secret token will be revealed. Store it securely in your environment variables.
       </div>
 
@@ -402,7 +404,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
         <label for="revealed-token" class="block text-xs font-semibold text-muted mb-1">Raw API Token</label>
         <div class="flex gap-2">
           <input type="text" readonly id="revealed-token" class="input w-full font-mono text-xs bg-surface-subtle" value="${rawToken}">
-          <button class="btn btn-primary text-xs shrink-0" id="copy-token-btn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> Copy</button>
+          <button class="btn btn--primary text-xs shrink-0" id="copy-token-btn"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> Copy</button>
         </div>
       </div>
     `;
@@ -461,7 +463,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
 
       webhooks.forEach((sub) => {
         const card = document.createElement('div');
-        card.className = 'card p-4 border rounded bg-surface shadow-sm space-y-3';
+        card.className = 'card p-4 space-y-3';
         card.innerHTML = `
           <div class="flex-between">
             <span class="badge badge-primary text-xs font-mono">${sub.ref}</span>
@@ -475,7 +477,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
             ${(sub.events || []).map((e) => `<span class="badge badge-neutral text-xs font-mono">${e}</span>`).join('')}
           </div>
           <div class="flex justify-end pt-2 border-t">
-            <button class="delete-sub-btn btn btn-sm btn-ghost text-danger text-xs" data-id="${sub.id}">
+            <button class="delete-sub-btn btn btn--sm btn--ghost text-danger text-xs" data-id="${sub.id}">
               🗑️ ${t('common.delete')}
             </button>
           </div>
@@ -516,10 +518,10 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
     `;
 
     const delivTable = document.createElement('div');
-    delivTable.className = 'border rounded overflow-x-auto bg-surface shadow-sm';
+    delivTable.className = 'admin-table-wrap';
     delivTable.innerHTML = `
-      <table class="table w-full text-left text-xs">
-        <thead class="bg-surface-subtle border-b font-mono uppercase text-muted">
+      <table class="admin-table text-xs">
+        <thead>
           <tr>
             <th class="p-3">Event</th>
             <th class="p-3">Target Endpoint</th>
@@ -537,7 +539,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
             const isDlq = d.status === 'DEAD_LETTER';
             const isDelivered = d.status === 'DELIVERED';
             return `
-              <tr class="border-b hover:bg-surface-subtle ${isDlq ? 'bg-danger-soft' : ''}">
+              <tr class="${isDlq ? 'bg-danger-soft' : ''}">
                 <td class="p-3 font-mono font-bold">${d.event_name}</td>
                 <td class="p-3 font-mono text-muted max-w-xs truncate">${d.target_url}</td>
                 <td class="p-3 font-mono">${d.attempt_number} / ${d.max_attempts}</td>
@@ -551,7 +553,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
                 </td>
                 <td class="p-3 text-muted">${new Date(d.created_at).toLocaleTimeString()}</td>
                 <td class="p-3 text-right">
-                  <button class="replay-btn btn btn-sm btn-secondary text-xs" data-id="${d.id}">
+                  <button class="replay-btn btn btn--sm btn--secondary text-xs" data-id="${d.id}">
                     🔁 ${t('developer.btn_replay')}
                   </button>
                 </td>
@@ -654,7 +656,7 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
     studioContainer.className = 'grid grid-cols-1 md:grid-cols-3 gap-6';
 
     const controlsCard = document.createElement('div');
-    controlsCard.className = 'card p-5 border rounded bg-surface space-y-4';
+    controlsCard.className = 'card p-5 space-y-4';
     controlsCard.innerHTML = `
       <h3 class="text-base font-bold m-0 border-b pb-2">⚙️ ${t('developer.widget_config_title')}</h3>
 
@@ -674,14 +676,14 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
       <div class="border-t pt-3">
         <label for="widget-embed-snippet" class="block text-xs font-semibold text-muted mb-1">Embed Code (Copy & Paste)</label>
         <textarea id="widget-embed-snippet" readonly class="input w-full font-mono text-xs bg-surface-subtle" rows="5"></textarea>
-        <button class="btn btn-primary text-xs w-full mt-2" id="copy-snippet-btn">
+        <button class="btn btn--primary text-xs w-full mt-2" id="copy-snippet-btn">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg> ${t('developer.btn_copy_snippet')}
         </button>
       </div>
     `;
 
     const previewCard = document.createElement('div');
-    previewCard.className = 'card p-5 border rounded bg-surface md:col-span-2 space-y-4';
+    previewCard.className = 'card p-5 md:col-span-2 space-y-4';
     previewCard.innerHTML = `
       <div class="flex-between border-b pb-2">
         <h3 class="text-base font-bold m-0">👁️ ${t('developer.widget_live_preview')}</h3>
@@ -708,11 +710,11 @@ export default function ApiKeysPage(root: HTMLElement, { navigate }: PageContext
         previewHost.innerHTML = `
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             ${Array.from({ length: limit }).map((_, i) => `
-              <div class="border rounded bg-surface p-3 space-y-2 shadow-xs">
+              <div class="card p-3 space-y-2">
                 <div class="bg-surface-subtle h-28 rounded flex items-center justify-center text-xs text-muted">Product Image #${i + 1}</div>
                 <div class="font-bold text-xs truncate">${lang === 'bn' ? 'প্রিমিয়াম এক্সিকিউটিভ ড্রেস' : 'Premium Cotton Apparel'}</div>
                 <div class="font-mono text-sm font-bold text-primary">৳${(1200 + i * 350).toLocaleString()}</div>
-                <button class="btn btn-sm btn-primary w-full text-xs">${lang === 'bn' ? 'কিনুন ➔' : 'Buy Now ➔'}</button>
+                <button class="btn btn--sm btn--primary w-full text-xs">${lang === 'bn' ? 'কিনুন ➔' : 'Buy Now ➔'}</button>
               </div>
             `).join('')}
           </div>

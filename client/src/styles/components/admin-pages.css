@@ -1461,12 +1461,21 @@
 .space-y-2 > * + * { margin-top: var(--space-2); }
 .space-y-3 > * + * { margin-top: var(--space-3); }
 .space-y-4 > * + * { margin-top: var(--space-4); }
+.space-y-6 > * + * { margin-top: var(--space-6); }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.gap-6 { gap: var(--space-6); }
+.h-28 { height: 7rem; }
+.bg-surface-subtle { background: var(--surface-2); }
+.m-0 { margin: 0; }
+.mb-1 { margin-bottom: var(--space-1); }
 @media (min-width: 640px) {
   .sm\:flex-row { flex-direction: row; }
 }
 @media (min-width: 768px) {
   .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:col-span-2 { grid-column: span 2 / span 2; }
 }
 
 /* Dispute arbitration: case list beside the case detail on wide screens, stacked on mobile. */
