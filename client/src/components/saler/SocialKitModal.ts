@@ -325,7 +325,7 @@ export class SocialKitModal {
           <circle cx="50" cy="40" r="24" fill="${accent}" />
           <text x="50" y="48" font-size="20" text-anchor="middle" fill="#ffffff" font-weight="bold">⚡</text>
           <text x="90" y="38" font-size="20" fill="${text}" font-weight="bold">${shopName}</text>
-          <text x="90" y="58" font-size="13" fill="${muted}">Verified Explooro Explooro Partner</text>
+          <text x="90" y="58" font-size="13" fill="${muted}">Verified Explooro Partner</text>
         </g>
         <g transform="translate(60, 170)">
           <rect width="${width - 120}" height="${height - 380}" rx="24" fill="${cardBg}" />

@@ -563,7 +563,7 @@ function openSalerWalkthroughModal(nav) {
   footer.append(closeBtn, upgradeModalBtn);
 
   modal = Modal({
-    title: `🎬 ${t('customer.become_saler.video_modal_title', 'Explooro Explooro Partner Video Guide')}`,
+    title: `🎬 ${t('customer.become_saler.video_modal_title', 'Explooro Partner Video Guide')}`,
     content: body,
     footer,
     size: 'md',

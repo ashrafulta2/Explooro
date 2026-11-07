@@ -315,7 +315,7 @@ export default function AcademyPage(root: HTMLElement, ctx: PageContext = {}) {
     modalContent.innerHTML = `
       <div aria-hidden="true">🏆</div>
       <div class="academy-cert__kicker">Certificate of Mastery</div>
-      <h3>Explooro Explooro Partner Academy</h3>
+      <h3>Explooro Partner Academy</h3>
       <p>This certifies that</p>
       <div class="academy-cert__name">Habib Traders (Dhaka)</div>
       <p>

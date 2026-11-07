@@ -2679,7 +2679,7 @@
     "flyer_store_fallback": "My Explooro Store",
     "flyer_store_headline": "Shop my full collection",
     "flyer_store_sub": "আমার পুরো কালেকশন দেখুন",
-    "flyer_verified": "Verified Explooro Explooro Partner"
+    "flyer_verified": "Verified Explooro Partner"
   },
   "days": {
     "saturday": "Saturday",
@@ -4923,7 +4923,7 @@
     "module_disabled_desc": "The stories and shoppable reels module is currently disabled."
   },
   "academy": {
-    "page_title": "Explooro Explooro Partner Academy",
+    "page_title": "Explooro Partner Academy",
     "page_subtitle": "Learn factory sourcing, protected bulk deals and social marketing in short lessons",
     "no_courses_title": "No Courses Found",
     "no_courses_desc": "There are no published courses in this category yet.",
@@ -4975,7 +4975,7 @@
     "import_success": "Translations imported successfully!",
     "banners_title": "Promotional Banners & Hero Sliders",
     "stories_title": "Shoppable Stories & Product Video Reels",
-    "academy_title": "Explooro Explooro Partner & Buyer Academy",
+    "academy_title": "Explooro Partner & Buyer Academy",
     "whats_new_title": "What's New & Release Changelogs",
     "whats_new_highlights_label": "Highlight cards (shown in the popup)",
     "whats_new_highlights_hint": "Up to {{max}} cards. Each needs an English title and description; blank Bangla falls back to English.",
@@ -5379,7 +5379,7 @@
       "faq_a3": "You are not paid per order. A few days after each month ends, the partner reward pool is shared out by points and your share goes to your vault, ready to withdraw to bKash, Nagad or a bank.",
       "faq_q4": "Can I customize my shop name, logo, and product prices?",
       "faq_a4": "You have full control over your store name, bio, logo and social links in Store Builder. Prices are set by the supplier and are the same in every store, so customers always see a fair price.",
-      "video_modal_title": "Explooro Explooro Partner Video Guide",
+      "video_modal_title": "Explooro Partner Video Guide",
       "video_modal_headline": "15-Second Explooro Partner Business Walkthrough",
       "video_modal_sub": "Learn how to launch your store, share it, and earn your monthly reward.",
       "tips_title": "3 Quick Tips for New Explooro Partners:",

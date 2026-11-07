@@ -1,5 +1,5 @@
 /**
- * AcademyManagerPage.ts — Explooro Explooro Partner & Buyer Academy Course Manager.
+ * AcademyManagerPage.ts — Explooro Partner & Buyer Academy Course Manager.
  *
  * Implements /editor/academy:
  * - Educational tutorials, sourcing masterclasses, social commerce playbooks.
@@ -184,7 +184,7 @@ export default function AcademyManagerPage(root: HTMLElement) {
           <span class="badge badge--primary font-bold font-mono">SELLER ACADEMY</span>
         </div>
         <h1 class="editor-header__title">
-          <span>🎓</span> ${t('editor.academy_title', 'Explooro Explooro Partner & Buyer Academy')}
+          <span>🎓</span> ${t('editor.academy_title', 'Explooro Partner & Buyer Academy')}
         </h1>
         <p class="editor-header__subtitle">
           Manage step-by-step masterclasses, guides to protected bulk deals, and video lessons for growing entrepreneurs.
