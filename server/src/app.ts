@@ -39,6 +39,8 @@ import staffRoutes from './routes/staff.routes.ts';
 import themeRoutes from './routes/theme.routes.ts';
 import localizationRoutes from './routes/localization.routes.ts';
 import genieRoutes from './routes/genie.routes.ts';
+import integrationRoutes from './routes/integration.routes.ts';
+import { startCredentialRefresh, stopCredentialRefresh } from './integrations/credentialStore.ts';
 import journeyMetricsRoutes from './routes/journeyMetrics.routes.ts';
 import deliveryChargeRoutes from './routes/deliveryCharge.routes.ts';
 import manualOperationsRoutes from './routes/manualOperations.routes.ts';
@@ -232,6 +234,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   await app.register(themeRoutes, { prefix: '/api/v1' });
   await app.register(localizationRoutes, { prefix: '/api/v1' });
   await app.register(genieRoutes, { prefix: '/api/v1' });
+  await app.register(integrationRoutes, { prefix: '/api/v1' });
   await app.register(journeyMetricsRoutes, { prefix: '/api/v1' });
   await app.register(deliveryChargeRoutes, { prefix: '/api/v1' });
   await app.register(manualOperationsRoutes, { prefix: '/api/v1' });
@@ -297,6 +300,17 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   // Start distributed scheduler for hourly escrow release & periodic tasks (Prompt 6.2)
   startScheduler(pool, cache, log, { runOnStartup: false });
 
+  // Gateway credentials saved at /admin/platform/integrations (migration 108). Loaded before the
+  // server takes traffic so the first payment already uses them; reloaded on an interval after that.
+  app.addHook('onReady', async () => {
+    await startCredentialRefresh(
+      pool,
+      config.auth.piiEncryptionKey,
+      log,
+      config.auth.integrationCredentialRefreshSeconds
+    );
+  });
+
   app.get('/api/v1/health', async () => ({
     status: 'ok',
     service: 'explooro-api',
@@ -309,6 +323,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   app.addHook('onClose', async () => {
     stopScheduler();
     stopGrantExpiry();
+    stopCredentialRefresh();
     await cache.quit?.();
     await pool.end();
   });

@@ -6,7 +6,7 @@
  * 1. Component exports and instantiation integrity.
  * 2. PlatformSubnav rendering, navigation items, and aria states.
  * 3. 100% key parity between English and Bengali locales for platform namespaces.
- * 4. Mock handlers for integrations (catalog listing, ping handshake, webhook logs, updates).
+ * 4. The integrations mock mirrors the server catalog (migration 108) and never returns a secret.
  * 5. Mock handlers for platform settings (governance defaults, updates, resets).
  */
 
@@ -67,66 +67,73 @@ test('Admin Platform Suite Integrity', async (t) => {
     checkKeys(en.platform_settings, bn.platform_settings, 'platform_settings.');
   });
 
-  await t.test('3. GET /admin/platform/integrations returns catalog of gateways and tools', () => {
-    const handler = adminHandlers.find(
-      (h) => h.method === 'GET' && h.path === '/admin/platform/integrations'
-    );
-    assert.ok(handler, 'GET integrations handler exists');
-    const res = handler.handler();
-    assert.equal(res.status, 200);
-    assert.ok(Array.isArray(res.body.integrations));
-    assert.ok(res.body.integrations.length >= 10, 'Includes at least 10 integrations');
+  // Integrations (migration 108): the mock mirrors server/src/services/integration.service.ts.
+  const { integrationHandlers, MOCK_INTEGRATION_CATALOG } = await import('../src/mocks/handlers/integrations.ts');
+  const integrationRoute = (method, p) => integrationHandlers.find((h) => h.method === method && h.path === p);
 
-    // Verify key Bangladesh integrations exist
-    const ids = res.body.integrations.map((i) => i.id);
-    assert.ok(ids.includes('bkash_checkout'), 'bKash checkout integration present');
-    assert.ok(ids.includes('nagad_direct'), 'Nagad integration present');
-    assert.ok(ids.includes('pathao_logistics'), 'Pathao Courier integration present');
-    assert.ok(ids.includes('redx_delivery'), 'RedX integration present');
-    assert.ok(ids.includes('steadfast_courier'), 'Steadfast Courier present');
-  });
-
-  await t.test('4. POST /admin/platform/integrations/:id/test executes ping handshake', () => {
-    const handler = adminHandlers.find(
-      (h) => h.method === 'POST' && h.path === '/admin/platform/integrations/:id/test'
-    );
-    assert.ok(handler, 'POST integration test handler exists');
-    const res = handler.handler({ params: { id: 'bkash_checkout' } });
-    assert.equal(res.status, 200);
-    assert.ok(res.body.latency_ms > 0, 'Latency measured');
-    assert.ok(res.body.message_en, 'Handshake response message present');
-    assert.equal(res.body.status, 'CONNECTED');
-  });
-
-  await t.test('5. GET /admin/platform/integrations/logs returns webhook and audit logs', () => {
-    const handler = adminHandlers.find(
-      (h) => h.method === 'GET' && h.path === '/admin/platform/integrations/logs'
-    );
-    assert.ok(handler, 'GET integration logs handler exists');
-    const res = handler.handler();
-    assert.equal(res.status, 200);
-    assert.ok(Array.isArray(res.body.logs));
-    assert.ok(res.body.logs.length > 0, 'Logs returned');
-    assert.ok(res.body.logs[0].event, 'Log item contains event name');
-  });
-
-  await t.test('6. PUT /admin/platform/integrations/:id updates credentials and status', () => {
-    const handler = adminHandlers.find(
-      (h) => h.method === 'PUT' && h.path === '/admin/platform/integrations/:id'
-    );
-    assert.ok(handler, 'PUT integration handler exists');
-    const res = handler.handler({
-      params: { id: 'nagad_direct' },
-      body: {
-        status: 'CONNECTED',
-        environment: 'LIVE',
-        merchant_id: 'TEST_MERCHANT_123',
-      },
+  await t.test('3. the integrations mock lists the server catalog, field for field', async () => {
+    const { INTEGRATIONS } = await import('../../server/src/config/integrations.ts');
+    const strip = (d) => ({
+      key: d.key, name: d.name, type: d.type, driver_env: d.driver_env, webhook_path: d.webhook_path,
+      pausable: d.pausable, category_en: d.category_en, category_bn: d.category_bn,
+      description_en: d.description_en, description_bn: d.description_bn,
+      pause_effect_en: d.pause_effect_en, pause_effect_bn: d.pause_effect_bn,
+      fields: d.fields.map((f) => ({ ...f })),
     });
+    assert.deepEqual(MOCK_INTEGRATION_CATALOG.map(strip), INTEGRATIONS.map(strip), 'mock catalog drifted from the server');
+
+    const res = integrationRoute('GET', '/admin/platform/integrations').handler({});
     assert.equal(res.status, 200);
-    assert.equal(res.body.integration.status, 'CONNECTED');
-    assert.equal(res.body.integration.environment, 'LIVE');
-    assert.equal(res.body.integration.merchant_id, 'TEST_MERCHANT_123');
+    assert.equal(res.body.integrations.length, INTEGRATIONS.length);
+    for (const i of res.body.integrations) {
+      assert.ok(['LIVE', 'MOCK', 'OFF'].includes(i.driver_mode), `${i.key} driver mode`);
+      for (const f of i.fields) assert.ok(['SAVED', 'ENV', 'MISSING'].includes(f.source), `${i.key}.${f.key} source`);
+    }
+    assert.equal('latency_ms' in res.body.integrations[0], false, 'no invented latency');
+    assert.equal(adminHandlers.some((h) => h.path.startsWith('/admin/platform/integrations')), false, 'the old admin.ts mock is gone');
+  });
+
+  await t.test('4. saving keeps the secret out of every answer and needs a reason', () => {
+    const put = integrationRoute('PUT', '/admin/platform/integrations/:key');
+    const secret = 'mock-secret-value-ABCD';
+    const noReason = put.handler({ params: { key: 'nagad_direct' }, body: { values: { private_key: secret } } });
+    assert.equal(noReason.status, 400);
+    const unknown = put.handler({ params: { key: 'nagad_direct' }, body: { values: { nope: 'x' }, reason: 'A long enough reason' } });
+    assert.equal(unknown.status, 400);
+
+    const ok = put.handler({ params: { key: 'nagad_direct' }, body: { values: { private_key: secret, merchant_id: 'M-1' }, reason: 'Save the Nagad keys' } });
+    assert.equal(ok.status, 200);
+    assert.ok(!JSON.stringify(ok.body).includes(secret), 'the secret never comes back');
+    const field = ok.body.integration.fields.find((f) => f.key === 'private_key');
+    assert.equal(field.source, 'SAVED');
+    assert.equal(field.hint, '••••ABCD');
+    assert.equal(ok.body.integration.fields.find((f) => f.key === 'merchant_id').hint, 'M-1');
+
+    const cleared = put.handler({ params: { key: 'nagad_direct' }, body: { clear: ['private_key'], reason: 'Back to the .env value' } });
+    assert.equal(cleared.body.integration.fields.find((f) => f.key === 'private_key').source, 'MISSING');
+  });
+
+  await t.test('5. pause works for payments and couriers, is refused for SMS', () => {
+    const status = integrationRoute('PUT', '/admin/platform/integrations/:key/status');
+    const paused = status.handler({ params: { key: 'redx_delivery' }, body: { enabled: false, reason: 'RedX outage today' } });
+    assert.equal(paused.status, 200);
+    assert.equal(paused.body.integration.is_enabled, false);
+    const sms = status.handler({ params: { key: 'greenweb_sms' }, body: { enabled: false, reason: 'Trying to pause SMS' } });
+    assert.equal(sms.status, 409);
+    status.handler({ params: { key: 'redx_delivery' }, body: { enabled: true, reason: 'RedX is back up' } });
+  });
+
+  await t.test('6. Test Connection reports the mock driver and records the result', () => {
+    const res = integrationRoute('POST', '/admin/platform/integrations/:key/test').handler({ params: { key: 'bkash_checkout' } });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.ok, true);
+    assert.equal(res.body.driver_mode, 'MOCK');
+    assert.ok(res.body.message_en && res.body.message_bn);
+    assert.equal(res.body.integration.last_test.ok, true);
+    const logs = integrationRoute('GET', '/admin/platform/integrations/logs').handler({});
+    assert.ok(Array.isArray(logs.body.logs));
+    const missing = integrationRoute('POST', '/admin/platform/integrations/:key/test').handler({ params: { key: 'rocket_dbbl' } });
+    assert.equal(missing.status, 404);
   });
 
   await t.test('7. GET /admin/platform/settings returns complete platform governance rules', () => {

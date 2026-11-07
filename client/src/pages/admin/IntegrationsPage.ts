@@ -1,188 +1,181 @@
 /**
- * IntegrationsPage.ts — Super Admin Gateway & Service Integrations Governance Suite.
+ * IntegrationsPage.ts — gateway credentials and pause switches (/admin/platform/integrations).
  *
- * Implements /admin/platform/integrations & /admin/integrations:
- * 1. KPI health strip (Connected gateways, avg latency, 24h webhook deliveries, live mode).
- * 2. Multi-category filtering (All, Payments & MFS, Logistics 3PL, SMS & Messaging, Cloud & AI).
- * 3. Gateway cards matrix with live status, latency badges, and instant enable/disable switches.
- * 4. Secure credentials configuration drawer with secret masking and copyable webhook endpoints.
- * 5. Instant connection handshake test ping with live latency feedback.
- * 6. Webhook callback logs drawer with payload status inspector.
- * 7. Shared PlatformSubnav interconnecting all 5 platform governance surfaces.
+ * Everything shown comes from the server (server/src/services/integration.service.ts, migration 108):
+ *  - which driver each service runs (the .env switch: Live / Mock / Off),
+ *  - where each credential comes from (saved here, encrypted · from .env · not set),
+ *  - pause state (payments and couriers only) and the last Test Connection result.
+ *
+ * A saved secret never comes back to the browser: the page only ever sees its last four characters.
+ * An empty box on save leaves a value as it is; "remove the saved value" falls back to .env.
  */
 
 import { Button } from '../../components/ui/Button.ts';
 import { Badge } from '../../components/ui/Badge.ts';
 import { Modal } from '../../components/ui/Modal.ts';
-import { confirmDialog } from '../../components/ui/ConfirmDialog.ts';
+import { confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { PlatformSubnav } from '../../components/admin/PlatformSubnav.ts';
 import { adminApi } from '../../services/admin.api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
-import { formatNumber } from '../../services/format.ts';
+import { formatNumber, formatDate } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
 import type { PageContext } from '../types.ts';
 
+const REASON_MIN = 10;
+const TYPE_ICON = { PAYMENTS: '💳', LOGISTICS: '🚚', MESSAGING: '💬' };
+
+const tx = (key: string, fallback: string, vars: Record<string, unknown> = {}) =>
+  Object.entries(vars).reduce(
+    (s, [k, v]) => s.split(`{${k}}`).join(String(v)),
+    t(`platform_integrations.${key}`, fallback)
+  );
+
 export default function IntegrationsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   const isBn = getLanguage() === 'bn';
+  const pick = (obj, base) => (isBn && obj?.[`${base}_bn`] ? obj[`${base}_bn`] : obj?.[`${base}_en`]) ?? '';
   const container = document.createElement('div');
   container.className = 'admin-page integrations-page';
 
-  let integrationsData = null;
+  let data = null;
+  let canManage = false;
   let isLoading = true;
-  let activeCategory = 'ALL'; // ALL | PAYMENTS | LOGISTICS | MESSAGING | CLOUD
+  let activeCategory = 'ALL'; // ALL | PAYMENTS | LOGISTICS | MESSAGING
   let searchQuery = '';
-  let testingGatewayId = null;
+  let testingKey = null;
 
-  // Drawer states
-  let showLogsDrawer = false;
+  let logsModal = null;
   let logsData = [];
   let isLoadingLogs = false;
 
-  // WHY always 'ALL': the category tabs filter on the client. Fetching only the active category
-  // meant a Refresh on "Logistics" kept just the couriers, and switching back to "All" showed them alone.
-  // `quiet` re-reads the KPI strip after a save or pause without flashing the loading card.
+  // `quiet` re-reads after a save or pause without flashing the loading card.
   async function loadData({ quiet = false } = {}) {
     if (!quiet) {
       isLoading = true;
       render();
     }
     try {
-      const res = await adminApi.getIntegrations('ALL');
-      integrationsData = res || { metrics: {}, integrations: [] };
+      const res = await adminApi.getIntegrations();
+      data = res || { metrics: {}, integrations: [] };
+      canManage = Boolean(res?.can_manage);
     } catch (err) {
-      toast.error(err?.message || 'Failed to load integrations');
-      if (!quiet) integrationsData = { metrics: {}, integrations: [] };
+      toast.error(err?.message || tx('toast_load_error', 'Could not load integrations.'));
+      if (!quiet) data = { metrics: {}, integrations: [] };
     } finally {
       isLoading = false;
       render();
     }
   }
 
-  async function handleTestConnection(gateway) {
-    testingGatewayId = gateway.id;
-    render();
+  function replaceIntegration(next) {
+    if (!next || !data?.integrations) return;
+    const i = data.integrations.findIndex((x) => x.key === next.key);
+    if (i >= 0) data.integrations[i] = next;
+  }
+
+  async function handleTest(gateway) {
+    testingKey = gateway.key;
+    renderGridOnly();
     try {
-      const res = await adminApi.testIntegration(gateway.id);
-      gateway.last_ping_ms = res.latency_ms;
-      gateway.status = 'CONNECTED';
-      toast.success(
-        t('platform_integrations.toast_test_success', 'Handshake successful! Response time: {latency}ms.').replace(
-          '{latency}',
-          res.latency_ms
-        )
-      );
+      const res = await adminApi.testIntegration(gateway.key);
+      replaceIntegration(res?.integration);
+      const message = isBn ? res?.message_bn || res?.message_en : res?.message_en;
+      if (res?.ok) toast.success(message);
+      else toast.error(message);
     } catch (err) {
-      toast.error(
-        t('platform_integrations.toast_test_error', 'Connection test failed: {error}.').replace(
-          '{error}',
-          err?.message || 'Handshake timeout'
-        )
-      );
+      toast.error(err?.message || tx('test_failed', 'Failed'));
     } finally {
-      testingGatewayId = null;
-      render();
+      testingKey = null;
+      renderGridOnly();
     }
   }
 
-  async function handleToggleStatus(gateway) {
+  async function handleToggle(gateway, trigger) {
     const nextState = !gateway.is_enabled;
-    const confirmed = await confirmDialog({
-      title: t('platform_integrations.confirm_toggle_title', 'Update Integration Status'),
-      description: t(
-        'platform_integrations.confirm_toggle_desc',
-        'Are you sure you want to change the status of {name}? Active checkouts or shipments might be impacted.'
-      ).replace('{name}', gateway.name),
-      confirmLabel: nextState ? (isBn ? 'সক্রিয় করুন' : 'Enable') : (isBn ? 'নিষ্ক্রিয় করুন' : 'Disable'),
+    const { confirmed, reason } = await confirmDialogWithReason({
+      title: nextState
+        ? tx('confirm_resume_title', 'Resume {name}?', { name: gateway.name })
+        : tx('confirm_pause_title', 'Pause {name}?', { name: gateway.name }),
+      description: nextState ? tx('confirm_resume_desc', 'It goes back to normal use straight away.') : pick(gateway, 'pause_effect'),
+      confirmLabel: nextState ? tx('btn_resume', 'Resume') : tx('btn_pause', 'Pause'),
       variant: nextState ? 'primary' : 'danger',
+      reasonRequired: true,
+      reasonLabel: tx('reason_label', 'Reason (at least 10 characters)'),
+      reasonMinLength: REASON_MIN,
+      reasonTooShortMessage: tx('reason_short', 'Enter at least 10 characters.'),
+      trigger,
     });
-
     if (!confirmed) return;
 
     try {
-      const res = await adminApi.updateIntegration(gateway.id, {
-        is_enabled: nextState,
-        environment: gateway.environment,
-      });
-      if (res?.integration) {
-        Object.assign(gateway, res.integration);
-      } else {
-        gateway.is_enabled = nextState;
-        gateway.status = nextState ? 'CONNECTED' : 'DISCONNECTED';
-      }
+      const res = await adminApi.setIntegrationStatus(gateway.key, { enabled: nextState, reason });
+      replaceIntegration(res?.integration);
       toast.success(
         nextState
-          ? t('platform_integrations.toast_enabled', '{name} is switched on.').replace('{name}', gateway.name)
-          : t('platform_integrations.toast_paused', '{name} is paused.').replace('{name}', gateway.name)
+          ? tx('toast_enabled', '{name} is switched on.', { name: gateway.name })
+          : tx('toast_paused', '{name} is paused.', { name: gateway.name })
       );
       render();
       loadData({ quiet: true });
     } catch (err) {
-      toast.error(err?.message || 'Failed to update gateway status');
+      toast.error(err?.message || tx('toast_load_error', 'Could not load integrations.'));
     }
   }
 
-  async function openLogsDrawer() {
-    showLogsDrawer = true;
+  async function openLogs(trigger) {
     isLoadingLogs = true;
-    render();
+    renderLogs(trigger);
     try {
       const res = await adminApi.getIntegrationLogs(30);
       logsData = res?.logs || [];
     } catch (err) {
-      toast.error('Failed to load webhook logs');
+      toast.error(err?.message || tx('logs_empty', 'No recent webhook events found.'));
       logsData = [];
     } finally {
       isLoadingLogs = false;
-      render();
+      renderLogs(trigger);
     }
   }
 
-  // WHY no "already open" guard: the open modal's scrim already blocks a second click, and a
-  // guard kept Configure dead for the ~1.5s a just-closed modal spends animating out.
-  function openConfigModal(gateway, trigger = null) {
-    renderModal({ ...gateway }, trigger);
+  function modeBadge(gateway) {
+    const map = {
+      LIVE: { label: tx('mode_live', 'Live'), variant: 'success' },
+      MOCK: { label: tx('mode_mock', 'Mock'), variant: 'warning' },
+      OFF: { label: tx('mode_off', 'Off'), variant: 'neutral' },
+    };
+    return Badge(map[gateway.driver_mode] || map.OFF).outerHTML;
+  }
+
+  function sourceBadge(source) {
+    const map = {
+      SAVED: { label: tx('source_saved', 'Saved here'), variant: 'success' },
+      ENV: { label: tx('source_env', 'From .env'), variant: 'neutral' },
+      MISSING: { label: tx('source_missing', 'Not set'), variant: 'warning' },
+    };
+    return Badge(map[source] || map.MISSING).outerHTML;
   }
 
   function render() {
     container.innerHTML = '';
 
-    // 1. Page Header
     const header = document.createElement('header');
     header.className = 'admin-page-header';
-
     const infoCol = document.createElement('div');
     infoCol.innerHTML = `
       <div class="admin-page-eyebrow">
         ${Badge({ label: t('platform_integrations.badge_critical', 'CRITICAL CREDENTIALS'), variant: 'danger' }).outerHTML}
-        <span class="text-xs text-secondary font-mono">v3.4 Platform Core</span>
       </div>
       <h1 class="admin-page-title">${t('platform_integrations.title', 'Gateway & Service Integrations')}</h1>
-      <p class="admin-page-subtitle">
-        ${t('platform_integrations.subtitle', 'Manage payment gateways, couriers, SMS gateways and messaging credentials')}
-      </p>
+      <p class="admin-page-subtitle">${t('platform_integrations.subtitle', 'Manage payment gateways, couriers, SMS gateways and messaging credentials')}</p>
     `;
-
     const actionsCol = document.createElement('div');
     actionsCol.className = 'admin-page-actions';
-
-    const logsBtn = Button({
-      label: `📡 ${t('platform_integrations.btn_logs', 'Webhook Logs')}`,
-      variant: 'secondary',
-      onClick: openLogsDrawer,
-    });
-
-    const refreshBtn = Button({
-      label: `🔄 ${t('common.refresh', 'Refresh')}`,
-      variant: 'secondary',
-      onClick: () => loadData(),
-    });
-
+    const logsBtn = Button({ label: `📡 ${tx('btn_logs', 'Webhook Logs')}`, variant: 'secondary', onClick: (e) => openLogs(e?.currentTarget) });
+    const refreshBtn = Button({ label: `🔄 ${t('common.refresh', 'Refresh')}`, variant: 'secondary', onClick: () => loadData() });
     actionsCol.append(logsBtn, refreshBtn);
     header.append(infoCol, actionsCol);
     container.append(header);
 
-    // 2. Shared Platform Subnav
     container.append(PlatformSubnav({ activeKey: 'integrations', navigate }));
 
     if (isLoading) {
@@ -194,52 +187,53 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
       return;
     }
 
-    const m = integrationsData?.metrics || {};
-    const items = integrationsData?.integrations || [];
-
-    // 3. KPI Metrics 4-Card Strip
-    const kpiStrip = document.createElement('div');
-    kpiStrip.className = 'admin-kpi-grid';
-    kpiStrip.innerHTML = `
+    const m = data?.metrics || {};
+    const kpi = document.createElement('div');
+    kpi.className = 'admin-kpi-grid';
+    kpi.innerHTML = `
       <div class="admin-kpi-card">
-        <span class="admin-kpi-card__label">${t('platform_integrations.kpi_total_connected', 'Active Gateways')}</span>
-        <span class="admin-kpi-card__value text-success">${m.connected_gateways || 0} / ${m.total_gateways || 0}</span>
-        <span class="admin-kpi-card__subtext">${m.live_gateways || 0} Live · ${m.sandbox_gateways || 0} Sandbox</span>
+        <span class="admin-kpi-card__label">${tx('kpi_services', 'Services')}</span>
+        <span class="admin-kpi-card__value">${formatNumber(m.total || 0)}</span>
+        <span class="admin-kpi-card__subtext">${tx('kpi_services_sub', '{live} live · {mock} mock · {off} off', { live: m.live || 0, mock: m.mock || 0, off: m.off || 0 })}</span>
       </div>
       <div class="admin-kpi-card">
-        <span class="admin-kpi-card__label">${t('platform_integrations.kpi_health', 'Service Health')}</span>
-        <span class="admin-kpi-card__value font-mono text-brand">${m.avg_ping_ms || 138}ms</span>
-        <span class="admin-kpi-card__subtext">Average cluster round-trip</span>
+        <span class="admin-kpi-card__label">${tx('kpi_attention', 'Needs attention')}</span>
+        <span class="admin-kpi-card__value ${m.needs_attention ? 'text-danger' : 'text-success'}">${formatNumber(m.needs_attention || 0)}</span>
+        <span class="admin-kpi-card__subtext">${tx('kpi_attention_sub', 'Live but missing a credential')}</span>
       </div>
       <div class="admin-kpi-card">
-        <span class="admin-kpi-card__label">${t('platform_integrations.kpi_webhooks_24h', 'Webhooks (24h)')}</span>
-        <span class="admin-kpi-card__value text-primary">${formatNumber(m.webhooks_24h_count || 148200)}</span>
-        <span class="admin-kpi-card__subtext">${m.webhook_success_pct || 99.9}% delivery rate</span>
+        <span class="admin-kpi-card__label">${tx('kpi_paused', 'Paused')}</span>
+        <span class="admin-kpi-card__value">${formatNumber(m.paused || 0)}</span>
+        <span class="admin-kpi-card__subtext">${tx('kpi_paused_sub', 'Payments and couriers only')}</span>
       </div>
       <div class="admin-kpi-card">
-        <span class="admin-kpi-card__label">${t('platform_integrations.kpi_environment', 'Runtime Mode')}</span>
-        <span class="admin-kpi-card__value text-warning" style="font-size: var(--text-lg);">${m.environment_mode || 'LIVE PRODUCTION'}</span>
-        <span class="admin-kpi-card__subtext">TLS 1.3 · IPN Validated</span>
+        <span class="admin-kpi-card__label">${tx('kpi_webhooks_24h', 'Payment webhooks (24h)')}</span>
+        <span class="admin-kpi-card__value">${formatNumber(m.webhooks_24h || 0)}</span>
+        <span class="admin-kpi-card__subtext">${tx('kpi_webhooks_sub', '{valid} with a valid signature', { valid: formatNumber(m.webhooks_24h_valid || 0) })}</span>
       </div>
     `;
-    container.append(kpiStrip);
+    container.append(kpi);
 
-    // 4. Category Filter Toolbar & Search
+    if (!canManage) {
+      const note = document.createElement('p');
+      note.className = 'text-xs text-secondary';
+      note.textContent = tx('read_only_note', 'You can view this page. Changing credentials needs super admin access.');
+      container.append(note);
+    }
+
     const toolbar = document.createElement('div');
     toolbar.className = 'admin-filter-toolbar';
-
     const categories = [
-      { key: 'ALL', label: t('platform_integrations.tab_all', 'All Integrations') },
-      { key: 'PAYMENTS', label: t('platform_integrations.tab_payments', 'Payments & MFS') },
-      { key: 'LOGISTICS', label: t('platform_integrations.tab_logistics', 'Logistics & Couriers') },
-      { key: 'MESSAGING', label: t('platform_integrations.tab_messaging', 'SMS & Communication') },
-      { key: 'CLOUD', label: t('platform_integrations.tab_cloud', 'Cloud Storage & AI') },
+      { key: 'ALL', label: tx('tab_all', 'All Integrations') },
+      { key: 'PAYMENTS', label: tx('tab_payments', 'Payments & MFS') },
+      { key: 'LOGISTICS', label: tx('tab_logistics', 'Logistics & Couriers') },
+      { key: 'MESSAGING', label: tx('tab_messaging', 'SMS & Communication') },
     ];
-
     const tabsWrap = document.createElement('div');
     tabsWrap.className = 'admin-filter-tabs';
     categories.forEach((cat) => {
       const btn = document.createElement('button');
+      btn.type = 'button';
       btn.className = `admin-filter-tab ${activeCategory === cat.key ? 'admin-filter-tab--active' : ''}`;
       btn.textContent = cat.label;
       btn.addEventListener('click', () => {
@@ -248,142 +242,125 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
       });
       tabsWrap.append(btn);
     });
-
     const searchBox = document.createElement('div');
     searchBox.className = 'admin-search-box';
     searchBox.innerHTML = `
-      <input
-        type="text"
-        class="input input--sm"
-        aria-label="${isBn ? 'গেটওয়ে খুঁজুন' : 'Search gateways'}"
-        placeholder="${isBn ? 'গেটওয়ে নাম বা কোড দিয়ে খুঁজুন...' : 'Search by gateway name or identifier...'}"
-        value="${escapeHtml(searchQuery)}"
-        id="integration-search"
-      />
+      <input type="text" class="input input--sm" id="integration-search"
+        aria-label="${escapeHtml(tx('search_label', 'Search integrations'))}"
+        placeholder="${escapeHtml(tx('search_placeholder', 'Search by name or category...'))}"
+        value="${escapeHtml(searchQuery)}" />
     `;
-
     toolbar.append(tabsWrap, searchBox);
     container.append(toolbar);
-
     searchBox.querySelector('#integration-search').addEventListener('input', (e) => {
       searchQuery = (e.target as HTMLInputElement).value.toLowerCase().trim();
       renderGridOnly();
     });
 
-    // 5. Integrations Grid Container
     const gridMount = document.createElement('div');
     gridMount.id = 'integrations-grid-mount';
     container.append(gridMount);
-
-    renderGridContent(gridMount, items);
-
-    // 6. Webhook Logs Drawer Mount (if opened)
-    if (showLogsDrawer) {
-      renderLogsDrawer();
-    }
+    renderGridContent(gridMount);
 
     root.replaceChildren(container);
   }
 
   function renderGridOnly() {
     const gridMount = container.querySelector('#integrations-grid-mount');
-    if (!gridMount) return;
-    const items = integrationsData?.integrations || [];
-    renderGridContent(gridMount, items);
+    if (gridMount) renderGridContent(gridMount);
   }
 
-  function renderGridContent(gridMount, items) {
+  function renderGridContent(gridMount) {
     gridMount.innerHTML = '';
-
-    let filtered = items;
-    if (activeCategory !== 'ALL') {
-      filtered = filtered.filter((i) => i.type === activeCategory);
-    }
+    let items = data?.integrations || [];
+    if (activeCategory !== 'ALL') items = items.filter((i) => i.type === activeCategory);
     if (searchQuery) {
-      filtered = filtered.filter(
-        (i) =>
-          i.name.toLowerCase().includes(searchQuery) ||
-          i.category_label?.toLowerCase().includes(searchQuery) ||
-          i.merchant_id?.toLowerCase().includes(searchQuery) ||
-          i.account_id?.toLowerCase().includes(searchQuery)
+      items = items.filter((i) =>
+        [i.name, i.category_en, i.category_bn, i.driver_env].some((s) => String(s || '').toLowerCase().includes(searchQuery))
       );
     }
 
-    if (filtered.length === 0) {
+    if (!items.length) {
       gridMount.innerHTML = `
         <div class="card p-8 text-center text-secondary">
-          <p class="text-base font-semibold">${isBn ? 'কোনো ইন্টিগ্রেশন পাওয়া যায়নি।' : 'No integrations matching your filters.'}</p>
-          <p class="text-xs mt-1 text-muted">${isBn ? 'ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন।' : 'Try selecting another category or clear the search query.'}</p>
-        </div>
-      `;
+          <p class="text-base font-semibold">${tx('empty_filter', 'No integrations match your filters.')}</p>
+          <p class="text-xs mt-1 text-muted">${tx('empty_filter_hint', 'Choose another category or clear the search.')}</p>
+        </div>`;
       return;
     }
 
     const grid = document.createElement('div');
     grid.className = 'integrations-grid';
 
-    filtered.forEach((gateway) => {
+    items.forEach((g) => {
       const card = document.createElement('div');
-      // WHY not `status === 'CONNECTED'`: a gateway saved in sandbox mode is stored as status
-      // 'SANDBOX', and that check showed it as Disconnected although it was switched on.
-      const isConnected = gateway.is_enabled && gateway.status !== 'DISCONNECTED';
-      card.className = `integration-card ${!gateway.is_enabled ? 'integration-card--disconnected' : ''}`;
-
-      const statusBadge = isConnected
-        ? Badge({ label: gateway.environment === 'LIVE' ? t('platform_integrations.status_connected', 'Connected') : t('platform_integrations.status_sandbox', 'Sandbox'), variant: 'success' })
-        : Badge({ label: t('platform_integrations.status_disconnected', 'Disconnected'), variant: 'neutral' });
-
-      const isTesting = testingGatewayId === gateway.id;
+      card.className = `integration-card ${!g.is_enabled ? 'integration-card--disconnected' : ''}`;
+      const counts = { SAVED: 0, ENV: 0, MISSING: 0 };
+      for (const f of g.fields || []) counts[f.source] = (counts[f.source] || 0) + 1;
+      const isTesting = testingKey === g.key;
+      const test = g.last_test;
+      const testText = test
+        ? `${test.ok ? tx('test_passed', 'Passed') : tx('test_failed', 'Failed')} · ${escapeHtml(formatDate(test.at, { dateStyle: 'medium', timeStyle: 'short' }))}`
+        : tx('never_tested', 'Not tested yet');
 
       card.innerHTML = `
         <div class="integration-card__header">
           <div class="integration-card__brand">
-            <div class="integration-card__icon" aria-hidden="true">${gateway.icon || '🔌'}</div>
+            <div class="integration-card__icon" aria-hidden="true">${TYPE_ICON[g.type] || '🔌'}</div>
             <div>
-              <h3 class="integration-card__title">${gateway.name}</h3>
-              <span class="integration-card__type">${gateway.category_label || gateway.type}</span>
+              <h3 class="integration-card__title">${escapeHtml(g.name)}</h3>
+              <span class="integration-card__type">${escapeHtml(pick(g, 'category'))}</span>
             </div>
           </div>
-          ${statusBadge.outerHTML}
+          <div class="integration-card__badges">
+            ${modeBadge(g)}
+            ${g.is_enabled ? '' : Badge({ label: tx('status_paused', 'Paused'), variant: 'danger' }).outerHTML}
+          </div>
         </div>
-
-        <p class="integration-card__desc">
-          ${isBn && gateway.description_bn ? gateway.description_bn : gateway.description_en}
-        </p>
-
+        <p class="integration-card__desc">${escapeHtml(pick(g, 'description'))}</p>
         <div class="integration-card__meta-box">
           <div class="integration-card__meta-item">
-            <span class="integration-card__meta-label">${isBn ? 'মার্চেন্ট / একাউন্ট ID' : 'Account Identifier'}:</span>
-            <span class="integration-card__meta-value">${escapeHtml(gateway.merchant_id || gateway.account_id || 'N/A')}</span>
+            <span class="integration-card__meta-label">${tx('driver_label', 'Driver switch')}:</span>
+            <span class="integration-card__meta-value">${escapeHtml(g.driver_env)}</span>
           </div>
           <div class="integration-card__meta-item">
-            <span class="integration-card__meta-label">${isBn ? 'এনভায়রনমেন্ট' : 'Environment'}:</span>
-            <span class="integration-card__meta-value">${gateway.environment === 'SANDBOX' ? (isBn ? 'স্যান্ডবক্স' : 'Sandbox') : (isBn ? 'লাইভ' : 'Live')}</span>
+            <span class="integration-card__meta-label">${tx('credentials_label', 'Credentials')}:</span>
+            <span class="integration-card__meta-value">${tx('credentials_summary', '{saved} saved · {env} .env · {missing} not set', { saved: counts.SAVED, env: counts.ENV, missing: counts.MISSING })}</span>
           </div>
           <div class="integration-card__meta-item">
-            <span class="integration-card__meta-label">${isBn ? 'পিং রেসপন্স' : 'Latency'}:</span>
-            <span class="test-latency-pill ${gateway.last_ping_ms ? 'test-latency-pill--success' : ''}">
-              ⚡ ${gateway.last_ping_ms ? `${gateway.last_ping_ms}ms` : (isBn ? 'পরীক্ষা করা হয়নি' : 'Untested')}
-            </span>
+            <span class="integration-card__meta-label">${tx('last_test_label', 'Last test')}:</span>
+            <span class="test-latency-pill ${test?.ok ? 'test-latency-pill--success' : ''}">${testText}</span>
           </div>
         </div>
-
-        <div class="integration-card__footer">
-          <button type="button" class="btn btn--secondary btn--sm config-btn">
-            ⚙️ ${t('platform_integrations.btn_configure', 'Configure')}
-          </button>
-          <button class="btn btn--secondary btn--sm test-btn" ${isTesting ? 'disabled' : ''}>
-            ${isTesting ? '⏳ ' + t('platform_integrations.btn_testing', 'Pinging...') : '🧪 ' + t('platform_integrations.btn_test', 'Test')}
-          </button>
-          <button class="btn btn--sm ${gateway.is_enabled ? 'btn--secondary' : 'btn--primary'} toggle-btn">
-            ${gateway.is_enabled ? (isBn ? 'পজ করুন' : 'Pause') : (isBn ? 'চালু করুন' : 'Enable')}
-          </button>
-        </div>
+        <div class="integration-card__footer"></div>
       `;
 
-      card.querySelector('.config-btn')?.addEventListener('click', (e) => openConfigModal(gateway, e.currentTarget));
-      card.querySelector('.test-btn')?.addEventListener('click', () => handleTestConnection(gateway));
-      card.querySelector('.toggle-btn')?.addEventListener('click', () => handleToggleStatus(gateway));
+      const footer = card.querySelector('.integration-card__footer');
+      const configBtn = document.createElement('button');
+      configBtn.type = 'button';
+      configBtn.className = 'btn btn--secondary btn--sm config-btn';
+      configBtn.textContent = `⚙️ ${canManage ? tx('btn_configure', 'Configure') : tx('btn_view', 'View')}`;
+      configBtn.addEventListener('click', (e) => openConfigModal(g, e.currentTarget));
+      footer.append(configBtn);
+
+      if (canManage) {
+        const testBtn = document.createElement('button');
+        testBtn.type = 'button';
+        testBtn.className = 'btn btn--secondary btn--sm test-btn';
+        testBtn.disabled = isTesting;
+        testBtn.textContent = isTesting ? `⏳ ${tx('btn_testing', 'Checking...')}` : `🧪 ${tx('btn_test', 'Test Connection')}`;
+        testBtn.addEventListener('click', () => handleTest(g));
+        footer.append(testBtn);
+
+        if (g.pausable) {
+          const toggleBtn = document.createElement('button');
+          toggleBtn.type = 'button';
+          toggleBtn.className = `btn btn--sm ${g.is_enabled ? 'btn--secondary' : 'btn--primary'} toggle-btn`;
+          toggleBtn.textContent = g.is_enabled ? tx('btn_pause', 'Pause') : tx('btn_resume', 'Resume');
+          toggleBtn.addEventListener('click', (e) => handleToggle(g, e.currentTarget));
+          footer.append(toggleBtn);
+        }
+      }
 
       grid.append(card);
     });
@@ -391,148 +368,142 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     gridMount.append(grid);
   }
 
-  function renderModal(g, trigger = null) {
-    // Per modal, so a previous modal still animating out cannot reset this one mid-save.
+  function openConfigModal(g, trigger = null) {
     let isSaving = false;
+    const content = document.createElement('div');
+    content.className = 'space-y-4';
 
-    const modalContent = document.createElement('div');
-    modalContent.className = 'space-y-4';
+    const fieldRows = (g.fields || [])
+      .map((f) => {
+        const id = `integration-field-${escapeHtml(f.key)}`;
+        const placeholder = f.hint
+          ? tx('placeholder_keep', 'Leave empty to keep {hint}', { hint: f.hint })
+          : tx('placeholder_new', 'Type a value');
+        return `
+        <div class="form-group">
+          <label for="${id}" class="form-label integration-config__label">
+            <span>${escapeHtml(pick(f, 'label'))}${f.required ? '' : ` (${tx('field_optional', 'optional')})`}</span>
+            ${sourceBadge(f.source)}
+          </label>
+          <div class="integration-config__row">
+            <input id="${id}" data-field="${escapeHtml(f.key)}" type="${f.secret ? 'password' : 'text'}"
+              class="input input--sm font-mono" autocomplete="off" spellcheck="false"
+              placeholder="${escapeHtml(placeholder)}" ${canManage ? '' : 'disabled'} />
+            ${f.secret && canManage ? `<button type="button" class="btn btn--secondary btn--sm reveal-btn" data-for="${id}" aria-label="${escapeHtml(tx('toggle_secret', 'Show or hide'))}">👁️</button>` : ''}
+          </div>
+          <p class="text-xs text-muted mt-1 font-mono">${escapeHtml(f.env)}</p>
+          ${f.source === 'SAVED' && canManage
+            ? `<label class="flex items-center gap-2 text-xs mt-1"><input type="checkbox" data-clear="${escapeHtml(f.key)}" /> ${tx('clear_saved', 'Remove the saved value (use .env again)')}</label>`
+            : ''}
+        </div>`;
+      })
+      .join('');
 
-    modalContent.innerHTML = `
+    content.innerHTML = `
       <div class="p-3 bg-surface-2 border rounded-lg text-xs flex-between">
         <div>
           <span class="font-bold block text-sm">${escapeHtml(g.name)}</span>
-          <span class="text-secondary">${escapeHtml(g.category_label || g.type)}</span>
+          <span class="text-secondary">${escapeHtml(pick(g, 'category'))} · ${escapeHtml(g.driver_env)}</span>
         </div>
-        ${Badge({ label: g.environment === 'SANDBOX' ? (isBn ? 'স্যান্ডবক্স' : 'Sandbox') : (isBn ? 'লাইভ' : 'Live'), variant: g.environment === 'SANDBOX' ? 'warning' : 'success' }).outerHTML}
+        ${modeBadge(g)}
       </div>
-
+      <p class="text-xs text-secondary">${tx('security_note', 'Values are encrypted before they are stored. A saved secret is never shown again, only its last four characters.')}</p>
+      ${g.webhook_url ? `
       <div class="form-group">
-        <label for="modal-merchant-id" class="form-label">${t('platform_integrations.field_merchant_id', 'Merchant ID / Store Code')}</label>
-        <input type="text" id="modal-merchant-id" class="input input--sm w-full" value="${escapeHtml(g.merchant_id)}" />
-      </div>
-
-      <div class="form-group">
-        <label for="modal-app-key" class="form-label">${t('platform_integrations.field_app_key', 'App Key / Public Identifier')}</label>
-        <input type="text" id="modal-app-key" class="input input--sm w-full" value="${escapeHtml(g.app_key)}" />
-      </div>
-
-      <div class="form-group">
-        <label for="modal-app-secret" class="form-label">${t('platform_integrations.field_app_secret', 'App Secret / API Key')}</label>
+        <label for="integration-webhook-url" class="form-label">${tx('field_callback_url', 'Webhook URL to give the provider')}</label>
         <div class="integration-config__row">
-          <input type="password" id="modal-app-secret" class="input input--sm flex-1 font-mono" value="${escapeHtml(g.app_secret)}" />
-          <button type="button" id="toggle-secret-btn" class="btn btn--secondary btn--sm" aria-label="${isBn ? 'সিক্রেট দেখান / লুকান' : 'Show or hide secret'}">👁️</button>
+          <input type="text" id="integration-webhook-url" class="input input--sm font-mono text-muted" value="${escapeHtml(g.webhook_url)}" readonly />
+          <button type="button" id="copy-webhook-btn" class="btn btn--secondary btn--sm" aria-label="${escapeHtml(tx('copy_url', 'Copy webhook URL'))}">📋</button>
         </div>
-      </div>
-
+      </div>` : ''}
+      ${fieldRows}
+      ${canManage ? `
       <div class="form-group">
-        <label for="modal-webhook-secret" class="form-label">${t('platform_integrations.field_webhook_secret', 'Webhook Signature Secret')}</label>
-        <input type="password" id="modal-webhook-secret" class="input input--sm w-full font-mono" value="${escapeHtml(g.webhook_secret)}" />
-      </div>
-
-      <div class="form-group">
-        <label for="modal-webhook-url" class="form-label">${t('platform_integrations.field_callback_url', 'Webhook Callback URL')}</label>
-        <div class="integration-config__row">
-          <input type="text" id="modal-webhook-url" class="input input--sm flex-1 font-mono text-muted" value="${escapeHtml(g.webhook_url || 'https://api.explooro.com/webhooks')}" readonly />
-          <button type="button" id="copy-webhook-btn" class="btn btn--secondary btn--sm" aria-label="${isBn ? 'ওয়েবহুক লিঙ্ক কপি করুন' : 'Copy webhook URL'}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path></svg></button>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="modal-sandbox-mode" class="flex items-center gap-2 text-xs font-semibold">
-          <input type="checkbox" id="modal-sandbox-mode" ${g.environment === 'SANDBOX' ? 'checked' : ''} />
-          ${t('platform_integrations.field_sandbox_mode', 'Sandbox / Test Environment Mode')}
-        </label>
-        <p class="text-xs text-muted mt-1">Routes transactions through partner sandbox simulator rather than real accounts.</p>
-      </div>
-
-      <div class="form-group">
-        <label for="modal-audit-reason" class="form-label">${t('platform_integrations.field_audit_reason', 'Change Reason / Audit Justification')}</label>
-        <input type="text" id="modal-audit-reason" class="input input--sm w-full" placeholder="${isBn ? 'ক্রেডেনশিয়াল পরিবর্তনের কারণ লিখুন...' : 'e.g. Scheduled quarterly API key rotation'}" />
-      </div>
+        <label for="integration-reason" class="form-label">${tx('field_audit_reason', 'Reason for this change')}</label>
+        <input type="text" id="integration-reason" class="input input--sm w-full" maxlength="500"
+          placeholder="${escapeHtml(tx('reason_placeholder', 'e.g. Rotating the bKash key this quarter'))}" />
+      </div>` : ''}
     `;
 
     const footer = document.createElement('div');
     footer.className = 'flex justify-end gap-2';
-    footer.innerHTML = `
-      <button type="button" class="btn btn--secondary btn--sm cancel-modal-btn">
-        ${t('common.cancel', 'Cancel')}
-      </button>
-      <button type="button" class="btn btn--primary btn--sm save-modal-btn">
-        ${t('platform_integrations.btn_save_credentials', 'Save & Deploy Credentials')}
-      </button>
-    `;
-    const saveBtn = footer.querySelector<HTMLButtonElement>('.save-modal-btn');
-    const saveLabel = saveBtn?.innerHTML ?? '';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.className = 'btn btn--secondary btn--sm';
+    cancelBtn.textContent = canManage ? t('common.cancel', 'Cancel') : t('common.close', 'Close');
+    footer.append(cancelBtn);
+    let saveBtn = null;
+    if (canManage) {
+      saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'btn btn--primary btn--sm';
+      saveBtn.textContent = tx('btn_save_credentials', 'Save credentials');
+      footer.append(saveBtn);
+    }
 
-    // WHY .open() below: this Modal used to be built and never opened, so Configure did nothing.
     const modal = Modal({
-      title: t('platform_integrations.modal_config_title', 'Configure Integration Credentials'),
-      content: modalContent,
+      title: canManage ? tx('modal_config_title', 'Configure Integration Credentials') : tx('modal_view_title', 'Integration credentials'),
+      content,
       footer,
       size: 'lg',
       onClose: () => modal.remove(),
     });
 
-    const secretInput = modalContent.querySelector<HTMLInputElement>('#modal-app-secret');
-    modalContent.querySelector('#toggle-secret-btn')?.addEventListener('click', () => {
-      if (secretInput) {
-        secretInput.type = secretInput.type === 'password' ? 'text' : 'password';
+    content.querySelectorAll<HTMLButtonElement>('.reveal-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const input = content.querySelector<HTMLInputElement>(`#${btn.dataset.for}`);
+        if (input) input.type = input.type === 'password' ? 'text' : 'password';
+      });
+    });
+    content.querySelector('#copy-webhook-btn')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard?.writeText(g.webhook_url);
+        toast.success(tx('url_copied', 'Webhook URL copied.'));
+      } catch {
+        content.querySelector<HTMLInputElement>('#integration-webhook-url')?.select();
       }
     });
-
-    modalContent.querySelector('#copy-webhook-btn')?.addEventListener('click', () => {
-      const url = modalContent.querySelector<HTMLInputElement>('#modal-webhook-url')?.value;
-      if (url) {
-        navigator.clipboard?.writeText(url);
-        toast.success(isBn ? 'ওয়েবহুক লিঙ্ক কপি করা হয়েছে!' : 'Webhook URL copied to clipboard!');
-      }
-    });
-
-    footer.querySelector('.cancel-modal-btn')?.addEventListener('click', () => modal.close(false));
+    cancelBtn.addEventListener('click', () => modal.close(false));
 
     saveBtn?.addEventListener('click', async () => {
       if (isSaving) return;
-      const merchantId = modalContent.querySelector<HTMLInputElement>('#modal-merchant-id')?.value.trim();
-      const appKey = modalContent.querySelector<HTMLInputElement>('#modal-app-key')?.value.trim();
-      const appSecret = modalContent.querySelector<HTMLInputElement>('#modal-app-secret')?.value.trim();
-      const webhookSecret = modalContent.querySelector<HTMLInputElement>('#modal-webhook-secret')?.value.trim();
-      const isSandbox = modalContent.querySelector<HTMLInputElement>('#modal-sandbox-mode')?.checked;
-      const reason = modalContent.querySelector<HTMLInputElement>('#modal-audit-reason')?.value.trim();
+      const values = {};
+      content.querySelectorAll<HTMLInputElement>('input[data-field]').forEach((input) => {
+        const v = input.value.trim();
+        if (v) values[input.dataset.field] = v;
+      });
+      const clear = [...content.querySelectorAll<HTMLInputElement>('input[data-clear]:checked')].map((c) => c.dataset.clear);
+      const reasonInput = content.querySelector<HTMLInputElement>('#integration-reason');
+      const reason = reasonInput?.value.trim() || '';
+
+      if (!Object.keys(values).length && !clear.length) {
+        toast.error(tx('nothing_to_save', 'Type a new value or tick a saved value to remove.'));
+        return;
+      }
+      if (reason.length < REASON_MIN) {
+        toast.error(tx('reason_short', 'Enter at least 10 characters.'));
+        reasonInput?.focus();
+        return;
+      }
 
       isSaving = true;
-      if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.textContent = isBn ? 'সংরক্ষণ হচ্ছে...' : 'Saving...';
-      }
+      saveBtn.disabled = true;
+      saveBtn.textContent = tx('saving', 'Saving...');
       try {
-        const patch = {
-          merchant_id: merchantId,
-          app_key: appKey,
-          app_secret: appSecret,
-          webhook_secret: webhookSecret,
-          environment: isSandbox ? 'SANDBOX' : 'LIVE',
-          status: isSandbox ? 'SANDBOX' : 'CONNECTED',
-          reason: reason || 'Credentials updated via admin console',
-        };
-
-        const res = await adminApi.updateIntegration(g.id, patch);
-        const target = integrationsData?.integrations?.find((item) => item.id === g.id);
-        if (target) {
-          Object.assign(target, res?.integration || patch);
+        const res = await adminApi.updateIntegration(g.key, { values, clear, reason });
+        replaceIntegration(res?.integration);
+        toast.success(tx('toast_save_success', 'Credentials saved and encrypted.'));
+        if (res?.previous_credentials_unreadable) {
+          toast.error(tx('toast_unreadable', 'The values saved before could not be read and were replaced.'));
         }
-
-        toast.success(t('platform_integrations.toast_save_success', 'Credentials updated and verified.'));
         modal.close(true);
         render();
         loadData({ quiet: true });
       } catch (err) {
-        toast.error(err?.message || 'Failed to save credentials');
+        toast.error(err?.message || tx('toast_load_error', 'Could not load integrations.'));
         isSaving = false;
-        if (saveBtn) {
-          saveBtn.disabled = false;
-          saveBtn.innerHTML = saveLabel;
-        }
+        saveBtn.disabled = false;
+        saveBtn.textContent = tx('btn_save_credentials', 'Save credentials');
       }
     });
 
@@ -540,42 +511,33 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
   }
 
   // WHY the shared Modal: the hand-rolled backdrop had no genie, Escape, focus trap or scroll lock.
-  // render() runs again while this is open, so refresh its content instead of stacking a second one.
-  let logsModal = null;
-
-  function renderLogsDrawer() {
+  function renderLogs(trigger = null) {
     const content = document.createElement('div');
     content.className = 'space-y-4';
-    content.innerHTML = `
-      ${isLoadingLogs ? `
-        <div class="p-8 text-center text-muted">
-          <div class="spinner"></div>
-          <p class="mt-2 text-xs">${t('common.loading', 'Loading')}...</p>
-        </div>
-      ` : logsData.length === 0 ? `
-        <div class="p-8 text-center text-muted text-xs">
-          ${t('platform_integrations.logs_empty', 'No recent webhook callback events found.')}
-        </div>
-      ` : `
-        <div class="space-y-2">
-          ${logsData.map((log) => `
-            <div class="p-3 border rounded-lg bg-surface-2 text-xs flex-between">
-              <div>
-                <div class="font-bold text-primary flex items-center gap-2">
-                  <span class="font-mono text-success">HTTP ${log.status}</span>
-                  <span>${log.gateway}</span>
-                </div>
-                <span class="font-mono text-muted text-xxs block mt-1">Topic: ${log.event} · Trace: ${log.trace_id}</span>
+    if (isLoadingLogs) {
+      content.innerHTML = `<div class="p-8 text-center text-muted"><div class="spinner"></div><p class="mt-2 text-xs">${t('common.loading', 'Loading')}...</p></div>`;
+    } else if (!logsData.length) {
+      content.innerHTML = `<div class="p-8 text-center text-muted text-xs">${tx('logs_empty', 'No recent webhook events found.')}</div>`;
+    } else {
+      content.innerHTML = `<div class="space-y-2">${logsData
+        .map(
+          (log) => `
+          <div class="p-3 border rounded-lg bg-surface-2 text-xs flex-between">
+            <div>
+              <div class="font-bold text-primary flex items-center gap-2">
+                <span>${escapeHtml(log.gateway)}</span>
+                ${Badge({
+                  label: log.signature_valid ? tx('logs_signature_ok', 'Signature valid') : tx('logs_signature_bad', 'Signature invalid'),
+                  variant: log.signature_valid ? 'success' : 'danger',
+                }).outerHTML}
               </div>
-              <div class="text-right">
-                <span class="test-latency-pill test-latency-pill--success font-mono">${log.latency_ms}ms</span>
-                <span class="text-muted block text-xxs mt-1">${new Date(log.timestamp).toLocaleTimeString()}</span>
-              </div>
+              <span class="font-mono text-muted text-xxs block mt-1">${escapeHtml(log.provider_event_id)} · ${escapeHtml(log.process_result || tx('logs_pending', 'Not processed'))}</span>
             </div>
-          `).join('')}
-        </div>
-      `}
-    `;
+            <span class="text-muted text-xxs">${escapeHtml(formatDate(log.received_at, { dateStyle: 'medium', timeStyle: 'short' }))}</span>
+          </div>`
+        )
+        .join('')}</div>`;
+    }
 
     if (logsModal?.isOpen()) {
       logsModal.setContent(content);
@@ -586,21 +548,21 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     closeBtn.type = 'button';
     closeBtn.className = 'btn btn--secondary btn--sm';
     closeBtn.textContent = t('common.close', 'Close');
-    closeBtn.addEventListener('click', () => logsModal.close(false));
 
-    logsModal = Modal({
-      title: `${t('platform_integrations.logs_drawer_title', 'Gateway Webhook & Callback Logs')}`,
-      description: 'Live inbound IPN payloads & courier event deliveries',
+    const modal = Modal({
+      title: tx('logs_drawer_title', 'Payment gateway webhooks'),
+      description: tx('logs_drawer_desc', 'The latest webhooks payment gateways sent. Payloads are not shown.'),
       content,
       footer: closeBtn,
       size: 'lg',
       onClose: () => {
-        showLogsDrawer = false;
-        logsModal.remove();
-        logsModal = null;
+        modal.remove();
+        if (logsModal === modal) logsModal = null;
       },
     });
-    logsModal.open(document.activeElement);
+    closeBtn.addEventListener('click', () => modal.close(false));
+    logsModal = modal;
+    modal.open(trigger);
   }
 
   loadData();

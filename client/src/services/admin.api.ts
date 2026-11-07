@@ -273,28 +273,36 @@ export const adminApi = {
   },
 
   /**
-   * Retrieves all platform service and gateway integrations.
+   * Every gateway in the server catalog: driver mode, where each credential comes from (saved here,
+   * .env, or missing), pause state and the last test (server/src/services/integration.service.ts).
    */
-  async getIntegrations(category: string = 'ALL') {
-    return api.get(`/admin/platform/integrations?category=${encodeURIComponent(category)}`);
+  async getIntegrations() {
+    return api.get('/admin/platform/integrations');
   },
 
   /**
-   * Updates credentials, configuration or active state for an integration.
+   * Saves credentials, encrypted on the server. `values` are new values (an empty one is left as it
+   * is); `clear` lists saved values to remove so the driver falls back to .env.
    */
-  async updateIntegration(id: number | string, patch: Params) {
-    return api.put(`/admin/platform/integrations/${id}`, patch);
+  async updateIntegration(key: string, body: { values?: Record<string, string>; clear?: string[]; reason: string }) {
+    return api.put(`/admin/platform/integrations/${encodeURIComponent(key)}`, body);
+  },
+
+  /** Pauses or resumes a gateway (payments and couriers only). */
+  async setIntegrationStatus(key: string, body: { enabled: boolean; reason: string }) {
+    return api.put(`/admin/platform/integrations/${encodeURIComponent(key)}/status`, body);
   },
 
   /**
-   * Performs an instant live connection test / handshake ping against a gateway.
+   * Checks the driver mode and that every credential the live driver needs is set. It makes no
+   * network call to the provider and reports no latency.
    */
-  async testIntegration(id: number | string) {
-    return api.post(`/admin/platform/integrations/${id}/test`, {});
+  async testIntegration(key: string) {
+    return api.post(`/admin/platform/integrations/${encodeURIComponent(key)}/test`, {});
   },
 
   /**
-   * Retrieves recent gateway webhook callback logs.
+   * Webhooks payment gateways sent, newest first (payment_webhook_events, payload left out).
    */
   async getIntegrationLogs(limit: number = 30) {
     return api.get(`/admin/platform/integrations/logs?limit=${limit}`);

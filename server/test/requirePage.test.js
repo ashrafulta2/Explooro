@@ -270,6 +270,7 @@ describe('the wired route files', () => {
     'delegation.routes.ts',
     'finance.routes.ts',
     'genie.routes.ts',
+    'integration.routes.ts',
     'localization.routes.ts',
     'notification.routes.ts',
     'publicApi.routes.ts',

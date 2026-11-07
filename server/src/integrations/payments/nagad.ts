@@ -11,6 +11,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.ts';
+import { credential } from '../credentialStore.ts';
 
 export class NagadPaymentDriver {
   merchantId: any;
@@ -21,12 +22,14 @@ export class NagadPaymentDriver {
   isLive: any;
 
   constructor(config: Record<string, any> = {}) {
-    this.merchantId = config.merchantId || process.env.NAGAD_MERCHANT_ID || 'mock_nagad_merchant';
-    this.publicKey = config.publicKey || process.env.NAGAD_PGW_PUBLIC_KEY || 'mock_public_key';
-    this.privateKey = config.privateKey || process.env.NAGAD_MERCHANT_PRIVATE_KEY || 'mock_private_key';
-    this.baseUrl = config.baseUrl || process.env.NAGAD_BASE_URL || 'https://api.mynagad.com/api/dfs';
+    // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+    const cred = (field, envName) => credential('nagad_direct', field, envName);
+    this.merchantId = config.merchantId || cred('merchant_id', 'NAGAD_MERCHANT_ID') || 'mock_nagad_merchant';
+    this.publicKey = config.publicKey || cred('public_key', 'NAGAD_PGW_PUBLIC_KEY') || 'mock_public_key';
+    this.privateKey = config.privateKey || cred('private_key', 'NAGAD_MERCHANT_PRIVATE_KEY') || 'mock_private_key';
+    this.baseUrl = config.baseUrl || cred('base_url', 'NAGAD_BASE_URL') || 'https://api.mynagad.com/api/dfs';
     // WHY null in live mode: a repo-visible default secret would let anyone forge a signed webhook.
-    this.webhookSecret = secretOrDevDefault(config.webhookSecret || process.env.NAGAD_WEBHOOK_SECRET, 'nagad_webhook_secret_key', 'PAYMENT_DRIVER');
+    this.webhookSecret = secretOrDevDefault(config.webhookSecret || cred('webhook_secret', 'NAGAD_WEBHOOK_SECRET'), 'nagad_webhook_secret_key', 'PAYMENT_DRIVER');
     this.isLive = config.isLive || process.env.NODE_ENV === 'production';
   }
 

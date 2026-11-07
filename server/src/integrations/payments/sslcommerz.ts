@@ -11,6 +11,7 @@
 
 import { createHmac, createHash, randomBytes } from 'node:crypto';
 import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.ts';
+import { credential } from '../credentialStore.ts';
 
 export class SslcommerzPaymentDriver {
   storeId: any;
@@ -19,9 +20,14 @@ export class SslcommerzPaymentDriver {
   isLive: any;
 
   constructor(config: Record<string, any> = {}) {
-    this.storeId = config.storeId || process.env.SSLCOMMERZ_STORE_ID || 'mock_store_id';
+    // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+    this.storeId = config.storeId || credential('sslcommerz_cards', 'store_id', 'SSLCOMMERZ_STORE_ID') || 'mock_store_id';
     // WHY null in live mode: the store password is also the webhook verification key, so a repo-visible default is a forgery key.
-    this.storePasswd = secretOrDevDefault(config.storePasswd || process.env.SSLCOMMERZ_STORE_PASSWORD, 'mock_store_passwd', 'PAYMENT_DRIVER');
+    this.storePasswd = secretOrDevDefault(
+      config.storePasswd || credential('sslcommerz_cards', 'store_password', 'SSLCOMMERZ_STORE_PASSWORD'),
+      'mock_store_passwd',
+      'PAYMENT_DRIVER'
+    );
     this.baseUrl = config.baseUrl || (process.env.NODE_ENV === 'production' ? 'https://securepay.sslcommerz.com' : 'https://sandbox.sslcommerz.com');
     this.isLive = config.isLive || process.env.NODE_ENV === 'production';
   }

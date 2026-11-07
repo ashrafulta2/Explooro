@@ -104,7 +104,8 @@ describe('2. one courier booking per sub-order', () => {
   });
 
   test('manual parcels use the same rule', () => {
-    assert.match(read('services/manualOperations.service.ts'), /SHIPPABLE_SUB_ORDER_STATUSES \} from '\.\/shipment\.service\.ts'|SHIPPABLE_SUB_ORDER_STATUSES, mockCourierRefused \} from '\.\/shipment\.service\.ts'/);
+    // Any other names may share the import; what matters is the list comes from shipment.service.
+    assert.match(read('services/manualOperations.service.ts'), /SHIPPABLE_SUB_ORDER_STATUSES[^}]*\} from '\.\/shipment\.service\.ts'/);
   });
 });
 

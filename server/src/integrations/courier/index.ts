@@ -7,11 +7,14 @@ import { SteadfastCourierAdapter } from './steadfast.ts';
 import { PathaoCourierAdapter } from './pathao.ts';
 import { RedxCourierAdapter } from './redx.ts';
 
+// WHY factories and not instances made at import: an adapter reads its credentials when it is built
+// (credentialStore.ts), and at import nothing saved at /admin/platform/integrations is loaded yet. A
+// new adapter per call picks up a saved or rotated key at once. The adapters hold no state.
 const adapters = {
-  MOCK: new MockCourierAdapter(),
-  STEADFAST: new SteadfastCourierAdapter(),
-  PATHAO: new PathaoCourierAdapter(),
-  REDX: new RedxCourierAdapter(),
+  MOCK: () => new MockCourierAdapter(),
+  STEADFAST: () => new SteadfastCourierAdapter(),
+  PATHAO: () => new PathaoCourierAdapter(),
+  REDX: () => new RedxCourierAdapter(),
 };
 
 /**
@@ -23,7 +26,7 @@ const adapters = {
  */
 export function getCourierAdapter(carrierKey: string = 'MOCK'): MockCourierAdapter|SteadfastCourierAdapter|PathaoCourierAdapter|RedxCourierAdapter {
   const normKey = String(carrierKey || '').trim().toUpperCase();
-  return adapters[normKey] || adapters.MOCK;
+  return (adapters[normKey] || adapters.MOCK)();
 }
 
 export { MockCourierAdapter, SteadfastCourierAdapter, PathaoCourierAdapter, RedxCourierAdapter };

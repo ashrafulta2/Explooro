@@ -3,6 +3,7 @@
  */
 
 import { isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.ts';
+import { credential } from '../credentialStore.ts';
 
 export class PathaoCourierAdapter {
   name: any;
@@ -12,9 +13,11 @@ export class PathaoCourierAdapter {
 
   constructor(config: Record<string, any> = {}) {
     this.name = 'PATHAO';
-    this.clientId = config.clientId || process.env.PATHAO_CLIENT_ID || 'mock_pathao_client';
-    this.clientSecret = config.clientSecret || process.env.PATHAO_CLIENT_SECRET || 'mock_pathao_secret';
-    this.webhookToken = secretOrDevDefault(config.webhookToken || process.env.PATHAO_WEBHOOK_TOKEN, 'mock_pathao_webhook_token', 'COURIER_DRIVER');
+    // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+    const cred = (field, envName) => credential('pathao_logistics', field, envName);
+    this.clientId = config.clientId || cred('client_id', 'PATHAO_CLIENT_ID') || 'mock_pathao_client';
+    this.clientSecret = config.clientSecret || cred('client_secret', 'PATHAO_CLIENT_SECRET') || 'mock_pathao_secret';
+    this.webhookToken = secretOrDevDefault(config.webhookToken || cred('webhook_token', 'PATHAO_WEBHOOK_TOKEN'), 'mock_pathao_webhook_token', 'COURIER_DRIVER');
   }
 
   async createConsignment({

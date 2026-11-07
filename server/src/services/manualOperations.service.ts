@@ -23,7 +23,7 @@ import { withTransaction } from '../config/db.ts';
 import * as settingRepo from '../repositories/setting.repository.ts';
 import * as walletRepo from '../repositories/wallet.repository.ts';
 import { settleDisbursedPayout } from './payout.service.ts';
-import { applyShipmentEvent, creditReferralOnDelivery, SHIPPABLE_SUB_ORDER_STATUSES, mockCourierRefused } from './shipment.service.ts';
+import { applyShipmentEvent, creditReferralOnDelivery, SHIPPABLE_SUB_ORDER_STATUSES, mockCourierRefused, courierPaused } from './shipment.service.ts';
 import { getCourierAdapter } from '../integrations/courier/index.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
@@ -101,7 +101,9 @@ export async function courierBookingAvailable(db, cache = null) {
   const { courier_mode } = await getModes(db, cache);
   if (courier_mode === 'MANUAL') return false;
   const adapter = getCourierAdapter(process.env.COURIER_DRIVER || 'MOCK');
-  return !(adapter.name === 'MOCK' && mockCourierRefused());
+  if (adapter.name === 'MOCK' && mockCourierRefused()) return false;
+  // A courier paused at /admin/platform/integrations books nothing new (migration 108).
+  return !courierPaused(adapter.name);
 }
 
 export async function getModes(db, cache, { fresh = false } = {}) {

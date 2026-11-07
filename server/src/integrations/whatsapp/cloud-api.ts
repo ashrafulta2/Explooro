@@ -2,10 +2,13 @@
  * cloud-api.ts — Meta WhatsApp Cloud API v20.0 Driver (Prompt 8.3).
  */
 
+import { credential } from '../credentialStore.ts';
+
 export function createCloudApiClient(config: Record<string, string | undefined> = {}) {
   const {
-    phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID,
-    accessToken = process.env.WHATSAPP_ACCESS_TOKEN,
+    // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+    phoneNumberId = credential('whatsapp_cloud', 'phone_number_id', 'WHATSAPP_PHONE_NUMBER_ID'),
+    accessToken = credential('whatsapp_cloud', 'access_token', 'WHATSAPP_ACCESS_TOKEN'),
     apiVersion = 'v20.0',
   } = config;
 

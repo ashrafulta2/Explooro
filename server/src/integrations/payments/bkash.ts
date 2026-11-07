@@ -12,6 +12,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.ts';
+import { credential } from '../credentialStore.ts';
 
 export class BkashPaymentDriver {
   appKey: any;
@@ -23,13 +24,15 @@ export class BkashPaymentDriver {
   isLive: any;
 
   constructor(config: Record<string, any> = {}) {
-    this.appKey = config.appKey || process.env.BKASH_APP_KEY || 'mock_app_key';
-    this.appSecret = config.appSecret || process.env.BKASH_APP_SECRET || 'mock_app_secret';
-    this.username = config.username || process.env.BKASH_USERNAME || 'mock_username';
-    this.password = config.password || process.env.BKASH_PASSWORD || 'mock_password';
-    this.baseUrl = config.baseUrl || process.env.BKASH_BASE_URL || 'https://tokenized.sandbox.bka.sh/v1.2.0-beta';
+    // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+    const cred = (field, envName) => credential('bkash_checkout', field, envName);
+    this.appKey = config.appKey || cred('app_key', 'BKASH_APP_KEY') || 'mock_app_key';
+    this.appSecret = config.appSecret || cred('app_secret', 'BKASH_APP_SECRET') || 'mock_app_secret';
+    this.username = config.username || cred('username', 'BKASH_USERNAME') || 'mock_username';
+    this.password = config.password || cred('password', 'BKASH_PASSWORD') || 'mock_password';
+    this.baseUrl = config.baseUrl || cred('base_url', 'BKASH_BASE_URL') || 'https://tokenized.sandbox.bka.sh/v1.2.0-beta';
     // WHY null in live mode: a repo-visible default secret would let anyone forge a signed webhook.
-    this.webhookSecret = secretOrDevDefault(config.webhookSecret || process.env.BKASH_WEBHOOK_SECRET, 'bkash_webhook_secret_key', 'PAYMENT_DRIVER');
+    this.webhookSecret = secretOrDevDefault(config.webhookSecret || cred('webhook_secret', 'BKASH_WEBHOOK_SECRET'), 'bkash_webhook_secret_key', 'PAYMENT_DRIVER');
     this.isLive = config.isLive || process.env.NODE_ENV === 'production';
   }
 

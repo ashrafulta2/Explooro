@@ -9,6 +9,7 @@
 
 import crypto from 'node:crypto';
 import { hmacHexMatches, isLive, safeEqual, secretOrDevDefault } from '../webhookSecurity.ts';
+import { credential } from '../credentialStore.ts';
 
 export class SteadfastCourierAdapter {
   name: any;
@@ -18,9 +19,14 @@ export class SteadfastCourierAdapter {
 
   constructor(config: Record<string, any> = {}) {
     this.name = 'STEADFAST';
-    this.apiKey = config.apiKey || process.env.STEADFAST_API_KEY || 'mock_steadfast_key';
+    // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+    this.apiKey = config.apiKey || credential('steadfast_courier', 'api_key', 'STEADFAST_API_KEY') || 'mock_steadfast_key';
     // WHY null in live mode: a repo-visible default would let anyone forge a signed delivery webhook.
-    this.secretKey = secretOrDevDefault(config.secretKey || process.env.STEADFAST_SECRET_KEY, 'mock_steadfast_secret', 'COURIER_DRIVER');
+    this.secretKey = secretOrDevDefault(
+      config.secretKey || credential('steadfast_courier', 'secret_key', 'STEADFAST_SECRET_KEY'),
+      'mock_steadfast_secret',
+      'COURIER_DRIVER'
+    );
     this.baseUrl = config.baseUrl || 'https://api.steadfast.com.bd/v1';
   }
 

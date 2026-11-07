@@ -3,6 +3,7 @@
  */
 
 import { isLive, safeEqual } from '../webhookSecurity.ts';
+import { credential } from '../credentialStore.ts';
 
 export class RedxCourierAdapter {
   name: any;
@@ -10,7 +11,8 @@ export class RedxCourierAdapter {
 
   constructor(config: Record<string, any> = {}) {
     this.name = 'REDX';
-    this.token = config.token || process.env.REDX_API_TOKEN || 'mock_redx_token';
+    // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+    this.token = config.token || credential('redx_delivery', 'api_token', 'REDX_API_TOKEN') || 'mock_redx_token';
   }
 
   async createConsignment({
@@ -91,7 +93,7 @@ export class RedxCourierAdapter {
     // WHY: this used to return true unconditionally. RedX publishes no signature scheme, so a shared
     // token header (REDX_WEBHOOK_TOKEN) is the strongest check available; live mode requires it.
     if (!isLive('COURIER_DRIVER')) return true;
-    const expected = process.env.REDX_WEBHOOK_TOKEN;
+    const expected = credential('redx_delivery', 'webhook_token', 'REDX_WEBHOOK_TOKEN');
     const got = headers?.['x-redx-token'] || headers?.authorization;
     if (!expected || !got) return false;
     return safeEqual(String(got).replace(/^Bearer\s+/i, ''), expected);

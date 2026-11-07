@@ -1,7 +1,8 @@
 /**
  * paymentMethods.service.ts — which ways to pay a shopper is offered right now.
  *
- * Two switches decide, and both must say yes:
+ * Three switches decide, and all must say yes (the third: the gateway is not paused at
+ * /admin/platform/integrations, migration 108):
  *   1. PAYMENT_DRIVER (integrations/payments onlineMethodsForDriver): can this deployment take money
  *      online at all, and through which gateways. `none` at launch.
  *   2. The payment modules at /admin/platform/modules: `mfs_payment` (with its bkash_enabled /
@@ -19,6 +20,8 @@
 import { onlineMethodsForDriver, ONLINE_METHODS } from '../integrations/payments/index.ts';
 import { isEnabled } from './module.service.ts';
 import * as moduleRepo from '../repositories/module.repository.ts';
+import { integrationForPaymentMethod } from '../config/integrations.ts';
+import { isIntegrationPaused } from '../integrations/credentialStore.ts';
 
 /** The MFS module's own switches, with the defaults its settings schema declares. */
 const MFS_SETTING = Object.freeze({ BKASH: ['bkash_enabled', true], NAGAD: ['nagad_enabled', true], ROCKET: ['rocket_enabled', false] });
@@ -53,6 +56,9 @@ export async function availableMethods(db, cache = null, context: Record<string,
 
   const online = ONLINE_METHODS.filter((m) => {
     if (!driverMethods.includes(m)) return false;
+    // Third switch: the gateway paused at /admin/platform/integrations (migration 108).
+    const gateway = integrationForPaymentMethod(m);
+    if (gateway && isIntegrationPaused(gateway.key)) return false;
     if (m === 'CARD') return cardOn === true;
     const [field, fallback] = MFS_SETTING[m];
     return mfsOn === true && (typeof mfsSettings[field] === 'boolean' ? mfsSettings[field] : fallback);

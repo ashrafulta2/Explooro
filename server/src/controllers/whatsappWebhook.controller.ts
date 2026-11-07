@@ -4,11 +4,14 @@
 
 import crypto from 'node:crypto';
 import * as service from '../services/whatsappCommerce.service.ts';
+import { credential } from '../integrations/credentialStore.ts';
 
 // WHY: outside production the mock driver needs a predictable token for local runs; in production a
 // guessable default would let anyone subscribe a hostile endpoint, so it must come from the env.
 function expectedVerifyToken(req) {
-  if (process.env.WHATSAPP_VERIFY_TOKEN) return process.env.WHATSAPP_VERIFY_TOKEN;
+  // A token saved at /admin/platform/integrations first, then .env (credentialStore.ts).
+  const configured = credential('whatsapp_cloud', 'verify_token', 'WHATSAPP_VERIFY_TOKEN');
+  if (configured) return configured;
   return req.server.config?.isProduction ? null : 'explooro_webhook_token';
 }
 
@@ -33,7 +36,7 @@ export async function verifyWebhook(req, reply) {
 }
 
 export async function handleWebhook(req, reply) {
-  const appSecret = process.env.WHATSAPP_APP_SECRET;
+  const appSecret = credential('whatsapp_cloud', 'app_secret', 'WHATSAPP_APP_SECRET');
   const signature = req.headers['x-hub-signature-256'];
 
   // WHY: fail closed. The old check ran only when a signature header was present, so an attacker

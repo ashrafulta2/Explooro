@@ -520,6 +520,22 @@ CREATE TABLE i18n_strings (
   updated_at          TIMESTAMPTZ,
   UNIQUE (namespace, key, locale)
 );
+
+-- Migration 108. Gateway credentials saved at /admin/platform/integrations, one row per service in
+-- server/src/config/integrations.ts. A driver reads a saved value first, then its .env variable
+-- (server/src/integrations/credentialStore.ts). No row = use .env, not paused.
+CREATE TABLE integration_settings (
+  integration_key       TEXT PRIMARY KEY CHECK (integration_key ~ '^[a-z0-9_]{2,64}$'),
+  is_enabled            BOOLEAN NOT NULL DEFAULT TRUE,     -- FALSE = paused (payments, couriers only)
+  credentials_encrypted TEXT,                              -- 🔐 field map as JSON, AES-256-GCM (PII_ENCRYPTION_KEY)
+  credential_hints      JSONB NOT NULL DEFAULT '{}',       -- non-secret values, secrets' last 4 chars; all the API returns
+  last_test_at          TIMESTAMPTZ,
+  last_test_ok          BOOLEAN,
+  last_test_message     TEXT,
+  updated_by            BIGINT REFERENCES users(id) ON DELETE SET NULL,
+  created_at            TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 ```
 
 ---
@@ -2164,6 +2180,8 @@ from 15 to 18 in Prompt 4.6: `product_questions`, `product_question_upvotes`, an
 `product_answers` (Product Q&A) were absent from every earlier draft of this ERD.
 
 Migration `080_community_posts.sql` (2026-10-18) adds three Engagement tables not yet counted above: `community_posts` (one table for review / update / idea / announcement posts, role-specific fields in `details` JSONB, `order_item_id` as the proof of purchase behind a verified review), `community_post_likes` and `community_post_reports` (one report per person per post). The table above was not re-counted. Migration `081_community_post_media.sql` adds `community_post_media` (post → files, in display order; `UNIQUE (media_id)` keeps a file on one post) and the `COMMUNITY` value of `media_assets.purpose`. Migration `082_community_comments.sql` adds `community_post_comments` (flat, status `PUBLISHED` / `REMOVED`, no hard delete), `083_community_post_saves.sql` adds `community_post_saves` (private, `PRIMARY KEY (post_id, user_id)`), and `084_community_notifications.sql` adds the `COMMUNITY` value to the `notification_templates` and `notification_preferences` category CHECKs plus six `COMMUNITY_*` templates.
+
+Migration `108_integration_settings.sql` (2026-11-07) adds one Platform Configuration table not counted above: `integration_settings` (§2), the encrypted gateway credentials and pause switches behind /admin/platform/integrations.
 
 ---
 

@@ -19,10 +19,32 @@ import * as referralService from './referral.service.ts';
 import * as reversePickupService from './reversePickup.service.ts';
 import { writeAudit } from '../lib/audit.ts';
 import { AppError } from '../plugins/errorHandler.ts';
+import { integrationForCarrier } from '../config/integrations.ts';
+import { isIntegrationPaused } from '../integrations/credentialStore.ts';
 
 /** True where the mock courier must not book a parcel: production, unless staging opted in. */
 export function mockCourierRefused(env = process.env) {
   return env.NODE_ENV === 'production' && env.ALLOW_MOCK_DRIVERS_IN_PRODUCTION !== 'true';
+}
+
+/** True when this carrier was paused at /admin/platform/integrations (migration 108). */
+export function courierPaused(carrier: string): boolean {
+  const def = integrationForCarrier(carrier);
+  return Boolean(def && isIntegrationPaused(def.key));
+}
+
+/**
+ * Refuses a NEW booking with a paused courier. Status updates for parcels already booked never come
+ * through here (applyShipmentEvent), so they keep flowing while it is paused.
+ */
+export function assertCourierNotPaused(carrier: string) {
+  if (!courierPaused(carrier)) return;
+  throw new AppError(
+    'CONFLICT',
+    `${carrier} is paused. Use "Sent by hand" or ask an admin to resume it.`,
+    `${carrier} পজ করা আছে। "হাতে পাঠিয়েছি" ব্যবহার করুন বা অ্যাডমিনকে চালু করতে বলুন।`,
+    { reason: 'COURIER_PAUSED', carrier }
+  );
 }
 
 /** Sub-order statuses a parcel can be handed over from (008_orders_minimal.sql). Shared with manualOperations.service. */
@@ -153,6 +175,8 @@ export async function createShipmentForSubOrder(db, {
       throw new AppError('CONFLICT', 'No courier API is connected. Use "Sent by hand" and type the courier\'s tracking number.',
         'কোনো কুরিয়ার API যুক্ত নেই। "হাতে পাঠিয়েছি" দিয়ে কুরিয়ারের ট্র্যাকিং নম্বর লিখুন।');
     }
+    // A courier paused at /admin/platform/integrations takes no new parcels (migration 108).
+    assertCourierNotPaused(adapter.name);
     const isCod = subOrder.payment_method === 'COD';
     const codAmount = isCod ? parseFloat(subOrder.total_amount) : 0.00;
 

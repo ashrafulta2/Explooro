@@ -19,6 +19,8 @@
 import { randomUUID } from 'node:crypto';
 import * as settingRepo from '../repositories/setting.repository.ts';
 import { getCourierAdapter } from '../integrations/courier/index.ts';
+import { integrationForCarrier } from '../config/integrations.ts';
+import { isIntegrationPaused } from '../integrations/credentialStore.ts';
 import { BD_DISTRICTS_BY_DIVISION } from '../config/bdDistricts.ts';
 import { normalizeBdPhone, isValidBdPhone } from './customerAddress.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
@@ -275,6 +277,17 @@ export async function bookReversePickup(txClient, {
 }) {
   if (kind !== 'RETURN' && kind !== 'WARRANTY') throw new Error(`INVALID_REVERSE_PICKUP_KIND: ${kind}`);
   const adapter = getCourierAdapter(process.env.COURIER_DRIVER || 'MOCK');
+  // WHY here too: courierBookingAvailable already says no for a paused courier, but a pause saved on
+  // another API node reaches this one only at its next credential reload (credentialStore.ts).
+  const pausedAs = integrationForCarrier(adapter.name);
+  if (pausedAs && isIntegrationPaused(pausedAs.key)) {
+    throw new AppError(
+      'CONFLICT',
+      `${adapter.name} is paused, so no pickup can be booked with it.`,
+      `${adapter.name} পজ করা আছে, তাই এতে পিকআপ বুক করা যাবে না।`,
+      { reason: 'COURIER_PAUSED', carrier: adapter.name }
+    );
+  }
   const ref = `REV-${parentRef}`;
 
   const booked = await adapter.createReturnPickup({

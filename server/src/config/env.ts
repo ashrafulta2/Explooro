@@ -55,6 +55,9 @@ const SCHEMA = [
   { key: 'REFRESH_TOKEN_TTL_DAYS', group: 'auth', required: false, type: 'number', default: 30 },
   { key: 'COOKIE_SECRET', group: 'auth', required: true, type: 'string', secret: true },
   { key: 'PII_ENCRYPTION_KEY', group: 'auth', required: true, type: 'string', secret: true },
+  // How often each API node reloads the gateway credentials saved at /admin/platform/integrations
+  // (integrations/credentialStore.ts). The node that saved reloads at once; the others within this.
+  { key: 'INTEGRATION_CREDENTIAL_REFRESH_SECONDS', group: 'auth', required: false, type: 'number', default: 60 },
   { key: 'ADMIN_IP_ALLOWLIST', group: 'auth', required: false, type: 'string', default: '' },
   { key: 'REQUIRE_2FA_FOR_STAFF', group: 'auth', required: false, type: 'boolean', default: true },
   // WHY: behind nginx / a load balancer every request arrives from the proxy's address, so req.ip
@@ -215,6 +218,7 @@ export function loadEnv(source = process.env) {
       refreshTokenTtlDays: grouped.auth?.REFRESH_TOKEN_TTL_DAYS,
       cookieSecret: grouped.auth?.COOKIE_SECRET,
       piiEncryptionKey: grouped.auth?.PII_ENCRYPTION_KEY,
+      integrationCredentialRefreshSeconds: grouped.auth?.INTEGRATION_CREDENTIAL_REFRESH_SECONDS,
       adminIpAllowlist: grouped.auth?.ADMIN_IP_ALLOWLIST,
       require2faForStaff: grouped.auth?.REQUIRE_2FA_FOR_STAFF,
     }),
