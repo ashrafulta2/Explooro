@@ -27,6 +27,8 @@ import { formatCurrency, formatNumber } from '../../services/format.ts';
 import { Skeleton } from '../ui/Skeleton.ts';
 import { renderFlyer, fillCaption, type FlyerContent, type FlyerItem } from '../../lib/flyerEngine.ts';
 import { zipBlob, type ZipEntry } from '../../lib/zip.ts';
+import { flyerDesignsApi } from '../../services/flyerDesigns.api.ts';
+import { getCurrentUser } from '../../services/session.ts';
 import {
   FORMATS, OCCASIONS, designAt, designCount, designKey, parseDesignKey, occasionById, paletteById,
   type DesignRef, type FormatId, type Occasion,
@@ -67,7 +69,6 @@ const GALLERY_PAGE = 24;
 // (~0.3-1 MB a PNG), and a partner's batch also asks the server for one tracked link per product.
 // 40 keeps a batch well inside a mid-range phone's memory and finishes in seconds.
 export const BULK_LIMIT = 40;
-const SAVED_LIMIT = 60;
 const SAVED = 'saved';
 
 export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Record<string, string> = {}) {
@@ -106,19 +107,59 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
   let observer: IntersectionObserver | null = null;
   let previewFrame = 0;
 
-  const savedKey = `flyer-studio.saved.${source.role}`;
-  let saved: string[] = readSaved();
+  // Saved designs live on the server (GET/PUT/DELETE /me/flyer-designs), so they follow the person
+  // across devices. This browser keeps a copy only so the Saved tab opens at once and still works
+  // offline; the server's answer replaces it as soon as it arrives.
+  const cacheKey = `flyer-studio.saved.u${getCurrentUser()?.id ?? 'anon'}`;
+  // Before sync existed (2026-11-07, same day) saves went to a per-role key; it is merged once.
+  const legacyKey = `flyer-studio.saved.${source.role}`;
+  let savedLimit = 60;
+  let saved: string[] = readCache(cacheKey);
+  let savePending = 0;
 
-  function readSaved(): string[] {
+  function readCache(key: string): string[] {
     try {
-      const raw = JSON.parse(localStorage.getItem(savedKey) || '[]');
-      return Array.isArray(raw) ? raw.filter((k) => parseDesignKey(k)).slice(0, SAVED_LIMIT) : [];
+      const raw = JSON.parse(localStorage.getItem(key) || '[]');
+      return Array.isArray(raw) ? raw.filter((k) => parseDesignKey(k)) : [];
     } catch {
       return [];
     }
   }
-  function writeSaved() {
-    try { localStorage.setItem(savedKey, JSON.stringify(saved)); } catch { /* private mode: keeps working for this visit */ }
+  function writeCache() {
+    try { localStorage.setItem(cacheKey, JSON.stringify(saved)); } catch { /* private mode: the server copy still holds */ }
+  }
+
+  /** Takes the server's list as the truth, dropping keys this build's library cannot draw. */
+  function applySaved(keys: string[], limit: number) {
+    saved = keys.filter((k) => parseDesignKey(k));
+    if (limit > 0) savedLimit = limit;
+    writeCache();
+    const countEl = container.querySelector('[data-ref="saved-count"]');
+    if (countEl) countEl.textContent = saved.length ? `(${formatNumber(saved.length)})` : '';
+    if (occasionId === SAVED) {
+      shown = Math.max(shown, GALLERY_PAGE);
+      renderGallery();
+    }
+    refreshPanel();
+  }
+
+  /**
+   * Loads the server list. Designs this browser saved before sync existed are sent up once (merge
+   * keeps what the server already had), then the old key is cleared so they are not sent again.
+   */
+  async function syncSaved() {
+    try {
+      const legacy = readCache(legacyKey);
+      const unsynced = [...new Set([...legacy, ...saved])];
+      const res = unsynced.length && legacy.length ? await flyerDesignsApi.merge(unsynced) : await flyerDesignsApi.list();
+      if (legacy.length) {
+        try { localStorage.removeItem(legacyKey); } catch { /* ignore */ }
+      }
+      // A save tapped while this was loading has its own answer coming; do not overwrite it.
+      if (!savePending) applySaved(res.keys, res.limit);
+    } catch {
+      // Offline or the module is off: keep the cached list; the next visit tries again.
+    }
   }
 
   const isBn = () => getLanguage() === 'bn';
@@ -638,25 +679,26 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
     select(next, true);
   }
 
-  function toggleSaved() {
+  /**
+   * Saves or unsaves the design on screen. The star flips at once (the list is updated here first);
+   * the server's answer then replaces the list, or the change is undone with a message if it failed.
+   */
+  async function toggleSaved() {
     const key = designKey(current);
-    const idx = saved.indexOf(key);
-    if (idx >= 0) {
-      saved.splice(idx, 1);
-      toast.success(t('flyer.unsaved'));
-    } else {
-      saved.unshift(key);
-      saved = saved.slice(0, SAVED_LIMIT);
-      toast.success(t('flyer.saved_toast'));
+    const before = saved.slice();
+    const removing = saved.includes(key);
+    applySaved(removing ? saved.filter((k) => k !== key) : [key, ...saved].slice(0, savedLimit), savedLimit);
+    savePending += 1;
+    try {
+      const res = removing ? await flyerDesignsApi.remove(key) : await flyerDesignsApi.save(key);
+      savePending -= 1;
+      if (!savePending) applySaved(res.keys, res.limit);
+      toast.success(t(removing ? 'flyer.unsaved' : 'flyer.saved_toast'));
+    } catch {
+      savePending -= 1;
+      applySaved(before, savedLimit);
+      toast.error(t('flyer.save_failed'));
     }
-    writeSaved();
-    const countEl = container.querySelector('[data-ref="saved-count"]');
-    if (countEl) countEl.textContent = saved.length ? `(${formatNumber(saved.length)})` : '';
-    if (occasionId === SAVED) {
-      shown = Math.max(shown, GALLERY_PAGE);
-      renderGallery();
-    }
-    refreshPanel();
   }
 
   function schedulePreview() {
@@ -910,6 +952,7 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
 
   const unsubscribeLang = subscribeLang(() => render());
   loadData();
+  syncSaved();
   root.append(container);
 
   return () => {

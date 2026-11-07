@@ -9121,6 +9121,7 @@
     "bulk_failed": "No image could be made. Check your connection and try again.",
     "bulk_done": "ZIP with {{count}} images is downloading. Post texts are in captions.txt.",
     "bulk_done_partial": "ZIP with {{count}} images is downloading; {{failed}} could not be made.",
-    "bulk_stopping": "Stopping after this image…"
+    "bulk_stopping": "Stopping after this image…",
+    "save_failed": "Could not save the design. Check your connection and try again."
   }
 }

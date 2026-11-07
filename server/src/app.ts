@@ -80,6 +80,7 @@ import growthAdminRoutes from './routes/growthAdmin.routes.ts';
 import teamPurchaseRoutes from './routes/teamPurchase.routes.ts';
 import cartRecoveryRoutes from './routes/cartRecovery.routes.ts';
 import socialKitRoutes from './routes/socialKit.routes.ts';
+import flyerDesignRoutes from './routes/flyerDesign.routes.ts';
 import liveStreamRoutes from './routes/liveStream.routes.ts';
 import communityPostRoutes from './routes/communityPost.routes.ts';
 import aiRoutes from './routes/ai.routes.ts';
@@ -275,6 +276,7 @@ export async function buildApp(overrides: Record<string, any> = {}) {
   await app.register(cartRecoveryRoutes, { prefix: '/api/v1' });
   await app.register(socialKitRoutes, { prefix: '/api/v1' });
   await app.register(socialKitRoutes); // Root registration for /s/:code
+  await app.register(flyerDesignRoutes, { prefix: '/api/v1' });
   await app.register(liveStreamRoutes, { prefix: '/api/v1' });
   await app.register(communityPostRoutes, { prefix: '/api/v1' });
   await app.register(aiRoutes, { prefix: '/api/v1' });

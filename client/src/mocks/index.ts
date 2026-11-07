@@ -25,6 +25,7 @@ import supplierFlashSaleHandlers from './handlers/supplierFlashSale.ts';
 import sampleKitHandlers from './handlers/sampleKit.ts';
 import payoutProtectionHandlers from './handlers/payoutProtection.ts';
 import salerHandlers from './handlers/saler.ts';
+import flyerDesignHandlers from './handlers/flyerDesigns.ts';
 import adminHandlers from './handlers/admin.ts';
 import moduleHandlers from './handlers/modules.ts';
 import pageAccessHandlers from './handlers/pageAccess.ts';
@@ -85,6 +86,7 @@ const handlers: (Omit<MockRoute, 'method'> & { method: string })[] = [
   ...sampleKitHandlers,
   ...payoutProtectionHandlers,
   ...salerHandlers,
+  ...flyerDesignHandlers,
   ...adminHandlers,
   ...moduleHandlers,
   ...pageAccessHandlers,
