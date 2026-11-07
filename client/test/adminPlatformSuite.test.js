@@ -74,7 +74,7 @@ test('Admin Platform Suite Integrity', async (t) => {
   await t.test('3. the integrations mock lists the server catalog, field for field', async () => {
     const { INTEGRATIONS } = await import('../../server/src/config/integrations.ts');
     const strip = (d) => ({
-      key: d.key, name: d.name, type: d.type, driver_env: d.driver_env, webhook_path: d.webhook_path,
+      key: d.key, name: d.name, type: d.type, driver_env: d.driver_env, webhook_path: d.webhook_path, live_driver: d.live_driver,
       pausable: d.pausable, category_en: d.category_en, category_bn: d.category_bn,
       description_en: d.description_en, description_bn: d.description_bn,
       pause_effect_en: d.pause_effect_en, pause_effect_bn: d.pause_effect_bn,

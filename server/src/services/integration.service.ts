@@ -12,17 +12,28 @@
  *  - A saved value overrides the .env variable; clearing it falls back to .env again.
  *  - SMS and WhatsApp cannot be paused (the catalog's `pausable`).
  *
- * WHY Test Connection makes no network call: none of these drivers has a harmless "ping" yet (the
- * courier adapters do not even call their APIs). It reports what is true and checkable now: which
- * driver this deployment runs, and whether every credential the live driver needs is set. It says so
- * in its message rather than inventing a latency.
+ * Test Connection, in order: the .env switch says off or mock → said so, nothing is called; a
+ * credential the live driver needs is missing → named; the live driver is not built yet (bKash,
+ * Nagad, SSLCommerz, the couriers: see LiveDriverState) → said so, because a network check would
+ * pass while checkout or booking still fails; otherwise the read-only probe in integrations/probes.ts
+ * is run against the provider and its real round trip is reported.
  */
 
 import { AppError } from '../plugins/errorHandler.ts';
 import { encryptField, decryptField } from '../lib/encryption.ts';
 import * as integrationRepo from '../repositories/integration.repository.ts';
-import { refreshIntegrationCredentials } from '../integrations/credentialStore.ts';
+import { refreshIntegrationCredentials, announceCredentialChange, storedCredential } from '../integrations/credentialStore.ts';
+import { PROBES, runProbe } from '../integrations/probes.ts';
 import { INTEGRATIONS, integrationByKey, driverModeOf, type IntegrationDef } from '../config/integrations.ts';
+
+/** Fallback when the caller passes no timeout; the live value is INTEGRATION_TEST_TIMEOUT_MS. */
+const DEFAULT_TEST_TIMEOUT_MS = 8000;
+
+/** After a write: reload here at once, then tell the other API nodes (credentialStore.ts). */
+async function propagate(db, cache, encryptionKey) {
+  await refreshIntegrationCredentials(db, encryptionKey);
+  await announceCredentialChange(cache);
+}
 
 /** Bounds for one credential value; a PEM private key is the longest thing pasted here. */
 export const VALUE_LIMITS = Object.freeze({ maxLength: 8192 });
@@ -114,6 +125,7 @@ function shapeIntegration(def: IntegrationDef, row, { env, publicApiUrl }) {
     description_bn: def.description_bn,
     driver_env: def.driver_env,
     driver_mode: mode,
+    live_driver: def.live_driver,
     is_enabled: row ? row.is_enabled !== false : true,
     pausable: def.pausable,
     pause_effect_en: def.pause_effect_en,
@@ -143,7 +155,7 @@ export async function listIntegrations(
 
   let webhooks = { total: 0, valid: 0 };
   try {
-    webhooks = await integrationRepo.countPaymentWebhooksSince(db, 24);
+    webhooks = await integrationRepo.countWebhooksSince(db, 24);
   } catch {
     // The figure is optional; the cards are the page.
   }
@@ -157,8 +169,10 @@ export async function listIntegrations(
       mock: count((i) => i.driver_mode === 'MOCK'),
       off: count((i) => i.driver_mode === 'OFF'),
       paused: count((i) => !i.is_enabled),
-      // A live service missing a credential its driver needs: the one thing to fix first.
-      needs_attention: count((i) => i.driver_mode === 'LIVE' && i.missing_required.length > 0),
+      // Switched to live but cannot work: a credential is missing, or the live driver is not built.
+      needs_attention: count(
+        (i) => i.driver_mode === 'LIVE' && (i.missing_required.length > 0 || i.live_driver === 'NOT_BUILT')
+      ),
       webhooks_24h: webhooks.total,
       webhooks_24h_valid: webhooks.valid,
     },
@@ -252,6 +266,7 @@ export async function updateCredentials(
     actorRole = null,
     reqContext = {},
     encryptionKey,
+    cache = null,
     env = process.env,
     publicApiUrl = process.env.PUBLIC_API_URL,
   }: Record<string, any>
@@ -259,6 +274,19 @@ export async function updateCredentials(
   const def = requireDef(key);
   const why = requireReason(reason);
   const { set, cleared } = validateValues(def, values, clear);
+  // A saved SMS token is allowed to be the only one (no SMS_API_KEY in .env, config/env.ts no longer
+  // demands it). Removing it then would leave no token at all and stop every sign-in code.
+  for (const k of cleared) {
+    const f = def.fields.find((x) => x.key === k);
+    if (f?.lockout_guard && driverModeOf(def, env) === 'LIVE' && !env[f.env]) {
+      throw new AppError(
+        'CONFLICT',
+        `${f.label_en} cannot be removed: ${def.driver_env} is live and ${f.env} is not set in .env. Type a new value instead.`,
+        `${f.label_bn} মোছা যাবে না: ${def.driver_env} লাইভ এবং .env এ ${f.env} নেই। এর বদলে নতুন মান লিখুন।`,
+        { reason: 'LOCKOUT_GUARD', field: k }
+      );
+    }
+  }
   if (!encryptionKey) {
     throw new AppError('INTERNAL_ERROR', 'PII_ENCRYPTION_KEY is not configured.', 'PII_ENCRYPTION_KEY সেট করা নেই।');
   }
@@ -306,7 +334,7 @@ export async function updateCredentials(
     return { before: prior, after: saved, unreadable: !readable };
   });
 
-  await refreshIntegrationCredentials(db, encryptionKey);
+  await propagate(db, cache, encryptionKey);
   return {
     integration: shapeIntegration(def, after, { env, publicApiUrl }),
     previous_credentials_unreadable: unreadable,
@@ -326,6 +354,7 @@ export async function setEnabled(
     actorRole = null,
     reqContext = {},
     encryptionKey,
+    cache = null,
     env = process.env,
     publicApiUrl = process.env.PUBLIC_API_URL,
   }: Record<string, any>
@@ -368,13 +397,13 @@ export async function setEnabled(
     return saved;
   });
 
-  await refreshIntegrationCredentials(db, encryptionKey);
+  await propagate(db, cache, encryptionKey);
   return { integration: shapeIntegration(def, after, { env, publicApiUrl }) };
 }
 
 /**
- * Checks what can be checked without calling the provider (see the file header) and stores the
- * result so the card shows it after a reload.
+ * Test Connection (order in the file header). Stores the result so the card shows it after a reload.
+ * `probes` and `fetchImpl` are injectable so the tests never reach a real provider.
  */
 export async function testIntegration(
   db,
@@ -386,6 +415,9 @@ export async function testIntegration(
     reqContext = {},
     env = process.env,
     publicApiUrl = process.env.PUBLIC_API_URL,
+    timeoutMs = DEFAULT_TEST_TIMEOUT_MS,
+    probes = PROBES,
+    fetchImpl = undefined,
   }: Record<string, any>
 ) {
   const def = requireDef(key);
@@ -402,6 +434,8 @@ export async function testIntegration(
   let ok: boolean;
   let message_en: string;
   let message_bn: string;
+  let latencyMs: number | null = null;
+  let probed = false;
   if (shaped.driver_mode === 'OFF') {
     ok = false;
     message_en = `Switched off for this deployment (${def.driver_env}=none).`;
@@ -414,10 +448,24 @@ export async function testIntegration(
     ok = false;
     message_en = `Missing: ${missingNames}. The live driver cannot work without them.`;
     message_bn = `নেই: ${missingNames}। এগুলো ছাড়া লাইভ ড্রাইভার কাজ করবে না।`;
+  } else if (def.live_driver === 'NOT_BUILT' || !probes[def.key]) {
+    // WHY a failure and not a pass: the credentials are fine, but with this driver live a shopper's
+    // payment or a parcel booking would still fail (or be invented), so the setup is not working.
+    ok = false;
+    const effect_en = def.type === 'PAYMENTS' ? 'no payment can be taken' : 'parcels are not really booked';
+    const effect_bn = def.type === 'PAYMENTS' ? 'কোনো পেমেন্ট নেওয়া যাবে না' : 'পার্সেল আসলে বুক হবে না';
+    message_en = `Credentials are set, but the live ${def.name} driver is not built yet, so ${effect_en}. Keep ${def.driver_env} on mock or none until it is.`;
+    message_bn = `ক্রেডেনশিয়াল সেট আছে, কিন্তু ${def.name} এর লাইভ ড্রাইভার এখনো তৈরি হয়নি, তাই ${effect_bn}। তৈরি না হওয়া পর্যন্ত ${def.driver_env} mock বা none রাখুন।`;
   } else {
-    ok = true;
-    message_en = 'Every credential the live driver needs is set. No live call is made from here yet.';
-    message_bn = 'লাইভ ড্রাইভারের সব ক্রেডেনশিয়াল সেট আছে। এখান থেকে এখনো লাইভ কল করা হয় না।';
+    // The same credentials the driver would use: saved here, else .env.
+    const creds = Object.fromEntries(def.fields.map((f) => [f.key, storedCredential(def.key, f.key) ?? env[f.env]]));
+    const result = await runProbe(probes[def.key], creds, { timeoutMs, fetchImpl });
+    probed = true;
+    ok = result.ok;
+    latencyMs = result.latency_ms;
+    const took = latencyMs === null ? '' : ` (${latencyMs} ms)`;
+    message_en = `${result.detail}${took}`;
+    message_bn = `${result.ok ? 'প্রোভাইডার সাড়া দিয়েছে' : 'প্রোভাইডার পরীক্ষায় ব্যর্থ'}: ${result.detail}${took}`;
   }
   if (!shaped.is_enabled) {
     message_en += ' It is paused.';
@@ -433,7 +481,7 @@ export async function testIntegration(
         targetType: 'integration_settings',
         targetRef: def.key,
         beforeJson: row?.last_test_at ? { last_test_ok: row.last_test_ok, last_test_at: row.last_test_at } : null,
-        afterJson: { last_test_ok: ok, driver_mode: shaped.driver_mode, missing: missing.map((f) => f.key) },
+        afterJson: { last_test_ok: ok, driver_mode: shaped.driver_mode, probed, latency_ms: latencyMs, missing: missing.map((f) => f.key) },
         riskTier: 'LOW',
         ...auditContext({ userId, actorRole, reqContext }),
       });
@@ -445,6 +493,9 @@ export async function testIntegration(
   return {
     ok,
     driver_mode: shaped.driver_mode,
+    probed,
+    // Only a real round trip to the provider has a latency; every other outcome reports null.
+    latency_ms: latencyMs,
     missing: missing.map((f) => f.key),
     message_en,
     message_bn,
@@ -456,8 +507,42 @@ export async function listWebhookLogs(db, { limit }: { limit?: unknown } = {}) {
   const n = Number.parseInt(String(limit ?? ''), 10);
   const bounded = Number.isFinite(n) ? Math.min(LOG_LIMITS.max, Math.max(LOG_LIMITS.min, n)) : LOG_LIMITS.fallback;
   try {
-    return { logs: await integrationRepo.listRecentPaymentWebhooks(db, { limit: bounded }) };
+    return { logs: await integrationRepo.listRecentWebhooks(db, { limit: bounded }) };
   } catch {
     return { logs: [] };
+  }
+}
+
+/** What became of one courier webhook, for courier_webhook_events (migration 109). Pure. */
+export function classifyCourierWebhook({ result = null, error = null }: { result?: any; error?: any } = {}) {
+  if (error) {
+    const message = String(error?.message ?? error).slice(0, 300);
+    const rejected = message.startsWith('INVALID_WEBHOOK_SIGNATURE');
+    return { result: rejected ? 'REJECTED' : 'ERROR', signatureValid: !rejected, message };
+  }
+  // A reverse pickup is checked first in handleCourierWebhook, and may also be a duplicate.
+  if (result?.reversePickup) return { result: 'REVERSE_PICKUP', signatureValid: true, message: result.currentStatus ?? null };
+  if (result?.duplicate) return { result: 'DUPLICATE', signatureValid: true, message: null };
+  if (result?.unmatched) return { result: 'UNMATCHED', signatureValid: true, message: String(result.message ?? '').slice(0, 300) || null };
+  return { result: 'PROCESSED', signatureValid: true, message: result?.currentStatus ?? null };
+}
+
+/**
+ * Logs one courier webhook. Never throws: the log must not change what the courier is answered.
+ * The carrier and event id come from the request, so both are bounded before storing.
+ */
+export async function recordCourierWebhook(db, { carrier, payload = {}, result = null, error = null, log = null }: Record<string, any>) {
+  try {
+    const outcome = classifyCourierWebhook({ result, error });
+    const rawId = result?.event?.eventId ?? payload?.id ?? payload?.event_id ?? null;
+    await integrationRepo.insertCourierWebhookEvent(db, {
+      carrier: String(carrier || 'UNKNOWN').toUpperCase().slice(0, 40),
+      providerEventId: rawId === null || rawId === undefined ? null : String(rawId).slice(0, 100),
+      signatureValid: outcome.signatureValid,
+      result: outcome.result,
+      message: outcome.message,
+    });
+  } catch (err) {
+    log?.warn?.({ err: err?.message }, 'courier webhook not logged');
   }
 }

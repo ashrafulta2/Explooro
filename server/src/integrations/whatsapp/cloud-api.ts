@@ -4,6 +4,24 @@
 
 import { credential } from '../credentialStore.ts';
 
+/**
+ * Test Connection (integration.service.ts): reads the phone number's own record from the Graph
+ * API. It sends no message, so it is safe to run at any time, and it fails exactly when sending
+ * would: a wrong number ID or a token without access to it.
+ */
+export async function probePhoneNumber(
+  { phoneNumberId, accessToken, apiVersion = 'v20.0' }: { phoneNumberId?: string; accessToken?: string; apiVersion?: string },
+  { fetchImpl = fetch, signal }: { fetchImpl?: typeof fetch; signal?: AbortSignal } = {}
+) {
+  const url = `https://graph.facebook.com/${apiVersion}/${encodeURIComponent(phoneNumberId ?? '')}?fields=display_phone_number,verified_name`;
+  const res = await fetchImpl(url, { headers: { Authorization: `Bearer ${accessToken ?? ''}` }, signal });
+  const body: any = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { ok: false, detail: `Meta answered HTTP ${res.status}: ${String(body?.error?.message ?? 'no detail').slice(0, 160)}` };
+  }
+  return { ok: true, detail: `Meta knows this number (${body?.display_phone_number ?? phoneNumberId}).` };
+}
+
 export function createCloudApiClient(config: Record<string, string | undefined> = {}) {
   const {
     // A value saved at /admin/platform/integrations first, then .env (credentialStore.ts).

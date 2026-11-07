@@ -30,7 +30,21 @@ export interface IntegrationField {
   secret: boolean;
   /** Needed for the live driver to work; Test Connection reports a missing one. */
   required: boolean;
+  /**
+   * Clearing the saved value is refused while the service runs live and .env has no fallback,
+   * because losing it locks everyone out (the SMS token: no sign-in code could be sent).
+   */
+  lockout_guard?: boolean;
 }
+
+/**
+ * Whether the driver's live code really talks to the provider.
+ * WHY this exists: the bKash, Nagad and SSLCommerz drivers throw in live mode and the courier
+ * adapters invent tracking numbers without calling any API. Saving their credentials is still
+ * useful (they are ready when the driver is written), but the page and Test Connection must say
+ * that switching the .env driver to live would not work yet.
+ */
+export type LiveDriverState = 'READY' | 'NOT_BUILT';
 
 export interface IntegrationDef {
   key: string;
@@ -44,6 +58,8 @@ export interface IntegrationDef {
   driver_env: string;
   /** Values of driver_env that mean this service runs live. Empty: any value except mock/none. */
   live_values: string[];
+  /** See LiveDriverState. READY services also have a read-only probe in integrations/probes.ts. */
+  live_driver: LiveDriverState;
   /** Path (under the API's public URL) the provider must be told to send webhooks to. */
   webhook_path: string | null;
   /**
@@ -60,13 +76,14 @@ export interface IntegrationDef {
   fields: IntegrationField[];
 }
 
-const field = (key, env, label_en, label_bn, { secret = false, required = true } = {}): IntegrationField => ({
+const field = (key, env, label_en, label_bn, { secret = false, required = true, lockout_guard = false } = {}): IntegrationField => ({
   key,
   env,
   label_en,
   label_bn,
   secret,
   required,
+  ...(lockout_guard ? { lockout_guard: true } : {}),
 });
 
 const PAYMENT_PAUSE_EN = 'Shoppers are no longer offered this way to pay. Payments already started still finish.';
@@ -85,6 +102,7 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'ক্রেতারা বিকাশ অ্যাকাউন্ট দিয়ে অর্ডার ও ভল্ট টপ-আপের পেমেন্ট করেন।',
     driver_env: 'PAYMENT_DRIVER',
     live_values: [],
+    live_driver: 'NOT_BUILT',
     webhook_path: '/api/v1/payments/webhook/bkash',
     pausable: true,
     pause_effect_en: PAYMENT_PAUSE_EN,
@@ -109,6 +127,7 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'ক্রেতারা নগদ অ্যাকাউন্ট দিয়ে অর্ডার ও ভল্ট টপ-আপের পেমেন্ট করেন।',
     driver_env: 'PAYMENT_DRIVER',
     live_values: [],
+    live_driver: 'NOT_BUILT',
     webhook_path: '/api/v1/payments/webhook/nagad',
     pausable: true,
     pause_effect_en: PAYMENT_PAUSE_EN,
@@ -132,6 +151,7 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'SSLCommerz এর মাধ্যমে ভিসা, মাস্টারকার্ড, অ্যামেক্স ও ইন্টারনেট ব্যাংকিং পেমেন্ট।',
     driver_env: 'PAYMENT_DRIVER',
     live_values: [],
+    live_driver: 'NOT_BUILT',
     webhook_path: '/api/v1/payments/webhook/sslcommerz',
     pausable: true,
     pause_effect_en: PAYMENT_PAUSE_EN,
@@ -152,6 +172,7 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'স্টেডফাস্টে পার্সেল ও রিটার্ন পিকআপ বুক করে এবং ডেলিভারির আপডেট পায়।',
     driver_env: 'COURIER_DRIVER',
     live_values: [],
+    live_driver: 'NOT_BUILT',
     webhook_path: '/api/v1/webhooks/courier/steadfast',
     pausable: true,
     pause_effect_en: COURIER_PAUSE_EN,
@@ -172,6 +193,7 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'পাঠাওতে পার্সেল ও রিটার্ন পিকআপ বুক করে এবং ডেলিভারির আপডেট পায়।',
     driver_env: 'COURIER_DRIVER',
     live_values: [],
+    live_driver: 'NOT_BUILT',
     webhook_path: '/api/v1/webhooks/courier/pathao',
     pausable: true,
     pause_effect_en: COURIER_PAUSE_EN,
@@ -193,6 +215,7 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'রেডএক্সে পার্সেল ও রিটার্ন পিকআপ বুক করে এবং ডেলিভারির আপডেট পায়।',
     driver_env: 'COURIER_DRIVER',
     live_values: [],
+    live_driver: 'NOT_BUILT',
     webhook_path: '/api/v1/webhooks/courier/redx',
     pausable: true,
     pause_effect_en: COURIER_PAUSE_EN,
@@ -213,12 +236,13 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'এসএমএসে সাইন-ইন কোড ও অর্ডারের আপডেট পাঠায়।',
     driver_env: 'SMS_DRIVER',
     live_values: ['greenweb'],
+    live_driver: 'READY',
     webhook_path: null,
     pausable: false,
     pause_effect_en: 'Cannot be paused here: sign-in codes go out by SMS.',
     pause_effect_bn: 'এখান থেকে পজ করা যায় না: সাইন-ইন কোড এসএমএসে যায়।',
     fields: [
-      field('api_key', 'SMS_API_KEY', 'API token', 'API টোকেন', { secret: true }),
+      field('api_key', 'SMS_API_KEY', 'API token', 'API টোকেন', { secret: true, lockout_guard: true }),
       field('sender_id', 'SMS_SENDER_ID', 'Sender ID', 'সেন্ডার আইডি', { required: false }),
     ],
   },
@@ -232,6 +256,7 @@ export const INTEGRATIONS: readonly IntegrationDef[] = Object.freeze([
     description_bn: 'হোয়াটসঅ্যাপে অর্ডারের মেসেজ পাঠায় এবং ক্রেতার উত্তর গ্রহণ করে।',
     driver_env: 'WHATSAPP_DRIVER',
     live_values: ['cloud_api'],
+    live_driver: 'READY',
     webhook_path: '/api/v1/integrations/whatsapp/webhook',
     pausable: false,
     pause_effect_en: 'Switch it off with WHATSAPP_DRIVER; messages already queued would otherwise be lost.',

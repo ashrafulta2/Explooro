@@ -14,6 +14,8 @@ function optionsOf(req) {
   return {
     encryptionKey: config?.auth?.piiEncryptionKey ?? process.env.PII_ENCRYPTION_KEY,
     publicApiUrl: config?.core?.publicApiUrl ?? process.env.PUBLIC_API_URL,
+    // Carries the "credentials changed" message to the other API nodes (credentialStore.ts).
+    cache: req.cache || req.server?.cache || null,
   };
 }
 
@@ -64,9 +66,11 @@ export async function setStatus(req, reply) {
 
 export async function testIntegration(req, reply) {
   const { publicApiUrl } = optionsOf(req);
+  const timeoutMs = req.server?.config?.auth?.integrationTestTimeoutMs;
   const result = await integrationService.testIntegration(dbOf(req), auditService, {
     key: req.params.key,
     publicApiUrl,
+    ...(timeoutMs ? { timeoutMs } : {}),
     ...actorOf(req),
   });
   return reply.send(result);

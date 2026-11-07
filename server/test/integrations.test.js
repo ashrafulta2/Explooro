@@ -84,7 +84,7 @@ function createMockDb() {
         return { rows: [{ ...row }] };
       }
       if (q.includes('FROM payment_webhook_events') && q.includes('COUNT(*)')) return { rows: [{ total: 3, valid: 2 }] };
-      if (q.includes('FROM payment_webhook_events')) return { rows: [{ id: 1, gateway: 'BKASH', provider_event_id: 'e1', signature_valid: true }] };
+      if (q.includes('FROM payment_webhook_events')) return { rows: [{ kind: 'PAYMENT', id: 1, source: 'BKASH', provider_event_id: 'e1', signature_valid: true, result: 'PROCESSED' }] };
       if (q.startsWith('INSERT INTO audit_logs')) {
         audits.push({ action: params[2], before: params[5], after: params[6], risk: params[8] });
         return { rows: [{ id: audits.length }] };
@@ -335,16 +335,192 @@ describe('6. Test Connection', () => {
     assert.ok(r.missing.includes('app_secret'));
     assert.match(r.message_en, /BKASH_APP_SECRET/);
 
+    // Every credential set, but the live SSLCommerz driver throws: a failure, not a pass, and no
+    // network call is made, so no latency.
     const fullEnv = { PAYMENT_DRIVER: 'live' };
     for (const f of integrationByKey('sslcommerz_cards').fields) fullEnv[f.env] = 'value-long-enough-1234';
-    r = await service.testIntegration(db, fakeAudit(audits), { key: 'sslcommerz_cards', env: fullEnv });
-    assert.equal(r.ok, true);
-    assert.match(r.message_en, /No live call/);
-    assert.equal('latency_ms' in r, false, 'no invented latency');
+    let called = 0;
+    r = await service.testIntegration(db, fakeAudit(audits), {
+      key: 'sslcommerz_cards', env: fullEnv, fetchImpl: async () => { called += 1; return new Response('{}'); },
+    });
+    assert.equal(r.ok, false);
+    assert.match(r.message_en, /not built yet/);
+    assert.equal(r.probed, false);
+    assert.equal(r.latency_ms, null, 'no invented latency');
+    assert.equal(called, 0, 'nothing is called for a driver that is not built');
 
-    assert.equal(db.rows.get('sslcommerz_cards').last_test_ok, true);
+    assert.equal(db.rows.get('sslcommerz_cards').last_test_ok, false);
     assert.equal(audits.length, 4);
     assert.ok(audits.every((a) => a.action === 'platform.integration.test'));
+  });
+
+  test('only Greenweb and WhatsApp claim a working live driver, and both have a probe', async () => {
+    const { PROBES } = await import('../src/integrations/probes.ts');
+    const ready = INTEGRATIONS.filter((d) => d.live_driver === 'READY').map((d) => d.key).sort();
+    assert.deepEqual(ready, ['greenweb_sms', 'whatsapp_cloud']);
+    assert.deepEqual(Object.keys(PROBES).sort(), ready);
+    // The drivers marked NOT_BUILT really are placeholders; when one is written, flip it to READY.
+    assert.match(read('server/src/integrations/payments/bkash.ts'), /BKASH_LIVE_CREDENTIALS_REQUIRED/);
+    assert.match(read('server/src/integrations/payments/nagad.ts'), /NAGAD_LIVE_CREDENTIALS_REQUIRED/);
+    assert.match(read('server/src/integrations/payments/sslcommerz.ts'), /SSLCOMMERZ_LIVE_CREDENTIALS_REQUIRED/);
+    for (const c of ['steadfast', 'pathao', 'redx']) {
+      assert.doesNotMatch(read(`server/src/integrations/courier/${c}.ts`), /fetch\(/, `${c} still makes no API call`);
+    }
+  });
+
+  test('a live WhatsApp check calls Meta with the saved token and reports a real round trip', async () => {
+    const db = createMockDb();
+    await service.updateCredentials(db, fakeAudit([]), {
+      key: 'whatsapp_cloud', values: { access_token: 'saved-meta-token-123456' }, reason: 'Save the Meta token', encryptionKey: KEY,
+    });
+    const seen = [];
+    const env = { WHATSAPP_DRIVER: 'cloud_api', WHATSAPP_PHONE_NUMBER_ID: '1055', WHATSAPP_APP_SECRET: 's', WHATSAPP_VERIFY_TOKEN: 'v' };
+    const okFetch = async (url, init) => {
+      seen.push({ url: String(url), auth: init.headers.Authorization });
+      return new Response(JSON.stringify({ display_phone_number: '+880 1700-000000' }), { status: 200 });
+    };
+    let r = await service.testIntegration(db, fakeAudit([]), { key: 'whatsapp_cloud', env, fetchImpl: okFetch });
+    assert.equal(r.ok, true, r.message_en);
+    assert.equal(r.probed, true);
+    assert.equal(typeof r.latency_ms, 'number');
+    assert.match(seen[0].url, /graph\.facebook\.com\/v20\.0\/1055\?/);
+    assert.equal(seen[0].auth, 'Bearer saved-meta-token-123456', 'the saved token wins over .env');
+
+    const denied = async () => new Response(JSON.stringify({ error: { message: 'Invalid OAuth access token' } }), { status: 401 });
+    r = await service.testIntegration(db, fakeAudit([]), { key: 'whatsapp_cloud', env, fetchImpl: denied });
+    assert.equal(r.ok, false);
+    assert.match(r.message_en, /HTTP 401: Invalid OAuth/);
+
+    const hang = (_url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(new Error('aborted'))));
+    r = await service.testIntegration(db, fakeAudit([]), { key: 'whatsapp_cloud', env, fetchImpl: hang, timeoutMs: 30 });
+    assert.equal(r.ok, false);
+    assert.match(r.message_en, /No answer within 30 ms/);
+    assert.equal(r.latency_ms, null);
+  });
+
+  test('the Greenweb check posts the token (never in the URL) and reads the balance', async () => {
+    const { probeBalance } = await import('../src/integrations/sms/greenweb.ts');
+    let seen;
+    const reply = (text, status = 200) => async (url, init) => {
+      seen = { url: String(url), body: String(init.body) };
+      return new Response(text, { status });
+    };
+    let r = await probeBalance({ apiKey: 'tok-1' }, { fetchImpl: reply('{"balance":"152.40"}') });
+    assert.equal(r.ok, true);
+    assert.match(r.detail, /152\.40/);
+    assert.ok(!seen.url.includes('tok-1'), 'token is not in the URL');
+    assert.match(seen.body, /token=tok-1/);
+    assert.equal((await probeBalance({ apiKey: 'x' }, { fetchImpl: reply('Invalid Token') })).ok, false);
+    assert.equal((await probeBalance({ apiKey: 'x' }, { fetchImpl: reply('ok') })).ok, false, 'no number, no pass');
+    assert.equal((await probeBalance({ apiKey: 'x' }, { fetchImpl: reply('{"balance":1}', 500) })).ok, false);
+  });
+
+  test('a live service whose driver is not built counts as needing attention', async () => {
+    const res = await service.listIntegrations(createMockDb(), { env: { PAYMENT_DRIVER: 'live', COURIER_DRIVER: 'mock' } });
+    assert.equal(res.metrics.needs_attention, 3, 'bKash, Nagad, SSLCommerz');
+  });
+});
+
+describe('8. the SMS token may live only in the database', () => {
+  test('config/env.ts no longer demands SMS_API_KEY; the boot check sees a saved token', async () => {
+    const { loadEnv } = await import('../src/config/env.ts');
+    const { smsTokenProblem } = await import('../src/integrations/sms/index.ts');
+    const base = {
+      NODE_ENV: 'development', PORT: '5000', HOST: '0.0.0.0', PUBLIC_WEB_URL: 'https://x.test',
+      DATABASE_URL: 'postgres://u:p@h/db', CACHE_DRIVER: 'memory', JWT_SECRET: 'j', COOKIE_SECRET: 'c',
+      PII_ENCRYPTION_KEY: KEY, LOG_LEVEL: 'info', SMS_DRIVER: 'greenweb',
+    };
+    const config = loadEnv(base);
+    assert.match(smsTokenProblem(config), /no SMS token/);
+
+    await service.updateCredentials(createMockDb(), fakeAudit([]), {
+      key: 'greenweb_sms', values: { api_key: 'greenweb-token-99887766' }, reason: 'Token only in the database', encryptionKey: KEY,
+    });
+    assert.equal(smsTokenProblem(config), null);
+    assert.equal(smsTokenProblem(loadEnv({ ...base, SMS_DRIVER: 'mock' })), null);
+  });
+
+  test('the last SMS token cannot be removed while SMS is live without a .env fallback', async () => {
+    const db = createMockDb();
+    const save = { key: 'greenweb_sms', values: { api_key: 'greenweb-token-99887766' }, reason: 'Save the Greenweb token', encryptionKey: KEY };
+    await service.updateCredentials(db, fakeAudit([]), save);
+    const clear = { key: 'greenweb_sms', clear: ['api_key'], reason: 'Remove the saved token', encryptionKey: KEY };
+    await assert.rejects(
+      service.updateCredentials(db, fakeAudit([]), { ...clear, env: { SMS_DRIVER: 'greenweb' } }),
+      (e) => e.code === 'CONFLICT' && e.details?.reason === 'LOCKOUT_GUARD'
+    );
+    assert.equal(store.storedCredential('greenweb_sms', 'api_key'), 'greenweb-token-99887766', 'still there');
+    // With a .env fallback, or with SMS on mock, removing it is fine.
+    await service.updateCredentials(db, fakeAudit([]), { ...clear, env: { SMS_DRIVER: 'greenweb', SMS_API_KEY: 'env-token' } });
+    assert.equal(store.storedCredential('greenweb_sms', 'api_key'), undefined);
+  });
+});
+
+describe('9. a save reaches every API node at once', () => {
+  test('the saving node publishes; a subscribed node reloads without waiting for its interval', async () => {
+    const { createMemoryCache } = await import('../src/config/cache-drivers/memory.ts');
+    const cache = createMemoryCache();
+    const published = [];
+    const origPublish = cache.publish.bind(cache);
+    cache.publish = async (ch, msg) => { published.push(ch); return origPublish(ch, msg); };
+
+    // "Another node": its own view of the database, subscribed through the shared cache.
+    const db = createMockDb();
+    await store.startCredentialRefresh(db, KEY, null, 3600, cache);
+    assert.equal(store.storedCredential('pathao_logistics', 'client_id'), undefined);
+
+    // Simulate a save made elsewhere: the row changes in the database, then the change is announced.
+    const other = createMockDb();
+    await service.updateCredentials(other, fakeAudit([]), {
+      key: 'pathao_logistics', values: { client_id: 'pathao-client-1' }, reason: 'Save on another node', encryptionKey: KEY, cache,
+    });
+    db.rows.set('pathao_logistics', other.rows.get('pathao_logistics'));
+    store.applyIntegrationRows([], KEY); // forget, as a node that never saw the save would
+    await store.announceCredentialChange(cache);
+    await new Promise((r) => setTimeout(r, 20));
+
+    assert.ok(published.includes(store.CHANGE_CHANNEL), 'the save announced itself');
+    assert.equal(store.storedCredential('pathao_logistics', 'client_id'), 'pathao-client-1', 'reloaded on the message');
+    store.stopCredentialRefresh();
+    await cache.quit();
+  });
+});
+
+describe('10. courier webhooks are logged whatever became of them', () => {
+  test('classification', () => {
+    const c = service.classifyCourierWebhook;
+    assert.deepEqual(c({ error: new Error('INVALID_WEBHOOK_SIGNATURE: bad') }).result, 'REJECTED');
+    assert.equal(c({ error: new Error('INVALID_WEBHOOK_SIGNATURE: bad') }).signatureValid, false);
+    assert.equal(c({ error: new Error('MISSING_IDENTIFIER: x') }).result, 'ERROR');
+    assert.equal(c({ result: { reversePickup: true, duplicate: true } }).result, 'REVERSE_PICKUP');
+    assert.equal(c({ result: { duplicate: true } }).result, 'DUPLICATE');
+    assert.equal(c({ result: { unmatched: true, message: 'No active shipment' } }).result, 'UNMATCHED');
+    assert.equal(c({ result: { success: true, currentStatus: 'DELIVERED' } }).result, 'PROCESSED');
+  });
+
+  test('recording stores no payload, bounds what the caller sent, and never throws', async () => {
+    const inserts = [];
+    const db = { async query(sql, params) { if (sql.includes('courier_webhook_events')) inserts.push(params); return { rows: [] }; } };
+    await service.recordCourierWebhook(db, {
+      carrier: 'steadfast', payload: { id: 'e'.repeat(500), recipient_phone: '01711111111' },
+      error: new Error('INVALID_WEBHOOK_SIGNATURE: x'),
+    });
+    assert.equal(inserts.length, 1);
+    const [carrier, eventId, valid, result] = inserts[0];
+    assert.equal(carrier, 'STEADFAST');
+    assert.equal(eventId.length, 100);
+    assert.equal(valid, false);
+    assert.equal(result, 'REJECTED');
+    assert.ok(!JSON.stringify(inserts).includes('01711111111'), 'no recipient data');
+
+    const broken = { async query() { throw new Error('relation does not exist'); } };
+    await service.recordCourierWebhook(broken, { carrier: 'redx', result: { success: true } });
+  });
+
+  test('the webhook controller logs before it answers, including a refusal', () => {
+    const src = read('server/src/controllers/courierWebhook.controller.ts');
+    assert.match(src, /catch \(error\) \{[\s\S]*recordCourierWebhook\([^)]*error[\s\S]*throw error/);
+    assert.match(src, /recordCourierWebhook\(req\.server\.db, \{ carrier, payload, result/);
   });
 });
 

@@ -17,11 +17,12 @@ const PAYMENT_PAUSE_BN = 'ক্রেতারা আর এভাবে পে
 const COURIER_PAUSE_EN = 'No new parcels or return pickups are booked with this courier. Parcels already booked keep updating.';
 const COURIER_PAUSE_BN = 'এই কুরিয়ারে নতুন পার্সেল বা রিটার্ন পিকআপ বুক হবে না। আগে বুক করা পার্সেলের আপডেট আসতে থাকবে।';
 
-const f = (key, env, label_en, label_bn, { secret = false, required = true } = {}) => ({ key, env, label_en, label_bn, secret, required });
+const f = (key, env, label_en, label_bn, { secret = false, required = true, lockout_guard = false } = {}) =>
+  ({ key, env, label_en, label_bn, secret, required, ...(lockout_guard ? { lockout_guard: true } : {}) });
 
 export const MOCK_INTEGRATION_CATALOG = [
   {
-    key: 'bkash_checkout', name: 'bKash Tokenized Checkout', type: 'PAYMENTS',
+    key: 'bkash_checkout', name: 'bKash Tokenized Checkout', type: 'PAYMENTS', live_driver: 'NOT_BUILT',
     category_en: 'Mobile Financial Service', category_bn: 'মোবাইল ফিন্যান্সিয়াল সার্ভিস',
     description_en: 'Shoppers pay for orders and vault top-ups with their bKash account.',
     description_bn: 'ক্রেতারা বিকাশ অ্যাকাউন্ট দিয়ে অর্ডার ও ভল্ট টপ-আপের পেমেন্ট করেন।',
@@ -37,7 +38,7 @@ export const MOCK_INTEGRATION_CATALOG = [
     ],
   },
   {
-    key: 'nagad_direct', name: 'Nagad Direct MFS', type: 'PAYMENTS',
+    key: 'nagad_direct', name: 'Nagad Direct MFS', type: 'PAYMENTS', live_driver: 'NOT_BUILT',
     category_en: 'Mobile Financial Service', category_bn: 'মোবাইল ফিন্যান্সিয়াল সার্ভিস',
     description_en: 'Shoppers pay for orders and vault top-ups with their Nagad account.',
     description_bn: 'ক্রেতারা নগদ অ্যাকাউন্ট দিয়ে অর্ডার ও ভল্ট টপ-আপের পেমেন্ট করেন।',
@@ -52,7 +53,7 @@ export const MOCK_INTEGRATION_CATALOG = [
     ],
   },
   {
-    key: 'sslcommerz_cards', name: 'SSLCommerz Gateway', type: 'PAYMENTS',
+    key: 'sslcommerz_cards', name: 'SSLCommerz Gateway', type: 'PAYMENTS', live_driver: 'NOT_BUILT',
     category_en: 'Cards & Net Banking', category_bn: 'কার্ড ও নেট ব্যাংকিং',
     description_en: 'Visa, Mastercard, Amex and internet banking payments through SSLCommerz.',
     description_bn: 'SSLCommerz এর মাধ্যমে ভিসা, মাস্টারকার্ড, অ্যামেক্স ও ইন্টারনেট ব্যাংকিং পেমেন্ট।',
@@ -64,7 +65,7 @@ export const MOCK_INTEGRATION_CATALOG = [
     ],
   },
   {
-    key: 'steadfast_courier', name: 'Steadfast Courier', type: 'LOGISTICS',
+    key: 'steadfast_courier', name: 'Steadfast Courier', type: 'LOGISTICS', live_driver: 'NOT_BUILT',
     category_en: 'Courier', category_bn: 'কুরিয়ার',
     description_en: 'Books parcels and return pickups and receives delivery updates from Steadfast.',
     description_bn: 'স্টেডফাস্টে পার্সেল ও রিটার্ন পিকআপ বুক করে এবং ডেলিভারির আপডেট পায়।',
@@ -76,7 +77,7 @@ export const MOCK_INTEGRATION_CATALOG = [
     ],
   },
   {
-    key: 'pathao_logistics', name: 'Pathao Courier', type: 'LOGISTICS',
+    key: 'pathao_logistics', name: 'Pathao Courier', type: 'LOGISTICS', live_driver: 'NOT_BUILT',
     category_en: 'Courier', category_bn: 'কুরিয়ার',
     description_en: 'Books parcels and return pickups and receives delivery updates from Pathao.',
     description_bn: 'পাঠাওতে পার্সেল ও রিটার্ন পিকআপ বুক করে এবং ডেলিভারির আপডেট পায়।',
@@ -89,7 +90,7 @@ export const MOCK_INTEGRATION_CATALOG = [
     ],
   },
   {
-    key: 'redx_delivery', name: 'RedX Delivery', type: 'LOGISTICS',
+    key: 'redx_delivery', name: 'RedX Delivery', type: 'LOGISTICS', live_driver: 'NOT_BUILT',
     category_en: 'Courier', category_bn: 'কুরিয়ার',
     description_en: 'Books parcels and return pickups and receives delivery updates from RedX.',
     description_bn: 'রেডএক্সে পার্সেল ও রিটার্ন পিকআপ বুক করে এবং ডেলিভারির আপডেট পায়।',
@@ -101,7 +102,7 @@ export const MOCK_INTEGRATION_CATALOG = [
     ],
   },
   {
-    key: 'greenweb_sms', name: 'Greenweb SMS', type: 'MESSAGING',
+    key: 'greenweb_sms', name: 'Greenweb SMS', type: 'MESSAGING', live_driver: 'READY',
     category_en: 'SMS', category_bn: 'এসএমএস',
     description_en: 'Sends sign-in codes and order updates by SMS.',
     description_bn: 'এসএমএসে সাইন-ইন কোড ও অর্ডারের আপডেট পাঠায়।',
@@ -109,12 +110,12 @@ export const MOCK_INTEGRATION_CATALOG = [
     pause_effect_en: 'Cannot be paused here: sign-in codes go out by SMS.',
     pause_effect_bn: 'এখান থেকে পজ করা যায় না: সাইন-ইন কোড এসএমএসে যায়।',
     fields: [
-      f('api_key', 'SMS_API_KEY', 'API token', 'API টোকেন', { secret: true }),
+      f('api_key', 'SMS_API_KEY', 'API token', 'API টোকেন', { secret: true, lockout_guard: true }),
       f('sender_id', 'SMS_SENDER_ID', 'Sender ID', 'সেন্ডার আইডি', { required: false }),
     ],
   },
   {
-    key: 'whatsapp_cloud', name: 'WhatsApp Cloud API', type: 'MESSAGING',
+    key: 'whatsapp_cloud', name: 'WhatsApp Cloud API', type: 'MESSAGING', live_driver: 'READY',
     category_en: 'Messaging', category_bn: 'মেসেজিং',
     description_en: 'Sends order messages on WhatsApp and receives shopper replies.',
     description_bn: 'হোয়াটসঅ্যাপে অর্ডারের মেসেজ পাঠায় এবং ক্রেতার উত্তর গ্রহণ করে।',
@@ -165,6 +166,7 @@ function shape(def) {
     description_en: def.description_en, description_bn: def.description_bn,
     driver_env: def.driver_env,
     driver_mode: 'MOCK',
+    live_driver: def.live_driver,
     is_enabled: s.is_enabled,
     pausable: def.pausable,
     pause_effect_en: def.pause_effect_en, pause_effect_bn: def.pause_effect_bn,
@@ -295,7 +297,7 @@ export const integrationHandlers: MockRoute[] = [
       const integration = shape(def);
       return {
         status: 200,
-        body: { ok: true, driver_mode: 'MOCK', missing: integration.missing_required, message_en, message_bn, integration },
+        body: { ok: true, driver_mode: 'MOCK', probed: false, latency_ms: null, missing: integration.missing_required, message_en, message_bn, integration },
       };
     },
   },

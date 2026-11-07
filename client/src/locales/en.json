@@ -7428,7 +7428,7 @@
     "kpi_attention_sub": "Live but missing a credential",
     "kpi_paused": "Paused",
     "kpi_paused_sub": "Payments and couriers only",
-    "kpi_webhooks_24h": "Payment webhooks (24h)",
+    "kpi_webhooks_24h": "Webhooks (24h)",
     "kpi_webhooks_sub": "{valid} with a valid signature",
     "read_only_note": "You can view this page. Changing credentials needs super admin access.",
     "tab_all": "All Integrations",
@@ -7486,12 +7486,16 @@
     "confirm_pause_title": "Pause {name}?",
     "confirm_resume_title": "Resume {name}?",
     "confirm_resume_desc": "It goes back to normal use straight away.",
-    "logs_drawer_title": "Payment gateway webhooks",
-    "logs_drawer_desc": "The latest webhooks payment gateways sent. Payloads are not shown.",
+    "logs_drawer_title": "Gateway and courier webhooks",
+    "logs_drawer_desc": "The latest webhooks payment gateways and couriers sent, refused ones included. Payloads are not shown.",
     "logs_empty": "No recent webhook events found.",
     "logs_signature_ok": "Signature valid",
     "logs_signature_bad": "Signature invalid",
-    "logs_pending": "Not processed"
+    "logs_pending": "Not processed",
+    "live_not_built": "Live driver not built",
+    "live_not_built_note": "The live driver for this service is not built yet. You can save its credentials now; keep its .env switch on mock or none until the driver exists.",
+    "logs_kind_payment": "Payment",
+    "logs_kind_courier": "Courier"
   },
   "platform_settings": {
     "title": "Platform Governance & Global Settings",

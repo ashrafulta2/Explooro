@@ -10,9 +10,11 @@
  *
  * WHY in memory and not a query per call: drivers are built synchronously inside request handlers
  * (createPaymentGateway, getCourierAdapter, the SMS sender) and a payment must not wait on an extra
- * round trip. The store is filled when the app is ready, reloaded every
- * INTEGRATION_CREDENTIAL_REFRESH_SECONDS, and reloaded at once after a save on this node. Another API
- * node picks a save up at its next reload.
+ * round trip. The store is filled when the app is ready and reloaded at once after any save, on
+ * every API node: the saving node publishes on CHANGE_CHANNEL through the cache (Redis pub/sub with
+ * CACHE_DRIVER=redis, an in-process bus with memory, which is single-node anyway) and each node
+ * reloads when it hears it. INTEGRATION_CREDENTIAL_REFRESH_SECONDS is the backstop for a missed
+ * message (a node that was reconnecting to Redis at that moment).
  *
  * WHY a failed reload keeps the previous values: a database hiccup must not swap every live
  * gateway back to its .env (or mock) credentials mid-day.
@@ -28,6 +30,23 @@ interface StoredIntegration {
 
 let entries: Map<string, StoredIntegration> = new Map();
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
+let unsubscribe: (() => unknown) | null = null;
+
+export const CHANGE_CHANNEL = 'integrations:credentials:changed';
+
+/**
+ * Tells every API node to reload. Carries no credential, only a timestamp: anything subscribed to
+ * the channel learns that something changed, never what. A failed publish is not an error for the
+ * caller (its own node already reloaded); the interval reload covers the others.
+ */
+export async function announceCredentialChange(cache, log: any = null) {
+  if (!cache?.publish) return;
+  try {
+    await cache.publish(CHANGE_CHANNEL, String(Date.now()));
+  } catch (err) {
+    log?.warn?.({ err: err?.message }, 'integration credential change not announced; other nodes reload on their interval');
+  }
+}
 
 /** The saved value of one field, or undefined when nothing was saved for it. */
 export function storedCredential(integrationKey: string, field: string): string | undefined {
@@ -80,7 +99,13 @@ export async function refreshIntegrationCredentials(db, encryptionKey: string | 
   }
 }
 
-export async function startCredentialRefresh(db, encryptionKey: string | undefined, log: any = null, intervalSeconds = 60) {
+export async function startCredentialRefresh(
+  db,
+  encryptionKey: string | undefined,
+  log: any = null,
+  intervalSeconds = 60,
+  cache: any = null
+) {
   stopCredentialRefresh();
   await refreshIntegrationCredentials(db, encryptionKey, log);
   const ms = Math.max(5, Number(intervalSeconds) || 60) * 1000;
@@ -89,11 +114,26 @@ export async function startCredentialRefresh(db, encryptionKey: string | undefin
   }, ms);
   // Never keep the process alive just for this.
   refreshTimer.unref?.();
+
+  if (cache?.subscribe) {
+    try {
+      unsubscribe = await cache.subscribe(CHANGE_CHANNEL, () => {
+        refreshIntegrationCredentials(db, encryptionKey, log);
+      });
+    } catch (err) {
+      // Redis unreachable at boot: the interval still reloads, only later.
+      log?.warn?.({ err: err?.message }, 'integration credential changes not subscribed; relying on the reload interval');
+    }
+  }
 }
 
 export function stopCredentialRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
   refreshTimer = null;
+  if (unsubscribe) {
+    Promise.resolve(unsubscribe()).catch(() => {});
+    unsubscribe = null;
+  }
 }
 
 /** Tests only: forget everything, as on a fresh boot. */

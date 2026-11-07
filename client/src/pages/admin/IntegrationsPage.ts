@@ -207,7 +207,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         <span class="admin-kpi-card__subtext">${tx('kpi_paused_sub', 'Payments and couriers only')}</span>
       </div>
       <div class="admin-kpi-card">
-        <span class="admin-kpi-card__label">${tx('kpi_webhooks_24h', 'Payment webhooks (24h)')}</span>
+        <span class="admin-kpi-card__label">${tx('kpi_webhooks_24h', 'Webhooks (24h)')}</span>
         <span class="admin-kpi-card__value">${formatNumber(m.webhooks_24h || 0)}</span>
         <span class="admin-kpi-card__subtext">${tx('kpi_webhooks_sub', '{valid} with a valid signature', { valid: formatNumber(m.webhooks_24h_valid || 0) })}</span>
       </div>
@@ -315,6 +315,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
           <div class="integration-card__badges">
             ${modeBadge(g)}
             ${g.is_enabled ? '' : Badge({ label: tx('status_paused', 'Paused'), variant: 'danger' }).outerHTML}
+            ${g.live_driver === 'NOT_BUILT' ? Badge({ label: tx('live_not_built', 'Live driver not built'), variant: 'neutral' }).outerHTML : ''}
           </div>
         </div>
         <p class="integration-card__desc">${escapeHtml(pick(g, 'description'))}</p>
@@ -407,6 +408,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
         </div>
         ${modeBadge(g)}
       </div>
+      ${g.live_driver === 'NOT_BUILT' ? `<p class="text-xs text-secondary">⚠️ ${tx('live_not_built_note', 'The live driver for this service is not built yet. You can save its credentials now; keep its .env switch on mock or none until the driver exists.')}</p>` : ''}
       <p class="text-xs text-secondary">${tx('security_note', 'Values are encrypted before they are stored. A saved secret is never shown again, only its last four characters.')}</p>
       ${g.webhook_url ? `
       <div class="form-group">
@@ -525,13 +527,13 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
           <div class="p-3 border rounded-lg bg-surface-2 text-xs flex-between">
             <div>
               <div class="font-bold text-primary flex items-center gap-2">
-                <span>${escapeHtml(log.gateway)}</span>
+                <span>${log.kind === 'COURIER' ? tx('logs_kind_courier', 'Courier') : tx('logs_kind_payment', 'Payment')} · ${escapeHtml(log.source)}</span>
                 ${Badge({
                   label: log.signature_valid ? tx('logs_signature_ok', 'Signature valid') : tx('logs_signature_bad', 'Signature invalid'),
                   variant: log.signature_valid ? 'success' : 'danger',
                 }).outerHTML}
               </div>
-              <span class="font-mono text-muted text-xxs block mt-1">${escapeHtml(log.provider_event_id)} · ${escapeHtml(log.process_result || tx('logs_pending', 'Not processed'))}</span>
+              <span class="font-mono text-muted text-xxs block mt-1">${escapeHtml(log.provider_event_id)} · ${escapeHtml(log.result || tx('logs_pending', 'Not processed'))}</span>
             </div>
             <span class="text-muted text-xxs">${escapeHtml(formatDate(log.received_at, { dateStyle: 'medium', timeStyle: 'short' }))}</span>
           </div>`
@@ -550,8 +552,8 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     closeBtn.textContent = t('common.close', 'Close');
 
     const modal = Modal({
-      title: tx('logs_drawer_title', 'Payment gateway webhooks'),
-      description: tx('logs_drawer_desc', 'The latest webhooks payment gateways sent. Payloads are not shown.'),
+      title: tx('logs_drawer_title', 'Gateway and courier webhooks'),
+      description: tx('logs_drawer_desc', 'The latest webhooks payment gateways and couriers sent, refused ones included. Payloads are not shown.'),
       content,
       footer: closeBtn,
       size: 'lg',

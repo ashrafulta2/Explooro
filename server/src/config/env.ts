@@ -58,6 +58,8 @@ const SCHEMA = [
   // How often each API node reloads the gateway credentials saved at /admin/platform/integrations
   // (integrations/credentialStore.ts). The node that saved reloads at once; the others within this.
   { key: 'INTEGRATION_CREDENTIAL_REFRESH_SECONDS', group: 'auth', required: false, type: 'number', default: 60 },
+  // How long Test Connection waits for a provider (integrations/probes.ts) before calling it a failure.
+  { key: 'INTEGRATION_TEST_TIMEOUT_MS', group: 'auth', required: false, type: 'number', default: 8000 },
   { key: 'ADMIN_IP_ALLOWLIST', group: 'auth', required: false, type: 'string', default: '' },
   { key: 'REQUIRE_2FA_FOR_STAFF', group: 'auth', required: false, type: 'boolean', default: true },
   // WHY: behind nginx / a load balancer every request arrives from the proxy's address, so req.ip
@@ -160,10 +162,9 @@ export function loadEnv(source = process.env) {
     problems.push('  - REDIS_URL is required when CACHE_DRIVER=redis');
   }
 
-  // Cross-field rule: a real Greenweb token is required once SMS_DRIVER opts into it.
-  if (grouped.sms?.SMS_DRIVER === 'greenweb' && !grouped.sms?.SMS_API_KEY) {
-    problems.push('  - SMS_API_KEY is required when SMS_DRIVER=greenweb');
-  }
+  // The Greenweb token rule (SMS_DRIVER=greenweb needs a token) moved to app.ts onReady
+  // (integrations/sms smsTokenProblem): the token may be saved at /admin/platform/integrations,
+  // in the database this function cannot read.
 
   // Production rule: a mock payment / courier / SMS driver would approve payments, mark parcels
   // delivered and "send" OTPs without doing any of it. These default to `mock`, so forgetting the
@@ -219,6 +220,7 @@ export function loadEnv(source = process.env) {
       cookieSecret: grouped.auth?.COOKIE_SECRET,
       piiEncryptionKey: grouped.auth?.PII_ENCRYPTION_KEY,
       integrationCredentialRefreshSeconds: grouped.auth?.INTEGRATION_CREDENTIAL_REFRESH_SECONDS,
+      integrationTestTimeoutMs: grouped.auth?.INTEGRATION_TEST_TIMEOUT_MS,
       adminIpAllowlist: grouped.auth?.ADMIN_IP_ALLOWLIST,
       require2faForStaff: grouped.auth?.REQUIRE_2FA_FOR_STAFF,
     }),

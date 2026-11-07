@@ -67,26 +67,52 @@ export async function recordTestResult(db, { key, ok, message }: { key: string; 
   return rows[0];
 }
 
-/** Webhooks payment gateways sent, newest first. The payload is left out: it carries shopper data. */
-export async function listRecentPaymentWebhooks(db, { limit = 30 }: { limit?: number } = {}) {
+/**
+ * Webhooks from payment gateways and couriers, newest first. No payload from either table: both
+ * carry shopper data.
+ */
+export async function listRecentWebhooks(db, { limit = 30 }: { limit?: number } = {}) {
   const { rows } = await db.query(
-    `SELECT id, gateway, provider_event_id, signature_valid, process_result, received_at, processed_at
-       FROM payment_webhook_events
-      ORDER BY received_at DESC
-      LIMIT $1`,
+    `SELECT * FROM (
+       SELECT 'PAYMENT' AS kind, id, gateway AS source, provider_event_id, signature_valid,
+              process_result AS result, received_at
+         FROM payment_webhook_events
+       UNION ALL
+       SELECT 'COURIER' AS kind, id, carrier AS source, provider_event_id, signature_valid,
+              result, received_at
+         FROM courier_webhook_events
+     ) w
+     ORDER BY received_at DESC
+     LIMIT $1`,
     [limit]
   );
   return rows;
 }
 
-/** Counts behind the page's "webhooks (24h)" figure. */
-export async function countPaymentWebhooksSince(db, hours = 24) {
+/** Counts behind the page's "webhooks (24h)" figure, both kinds together. */
+export async function countWebhooksSince(db, hours = 24) {
   const { rows } = await db.query(
     `SELECT COUNT(*)::int AS total,
             COUNT(*) FILTER (WHERE signature_valid)::int AS valid
-       FROM payment_webhook_events
-      WHERE received_at >= now() - make_interval(hours => $1)`,
+       FROM (
+         SELECT signature_valid FROM payment_webhook_events WHERE received_at >= now() - make_interval(hours => $1)
+         UNION ALL
+         SELECT signature_valid FROM courier_webhook_events WHERE received_at >= now() - make_interval(hours => $1)
+       ) w`,
     [hours]
   );
   return rows[0] ?? { total: 0, valid: 0 };
+}
+
+/** One courier webhook and what became of it (migration 109). */
+export async function insertCourierWebhookEvent(
+  db,
+  { carrier, providerEventId, signatureValid, result, message }:
+    { carrier: string; providerEventId: string | null; signatureValid: boolean; result: string; message: string | null }
+) {
+  await db.query(
+    `INSERT INTO courier_webhook_events (carrier, provider_event_id, signature_valid, result, message)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [carrier, providerEventId, signatureValid, result, message]
+  );
 }

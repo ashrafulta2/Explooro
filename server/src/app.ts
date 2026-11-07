@@ -117,7 +117,7 @@ import './jobs/returnProtection.job.ts'; // Registers return_protection with sch
 import './jobs/deficitRecovery.job.ts'; // Registers deficit_recovery with scheduler (module: returns_engine)
 import adminAnalyticsRoutes from './routes/adminAnalytics.routes.ts';
 import sitemapRoutes from './routes/sitemap.routes.ts';
-import { createSmsSender } from './integrations/sms/index.ts';
+import { createSmsSender, smsTokenProblem } from './integrations/sms/index.ts';
 import { createEmailSender } from './integrations/email/index.ts';
 
 /**
@@ -307,8 +307,13 @@ export async function buildApp(overrides: Record<string, any> = {}) {
       pool,
       config.auth.piiEncryptionKey,
       log,
-      config.auth.integrationCredentialRefreshSeconds
+      config.auth.integrationCredentialRefreshSeconds,
+      cache
     );
+    // WHY here and not in config/env.ts: the SMS token may now live only in the database, which
+    // env.ts cannot read. Still a boot failure, as before: with no token no sign-in code goes out.
+    const smsProblem = smsTokenProblem(config);
+    if (smsProblem) throw new Error(`Explooro API cannot start — ${smsProblem}`);
   });
 
   app.get('/api/v1/health', async () => ({

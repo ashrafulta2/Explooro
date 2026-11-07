@@ -5,6 +5,7 @@
 import * as shipmentService from '../services/shipment.service.ts';
 import { getModes } from '../services/manualOperations.service.ts';
 import { AppError } from '../plugins/errorHandler.ts';
+import { recordCourierWebhook } from '../services/integration.service.ts';
 
 export async function handleWebhook(req, reply) {
   const carrier = req.params.carrier || req.query.carrier || 'MOCK';
@@ -12,12 +13,20 @@ export async function handleWebhook(req, reply) {
   const rawBody = req.rawBody || JSON.stringify(req.body || {});
   const payload = req.body || {};
 
-  const result = await shipmentService.handleCourierWebhook(req.server.db, req.server.cache, {
-    carrier,
-    headers,
-    rawBody,
-    payload,
-  });
+  let result;
+  try {
+    result = await shipmentService.handleCourierWebhook(req.server.db, req.server.cache, {
+      carrier,
+      headers,
+      rawBody,
+      payload,
+    });
+  } catch (error) {
+    // Logged before it is rethrown, so a courier sending a wrong token shows up in the webhook log.
+    await recordCourierWebhook(req.server.db, { carrier, payload, error, log: req.log });
+    throw error;
+  }
+  await recordCourierWebhook(req.server.db, { carrier, payload, result, log: req.log });
 
   return reply.status(200).send({
     success: true,
