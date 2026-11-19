@@ -239,6 +239,9 @@
 :root[data-ui-style='macos'] .app-shell__sidebar-slot,
 :root[data-ui-style='macos'] .sidebar { background: var(--sidebar-bg, var(--mac-sidebar-bg)); }
 :root[data-ui-style='macos'] .sidebar { padding: var(--space-3) 10px; gap: 2px; box-shadow: 0.5px 0 0 var(--border-subtle); }
+/* A Mac sidebar is part of the window, not a panel floating over it: it never casts a shadow,
+   hovered or not. The hairline above is its only edge. */
+:root[data-ui-style='macos'] .app-shell__sidebar-slot:hover { box-shadow: none; }
 :root[data-ui-style='macos'] .sidebar__group-header { padding: 6px 8px 4px; }
 :root[data-ui-style='macos'] .sidebar__group-label {
   text-transform: none;
