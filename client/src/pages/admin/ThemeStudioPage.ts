@@ -23,6 +23,7 @@ import {
 import {
   generatePalette, paletteToSectionTokens, BRAND_STEPS, NEUTRAL_STEPS, MASTER_RANGES,
 } from '../../services/colorRamp.ts';
+import { UI_STYLES, normaliseUiStyle } from '../../services/uiStyle.ts';
 import { api } from '../../core/api.ts';
 import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
@@ -68,7 +69,7 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
     : { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
   let workingTokens = liveMaster
     ? JSON.parse(JSON.stringify(liveTokens))
-    : themeFromMaster(masterConfig);
+    : themeWithStyle(MASTER_PRESETS[DEFAULT_MASTER_PRESET].uiStyle);
   let publishedTokens = JSON.parse(JSON.stringify(workingTokens));
   let activePaletteId = null;
   let savedThemes = [];
@@ -271,7 +272,7 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
       card.addEventListener('click', () => {
         activePresetKey = key;
         masterConfig = { ...preset.master };
-        workingTokens = themeFromMaster(masterConfig);
+        workingTokens = themeWithStyle(preset.uiStyle);
         refreshAll();
         toast.info(isBn ? `প্রিসেট প্রয়োগ করা হয়েছে: ${preset.name_bn}` : `Applied preset: ${preset.name_en}`);
       });
@@ -294,9 +295,21 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
    * intentionally discarded: they were derived from the previous seed, and silently carrying a
    * stale pink border onto a cobalt system is exactly the bug this panel exists to remove.
    */
-  function regenerateFromMaster() {
-    workingTokens = themeFromMaster(masterConfig);
+  function regenerateFromMaster(uiStyle = workingTokens?.ui_style) {
+    workingTokens = themeWithStyle(uiStyle);
     refreshAll();
+  }
+
+  /**
+   * A fresh theme from the current master config, carrying `uiStyle`. The component style is
+   * stored only when it is not the standard one, so a theme saved before UI styles existed and
+   * one saved with 'standard' are byte-identical.
+   */
+  function themeWithStyle(uiStyle) {
+    const next: Record<string, any> = themeFromMaster(masterConfig);
+    const style = normaliseUiStyle(uiStyle);
+    if (style !== 'standard') next.ui_style = style;
+    return next;
   }
 
   function renderMasterPanel(wrap) {
@@ -330,7 +343,8 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
       chip.addEventListener('click', () => {
         activePresetKey = key;
         masterConfig = { ...preset.master };
-        regenerateFromMaster();
+        // A preset is a whole look: one that names no style brings back the standard shapes.
+        regenerateFromMaster(preset.uiStyle ?? 'standard');
         toast.info(isBn ? `মাস্টার কালার: ${preset.name_bn}` : `Master colour: ${preset.name_en}`);
       });
       presetRow.append(chip);
@@ -381,6 +395,16 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
     controls.className = 'theme-master__controls';
 
     controls.append(
+      // Shapes, not colour: changing it keeps every swatch and only swaps the component style.
+      buildSelect('theme_studio.ui_style', normaliseUiStyle(workingTokens?.ui_style),
+        UI_STYLES.map((s) => [s, t(`theme_studio.ui_style_${s}`)]),
+        (v) => {
+          const style = normaliseUiStyle(v);
+          if (style === 'standard') delete workingTokens.ui_style;
+          else workingTokens.ui_style = style;
+          refreshAll();
+        }),
+
       buildSelect('theme_studio.master_neutral_mode', masterConfig.neutralMode, [
         ['cool', t('theme_studio.neutral_cool')],
         ['match', t('theme_studio.neutral_match')],
@@ -898,7 +922,7 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
   function handleResetDefault() {
     activePresetKey = DEFAULT_MASTER_PRESET;
     masterConfig = { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master };
-    workingTokens = themeFromMaster(masterConfig);
+    workingTokens = themeWithStyle(MASTER_PRESETS[DEFAULT_MASTER_PRESET].uiStyle);
     refreshAll();
     toast.info(t('theme_studio.reset_info'));
   }

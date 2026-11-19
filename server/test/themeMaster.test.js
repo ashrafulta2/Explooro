@@ -138,6 +138,15 @@ describe('Master Colour block — server-side validation', () => {
     );
   });
 
+  test('ui_style: a known component style passes, an unknown one is refused', () => {
+    const base = masterTokens(MASTER_PRESETS.macos_native.master);
+    assert.equal(themeService.validatePalette({ ...base, ui_style: 'macos' }), true);
+    assert.equal(themeService.validatePalette({ ...base, ui_style: 'standard' }), true);
+    assert.equal(themeService.validatePalette(base), true, 'absent means standard');
+    throwsWithCode(() => themeService.validatePalette({ ...base, ui_style: 'aqua' }), 'THEME_TOKEN_INVALID');
+    throwsWithCode(() => themeService.validatePalette({ ...base, ui_style: 7 }), 'THEME_TOKEN_INVALID');
+  });
+
   test('dark-mode and ramp invariants are enforced — the sections cannot express them', () => {
     for (const preset of Object.values(MASTER_PRESETS)) {
       const { palette } = themeService.deriveMasterTokens(preset.master);

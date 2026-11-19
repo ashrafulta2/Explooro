@@ -11,6 +11,7 @@ import {
   paletteToSectionTokens,
   normaliseMasterConfig,
 } from './masterTheme.ts';
+import { applyUiStyle } from './uiStyle.ts';
 
 /** A theme: per-section hex maps plus, for a master theme, the `master` seed block. */
 export type ThemeTokens = Record<string, any>;
@@ -258,11 +259,14 @@ export function applyTheme(tokens: ThemeTokens | null = {}) {
   if (!tokens || tokens === THEME_PRESETS.default.tokens) {
     currentTokens = { ...THEME_PRESETS.default.tokens };
     clearThemeOverrides();
+    applyUiStyle('standard');
     return;
   }
 
   currentTokens = tokens;
   const root = document.documentElement;
+  // The component style travels with the theme, so a published or cached theme restores both.
+  applyUiStyle(tokens.ui_style);
 
   let generated = null;
   if (tokens.master) {
@@ -301,7 +305,9 @@ export function getCurrentMaster() {
 /** A ready-to-apply theme for a master preset key: the seed config plus its generated sections. */
 export function themeFromMasterPreset(presetKey: string) {
   const preset = MASTER_PRESETS[presetKey] || MASTER_PRESETS[DEFAULT_MASTER_PRESET];
-  return themeFromMaster(preset.master);
+  const theme: ThemeTokens = themeFromMaster(preset.master);
+  if (preset.uiStyle && preset.uiStyle !== 'standard') theme.ui_style = preset.uiStyle;
+  return theme;
 }
 
 /** Same, for an arbitrary (hand-tuned) master config. */

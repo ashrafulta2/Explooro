@@ -11,6 +11,7 @@
  */
 
 import type { MasterConfig } from '../services/colorRamp.ts';
+import type { UiStyle } from '../services/uiStyle.ts';
 
 /** One preset: the seed block plus the labels the Theme Studio shows. */
 export interface MasterPreset {
@@ -21,9 +22,38 @@ export interface MasterPreset {
   description_bn: string;
   group: string;
   master: MasterConfig;
+  /**
+   * The component style (services/uiStyle.ts) a preset brings with it. Omitted = 'standard'.
+   * Picking the preset in the Theme Studio sets it; the admin can still change it afterwards.
+   */
+  uiStyle?: UiStyle;
 }
 
 export const MASTER_PRESETS: Record<string, MasterPreset> = {
+  // WHY this seed and these settings: #007aff is the system accent blue of Apple's desktop
+  // controls, and 'cool' neutrals give the graphite greys its secondary buttons, sidebars and
+  // window chrome use. 'analogous' keeps the accent in the blue-indigo family instead of throwing
+  // an orange complement next to it. The shapes come from the 'macos' UI style.
+  macos_native: {
+    key: 'macos_native',
+    name_en: 'macOS Native',
+    name_bn: 'ম্যাকওএস নেটিভ',
+    description_en: 'System blue (#007aff) on graphite greys, with Mac-style buttons, fields, menus and sidebar.',
+    description_bn: 'সিস্টেম ব্লু (#007aff) ও গ্রাফাইট গ্রে — সাথে Mac-এর মতো বাটন, ঘর, মেনু ও সাইডবার।',
+    group: 'native',
+    uiStyle: 'macos',
+    master: {
+      seed: '#007aff',
+      vividness: 1,
+      neutralMode: 'cool',
+      neutralTint: 0,
+      accentHarmony: 'analogous',
+      statusPull: 0,
+      surfaceWash: false,
+      borderTint: false,
+    },
+  },
+
   pure_gold: {
     key: 'pure_gold',
     name_en: 'Explooro Gold',

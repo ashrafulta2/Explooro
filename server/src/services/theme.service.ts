@@ -305,9 +305,26 @@ function runContrastChecks(sections) {
   return failures;
 }
 
+/**
+ * The component styles a theme may name in `tokens.ui_style` (client/src/services/uiStyle.ts).
+ * Absent means 'standard'. client/test/uiStyle.test.js fails if this list and the client's drift.
+ */
+export const UI_STYLES = ['standard', 'macos'];
+
 export function validatePalette(tokens: Record<string, any> = {}) {
   if (!tokens || typeof tokens !== 'object') {
     throw new AppError('VALIDATION_FAILED', 'Theme tokens object is required.', 'থিম টোকেন অবজেক্ট আবশ্যক।');
+  }
+
+  // WHY refuse rather than ignore: the client treats an unknown style as 'standard', so a typo
+  // would publish a theme that silently looks different from what the admin previewed.
+  if (tokens.ui_style !== undefined && !UI_STYLES.includes(tokens.ui_style)) {
+    throw new AppError(
+      'THEME_TOKEN_INVALID',
+      `Unknown component style ${JSON.stringify(tokens.ui_style)}. Allowed: ${UI_STYLES.join(', ')}.`,
+      `অজানা কম্পোনেন্ট স্টাইল। অনুমোদিত: ${UI_STYLES.join(', ')}।`,
+      { ui_style: tokens.ui_style }
+    );
   }
 
   if (!validateNoGradients(tokens)) {
