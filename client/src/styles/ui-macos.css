@@ -53,7 +53,17 @@
   --elevation-2: 0 2px 8px hsl(var(--shadow-color) / 0.08), 0 0 0 0.5px hsl(var(--shadow-color) / 0.08);
   --elevation-3: 0 8px 24px hsl(var(--shadow-color) / 0.14), 0 0 0 0.5px hsl(var(--shadow-color) / 0.1);
   --elevation-4: 0 20px 50px hsl(var(--shadow-color) / 0.2), 0 0 0 0.5px hsl(var(--shadow-color) / 0.12);
+
+  /* WHY: a Mac source list is a grey pane set apart from the content. In light mode that is one
+     step DARKER than the canvas (--surface-0); dark mode lightens with elevation, so there it is
+     one step LIGHTER (the dark blocks below). Two tokens, because no single surface step is on
+     the right side of the canvas in both modes. */
+  --mac-sidebar-bg: var(--surface-2);
 }
+@media (prefers-color-scheme: dark) {
+  :root[data-ui-style='macos']:not([data-theme='light']) { --mac-sidebar-bg: var(--surface-1); }
+}
+:root[data-ui-style='macos'][data-theme='dark'] { --mac-sidebar-bg: var(--surface-1); }
 
 :root[data-ui-style='macos'] body {
   -webkit-font-smoothing: antialiased;
@@ -225,7 +235,10 @@
 :root[data-ui-style='macos'] .topbar__search-suggest-heading { text-transform: none; letter-spacing: 0; font-size: var(--text-xs); }
 
 /* ── Sidebar: a Mac source list ─────────────────────────────────────────── */
-:root[data-ui-style='macos'] .sidebar { padding: var(--space-3) 10px; gap: 2px; background: var(--sidebar-bg, var(--surface-1)); box-shadow: 0.5px 0 0 var(--border-subtle); }
+/* A Theme Studio sidebar colour (--sidebar-bg) still wins; the grey pane is only the default. */
+:root[data-ui-style='macos'] .app-shell__sidebar-slot,
+:root[data-ui-style='macos'] .sidebar { background: var(--sidebar-bg, var(--mac-sidebar-bg)); }
+:root[data-ui-style='macos'] .sidebar { padding: var(--space-3) 10px; gap: 2px; box-shadow: 0.5px 0 0 var(--border-subtle); }
 :root[data-ui-style='macos'] .sidebar__group-header { padding: 6px 8px 4px; }
 :root[data-ui-style='macos'] .sidebar__group-label {
   text-transform: none;
