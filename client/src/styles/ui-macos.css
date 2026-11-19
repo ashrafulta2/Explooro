@@ -380,9 +380,12 @@
 :root[data-ui-style='macos'] .form-textarea:focus { border-color: var(--brand); outline: none; box-shadow: var(--mac-focus); }
 
 /* ── Admin: tables as a Mac list view ───────────────────────────────────── */
-:root[data-ui-style='macos'] .admin-table-wrap { border-color: transparent; border-radius: var(--radius-md); box-shadow: var(--elevation-1); background: var(--surface-0); }
+/* WHY the surface stays --surface-1 and rows are not zebra-striped: status pills in these tables
+   (`.admin-users-clean-pill`) are tinted, translucent fills whose text is tuned to clear 4.5:1 on
+   --surface-1. On the darker --surface-0, or on a striped row, "✓ Clean" measured 4.30:1. */
+:root[data-ui-style='macos'] .admin-table-wrap { border-color: transparent; border-radius: var(--radius-md); box-shadow: var(--elevation-1); }
 :root[data-ui-style='macos'] .admin-table th {
-  background: var(--surface-0);
+  background: var(--surface-1);
   color: var(--text-secondary);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
@@ -390,9 +393,7 @@
   letter-spacing: 0;
   padding-block: 8px;
 }
-:root[data-ui-style='macos'] .admin-table td { padding-block: 8px; border-bottom-color: transparent; }
-:root[data-ui-style='macos'] .admin-table tbody tr:nth-child(even) td { background: var(--surface-1); }
-:root[data-ui-style='macos'] .admin-table tbody tr:hover td { background: var(--surface-2); }
+:root[data-ui-style='macos'] .admin-table td { padding-block: 8px; }
 
 /* ── Admin: KPI cards, sub-navs (segmented), filter tabs ───────────────── */
 :root[data-ui-style='macos'] .admin-kpi-card { border-color: transparent; border-radius: var(--radius-lg); }
@@ -418,6 +419,134 @@
 :root[data-ui-style='macos'] .admin-filter-tab:focus-visible { box-shadow: var(--mac-bezel), var(--mac-focus); }
 :root[data-ui-style='macos'] .admin-filter-tab--active,
 :root[data-ui-style='macos'] .admin-filter-tab--active:hover { border-color: transparent; background: var(--brand); color: var(--brand-contrast); box-shadow: none; }
+
+/* ── Inline styles written by page scripts ──────────────────────────────────
+ * ~40 uppercase labels and ~150 black (800/900) weights are set in `style="…"` by page
+ * templates, which no stylesheet rule can outrank without !important. A `style` attribute written
+ * in markup keeps its text exactly as typed, so both spellings (with and without the space) are
+ * matched; one set through `style.cssText` is serialised with the space.
+ * scripts/macos-pages.mjs handles the same two cases in the sheets.
+ */
+:root[data-ui-style='macos'] [style*='text-transform: uppercase'],
+:root[data-ui-style='macos'] [style*='text-transform:uppercase'] { text-transform: none !important; letter-spacing: normal !important; }
+:root[data-ui-style='macos'] [style*='font-weight: 800'],
+:root[data-ui-style='macos'] [style*='font-weight:800'],
+:root[data-ui-style='macos'] [style*='font-weight: 900'],
+:root[data-ui-style='macos'] [style*='font-weight:900'] { font-weight: 700 !important; }
+/* `bolder` inside a 600/700 parent resolves to 900; a Mac label stops at bold. */
+:root[data-ui-style='macos'] strong,
+:root[data-ui-style='macos'] b { font-weight: var(--weight-bold); }
+
+/* ── Segmented toggles drawn by page sheets ─────────────────────────────── */
+:root[data-ui-style='macos'] .saler-mode-toggle { gap: 2px; padding: 2px; border-color: transparent; border-radius: 8px; background: var(--surface-2); }
+:root[data-ui-style='macos'] .saler-mode-btn { border-radius: var(--radius-sm); }
+
+/* The page tab strips (community, coins, coupons, following, referrals, reviews, team purchases,
+   warranties, ad store, admin users, COD reconciliation, recommendations, system health) each
+   draw their own underline or filled-pill tabs. On a Mac they are one segmented control: a grey
+   track, the chosen segment a raised white key. Listed by hand because each page names its own
+   container, item and "on" class. */
+:root[data-ui-style='macos'] .cm-tabs,
+:root[data-ui-style='macos'] .coins-tabs,
+:root[data-ui-style='macos'] .coupons-tabs,
+:root[data-ui-style='macos'] .following-tabs,
+:root[data-ui-style='macos'] .referral-tabs,
+:root[data-ui-style='macos'] .reviews-tabs,
+:root[data-ui-style='macos'] .team-tabs,
+:root[data-ui-style='macos'] .warranties-tabs,
+:root[data-ui-style='macos'] .ad-tabs,
+:root[data-ui-style='macos'] .admin-user-tabs,
+:root[data-ui-style='macos'] .cod-recon-tabs,
+:root[data-ui-style='macos'] .reco-tabs,
+:root[data-ui-style='macos'] .system-health__tabs {
+  width: fit-content;
+  max-width: 100%;
+  gap: 2px;
+  padding: 2px;
+  border: none;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+:root[data-ui-style='macos'] .cm-tab,
+:root[data-ui-style='macos'] .coins-tab-btn,
+:root[data-ui-style='macos'] .coupons-tab-btn,
+:root[data-ui-style='macos'] .following-tab-btn,
+:root[data-ui-style='macos'] .referral-tab-btn,
+:root[data-ui-style='macos'] .reviews-tab-btn,
+:root[data-ui-style='macos'] .team-tab-btn,
+:root[data-ui-style='macos'] .warranties-tab-btn,
+:root[data-ui-style='macos'] .ad-tabs__tab,
+:root[data-ui-style='macos'] .admin-user-tab,
+:root[data-ui-style='macos'] .cod-recon-tab,
+:root[data-ui-style='macos'] .reco-tab,
+:root[data-ui-style='macos'] .system-health__tab-btn {
+  margin: 0;
+  padding: 5px var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: var(--weight-medium);
+  box-shadow: none;
+}
+:root[data-ui-style='macos'] .cm-tab:hover,
+:root[data-ui-style='macos'] .coins-tab-btn:hover,
+:root[data-ui-style='macos'] .coupons-tab-btn:hover,
+:root[data-ui-style='macos'] .following-tab-btn:hover,
+:root[data-ui-style='macos'] .referral-tab-btn:hover,
+:root[data-ui-style='macos'] .reviews-tab-btn:hover,
+:root[data-ui-style='macos'] .team-tab-btn:hover,
+:root[data-ui-style='macos'] .warranties-tab-btn:hover,
+:root[data-ui-style='macos'] .ad-tabs__tab:hover,
+:root[data-ui-style='macos'] .admin-user-tab:hover,
+:root[data-ui-style='macos'] .cod-recon-tab:hover,
+:root[data-ui-style='macos'] .reco-tab:hover,
+:root[data-ui-style='macos'] .system-health__tab-btn:hover { background: transparent; color: var(--text-primary); }
+:root[data-ui-style='macos'] .cm-tab--on,
+:root[data-ui-style='macos'] .cm-tab--on:hover,
+:root[data-ui-style='macos'] .coins-tab-btn--active,
+:root[data-ui-style='macos'] .coupons-tab-btn--active,
+:root[data-ui-style='macos'] .following-tab-btn--active,
+:root[data-ui-style='macos'] .referral-tab-btn--active,
+:root[data-ui-style='macos'] .reviews-tab-btn--active,
+:root[data-ui-style='macos'] .team-tab-btn--active,
+:root[data-ui-style='macos'] .warranties-tab-btn--active,
+:root[data-ui-style='macos'] .ad-tabs__tab--active,
+:root[data-ui-style='macos'] .admin-user-tab--active,
+:root[data-ui-style='macos'] .cod-recon-tab--active,
+:root[data-ui-style='macos'] .reco-tab[aria-selected='true'],
+:root[data-ui-style='macos'] .system-health__tab-btn--active {
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.14), 0 0 0 0.5px hsl(var(--shadow-color) / 0.1);
+}
+/* Their count badges were inked for a brand-filled "on" tab (white on a dark tint); on the
+   white Mac segment that is white on white, so they take the ordinary badge ink. */
+:root[data-ui-style='macos'] .coins-tab-btn--active .coins-tab-count,
+:root[data-ui-style='macos'] .following-tab-btn--active .following-tab-badge,
+:root[data-ui-style='macos'] .reviews-tab-btn--active .reviews-tab-badge,
+:root[data-ui-style='macos'] .warranties-tab-btn--active .warranties-tab-badge,
+:root[data-ui-style='macos'] .referral-tab-btn--active .referral-tab-badge,
+:root[data-ui-style='macos'] .system-health__tab-btn--active .system-health__tab-badge,
+:root[data-ui-style='macos'] .team-tab-btn--active .team-tab-count { background: var(--surface-2); color: var(--text-primary); }
+:root[data-ui-style='macos'] .cm-tab--on::after,
+:root[data-ui-style='macos'] .coins-tab-btn--active::after,
+:root[data-ui-style='macos'] .coupons-tab-btn--active::after,
+:root[data-ui-style='macos'] .following-tab-btn--active::after,
+:root[data-ui-style='macos'] .referral-tab-btn--active::after,
+:root[data-ui-style='macos'] .reviews-tab-btn--active::after,
+:root[data-ui-style='macos'] .team-tab-btn--active::after,
+:root[data-ui-style='macos'] .warranties-tab-btn--active::after,
+:root[data-ui-style='macos'] .ad-tabs__tab--active::after,
+:root[data-ui-style='macos'] .admin-user-tab--active::after,
+:root[data-ui-style='macos'] .cod-recon-tab--active::after,
+:root[data-ui-style='macos'] .reco-tab[aria-selected='true']::after,
+:root[data-ui-style='macos'] .system-health__tab-btn--active::after { display: none; }
+:root[data-ui-style='macos'] .saler-mode-btn.active {
+  border-color: transparent;
+  box-shadow: 0 1px 2px hsl(var(--shadow-color) / 0.14), 0 0 0 0.5px hsl(var(--shadow-color) / 0.1);
+}
 
 /* ── Scrollbars: thin overlay-style ─────────────────────────────────────── */
 :root[data-ui-style='macos'] * { scrollbar-width: thin; }

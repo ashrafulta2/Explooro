@@ -31,7 +31,12 @@ let current: UiStyle = DEFAULT_UI_STYLE;
 
 function loadMacosSheet(): Promise<unknown> {
   if (!macosSheet) {
-    macosSheet = import('../styles/ui-macos.css').catch(() => {
+    // Two sheets: the hand-written one for the shared components, and the twins
+    // scripts/macos-pages.mjs generates from every page sheet.
+    macosSheet = Promise.all([
+      import('../styles/ui-macos-pages.css'),
+      import('../styles/ui-macos.css'),
+    ]).catch(() => {
       // A failed sheet must never break the page: the attribute stays, the standard look shows,
       // and the next apply retries.
       macosSheet = null;
