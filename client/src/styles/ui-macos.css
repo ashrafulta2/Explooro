@@ -242,6 +242,40 @@
 /* A Mac sidebar is part of the window, not a panel floating over it: it never casts a shadow,
    hovered or not. The hairline above is its only edge. */
 :root[data-ui-style='macos'] .app-shell__sidebar-slot:hover { box-shadow: none; }
+
+/* Quick Actions: the search field at the top of a Mac sidebar. No border, a soft fill tinted from
+   the text colour so it sits a step darker than the pane in light mode and a step lighter in dark
+   mode (any sidebar colour, any seed), grey glyph and placeholder-weight label, and the shortcut as
+   plain grey text rather than a key cap. WHY --text-secondary, not --text-muted, for the label and
+   the shortcut: on the tinted fill --text-muted measured 4.3:1, below the 4.5:1 text minimum. */
+:root[data-ui-style='macos'] .sidebar__quick-btn {
+  height: 30px;
+  gap: 6px;
+  padding: 0 8px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-sm);
+  transition: background var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard);
+}
+:root[data-ui-style='macos'] .sidebar__quick-btn:hover { background: color-mix(in srgb, var(--text-primary) 9%, transparent); border-color: transparent; }
+:root[data-ui-style='macos'] .sidebar__quick-btn:active { background: color-mix(in srgb, var(--text-primary) 12%, transparent); }
+:root[data-ui-style='macos'] .sidebar__quick-btn:focus-visible { outline: none; box-shadow: var(--mac-focus); }
+:root[data-ui-style='macos'] .sidebar__quick-icon { color: var(--text-muted); }
+:root[data-ui-style='macos'] .sidebar__quick-icon svg { width: 15px; height: 15px; }
+:root[data-ui-style='macos'] .sidebar__quick-label { font-weight: var(--weight-regular, 400); }
+:root[data-ui-style='macos'] .sidebar__quick-key {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+:root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .sidebar__quick-btn { width: 30px; padding: 0; margin-bottom: 8px; }
 :root[data-ui-style='macos'] .sidebar__group-header { padding: 6px 8px 4px; }
 :root[data-ui-style='macos'] .sidebar__group-label {
   text-transform: none;
@@ -571,6 +605,7 @@
 @media (pointer: coarse) {
   :root[data-ui-style='macos'] { --control-height: 44px; --row-height: 48px; }
   :root[data-ui-style='macos'] .btn--sm,
+  :root[data-ui-style='macos'] .sidebar__quick-btn,
   :root[data-ui-style='macos'] .nav-item,
   :root[data-ui-style='macos'] .tabs__tab,
   :root[data-ui-style='macos'] .feed-switcher__tab,
