@@ -67,6 +67,24 @@ test('ui-macos.css names no colour of its own, no gradient and no glass', () => 
   assert.doesNotMatch(css, /backdrop-filter/i);
 });
 
+test('controls a user types in or picks from keep their 3:1 border', () => {
+  // WCAG 1.4.11: input-affordance.css gives every field, select, checkbox and radio the
+  // --border-interactive edge. A soft Mac hairline (a transparent border, or --border-strong at
+  // ~1.5:1) would make them read as plain text again. Buttons may use the bezel; these may not.
+  const control = /(\.field__control|\.form-(input|select|textarea)|\.(input|select|textarea)\b|\bselect\b|\.checkbox__box|\.radio__box)/;
+  const offenders = [];
+  for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const head = m[1].trim();
+    if (head.startsWith('@')) continue;
+    for (const sel of head.split(',').map((s) => s.trim())) {
+      if (!control.test(sel)) continue;
+      if (/:checked|:indeterminate|\.toggle__input|chevron|option/.test(sel)) continue;
+      if (/border(-color)?:[^;]*(transparent|--border-strong)/.test(m[2])) offenders.push(sel);
+    }
+  }
+  assert.deepEqual(offenders, []);
+});
+
 test('ui-macos.css stays out of the entry bundle', () => {
   assert.doesNotMatch(read('src', 'styles', 'main.css'), /ui-macos\.css/);
   assert.match(read('src', 'services', 'uiStyle.ts'), /import\('\.\.\/styles\/ui-macos\.css'\)/);
