@@ -29,10 +29,10 @@
 .home-top__slide::after { width: 130px; height: 130px; right: 150px; bottom: -60px; opacity: 0.07; }
 .home-top__slide > * { position: relative; z-index: 1; }
 .home-top__slide .home-top__slide-cta { background: var(--neutral-0); border-color: var(--neutral-0); color: var(--slide-ink); }
-.home-top__slide .home-top__slide-cta:hover { background: var(--brand-200); border-color: var(--brand-200); color: var(--neutral-900); }
-/* WHY: a white CTA on charcoal is low-emphasis; the brand fill makes the flash-sale action the loudest thing on the slide. Must follow the generic slide CTA rule above (same specificity). */
-.home-top__slide--flash .home-top__slide-cta { background: var(--brand); border-color: var(--brand); color: var(--brand-contrast); }
-.home-top__slide--flash .home-top__slide-cta:hover { background: var(--brand-hover); border-color: var(--brand-hover); color: var(--brand-alt-contrast); }
+.home-top__slide .home-top__slide-cta:hover { background: color-mix(in oklch, var(--neutral-0) 86%, var(--slide-ink)); border-color: var(--neutral-0); color: var(--neutral-900); }
+/* WHY: every slide's CTA is white, inked with the slide's own colour. A brand fill on a coloured slide (the flash
+   slide had one until 2026-11-20) clashes whenever the theme's brand hue is far from the slide's: blue on burnt orange
+   under macOS Native, gold on orange under Pure Gold. White sits on every slide colour in every theme. */
 .home-top__slide-cta, .home-top__card-cta { display: inline-flex; align-items: center; margin-top: var(--space-2); padding: var(--space-2) var(--space-4); background: var(--brand); color: var(--brand-contrast); border: 1px solid var(--brand); border-radius: var(--radius-sm); font-weight: 600; font-size: var(--text-sm); cursor: pointer; text-decoration: none; }
 .home-top__slide-cta:hover, .home-top__card-cta:hover { background: var(--brand-hover); color: var(--brand-alt-contrast); }
 .home-top__dots { position: absolute; left: var(--space-8); bottom: var(--space-3); display: flex; gap: var(--space-2); }
@@ -58,7 +58,10 @@
 .home-top__tile--verified { background: var(--success-700); }
 .home-top__tile--team { background: var(--neutral-800); }
 .home-top__tile--live { background: var(--campaign-orange); }
-.home-top__tile--coupons { background: var(--brand-700); }
+/* WHY --brand and its own ink, not a fixed step under white: which step is dark enough for white text depends on
+   the seed (brand-700 is a light blue under macOS Native, 2.91:1, and a mid gold under Pure Gold). --brand-contrast
+   is picked per seed by the engine. */
+.home-top__tile--coupons, .home-top__tile--coupons:hover, .home-top__tile--coupons:focus-visible { background: var(--brand); color: var(--brand-contrast); }
 .home-top__tile--salers { background: var(--accent-700); }
 .home-top__card--info { background: var(--neutral-800); border-color: var(--neutral-800); }
 .home-top__card--info .home-top__card-title, .home-top__card--info .home-top__card-sub { color: var(--neutral-0); }

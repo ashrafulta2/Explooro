@@ -10,7 +10,7 @@
 .app-shell__topbar-slot { grid-area: topbar; position: sticky; top: 0; z-index: var(--z-header); }
 .topbar__brand { display: flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--tb-brand-font, var(--text-lg)); letter-spacing: -0.02em; color: var(--navbar-text, var(--text-primary)); text-decoration: none; margin-right: var(--space-2); cursor: pointer; user-select: none; transition: color var(--dur-fast) var(--ease-standard), font-size var(--dur-base) var(--ease-standard); }
 .topbar__brand:hover { color: var(--brand); }
-.topbar__brand svg { flex: none; width: var(--tb-brand-icon, 28px); height: var(--tb-brand-icon, 28px); --logo-star: var(--brand, #ffbc00); transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard); }
+.topbar__brand svg { flex: none; width: var(--tb-brand-icon, 28px); height: var(--tb-brand-icon, 28px); transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard); }
 .topbar__auth-buttons { display: flex; align-items: center; gap: var(--space-2); }
 .app-shell__footer-slot { grid-area: footer; min-width: 0; }
 .app-shell__footer-slot[hidden] { display: none; }

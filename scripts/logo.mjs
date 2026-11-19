@@ -37,7 +37,7 @@ import { dirname, join } from 'node:path';
 
 import { generatePalette } from '../client/src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/master-themes.ts';
-import { buildLogoMarkSvg, buildLogoMaskableSvg } from '../client/src/services/logoMark.ts';
+import { buildLogoMarkSvg, buildLogoMaskableSvg, logoColorsFromPalette } from '../client/src/services/logoMark.ts';
 import { renderLogoPng, encodePng } from './logoPng.mjs';
 import { renderOgBannerRgba, OG_WIDTH, OG_HEIGHT } from './ogBanner.mjs';
 import { syncPwaColors } from './pwaColors.mjs';
@@ -47,12 +47,9 @@ const PUBLIC_DIR = join(ROOT, 'client', 'public');
 const ICONS_DIR = join(PUBLIC_DIR, 'icons');
 const BRAND_DIR = join(ICONS_DIR, 'brand');
 
-/** { bg, star, hole } for a preset key — aligns with the present site logo brand mark */
+/** { bg, hole, stops } for a preset key: the same colours the live mark and favicon get (services/logoTheme.ts). */
 function colorsFor(presetKey) {
-  const preset = MASTER_PRESETS[presetKey];
-  const palette = generatePalette(preset.master);
-  const darkInk = palette.neutral[900] || '#192026';
-  return { bg: darkInk, star: '#ffbc00', hole: darkInk };
+  return logoColorsFromPalette(generatePalette(MASTER_PRESETS[presetKey].master));
 }
 
 const args = new Set(process.argv.slice(2));

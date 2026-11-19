@@ -4,7 +4,7 @@
  * so their color dynamically responds to theme, hover, and active states.
  */
 
-import { buildLogoMarkSvg } from '../../services/logoMark.ts';
+import { buildLogoMarkSvg, LOGO_GOLD_STOPS } from '../../services/logoMark.ts';
 
 function svg(
   paths: string,
@@ -195,19 +195,20 @@ export function getItemIcon(item: { key: string; icon?: unknown; group?: string 
 
 /**
  * Explooro Brand Logo Mark
- * A four-point sparkle punched with a circle, on a badge — painted entirely with the raw brand
- * ramp custom properties (--brand-900/--brand-500/--neutral-0), which services/masterTheme.ts
- * re-emits for every Master Colour preset AND any custom Theme Studio seed. The mark therefore
- * repaints with the live theme automatically; nothing here is theme-specific. Geometry lives once
- * in services/logoMark.ts so this and the static files scripts/logo.mjs bakes never drift apart.
+ * A four-point sparkle punched with a circle, on a badge — painted with --logo-* custom properties
+ * that services/logoTheme.ts sets from the live palette on every theme change (any preset AND any
+ * custom Theme Studio seed), so the mark repaints with the theme. Before a theme loads it falls
+ * back to the shipped gold. Geometry lives once in services/logoMark.ts so this and the static
+ * files scripts/logo.mjs bakes never drift apart.
  */
 export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark' }: { size?: number; className?: string } = {}): string {
   return buildLogoMarkSvg({
     size,
     className,
     bg: 'var(--logo-bg, var(--neutral-900))',
-    star: 'var(--logo-star, #ffbc00)',
-    hole: 'var(--logo-hole, var(--neutral-900))',
+    hole: 'var(--logo-hole, var(--logo-bg, var(--neutral-900)))',
+    // --logo-star is Theme Studio's hand-picked single sparkle colour; unset, the gradient runs.
+    stops: LOGO_GOLD_STOPS.map((s, i) => ({ offset: s.offset, color: `var(--logo-star, var(--logo-star-${i + 1}, ${s.color}))` })),
   });
 }
 

@@ -89,9 +89,9 @@ function insidePolygon(points, x, y) {
   return inside;
 }
 
-/** The gold at position t (0..1) along the gradient, interpolated in sRGB as SVG does by default. */
-export function goldAt(t) {
-  const stops = LOGO_GOLD_STOPS.map((s) => ({ offset: s.offset, rgb: parseHexColor(s.color) }));
+/** The sparkle's colour at position t (0..1) along its gradient, interpolated in sRGB as SVG does by default. */
+export function goldAt(t, gradient = LOGO_GOLD_STOPS) {
+  const stops = gradient.map((s) => ({ offset: s.offset, rgb: parseHexColor(s.color) }));
   if (t <= stops[0].offset) return stops[0].rgb;
   for (let k = 1; k < stops.length; k++) {
     const a = stops[k - 1];
@@ -111,7 +111,7 @@ export function goldAt(t) {
  * - `maskable: true` matches buildLogoMaskableSvg: a full square of `bg` with the mark shrunk by
  *   LOGO_MASKABLE_SCALE. Use it wherever the OS crops the icon itself (Android masks, iOS corners).
  */
-export function renderLogoRgba({ size, bg, hole, maskable = false }) {
+export function renderLogoRgba({ size, bg, hole, stops = LOGO_GOLD_STOPS, maskable = false }) {
   const bgRgb = parseHexColor(bg);
   const holeRgb = parseHexColor(hole);
   const star = flattenPath(LOGO_SPARKLE_PATH);
@@ -138,7 +138,7 @@ export function renderLogoRgba({ size, bg, hole, maskable = false }) {
           const qy = 50 + (py - 50) / scale;
           if (qx >= minX && qx <= maxX && qy >= minY && qy <= maxY && insidePolygon(star, qx, qy)) {
             // x1=0% y1=0% → x2=100% y2=100% of the sparkle's bounding box
-            color = goldAt(((qx - minX) / (maxX - minX) + (qy - minY) / (maxY - minY)) / 2);
+            color = goldAt(((qx - minX) / (maxX - minX) + (qy - minY) / (maxY - minY)) / 2, stops);
           }
           if ((qx - 50) ** 2 + (qy - 50) ** 2 <= LOGO_HOLE_RADIUS ** 2) color = holeRgb;
           if (color) {

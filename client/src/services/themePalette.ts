@@ -12,6 +12,7 @@ import {
   normaliseMasterConfig,
 } from './masterTheme.ts';
 import { applyUiStyle } from './uiStyle.ts';
+import { applyLogoTheme } from './logoTheme.ts';
 
 /** A theme: per-section hex maps plus, for a master theme, the `master` seed block. */
 export type ThemeTokens = Record<string, any>;
@@ -260,6 +261,7 @@ export function applyTheme(tokens: ThemeTokens | null = {}) {
     currentTokens = { ...THEME_PRESETS.default.tokens };
     clearThemeOverrides();
     applyUiStyle('standard');
+    applyLogoTheme(generatePalette(DEFAULT_MASTER));
     return;
   }
 
@@ -269,15 +271,20 @@ export function applyTheme(tokens: ThemeTokens | null = {}) {
   applyUiStyle(tokens.ui_style);
 
   let generated = null;
+  let palette = null;
   if (tokens.master) {
     currentMaster = normaliseMasterConfig(tokens.master);
-    generated = paletteToSectionTokens(applyMasterPalette(currentMaster));
+    palette = applyMasterPalette(currentMaster);
+    generated = paletteToSectionTokens(palette);
   } else {
     currentMaster = null;
     clearMasterPalette();
   }
 
   clearSectionOverrides();
+  // The brand mark and the tab's favicon follow the seed like every other surface. After the
+  // clear (it owns --logo-bg) and before the pins, so a hand-picked logo colour still wins.
+  applyLogoTheme(palette);
 
   for (const [section, keyMap] of Object.entries(SECTION_PROPERTY_MAP)) {
     const values = tokens[section];
