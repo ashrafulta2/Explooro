@@ -285,11 +285,13 @@ export function ReviewCard({
           }
         </div>
 
+        <!-- WHY: Reject/Approve ink is --text-inverse (as .btn--danger uses), never a fixed white:
+             in dark mode --danger/--success turn pale and white on them drops to ~2:1. -->
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <button class="btn-escalate" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--danger-border, #e11d48); background: var(--danger-bg, rgba(225, 29, 72, 0.08)); color: var(--danger, #e11d48); cursor: pointer;">🚨 ${t('moderation.btn_escalate', 'Escalate')}</button>
           <button class="btn-request-changes" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--warning-border, #d97706); background: var(--warning-bg, rgba(217, 119, 6, 0.08)); color: var(--warning, #d97706); cursor: pointer;">✏️ ${t('moderation.btn_request_changes', 'Changes')}</button>
-          <button class="btn-reject" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--danger, #e11d48); background: var(--danger, #e11d48); color: #ffffff; cursor: pointer;">❌ ${t('moderation.btn_reject', 'Reject')}</button>
-          <button class="btn-approve" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--success, #059669); color: #ffffff; cursor: pointer;">✅ ${t('moderation.btn_approve', 'Approve')}</button>
+          <button class="btn-reject" style="padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--danger, #e11d48); background: var(--danger, #e11d48); color: var(--text-inverse, #ffffff); cursor: pointer;">❌ ${t('moderation.btn_reject', 'Reject')}</button>
+          <button class="btn-approve" style="padding: 6px 16px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--success, #059669); color: var(--text-inverse, #ffffff); cursor: pointer;">✅ ${t('moderation.btn_approve', 'Approve')}</button>
         </div>
       </div>
     `
