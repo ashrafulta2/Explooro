@@ -521,6 +521,12 @@ export function TopBar({
       onClick: (e) => onToggleSidebar(e.currentTarget as HTMLElement),
     });
     sidebarToggleBtn.classList.add('topbar__sidebar-toggle');
+    // WHY two glyphs: the macOS style shows the Mac toolbar's sidebar symbol here, the standard
+    // style the menu bars. CSS picks one, so switching style at runtime needs no re-render.
+    const toggleSymbol = sidebarToggleBtn.querySelector('.topbar__icon-symbol');
+    if (toggleSymbol) {
+      toggleSymbol.innerHTML = `<span class="topbar__toggle-glyph topbar__toggle-glyph--default">${ICONS.menu}</span><span class="topbar__toggle-glyph topbar__toggle-glyph--mac">${ICONS.sidebar}</span>`;
+    }
     sidebarToggleBtn.setAttribute('aria-expanded', String(!sidebarCollapsed));
     sidebarToggleBtn.setAttribute('aria-controls', 'sidebar-nav');
     bar.append(sidebarToggleBtn);

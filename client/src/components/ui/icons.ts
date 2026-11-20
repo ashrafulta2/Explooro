@@ -45,6 +45,8 @@ export const ICONS: Record<string, string> = {
   bookmark: svg('<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>'),
   bolt: svg('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>'),
   menu: svg('<line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line>', { width: 22, height: 22, strokeWidth: 2 }),
+  // The Mac toolbar's show/hide-sidebar symbol: a window with its left pane ruled off.
+  sidebar: svg('<rect x="2.5" y="4" width="19" height="16" rx="3"></rect><line x1="9" y1="4" x2="9" y2="20"></line><path d="M5 8h1.5M5 11h1.5M5 14h1.5"></path>', { width: 22, height: 22, strokeWidth: 1.7 }),
   search: svg('<circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>'),
   bell: svg('<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>'),
   cart: svg('<circle cx="8" cy="21" r="1.5"></circle><circle cx="19" cy="21" r="1.5"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>'),

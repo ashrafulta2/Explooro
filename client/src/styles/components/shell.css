@@ -159,6 +159,8 @@
 .topbar__product-search-input::placeholder { color: var(--text-muted); font-size: var(--tb-search-font, var(--text-sm)); }
 
 .topbar__sidebar-toggle { flex: none; color: var(--navbar-text, var(--text-primary)); }
+.topbar__toggle-glyph { display: inline-flex; }
+.topbar__toggle-glyph--mac { display: none; }
 .topbar__sidebar-toggle:hover { background: var(--surface-2); color: var(--text-brand); }
 
 
