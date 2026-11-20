@@ -149,7 +149,9 @@ function pinRow(node: HTMLElement, item, pinned: boolean) {
   pin.setAttribute('aria-pressed', String(pinned));
   pin.setAttribute('aria-label', t(pinned ? 'nav.tiers.unpin' : 'nav.tiers.pin', { item: label }));
   pin.title = pin.getAttribute('aria-label');
-  pin.textContent = '📌';
+  // WHY two glyphs: the standard style keeps the emoji; the macOS style draws a thin pin symbol,
+  // outlined when off and filled when on. CSS picks one.
+  pin.innerHTML = `<span class="nav-pin__glyph nav-pin__glyph--default">📌</span><span class="nav-pin__glyph nav-pin__glyph--mac">${ICONS.pin}</span>`;
   pin.addEventListener('click', () => togglePin(item.path));
   row.append(node, pin);
   return row;

@@ -77,6 +77,8 @@
 .nav-pin { flex: none; width: 28px; height: 28px; border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; font-size: 12px; opacity: 0; filter: grayscale(1); }
 .nav-row:hover .nav-pin, .nav-pin:focus-visible, .nav-pin--on { opacity: 1; }
 .nav-pin--on { filter: none; }
+.nav-pin__glyph { display: inline-flex; align-items: center; justify-content: center; }
+.nav-pin__glyph--mac { display: none; }
 .nav-pin:hover { background: var(--surface-2); }
 @media (hover: none) { .nav-pin { opacity: 0.6; } }
 .sidebar__group-items { display: flex; flex-direction: column; gap: 2px; margin-left: var(--space-2); padding-left: var(--space-2); border-left: 1px solid var(--border-subtle); }

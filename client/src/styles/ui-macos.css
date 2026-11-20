@@ -364,6 +364,25 @@
 :root[data-ui-style='macos'] .sidebar__group-header:hover,
 :root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header:hover { background: transparent; }
 :root[data-ui-style='macos'] .sidebar__group-header:focus-visible { outline: none; box-shadow: var(--mac-focus); }
+
+/* Pin toggle: a thin thumbtack instead of the emoji. Grey outline when off, filled in the brand
+   colour when on, no hover fill (the glyph darkens instead), and still shown only on the hovered
+   row unless pinned, as the base sheet already does. */
+:root[data-ui-style='macos'] .nav-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  filter: none;
+  color: var(--text-muted);
+}
+:root[data-ui-style='macos'] .nav-pin:hover { background: transparent; color: var(--text-secondary); }
+:root[data-ui-style='macos'] .nav-pin:focus-visible { outline: none; box-shadow: var(--mac-focus); }
+:root[data-ui-style='macos'] .nav-pin--on,
+:root[data-ui-style='macos'] .nav-pin--on:hover { color: var(--text-brand); }
+:root[data-ui-style='macos'] .nav-pin--on svg { fill: currentColor; }
+:root[data-ui-style='macos'] .nav-pin__glyph--default { display: none; }
+:root[data-ui-style='macos'] .nav-pin__glyph--mac { display: inline-flex; }
+:root[data-ui-style='macos'] .nav-pin svg { width: 13px; height: 13px; }
 :root[data-ui-style='macos'] .sidebar__more { margin-top: 6px; padding-top: 0; border-top: none; }
 /* A section's rows sit flush under its title, as in a Mac source list: no tree line down the left
    and no indent, so the row icons line up with the title's first letter. */
@@ -737,6 +756,7 @@
   :root[data-ui-style='macos'] .finance-subnav__tab,
   :root[data-ui-style='macos'] .platform-subnav__tab { min-height: 44px; }
   :root[data-ui-style='macos'] .cart-stepper__btn { width: 44px; height: 44px; }
+  :root[data-ui-style='macos'] .nav-pin { width: 44px; height: 44px; }
 }
 
 /* Forced colours drop box-shadow, which would leave the halo-only focus ring invisible. */
