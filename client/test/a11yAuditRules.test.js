@@ -4,7 +4,7 @@
  * Tests:
  * 1. Vault namespace search and filter aria-label keys exist in en.json and bn.json.
  * 2. LedgerTable renders input and select controls with valid aria-label attributes.
- * 3. formatExplooroBrandText renders decorative accent spans with aria-hidden="true".
+ * 3. formatExplooroBrandText renders one labelled name (role="img") with its coloured letters hidden.
  * 4. WCAG 1.4.3 Logotypes exemption is applied in runA11yAudit.
  */
 
@@ -43,13 +43,12 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     );
   });
 
-  await t.test('3. formatExplooroBrandText marks accent span with aria-hidden="true"', () => {
-    const brandHtml = formatExplooroBrandText('EXPLOORO');
-    assert.match(
-      brandHtml,
-      /<span class="brand-text__accent" aria-hidden="true">O<\/span>/,
-      'Brand accent letter O must have aria-hidden="true"'
-    );
+  await t.test('3. formatExplooroBrandText reads as one labelled name, its coloured letters hidden', () => {
+    // WHY: hiding only the accent letter made a screen reader say "EXPLORO".
+    const brandHtml = formatExplooroBrandText('Explooro Staff 2FA');
+    assert.match(brandHtml, /^<span class="brand-wordmark" role="img" aria-label="Explooro"><span aria-hidden="true">expl/);
+    assert.equal(brandHtml.replace(/<[^>]+>/g, ''), 'explooro Staff 2FA', 'the letters spell the name and the suffix stays');
+    assert.ok(brandHtml.endsWith(' Staff 2FA'), 'text after the name is outside the wordmark font');
   });
 
   await t.test('4. a11y-audit.ts source code includes WCAG 1.4.3 logotype exemption', () => {

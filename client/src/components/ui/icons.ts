@@ -256,14 +256,18 @@ export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark'
 }
 
 /**
- * Formats "Explooro" brand text with the 5th letter ("o" / "O") styled in brand gold accent color.
+ * The Explooro wordmark: lowercase "explooro" in Poppins 700 (the 'Explooro Wordmark' face in
+ * typography.css), its "oo" in the two ring colours of the mark beside it. Text after the name
+ * ("Explooro Staff 2FA") stays in the page's own font.
+ *
+ * WHY role="img" with a label and the letters aria-hidden (owner chose the design 2026-11-20): the
+ * coloured "o"s are separate spans, and the old version hid the accent letter itself, so a screen
+ * reader heard "EXPLORO". Now it hears the name once, spelled right.
  */
 export function formatExplooroBrandText(text = 'Explooro'): string {
-  if (text.startsWith('EXPLOORO')) {
-    return `EXPL<span class="brand-text__accent" aria-hidden="true">O</span>ORO${text.slice(8)}`;
-  }
-  if (text.startsWith('Explooro')) {
-    return `Expl<span class="brand-text__accent" aria-hidden="true">o</span>oro${text.slice(8)}`;
+  if (/^explooro/i.test(text)) {
+    const word = `<span class="brand-wordmark" role="img" aria-label="Explooro"><span aria-hidden="true">expl<span class="brand-text__accent">o</span><span class="brand-text__accent brand-text__accent--2">o</span>ro</span></span>`;
+    return `${word}${text.slice(8)}`;
   }
   if (text.length >= 5) {
     return `${text.slice(0, 4)}<span class="brand-text__accent" aria-hidden="true">${text.charAt(4)}</span>${text.slice(5)}`;

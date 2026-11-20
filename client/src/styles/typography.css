@@ -44,6 +44,17 @@
     U+1CE1, U+1CEA, U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
 }
 
+/* The wordmark's face: Poppins 700 (SIL Open Font License 1.1), subset to the six letters of
+   "explooro" (916 bytes), so it costs one tiny request and nothing else on the page uses it. */
+@font-face {
+  font-family: 'Explooro Wordmark';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/poppins-700-wordmark.woff2') format('woff2');
+  unicode-range: U+0065, U+006C, U+006F-0070, U+0072, U+0078;
+}
+
 /* ---------------------------------------------------------------------
  * Base document type
  * ------------------------------------------------------------------- */
@@ -245,10 +256,25 @@ td,
   overflow-wrap: anywhere;
 }
 
-/* Brand text accent — colors the 5th character 'o'/'O' in Explooro */
+/* The wordmark (icons.ts formatExplooroBrandText). `span` in the second selector outranks the
+   `:lang(bn)` rule above, which sets a font on every element, so the Bangla UI keeps the logo too. */
+.brand-wordmark,
+.brand-wordmark span {
+  font-family: 'Explooro Wordmark', var(--font-latin);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+/* Its "oo" takes the two ring colours of the mark (reset.css picks them per light/dark mode);
+   a hand-picked logo colour from Theme Studio (--logo-star) wins over the first. */
 .brand-text__accent,
 .brand-accent,
 .logo-accent {
-  color: var(--brand, #ffbc00);
+  color: var(--logo-star, var(--logo-ring-1, var(--brand)));
+}
+
+.brand-text__accent--2 {
+  color: var(--logo-ring-2, var(--brand));
 }
 
