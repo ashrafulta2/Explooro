@@ -194,12 +194,12 @@
 }
 
 .supplier-kpi-card__icon-box--warning {
-  background: color-mix(in srgb, var(--warning-500) 12%, transparent);
+  background: var(--warning-bg);
   color: var(--warning);
 }
 
 .supplier-kpi-card__icon-box--success {
-  background: color-mix(in srgb, var(--success-500) 12%, transparent);
+  background: var(--success-bg);
   color: var(--success);
 }
 
@@ -209,7 +209,7 @@
 }
 
 .supplier-kpi-card__icon-box--danger {
-  background: color-mix(in srgb, var(--danger-500) 12%, transparent);
+  background: var(--danger-bg);
   color: var(--danger);
 }
 
@@ -1319,12 +1319,12 @@
 }
 
 .supplier-day-card__toggle--closed {
-  background: color-mix(in srgb, var(--danger-500) 12%, transparent);
+  background: var(--danger-bg);
   color: var(--danger);
 }
 
 .supplier-day-card__toggle--closed:hover {
-  background: color-mix(in srgb, var(--success-500) 14%, transparent);
+  background: var(--success-bg);
   color: var(--success);
 }
 

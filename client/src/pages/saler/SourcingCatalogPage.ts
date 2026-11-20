@@ -359,14 +359,14 @@ function createStatCard(label, value) {
 }
 
 const CATEGORY_META = {
-  'Clothing': { icon: '🥻', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'var(--accent-700)' },
-  'Jewellery': { icon: '💍', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'var(--accent-700)' },
+  'Clothing': { icon: '🥻', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'color-mix(in oklch, var(--accent-500) 60%, var(--text-primary))' },
+  'Jewellery': { icon: '💍', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'color-mix(in oklch, var(--accent-500) 60%, var(--text-primary))' },
   'Crafts': { icon: '🏺', bg: 'var(--success-bg)', color: 'var(--success)' },
   'Electronics': { icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', bg: 'color-mix(in srgb, var(--brand) 10%, var(--surface-0))', color: 'var(--text-brand)' },
   'Home & Kitchen': { icon: '🍳', bg: 'var(--warning-bg)', color: 'var(--warning)' },
   'Food & Grocery': { icon: '🍯', bg: 'var(--warning-bg)', color: 'var(--warning)' },
   'Footwear': { icon: '👟', bg: 'var(--surface-2)', color: 'var(--text-secondary)' },
-  'Bags': { icon: '👜', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'var(--accent-700)' },
+  'Bags': { icon: '👜', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'color-mix(in oklch, var(--accent-500) 60%, var(--text-primary))' },
   'Beauty & Health': { icon: '✨', bg: 'var(--danger-bg)', color: 'var(--danger)' },
   'Kids': { icon: '🧸', bg: 'var(--success-bg)', color: 'var(--success)' },
   default: { icon: '📦', bg: 'var(--surface-2)', color: 'var(--text-secondary)' },

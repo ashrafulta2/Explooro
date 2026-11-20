@@ -397,6 +397,14 @@ html:where([data-ui-style='macos']) .assistant-panel__usage-stat-label {
   letter-spacing: normal;
 }
 
+/* ── components/audit-explorer.css ── */
+html:where([data-ui-style='macos']) .audit-integrity-banner--intact {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .audit-integrity-banner--broken {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
+
 /* ── components/auth.css ── */
 @media (forced-colors: none) {
   html:where([data-ui-style='macos']) .auth-field__input:focus {
@@ -708,6 +716,9 @@ html:where([data-ui-style='macos']) .addresses-spotlight__type-tag {
 }
 html:where([data-ui-style='macos']) .address-card__type-tag {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .address-card__type-tag--other {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .address-card__default-badge {
   font-weight: 700;
@@ -1521,6 +1532,9 @@ html:where([data-ui-style='macos']) .live-map-fallback-banner {
 html:where([data-ui-style='macos']) .module-control__banner {
   background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
 }
+html:where([data-ui-style='macos']) .module-row__target-badge {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
 
 /* ── components/next-step-card.css ── */
 html:where([data-ui-style='macos']) .next-step-card {
@@ -2034,6 +2048,10 @@ html:where([data-ui-style='macos']) .sourcing-card__tier-badge {
   letter-spacing: normal;
   box-shadow: var(--elevation-1);
 }
+html:where([data-ui-style='macos']) .sourcing-card__tier-badge--elite {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .sourcing-card__category {
   text-transform: none;
   letter-spacing: normal;
@@ -2140,6 +2158,15 @@ html:where([data-ui-style='macos']) .supplier-kpi-card__label {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .supplier-kpi-card__icon-box--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .supplier-kpi-card__icon-box--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .supplier-kpi-card__icon-box--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .supplier-kpi-card__value {
   font-weight: 700;
 }
@@ -2204,6 +2231,12 @@ html:where([data-ui-style='macos']) .supplier-day-card__title {
 html:where([data-ui-style='macos']) .supplier-day-card__toggle {
   font-weight: 700;
 }
+html:where([data-ui-style='macos']) .supplier-day-card__toggle--closed {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .supplier-day-card__toggle--closed:hover {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .supplier-form-field label {
   text-transform: none;
   letter-spacing: normal;
@@ -2230,6 +2263,7 @@ html:where([data-ui-style='macos']) .system-health__status-badge {
   font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .system-health__title {
   font-weight: 700;
@@ -2247,6 +2281,9 @@ html:where([data-ui-style='macos']) .system-vital-card__title {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .system-vital-card__badge {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .system-vital-card__val {
   font-weight: 700;
 }
@@ -2256,6 +2293,10 @@ html:where([data-ui-style='macos']) .system-infra-card__title {
 html:where([data-ui-style='macos']) .system-infra-card__badge {
   font-weight: 700;
   text-transform: none;
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .system-infra-card__badge--warn {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .system-panel__title {
   font-weight: 700;
@@ -2267,9 +2308,18 @@ html:where([data-ui-style='macos']) .system-table th {
 html:where([data-ui-style='macos']) .system-table__badge {
   text-transform: none;
 }
+html:where([data-ui-style='macos']) .system-table__badge--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .system-table__badge--info {
   background: color-mix(in srgb, var(--info-bg) 70%, transparent);
   border: 1px solid transparent;
+}
+html:where([data-ui-style='macos']) .system-table__badge--warn {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .system-table__badge--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .system-btn-action {
   font-weight: var(--weight-medium);
@@ -2470,6 +2520,12 @@ html:where([data-ui-style='macos']) .mini-btn {
 html:where([data-ui-style='macos']) .balance-card__label {
   text-transform: none;
   letter-spacing: normal;
+}
+html:where([data-ui-style='macos']) .countdown-badge {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .countdown-badge--ready {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .finance-kpi-card__label {
   text-transform: none;

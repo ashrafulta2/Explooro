@@ -151,13 +151,13 @@
 }
 
 .sourcing-card__tier-badge--elite {
-  background: var(--warning-500);
+  background: var(--warning-bg);
   color: var(--warning);
   border: 1px solid var(--warning-border);
 }
 
 .sourcing-card__tier-badge--verified {
-  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface-0));
   color: var(--text-brand);
   border: 1px solid color-mix(in srgb, var(--brand) 40%, transparent);
 }

@@ -264,7 +264,7 @@
 /* Channel colours — used on avatars (the avatar colour IS the channel) */
 .tag-whatsapp { background: #dcfce7; color: #15803d; }
 .tag-messenger { background: #dbeafe; color: #1d4ed8; }
-.tag-inplatform { background: color-mix(in srgb, var(--accent-500) 12%, transparent); color: var(--accent-700); }
+.tag-inplatform { background: color-mix(in srgb, var(--accent-500) 12%, transparent); color: color-mix(in oklch, var(--accent-500) 60%, var(--text-primary)); }
 
 /* ── Right: open conversation ── */
 .inbox-chat-pane {

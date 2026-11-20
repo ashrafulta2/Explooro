@@ -253,7 +253,7 @@
 }
 
 .chat-thread-card.unread {
-  background: var(--brand-50, #fdf8ef);
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface-0));
 }
 
 .thread-card-top {
@@ -386,7 +386,7 @@
 
 .channel-pill.in-platform {
   background: color-mix(in srgb, var(--accent-500) 12%, transparent);
-  color: var(--accent-700);
+  color: color-mix(in oklch, var(--accent-500) 60%, var(--text-primary));
   border: 1px solid color-mix(in srgb, var(--accent-500) 40%, transparent);
 }
 

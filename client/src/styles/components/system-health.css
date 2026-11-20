@@ -62,7 +62,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--success-500) 12%, transparent);
+  background: var(--success-bg);
   color: var(--success);
   border: 1px solid color-mix(in srgb, var(--success-500) 30%, transparent);
 }
@@ -241,7 +241,7 @@
   font-size: 11px;
   font-weight: 700;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--success-500) 12%, transparent);
+  background: var(--success-bg);
   color: var(--success);
   border: 1px solid color-mix(in srgb, var(--success-500) 25%, transparent);
 }
@@ -351,13 +351,13 @@
   font-weight: 800;
   text-transform: uppercase;
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--success-500) 12%, transparent);
+  background: var(--success-bg);
   color: var(--success);
   border: 1px solid color-mix(in srgb, var(--success-500) 25%, transparent);
 }
 
 .system-infra-card__badge--warn {
-  background: color-mix(in srgb, var(--warning-500) 12%, transparent);
+  background: var(--warning-bg);
   color: var(--warning);
   border-color: color-mix(in srgb, var(--warning-500) 30%, transparent);
 }
@@ -540,7 +540,7 @@
 }
 
 .system-table__badge--success {
-  background: color-mix(in srgb, var(--success-500) 12%, transparent);
+  background: var(--success-bg);
   color: var(--success);
   border: 1px solid color-mix(in srgb, var(--success-500) 25%, transparent);
 }
@@ -555,13 +555,13 @@
 }
 
 .system-table__badge--warn {
-  background: color-mix(in srgb, var(--warning-500) 12%, transparent);
+  background: var(--warning-bg);
   color: var(--warning);
   border: 1px solid color-mix(in srgb, var(--warning-500) 25%, transparent);
 }
 
 .system-table__badge--danger {
-  background: color-mix(in srgb, var(--danger-500) 12%, transparent);
+  background: var(--danger-bg);
   color: var(--danger);
   border: 1px solid color-mix(in srgb, var(--danger-500) 25%, transparent);
 }

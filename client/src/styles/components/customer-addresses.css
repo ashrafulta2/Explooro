@@ -267,11 +267,11 @@
 
 .address-card__type-tag--office {
   background: color-mix(in srgb, var(--accent-500) 10%, transparent);
-  color: var(--accent-700);
+  color: color-mix(in oklch, var(--accent-500) 60%, var(--text-primary));
 }
 
 .address-card__type-tag--other {
-  background: color-mix(in srgb, var(--success-500) 10%, transparent);
+  background: var(--success-bg);
   color: var(--success);
 }
 
