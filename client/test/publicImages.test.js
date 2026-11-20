@@ -129,9 +129,9 @@ describe('link-preview image (og:image)', () => {
 
     assert.deepEqual(px(0, 0), rgba(palette.neutral[900]), 'canvas is the theme\'s dark ink');
     assert.deepEqual(px(...at(glyphs[0])), rgba(palette.neutral[0]), 'wordmark ink');
-    assert.deepEqual(px(...at(glyphs[4])), rgba(ring1), 'the first o of "oo" in the first ring colour, as the top bar draws it');
-    assert.deepEqual(px(...at(glyphs[5])), rgba(ring2), 'the second o in the second ring colour');
-    assert.equal([...glyphs].length, 8, 'eight letters: explooro');
+    assert.deepEqual(px(...at(glyphs[4])), rgba(ring1), 'the first O of "OO" in the first ring colour, as the top bar draws it');
+    assert.deepEqual(px(...at(glyphs[5])), rgba(ring2), 'the second O in the second ring colour');
+    assert.equal([...glyphs].length, 8, 'eight letters: EXPLOORO');
     // The rings are 0..100 across MARK_SIZE; (10, 50) is the left ring's outer edge, (90, 50) the right one's.
     const markAt = (x, y) => [
       OG_WIDTH / 2 - OG_LAYOUT.MARK_SIZE / 2 + Math.round((x / 100) * OG_LAYOUT.MARK_SIZE),

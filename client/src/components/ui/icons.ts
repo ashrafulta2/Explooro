@@ -256,8 +256,10 @@ export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark'
 }
 
 /**
- * The Explooro wordmark: lowercase "explooro" in Poppins 700 (the 'Explooro Wordmark' face in
- * typography.css), its "oo" in the two ring colours of the mark beside it. Text after the name
+ * The Explooro wordmark: capital "EXPLOORO" in Poppins 700 (the 'Explooro Wordmark' face in
+ * typography.css), its "OO" in the two ring colours of the mark beside it. WHY capitals (owner
+ * chose them over lowercase 2026-11-20): a capital O is a full-height circle, so the "OO" matches
+ * the rings in size; a lowercase o is only the x-height and the rings read as a separate badge. Text after the name
  * ("Explooro Staff 2FA") stays in the page's own font.
  *
  * WHY role="img" with a label and the letters aria-hidden (owner chose the design 2026-11-20): the
@@ -266,7 +268,7 @@ export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark'
  */
 export function formatExplooroBrandText(text = 'Explooro'): string {
   if (/^explooro/i.test(text)) {
-    const word = `<span class="brand-wordmark" role="img" aria-label="Explooro"><span aria-hidden="true">expl<span class="brand-text__accent">o</span><span class="brand-text__accent brand-text__accent--2">o</span>ro</span></span>`;
+    const word = `<span class="brand-wordmark" role="img" aria-label="Explooro"><span aria-hidden="true">EXPL<span class="brand-text__accent">O</span><span class="brand-text__accent brand-text__accent--2">O</span>RO</span></span>`;
     return `${word}${text.slice(8)}`;
   }
   if (text.length >= 5) {

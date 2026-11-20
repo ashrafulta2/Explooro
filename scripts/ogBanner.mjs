@@ -5,7 +5,7 @@
  * Imported by scripts/logo.mjs (which writes the file) and by client/test/publicImages.test.js. This
  * module only exports functions and constants: importing it writes nothing.
  *
- * What it draws: the linked-rings mark above the wordmark "explooro", its "oo" in the two ring
+ * What it draws: the linked-rings mark above the wordmark "EXPLOORO", its "OO" in the two ring
  * colours exactly as the top bar does it (formatExplooroBrandText in components/ui/icons.ts), on the
  * theme's dark ink, plus four faint copies of the mark for texture.
  *
@@ -13,8 +13,8 @@
  * glyph table is stored in a transformed form that needs a few hundred lines of decoding before a
  * single outline can be read, and sharp (which could rasterise text) is permitted only inside
  * server/src/services/media.service.ts (docs/dependency-ledger.md). The wordmark is six distinct
- * lowercase letters of a geometric face (Poppins 700: circles and straight stems), so it is drawn
- * here as geometry: every stroke is a signed distance, which also gives exact anti-aliasing for
+ * capitals of a geometric face (Poppins 700: circles and straight stems), so it is drawn here as
+ * geometry: every stroke is a signed distance, which also gives exact anti-aliasing for
  * free. There is no tagline for the same
  * reason; a sentence (in Bangla above all) needs a real font.
  *
@@ -31,16 +31,13 @@ export const OG_HEIGHT = 630;
 const MARK_SIZE = 240;
 const MARK_TOP = 123;
 /**
- * The wordmark's vertical metrics, top of the "l" at WORD_TOP: x-height, the ascender above it,
- * the descender of the "p" below the baseline, and the stroke weight (Poppins 700 is about a
- * quarter of the x-height).
+ * The wordmark's cap height (its top at WORD_TOP), the stroke weight its letters are drawn with
+ * (Poppins 700 is about a fifth of the cap height) and the space between letters.
  */
-const X_HEIGHT = 64;
-const ASCENDER = 92;
-const DESCENDER = 28;
-const STROKE = 17;
-const WORD_TOP = 405;
-const TRACKING = 7;
+const CAP = 80;
+const STROKE = 16;
+const WORD_TOP = 420;
+const TRACKING = 9;
 /** Faint copies of the mark in the empty wings of the canvas: [centre x, centre y, size]. */
 const DECOR = [
   [150, 140, 70],
@@ -51,53 +48,50 @@ const DECOR = [
 const DECOR_OPACITY = 0.14;
 
 /**
- * The glyphs of the wordmark, in a box of `width` × (ASCENDER + DESCENDER) with y growing downward
- * from the ascender line. Each part is a stroke centre line: a segment [x1, y1, x2, y2] or an arc
- * { cx, cy, r, from, to } in radians (0 points right, π/2 down). Centre lines sit STROKE/2 inside
- * the box, so the painted letter fills it exactly. `probe` is a point on a centre line, where a
- * test can read the letter's colour.
+ * The glyphs of the wordmark, in a box of `width` × CAP with y growing downward. Each part is a
+ * stroke centre line: a segment [x1, y1, x2, y2] or an arc { cx, cy, r, from, to } in radians
+ * (0 points right, π/2 down). Centre lines sit STROKE/2 inside the box, so the painted letter
+ * fills it exactly. `probe` is a point on a centre line, where a test can read the letter's colour.
  */
 function glyph(letter) {
   const h = STROKE / 2;
-  const top = ASCENDER - X_HEIGHT; // the x-height line
-  const base = ASCENDER; // the baseline
-  const cy = top + X_HEIGHT / 2;
-  const r = X_HEIGHT / 2 - h; // the bowl shared by o, e and p
-  const PI = Math.PI;
+  // Letter widths as a share of the cap height, so CAP alone resizes the wordmark.
+  const w = (share) => Math.round(CAP * share);
+  const base = CAP - h;
+  const mid = CAP / 2;
+  // P and R share the bowl: a D shape from the cap line down to just past the middle.
+  const bowl = (width) => {
+    const bottom = CAP * 0.56;
+    const r = (bottom - h) / 2;
+    const cx = width - h - r;
+    return {
+      cx,
+      bottom,
+      parts: [
+        [h, h, cx, h],
+        [h, bottom, cx, bottom],
+        { cx, cy: h + r, r, from: -Math.PI / 2, to: Math.PI / 2 },
+      ],
+    };
+  };
+  const stem = [h, mid];
   switch (letter) {
-    case 'o':
-      return { width: X_HEIGHT, probe: [h, cy], parts: [{ cx: X_HEIGHT / 2, cy, r, from: -PI, to: PI }] };
-    case 'e':
-      // The bowl, open at the lower right, with the bar across its middle.
-      return {
-        width: X_HEIGHT,
-        probe: [h, cy],
-        parts: [
-          { cx: X_HEIGHT / 2, cy, r, from: -PI, to: 0 },
-          { cx: X_HEIGHT / 2, cy, r, from: PI / 4, to: PI },
-          [h, cy, X_HEIGHT - h, cy],
-        ],
-      };
-    case 'x': {
-      const w = Math.round(X_HEIGHT * 0.86);
-      return { width: w, probe: [w / 2, cy], parts: [[h, top + h, w - h, base - h], [h, base - h, w - h, top + h]] };
+    case 'E':
+      return { width: w(0.7), probe: stem, parts: [[h, h, h, base], [h, h, w(0.7) - h, h], [h, mid, w(0.64) - h, mid], [h, base, w(0.7) - h, base]] };
+    case 'X':
+      return { width: w(0.86), probe: [w(0.86) / 2, mid], parts: [[h, h, w(0.86) - h, base], [h, base, w(0.86) - h, h]] };
+    case 'P': {
+      const b = bowl(w(0.74));
+      return { width: w(0.74), probe: stem, parts: [[h, h, h, base], ...b.parts] };
     }
-    case 'p':
-      return {
-        width: X_HEIGHT,
-        probe: [h, cy],
-        parts: [[h, top + h, h, base + DESCENDER - h], { cx: X_HEIGHT / 2, cy, r, from: -PI, to: PI }],
-      };
-    case 'l':
-      return { width: STROKE, probe: [h, cy], parts: [[h, h, h, base - h]] };
-    case 'r': {
-      const rr = X_HEIGHT * 0.34;
-      const w = Math.round(h + rr + X_HEIGHT * 0.16 + h);
-      return {
-        width: w,
-        probe: [h, cy],
-        parts: [[h, top + h, h, base - h], { cx: h + rr, cy: top + h + rr, r: rr, from: -PI, to: -PI / 2 }, [h + rr, top + h, w - h, top + h]],
-      };
+    case 'L':
+      return { width: w(0.62), probe: stem, parts: [[h, h, h, base], [h, base, w(0.62) - h, base]] };
+    case 'O':
+      return { width: CAP, probe: stem, parts: [{ cx: CAP / 2, cy: mid, r: CAP / 2 - h, from: -Math.PI, to: Math.PI }] };
+    case 'R': {
+      const b = bowl(w(0.74));
+      const legFrom = h + (b.cx - h) * 0.55;
+      return { width: w(0.77), probe: stem, parts: [[h, h, h, base], ...b.parts, [legFrom, b.bottom, w(0.77) - h, base]] };
     }
     default:
       throw new Error(`ogBanner: no glyph for "${letter}"`);
@@ -122,10 +116,10 @@ function arcDistance(px, py, { cx, cy, r, from, to }) {
 }
 
 /**
- * Lays out "explooro" centred on the canvas: [{ x, width, parts, probe, ring }]. `ring` is 1 or 2
- * for the two letters of the "oo", which take the ring colours, and 0 for the rest.
+ * Lays out "EXPLOORO" centred on the canvas: [{ x, width, parts, probe, ring }]. `ring` is 1 or 2
+ * for the two letters of the "OO", which take the ring colours, and 0 for the rest.
  */
-export function layoutWordmark(text = 'explooro') {
+export function layoutWordmark(text = 'EXPLOORO') {
   const glyphs = [...text].map((letter, i) => ({ ...glyph(letter), ring: i === 4 ? 1 : i === 5 ? 2 : 0 }));
   const total = glyphs.reduce((sum, g) => sum + g.width, 0) + TRACKING * (glyphs.length - 1);
   let x = Math.round((OG_WIDTH - total) / 2);
@@ -160,7 +154,7 @@ function stampMark(out, { left, top, size, ring1, ring2, opacity }) {
  *
  * - `bg`: the canvas, the theme's darkest working neutral.
  * - `ring1`, `ring2`: the mark's two rings, the colours the top bar paints them with.
- *   The wordmark's "oo" takes the same two colours.
+ *   The wordmark's "OO" takes the same two colours.
  * - `text`: the rest of the wordmark.
  */
 export function renderOgBannerRgba({ bg, text, ring1, ring2 }) {
@@ -183,7 +177,7 @@ export function renderOgBannerRgba({ bg, text, ring1, ring2 }) {
   const half = STROKE / 2;
   for (const g of layoutWordmark()) {
     const rgb = ringRgb[g.ring];
-    for (let y = WORD_TOP - 1; y <= WORD_TOP + ASCENDER + DESCENDER + 1; y++) {
+    for (let y = WORD_TOP - 1; y <= WORD_TOP + CAP + 1; y++) {
       for (let x = g.x - 1; x <= g.x + g.width + 1; x++) {
         // Distance from the pixel centre to the letter's edge; < 0 is inside.
         const px = x + 0.5 - g.x;
@@ -200,4 +194,4 @@ export function renderOgBannerRgba({ bg, text, ring1, ring2 }) {
 }
 
 /** Where the wordmark and the mark sit, for the test to sample. */
-export const OG_LAYOUT = { MARK_SIZE, MARK_TOP, X_HEIGHT, ASCENDER, DESCENDER, STROKE, WORD_TOP };
+export const OG_LAYOUT = { MARK_SIZE, MARK_TOP, CAP, STROKE, WORD_TOP };

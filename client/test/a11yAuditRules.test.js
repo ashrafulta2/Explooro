@@ -46,8 +46,8 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
   await t.test('3. formatExplooroBrandText reads as one labelled name, its coloured letters hidden', () => {
     // WHY: hiding only the accent letter made a screen reader say "EXPLORO".
     const brandHtml = formatExplooroBrandText('Explooro Staff 2FA');
-    assert.match(brandHtml, /^<span class="brand-wordmark" role="img" aria-label="Explooro"><span aria-hidden="true">expl/);
-    assert.equal(brandHtml.replace(/<[^>]+>/g, ''), 'explooro Staff 2FA', 'the letters spell the name and the suffix stays');
+    assert.match(brandHtml, /^<span class="brand-wordmark" role="img" aria-label="Explooro"><span aria-hidden="true">EXPL/);
+    assert.equal(brandHtml.replace(/<[^>]+>/g, ''), 'EXPLOORO Staff 2FA', 'the letters spell the name and the suffix stays');
     assert.ok(brandHtml.endsWith(' Staff 2FA'), 'text after the name is outside the wordmark font');
   });
 

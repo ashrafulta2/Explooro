@@ -11,8 +11,8 @@
 .topbar__brand { display: flex; align-items: center; gap: var(--space-1); font-weight: 700; font-size: var(--tb-brand-font, 20px); letter-spacing: -0.02em; color: var(--navbar-text, var(--text-primary)); text-decoration: none; margin-right: var(--space-2); cursor: pointer; user-select: none; transition: color var(--dur-fast) var(--ease-standard), font-size var(--dur-base) var(--ease-standard); }
 .topbar__brand:hover { color: var(--brand); }
 /* WHY the wordmark is 20px beside the 28px mark (17px beside 24px when scrolled): the mark's rings
-   are the "oo" of the word, so the letters' ascender must reach the rings' height (~61% of the mark)
-   or the rings read as a heavier, separate badge. At the old 17px the "o" was 10px against 17px rings. */
+   are the "OO" of the word, so a capital O (~0.8em in Poppins 700) must come close to the rings'
+   height (~61% of the mark): 16px against 17px rings. Any smaller and the rings read as a separate badge. */
 .topbar__brand svg { flex: none; width: var(--tb-brand-icon, 28px); height: var(--tb-brand-icon, 28px); transition: width var(--dur-base) var(--ease-standard), height var(--dur-base) var(--ease-standard); }
 .topbar__auth-buttons { display: flex; align-items: center; gap: var(--space-2); }
 .app-shell__footer-slot { grid-area: footer; min-width: 0; }
