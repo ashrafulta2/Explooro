@@ -1,9 +1,10 @@
 /**
  * logoTheme.ts — keeps the brand mark and the browser-tab favicon in the live theme's colours.
  *
- * The in-app mark (icons.ts getExplooroLogoSvg) reads --logo-ring-1 and --logo-ring-2, set here
- * from the palette. The favicon is a separate document that cannot read the page's CSS, so it is
- * re-drawn with the same colours and swapped in as a data: URL. Both come from one function,
+ * The in-app mark (icons.ts getExplooroLogoSvg) reads --logo-ring-1 and --logo-ring-2, which
+ * reset.css takes from the light or dark pair set here from the palette. The favicon is a
+ * separate document that cannot read the page's CSS, so it is re-drawn with the light pair and
+ * swapped in as a data: URL. Both come from one function,
  * logoColorsFromPalette, which scripts/logo.mjs also bakes the static icons with, so the tab, the
  * top bar and the installed icon of the shipped default are the same picture.
  *
@@ -11,10 +12,12 @@
  * script runs. It is the shipped default's mark; this replaces it once a theme is applied.
  */
 
-import { buildLogoMarkSvg, logoColorsFromPalette } from './logoMark.ts';
+import { buildLogoMarkSvg, logoColorsFromPalette, logoDarkRingsFromPalette } from './logoMark.ts';
 import type { Palette } from './colorRamp.ts';
 
-const RING_VARS = ['--logo-ring-1', '--logo-ring-2'] as const;
+// WHY two pairs and not --logo-ring-1/2 directly: an inline property on <html> would beat the
+// dark-mode rule. reset.css picks --logo-ring-1/2 from these per mode, so the toggle needs no JS.
+const RING_VARS = ['--logo-ring-1-light', '--logo-ring-2-light', '--logo-ring-1-dark', '--logo-ring-2-dark'] as const;
 
 /** The href index.html shipped with, so a reset can put the static file back. */
 let shippedFavicon: string | null = null;
@@ -48,9 +51,9 @@ export function applyLogoTheme(palette: Pick<Palette, 'brand' | 'neutral' | 'met
     return;
   }
 
-  const { ring1, ring2 } = logoColorsFromPalette(palette);
-  root.style.setProperty(RING_VARS[0], ring1);
-  root.style.setProperty(RING_VARS[1], ring2);
+  const light = logoColorsFromPalette(palette);
+  const dark = logoDarkRingsFromPalette(palette);
+  [light.ring1, light.ring2, dark.ring1, dark.ring2].forEach((color, i) => root.style.setProperty(RING_VARS[i], color));
   if (link) {
     link.setAttribute('type', 'image/svg+xml');
     link.setAttribute('href', faviconHrefFor(palette));

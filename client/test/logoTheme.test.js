@@ -24,6 +24,7 @@ import { generatePalette, contrastRatio, DEFAULT_MASTER, BRAND_STEPS } from '../
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.ts';
 import {
   logoColorsFromPalette,
+  logoDarkRingsFromPalette,
   buildLogoMarkSvg,
   LOGO_RING_MIN_CONTRAST,
   LOGO_FALLBACK_COLORS,
@@ -43,6 +44,24 @@ test('on every preset the first ring reads on the page and the second is a light
     const stepOf = (c) => BRAND_STEPS.find((s) => palette.brand[s] === c);
     assert.ok(stepOf(ring2) < stepOf(ring1), `${key}: the second ring is a lighter step of the ramp`);
   }
+});
+
+test('in dark mode the first ring reads on the dark top bar, on every preset', () => {
+  // WHY: the light pair walks a dark seed to its darkest step, which vanished on a dark bar (1.1:1).
+  for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
+    const palette = generatePalette(preset.master);
+    const { ring1, ring2 } = logoDarkRingsFromPalette(palette);
+    const ratio = contrastRatio(ring1, palette.neutral[900]);
+    assert.ok(ratio >= LOGO_RING_MIN_CONTRAST, `${key}: ${ring1} on ${palette.neutral[900]} is ${ratio.toFixed(2)}:1`);
+    const stepOf = (c) => BRAND_STEPS.find((s) => palette.brand[s] === c);
+    assert.ok(stepOf(ring2) < stepOf(ring1), `${key}: the second ring is a lighter step of the ramp`);
+  }
+});
+
+test('reset.css switches the rings to the dark pair in both dark-mode selectors', () => {
+  const css = readFileSync(join(CLIENT, 'src', 'styles', 'reset.css'), 'utf8');
+  const darkBlocks = css.match(/(:root\[data-theme='dark'\]|:root:not\(\[data-theme='light'\]\))\s*\{[^}]*--logo-ring-1:\s*var\(--logo-ring-1-dark/g) || [];
+  assert.equal(darkBlocks.length, 2, 'the explicit dark toggle and the OS preference both pick the dark rings');
 });
 
 test('the rings are the theme colour, not a fixed one', () => {

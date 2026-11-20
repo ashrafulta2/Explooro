@@ -237,9 +237,10 @@ export function getItemIcon(item: { key: string; icon?: unknown; group?: string 
 
 /**
  * Explooro Brand Logo Mark
- * Two linked rings, the "OO" in the name, painted with --logo-ring-* custom properties that
- * services/logoTheme.ts sets from the live palette on every theme change (any preset AND any
- * custom Theme Studio seed), so the mark repaints with the theme. Before a theme loads it falls
+ * Two linked rings, the "OO" in the name, painted with --logo-ring-* custom properties. reset.css
+ * picks them per light/dark mode from the two pairs services/logoTheme.ts sets from the live
+ * palette on every theme change (any preset AND any custom Theme Studio seed), so the mark
+ * repaints with the theme and stays visible on a dark top bar. Before a theme loads it falls
  * back to the shipped blue. Geometry lives once in services/logoMark.ts so this and the static
  * files scripts/logo.mjs bakes never drift apart.
  */

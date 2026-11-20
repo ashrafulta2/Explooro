@@ -132,6 +132,26 @@ h6 {
   }
 }
 
+/* The logo's two rings (components/ui/icons.ts) take the light or dark pair services/logoTheme.ts
+   sets from the palette; one pair cannot read on both a white and a near-black top bar. The
+   fallbacks are the shipped default's steps, for the instant before a theme is applied. */
+:root {
+  --logo-ring-1: var(--logo-ring-1-light, var(--brand-800));
+  --logo-ring-2: var(--logo-ring-2-light, var(--brand-600));
+}
+
+:root[data-theme='dark'] {
+  --logo-ring-1: var(--logo-ring-1-dark, var(--brand-800));
+  --logo-ring-2: var(--logo-ring-2-dark, var(--brand-600));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --logo-ring-1: var(--logo-ring-1-dark, var(--brand-800));
+    --logo-ring-2: var(--logo-ring-2-dark, var(--brand-600));
+  }
+}
+
 /* §17 — the browser's default selection blue belongs to no brand. */
 ::selection {
   background: var(--brand-100);

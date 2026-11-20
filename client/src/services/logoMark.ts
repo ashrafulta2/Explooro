@@ -64,6 +64,23 @@ export function logoColorsFromPalette(palette: Pick<Palette, 'brand' | 'neutral'
   return { ring1: step(i), ring2: step(Math.max(0, i - LOGO_RING_STEP_GAP)), bg };
 }
 
+/**
+ * The rings' colours in dark mode, where the top bar is the palette's neutral-900.
+ *
+ * WHY a second pair (owner, 2026-11-20): one pair cannot serve both modes. The light-mode rule
+ * walks a dark seed (Midnight Slate, Fresh Black & White) to its darkest step, which on a dark top
+ * bar all but disappeared (1.1:1). Here the first ring walks the other way, toward the light end,
+ * until it has 3:1 on that bar; the second ring stays LOGO_RING_STEP_GAP steps lighter. A seed
+ * that already reads on both (the shipped blue) keeps the same pair in both modes.
+ */
+export function logoDarkRingsFromPalette(palette: Pick<Palette, 'brand' | 'neutral' | 'meta'>): Pick<LogoColors, 'ring1' | 'ring2'> {
+  const surface = palette.neutral[900];
+  const step = (i: number) => palette.brand[BRAND_STEPS[i]];
+  let i = Math.max(0, BRAND_STEPS.indexOf(palette.meta.anchorStep));
+  while (i > LOGO_RING_STEP_GAP && contrastRatio(step(i), surface) < LOGO_RING_MIN_CONTRAST) i--;
+  return { ring1: step(i), ring2: step(Math.max(0, i - LOGO_RING_STEP_GAP)) };
+}
+
 /** A paint as an SVG attribute: a literal colour as the attribute, a `var(…)` as a style (attributes take no var()). */
 function paintAttr(prop: 'stroke' | 'fill', color: string): string {
   return color.includes('var(') ? `style="${prop}: ${color}"` : `${prop}="${color}"`;
