@@ -337,7 +337,19 @@
   font-size: var(--text-sm);
   letter-spacing: var(--tracking-sm);
 }
-:root[data-ui-style='macos'] .nav-item:hover { background: var(--surface-3); color: var(--text-primary); }
+/* No hover highlight: a Mac source list does not light a row up under the pointer, it only
+   selects it. The row darkens slightly while pressed, so a click still answers. The collapsed
+   rail's base hover rules are more specific than a plain .nav-item:hover, so they are named here. */
+:root[data-ui-style='macos'] .nav-item:not(.nav-item--active):hover,
+:root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .nav-item:not(.nav-item--active):hover { background: transparent; }
+:root[data-ui-style='macos'] .nav-item:not(.nav-item--active):not(.nav-item--locked):hover,
+:root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .nav-item:not(.nav-item--active):not(.nav-item--locked):hover { color: var(--sidebar-text, var(--text-secondary)); }
+/* The collapsed rail tints its icons like the expanded list (the base greys them there), so the
+   icon is the same colour at rest and under the pointer in both widths. */
+:root[data-ui-style='macos'] .nav-item:not(.nav-item--active):hover .nav-item__icon,
+:root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .nav-item:not(.nav-item--active) .nav-item__icon { color: var(--text-brand); }
+:root[data-ui-style='macos'] .nav-item:not(.nav-item--active):active,
+:root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .nav-item:not(.nav-item--active):active { background: color-mix(in srgb, var(--text-primary) 7%, transparent); }
 /* Selected row: accent-filled, no left bar — the Mac source-list selection. */
 :root[data-ui-style='macos'] .nav-item--active,
 :root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .nav-item--active {
