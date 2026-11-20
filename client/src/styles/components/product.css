@@ -476,7 +476,8 @@ button.star-row__star:focus-visible { outline: 2px solid var(--brand); outline-o
   position: fixed;
   z-index: 80;
   top: calc(var(--topbar-h, 56px) + var(--space-3));
-  left: 50%;
+  /* WHY: centred on the content column beside the sidebar, not the window (HomePage.ts sets the var). */
+  left: var(--home-float-center, 50%);
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -562,9 +563,9 @@ button.star-row__star:focus-visible { outline: 2px solid var(--brand); outline-o
   position: fixed;
   z-index: 79;
   top: calc(var(--topbar-h, 56px) + 38px + var(--space-4));
-  left: 50%;
+  left: var(--home-float-center, 50%);
   transform: translateX(-50%);
-  width: min(840px, calc(100vw - var(--space-4)));
+  width: min(840px, calc(var(--home-float-width, 100vw) - var(--space-4)));
   max-height: calc(100vh - var(--topbar-h, 56px) - 70px);
   overflow-y: auto;
   display: flex;

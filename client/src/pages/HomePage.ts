@@ -799,6 +799,26 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   window.addEventListener('resize', onWindowResize);
   cleanups.push(() => window.removeEventListener('resize', onWindowResize));
 
+  // WHY: the pill and its panel are position:fixed, so `left: 50%` is half the WINDOW. With the
+  // sidebar open that sits left of the products by half the sidebar's width, and users read the
+  // page as the area beside the sidebar. We publish the content column's centre and width as CSS
+  // variables instead; a ResizeObserver catches the sidebar opening/collapsing (it resizes this
+  // column) as well as window resizes. A position the user dragged to is left alone.
+  const publishContentBox = () => {
+    const rect = page.getBoundingClientRect();
+    if (!rect.width) return;
+    page.style.setProperty('--home-float-center', `${rect.left + rect.width / 2}px`);
+    page.style.setProperty('--home-float-width', `${rect.width}px`);
+  };
+  publishContentBox();
+  if (typeof ResizeObserver === 'function') {
+    const contentObserver = new ResizeObserver(publishContentBox);
+    contentObserver.observe(page);
+    cleanups.push(() => contentObserver.disconnect());
+  }
+  window.addEventListener('resize', publishContentBox);
+  cleanups.push(() => window.removeEventListener('resize', publishContentBox));
+
   const onDocPointerDown = (e) => {
     if (!controlsOpen) return;
     if (floatingToolbar.contains(e.target) || floatingToggle.contains(e.target)) return;
@@ -885,6 +905,8 @@ export default function HomePage(root: HTMLElement, { navigate }: PageContext) {
   // We don't need a separate subscription here — the router already handles it.
 
   root.append(page);
+  // The first measure above ran before the page was in the document (width 0); measure now it is.
+  publishContentBox();
 
   // ── Cleanup (returned to router) ─────────────────────────────────────────
   return () => {
