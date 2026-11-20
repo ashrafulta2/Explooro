@@ -341,13 +341,18 @@
 :root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header {
   min-height: 26px;
   gap: 4px;
-  padding: 10px 8px 4px;
+  /* 10px start: a row's 16px icon sits centred in a 20px box after the row's 8px padding, so it
+     begins at 10px; the title starts there too. */
+  padding: 10px 8px 4px 10px;
   border-radius: 5px;
 }
 :root[data-ui-style='macos'] .sidebar__group-header:hover,
 :root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header:hover { background: transparent; }
 :root[data-ui-style='macos'] .sidebar__group-header:focus-visible { outline: none; box-shadow: var(--mac-focus); }
 :root[data-ui-style='macos'] .sidebar__more { margin-top: 6px; padding-top: 0; border-top: none; }
+/* A section's rows sit flush under its title, as in a Mac source list: no tree line down the left
+   and no indent, so the row icons line up with the title's first letter. */
+:root[data-ui-style='macos'] .sidebar__group-items { margin-left: 0; padding-left: 0; border-left: none; }
 /* The chevron: a thin stroked angle (the ▸ / ▾ glyph is hidden), pointing right when closed and
    down when open, turning between the two. */
 :root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-chevron {
