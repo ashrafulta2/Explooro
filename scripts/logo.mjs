@@ -20,7 +20,7 @@
  *                                                        ignores SVG and rounds the corners itself
  *   client/public/og-banner.png                       — 1200×630 link preview (Facebook, WhatsApp, X), the
  *                                                        mark and wordmark painted by scripts/ogBanner.mjs
- *   client/public/manifest.json                       — theme_color (--brand) and background_color (--surface-0)
+ *   client/public/manifest.json                       — theme_color (#ffffff) and background_color (--surface-0)
  *   client/index.html, client/public/offline.html     — theme-color meta, pre-CSS body and offline page colours
  *                                                        (scripts/pwaColors.mjs); only the hex values change
  *   client/public/icons/brand/{preset-key}.svg        — one per Master Colour preset, prepared for

@@ -26,6 +26,7 @@ export function pwaTokens(palette) {
   const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(', ');
   return {
     brand: brand[palette.meta.anchorStep], // --brand
+    themeColor: '#ffffff', // PWA title bar & toolbar: clean white so blue brand logo & title text maintain high contrast
     textBrand: brand[900], // --text-brand
     canvas: neutral[50], // --surface-0 (light)
     text: neutral[900], // --text-primary (light)
@@ -51,7 +52,7 @@ function rules(t) {
   return [
     ['public/manifest.json', {
       pattern: new RegExp(`("theme_color":\\s*")${HEX}(")`),
-      build: (m) => `${m[1]}${t.brand}${m[2]}`,
+      build: (m) => `${m[1]}${t.themeColor}${m[2]}`,
     }],
     ['public/manifest.json', {
       pattern: new RegExp(`("background_color":\\s*")${HEX}(")`),
@@ -60,7 +61,7 @@ function rules(t) {
 
     ['index.html', {
       pattern: new RegExp(`(<meta name="theme-color" content=")${HEX}(")`),
-      build: (m) => `${m[1]}${t.brand}${m[2]}`,
+      build: (m) => `${m[1]}${t.themeColor}${m[2]}`,
     }],
     // The multi-line `body {` block: `html, body {` has no background and the dark one is a single line.
     ['index.html', {

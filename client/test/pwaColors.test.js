@@ -31,8 +31,8 @@ const indexHtml = read('index.html');
 const offline = read('public', 'offline.html');
 
 describe('PWA colours follow the default theme', () => {
-  test('manifest theme_color is the brand colour and background_color the page canvas (--surface-0)', () => {
-    assert.equal(manifest.theme_color, brand);
+  test('manifest theme_color is white for high title-bar contrast and background_color the page canvas (--surface-0)', () => {
+    assert.equal(manifest.theme_color, '#ffffff');
     assert.equal(manifest.background_color, neutral[50]);
   });
 
@@ -62,7 +62,7 @@ describe('scripts/pwaColors.mjs (run by scripts/logo.mjs)', () => {
     assert.deepEqual(syncPwaColors(palette, CLIENT, { write: false }), [], 'run: node scripts/logo.mjs --write');
   });
 
-  test('a re-seed rewrites all three files, and going back restores them byte for byte', () => {
+  test('a re-seed rewrites offline.html for a different brand, and going back restores them byte for byte', () => {
     const dir = mkdtempSync(join(tmpdir(), 'pwa-colors-'));
     try {
       mkdirSync(join(dir, 'public'));
@@ -70,8 +70,8 @@ describe('scripts/pwaColors.mjs (run by scripts/logo.mjs)', () => {
       for (const file of files) copyFileSync(join(CLIENT, file), join(dir, file));
 
       const other = generatePalette(MASTER_PRESETS.cobalt_trust.master);
-      assert.deepEqual(syncPwaColors(other, dir).sort(), [...files].sort());
-      assert.equal(JSON.parse(readFileSync(join(dir, 'public', 'manifest.json'), 'utf8')).theme_color, other.brand[other.meta.anchorStep]);
+      assert.deepEqual(syncPwaColors(other, dir), ['public/offline.html']);
+      assert.equal(JSON.parse(readFileSync(join(dir, 'public', 'manifest.json'), 'utf8')).theme_color, '#ffffff');
       assert.deepEqual(syncPwaColors(other, dir), [], 'a second run changes nothing');
 
       syncPwaColors(palette, dir);
