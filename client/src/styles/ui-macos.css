@@ -288,16 +288,17 @@
   background: var(--surface-1);
   box-shadow: var(--mac-menu-shadow);
 }
-:root[data-ui-style='macos'] .topbar__avatar-panel a,
-:root[data-ui-style='macos'] .topbar__avatar-panel button {
+/* :not(.btn) keeps the Language/Theme picker buttons on their own .btn colours (see shell.css). */
+:root[data-ui-style='macos'] .topbar__avatar-panel a:not(.btn),
+:root[data-ui-style='macos'] .topbar__avatar-panel button:not(.btn) {
   padding: 4px 10px;
   border-radius: 5px;
   color: var(--text-primary);
   font-size: var(--text-sm);
 }
 /* The Mac menu highlight: the whole row filled with the accent, text flips to its contrast ink. */
-:root[data-ui-style='macos'] .topbar__avatar-panel a:hover,
-:root[data-ui-style='macos'] .topbar__avatar-panel button:hover,
+:root[data-ui-style='macos'] .topbar__avatar-panel a:not(.btn):hover,
+:root[data-ui-style='macos'] .topbar__avatar-panel button:not(.btn):hover,
 :root[data-ui-style='macos'] .topbar__search-suggest-row:hover,
 :root[data-ui-style='macos'] .topbar__search-suggest-row.is-active {
   background: var(--brand);

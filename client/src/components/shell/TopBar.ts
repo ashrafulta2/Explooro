@@ -381,22 +381,16 @@ function renderThemeControls(panel: HTMLElement, { onModeApplied }: { onModeAppl
     panel.innerHTML = '';
     const mode = getTheme();
 
-    // Header
-    const header = document.createElement('div');
-    header.className = 'topbar__theme-panel-header';
-    header.style.padding = '2px 4px 6px 4px';
-    header.style.borderBottom = '1px solid var(--border-subtle)';
-    header.innerHTML = `
-      <span style="font-weight: 700; font-size: 11px; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.5px;">${menuTitle}</span>
-    `;
+    // WHY: same title and row classes as the Language section above it in the avatar menu, so the
+    // two preference groups read as one set (this used to carry its own bold inline-styled header).
+    const header = document.createElement('span');
+    header.className = 'topbar__prefs-title';
+    header.textContent = menuTitle;
     panel.append(header);
 
     // Mode Row (Light, Dark, System)
     const modeRow = document.createElement('div');
-    modeRow.className = 'topbar__theme-mode-row';
-    modeRow.style.display = 'flex';
-    modeRow.style.gap = '4px';
-    modeRow.style.padding = '8px 0';
+    modeRow.className = 'topbar__prefs-row';
 
     const modes = [
       { id: 'light', label: t('shell.theme_mode_light') || 'Light', icon: THEME_ICONS_SVG.light },
@@ -408,13 +402,7 @@ function renderThemeControls(panel: HTMLElement, { onModeApplied }: { onModeAppl
       const modeBtn = document.createElement('button');
       modeBtn.type = 'button';
       modeBtn.className = `btn btn--sm ${mode === m.id ? 'btn--primary' : 'btn--ghost'}`;
-      modeBtn.style.flex = '1';
-      modeBtn.style.padding = '4px 6px';
-      modeBtn.style.fontSize = '11px';
-      modeBtn.style.display = 'flex';
-      modeBtn.style.alignItems = 'center';
-      modeBtn.style.justifyContent = 'center';
-      modeBtn.style.gap = '4px';
+      modeBtn.setAttribute('aria-pressed', String(mode === m.id));
       modeBtn.innerHTML = `<span>${m.icon}</span> <span>${m.label}</span>`;
       modeBtn.addEventListener('click', (e) => {
         e.stopPropagation();

@@ -196,12 +196,15 @@
 .topbar__prefs-section { display: flex; flex-direction: column; gap: var(--space-1); padding-inline: var(--space-1); }
 .topbar__prefs-title { font-size: var(--text-2xs); font-weight: var(--weight-lg); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
 .topbar__prefs-row { display: flex; gap: var(--space-1); }
-.topbar__prefs-row .btn { flex: 1; justify-content: center; text-align: center; }
+.topbar__prefs-row .btn { flex: 1; justify-content: center; text-align: center; gap: var(--space-1); }
 .topbar__prefs-hint { margin: 0; padding-inline: var(--space-2); font-size: var(--text-2xs); color: var(--text-muted); }
 .topbar__avatar-panel { position: absolute; top: calc(100% + var(--space-2)); right: 0; display: flex; flex-direction: column; min-width: 180px; padding: var(--space-2); border-radius: var(--radius-md); border: var(--border-width) solid var(--border-subtle); background: var(--surface-1); box-shadow: var(--elevation-3); z-index: var(--z-dropdown); }
 .topbar__avatar-panel[hidden] { display: none; }
-.topbar__avatar-panel a, .topbar__avatar-panel button { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: var(--text-sm); text-align: left; text-decoration: none; cursor: pointer; }
-.topbar__avatar-panel a:hover, .topbar__avatar-panel button:hover { background: var(--surface-2); color: var(--text-primary); }
+/* WHY: :not(.btn) — the Language/Theme pickers in this menu are real .btn buttons. Without it this
+   rule out-specifies .btn--primary and paints dark text on the selected blue fill (~2.8:1), and the
+   hover rule wipes the fill so the selected choice disappears under the pointer. */
+.topbar__avatar-panel a:not(.btn), .topbar__avatar-panel button:not(.btn) { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); color: var(--text-secondary); font-size: var(--text-sm); text-align: left; text-decoration: none; cursor: pointer; }
+.topbar__avatar-panel a:not(.btn):hover, .topbar__avatar-panel button:not(.btn):hover { background: var(--surface-2); color: var(--text-primary); }
 .topbar__avatar-panel-header { display: flex; flex-direction: column; gap: 2px; padding: var(--space-2) var(--space-3); margin-bottom: var(--space-1); border-bottom: var(--border-width) solid var(--border-subtle); }
 /* Name over role, not beside it: a long Bengali name would otherwise squeeze the role to nothing. */
 .topbar__avatar-panel-name { font-size: var(--text-sm); font-weight: var(--weight-lg); color: var(--text-primary); overflow-wrap: anywhere; }
