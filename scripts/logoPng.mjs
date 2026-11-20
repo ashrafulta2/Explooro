@@ -18,18 +18,17 @@
 import { deflateSync, crc32 } from 'node:zlib';
 
 import {
-  LOGO_SPARKLE_PATH,
-  LOGO_BADGE_RADIUS,
-  LOGO_HOLE_RADIUS,
+  LOGO_RING_LEFT,
+  LOGO_RING_RIGHT,
+  LOGO_RING_RADIUS,
+  LOGO_RING_WIDTH,
+  LOGO_LINK_Y,
   LOGO_MASKABLE_SCALE,
-  LOGO_SPARKLE_SCALE,
-  LOGO_GOLD_STOPS,
+  LOGO_FALLBACK_COLORS,
 } from '../client/src/services/logoMark.ts';
 
 /** Samples per pixel along each axis (4 × 4 = 16), enough for smooth edges at icon sizes. */
 const SAMPLES_PER_AXIS = 4;
-/** Straight segments each cubic curve is cut into. */
-const CURVE_STEPS = 32;
 
 /** '#rrggbb' or '#rgb' → [r, g, b]. Anything else (a var(--…), a url(#…)) cannot be painted here. */
 export function parseHexColor(color) {
@@ -39,87 +38,40 @@ export function parseHexColor(color) {
   return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
 }
 
+/** Is (x, y) on the stroke of a ring centred at `c`? */
+function onRing(c, x, y) {
+  return Math.abs(Math.hypot(x - c.cx, y - c.cy) - LOGO_RING_RADIUS) <= LOGO_RING_WIDTH / 2;
+}
+
 /**
- * Turns an SVG path of absolute M / C / Z commands into a polygon. Throws on any other command, so
- * a future change to LOGO_SPARKLE_PATH fails loudly here instead of painting the wrong shape.
+ * The colour the mark paints at (x, y) in its own 0..100 coordinates, or null for nothing.
+ * Same layering as buildLogoMarkSvg: left ring, right ring over it, then the left ring again
+ * below LOGO_LINK_Y, which is what makes the two interlock.
  */
-export function flattenPath(d, steps = CURVE_STEPS) {
-  const tokens = d.match(/[a-zA-Z]|-?\d*\.?\d+(?:e-?\d+)?/g) || [];
-  const points = [];
-  let i = 0;
-  let cmd = null;
-  let cx = 0;
-  let cy = 0;
-  const num = () => {
-    const v = Number(tokens[i++]);
-    if (!Number.isFinite(v)) throw new Error('logoPng: path ended early');
-    return v;
-  };
-  while (i < tokens.length) {
-    if (/[a-zA-Z]/.test(tokens[i])) cmd = tokens[i++];
-    if (cmd === 'M') {
-      cx = num(); cy = num();
-      points.push([cx, cy]);
-    } else if (cmd === 'C') {
-      const x1 = num(), y1 = num(), x2 = num(), y2 = num(), x = num(), y = num();
-      for (let s = 1; s <= steps; s++) {
-        const t = s / steps;
-        const u = 1 - t;
-        points.push([
-          u * u * u * cx + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x,
-          u * u * u * cy + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y,
-        ]);
-      }
-      cx = x; cy = y;
-    } else if (cmd === 'Z') {
-      // the polygon test below always closes the shape
-    } else {
-      throw new Error(`logoPng: path command "${cmd}" is not supported (only absolute M, C, Z)`);
-    }
-  }
-  return points;
-}
-
-function insidePolygon(points, x, y) {
-  let inside = false;
-  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
-    const [xi, yi] = points[i];
-    const [xj, yj] = points[j];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
-
-/** The sparkle's colour at position t (0..1) along its gradient, interpolated in sRGB as SVG does by default. */
-export function goldAt(t, gradient = LOGO_GOLD_STOPS) {
-  const stops = gradient.map((s) => ({ offset: s.offset, rgb: parseHexColor(s.color) }));
-  if (t <= stops[0].offset) return stops[0].rgb;
-  for (let k = 1; k < stops.length; k++) {
-    const a = stops[k - 1];
-    const b = stops[k];
-    if (t <= b.offset) {
-      const f = (t - a.offset) / (b.offset - a.offset);
-      return a.rgb.map((v, c) => v + (b.rgb[c] - v) * f);
-    }
-  }
-  return stops[stops.length - 1].rgb;
+export function markColorAt(x, y, ring1, ring2) {
+  const left = onRing(LOGO_RING_LEFT, x, y);
+  if (left && y >= LOGO_LINK_Y) return ring1;
+  if (onRing(LOGO_RING_RIGHT, x, y)) return ring2;
+  return left ? ring1 : null;
 }
 
 /**
  * Paints the mark into straight-alpha RGBA bytes, size × size.
  *
- * - `maskable: false` matches buildLogoMarkSvg: a round badge on transparency.
+ * - `maskable: false` matches buildLogoMarkSvg: the rings on transparency.
  * - `maskable: true` matches buildLogoMaskableSvg: a full square of `bg` with the mark shrunk by
  *   LOGO_MASKABLE_SCALE. Use it wherever the OS crops the icon itself (Android masks, iOS corners).
  */
-export function renderLogoRgba({ size, bg, hole, stops = LOGO_GOLD_STOPS, maskable = false }) {
+export function renderLogoRgba({
+  size,
+  ring1 = LOGO_FALLBACK_COLORS.ring1,
+  ring2 = LOGO_FALLBACK_COLORS.ring2,
+  bg = LOGO_FALLBACK_COLORS.bg,
+  maskable = false,
+}) {
+  const r1 = parseHexColor(ring1);
+  const r2 = parseHexColor(ring2);
   const bgRgb = parseHexColor(bg);
-  const holeRgb = parseHexColor(hole);
-  const star = flattenPath(LOGO_SPARKLE_PATH);
-  const xs = star.map((p) => p[0]);
-  const ys = star.map((p) => p[1]);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
   const scale = maskable ? LOGO_MASKABLE_SCALE : 1;
   const unit = 100 / size;
   const n = SAMPLES_PER_AXIS;
@@ -132,19 +84,8 @@ export function renderLogoRgba({ size, bg, hole, stops = LOGO_GOLD_STOPS, maskab
         for (let sx = 0; sx < n; sx++) {
           const px = (x + (sx + 0.5) / n) * unit;
           const py = (y + (sy + 0.5) / n) * unit;
-          let color = null;
-          if (maskable || (px - 50) ** 2 + (py - 50) ** 2 <= LOGO_BADGE_RADIUS ** 2) color = bgRgb;
           // The mark's own coordinates, undoing the maskable shrink around the centre.
-          const qx = 50 + (px - 50) / scale;
-          const qy = 50 + (py - 50) / scale;
-          // ...and the sparkle's own shrink inside its badge.
-          const sx2 = 50 + (qx - 50) / LOGO_SPARKLE_SCALE;
-          const sy2 = 50 + (qy - 50) / LOGO_SPARKLE_SCALE;
-          if (sx2 >= minX && sx2 <= maxX && sy2 >= minY && sy2 <= maxY && insidePolygon(star, sx2, sy2)) {
-            // x1=0% y1=0% → x2=100% y2=100% of the sparkle's bounding box
-            color = goldAt(((sx2 - minX) / (maxX - minX) + (sy2 - minY) / (maxY - minY)) / 2, stops);
-          }
-          if ((qx - 50) ** 2 + (qy - 50) ** 2 <= LOGO_HOLE_RADIUS ** 2) color = holeRgb;
+          const color = markColorAt(50 + (px - 50) / scale, 50 + (py - 50) / scale, r1, r2) ?? (maskable ? bgRgb : null);
           if (color) {
             r += color[0]; g += color[1]; b += color[2]; hits++;
           }

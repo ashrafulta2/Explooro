@@ -5,7 +5,7 @@
  * Imported by scripts/logo.mjs (which writes the file) and by client/test/publicImages.test.js. This
  * module only exports functions and constants: importing it writes nothing.
  *
- * What it draws: the sparkle mark above the wordmark "EXPLOORO", with the fifth letter in the brand
+ * What it draws: the linked-rings mark above the wordmark "EXPLOORO", with the fifth letter in the brand
  * colour exactly as the top bar does it (formatExplooroBrandText in components/ui/icons.ts), on the
  * same dark ink as the app icon, plus four faint sparkles for texture.
  *
@@ -26,7 +26,7 @@ import { renderLogoRgba, parseHexColor } from './logoPng.mjs';
 export const OG_WIDTH = 1200;
 export const OG_HEIGHT = 630;
 
-/** The sparkle mark, centred horizontally. */
+/** The linked-rings mark, centred horizontally. */
 const MARK_SIZE = 240;
 const MARK_TOP = 123;
 /** Cap height of the wordmark and the stroke weight its letters are drawn with. */
@@ -126,8 +126,8 @@ function blend(out, i, rgb, alpha) {
   for (let c = 0; c < 3; c++) out[i + c] = Math.round(out[i + c] + (rgb[c] - out[i + c]) * alpha);
 }
 
-function stampMark(out, { left, top, size, bg, hole, opacity }) {
-  const mark = renderLogoRgba({ size, bg, hole });
+function stampMark(out, { left, top, size, ring1, ring2, opacity }) {
+  const mark = renderLogoRgba({ size, ring1, ring2 });
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const cx = left + x;
@@ -142,11 +142,12 @@ function stampMark(out, { left, top, size, bg, hole, opacity }) {
 /**
  * Paints the banner into opaque RGBA bytes, OG_WIDTH × OG_HEIGHT.
  *
- * - `bg`: the canvas, and the mark's badge and hole (the same dark ink as the app icon).
+ * - `bg`: the canvas, the theme's darkest working neutral.
+ * - `ring1`, `ring2`: the mark's two rings, the colours the top bar paints them with.
  * - `text`: the wordmark.
  * - `accent`: the wordmark's fifth letter, the brand colour the top bar paints it with.
  */
-export function renderOgBannerRgba({ bg, text, accent }) {
+export function renderOgBannerRgba({ bg, text, accent, ring1, ring2 }) {
   const bgRgb = parseHexColor(bg);
   const textRgb = parseHexColor(text);
   const accentRgb = parseHexColor(accent);
@@ -159,9 +160,9 @@ export function renderOgBannerRgba({ bg, text, accent }) {
   }
 
   for (const [cx, cy, size] of DECOR) {
-    stampMark(out, { left: Math.round(cx - size / 2), top: Math.round(cy - size / 2), size, bg, hole: bg, opacity: DECOR_OPACITY });
+    stampMark(out, { left: Math.round(cx - size / 2), top: Math.round(cy - size / 2), size, ring1, ring2, opacity: DECOR_OPACITY });
   }
-  stampMark(out, { left: Math.round((OG_WIDTH - MARK_SIZE) / 2), top: MARK_TOP, size: MARK_SIZE, bg, hole: bg, opacity: 1 });
+  stampMark(out, { left: Math.round((OG_WIDTH - MARK_SIZE) / 2), top: MARK_TOP, size: MARK_SIZE, ring1, ring2, opacity: 1 });
 
   const half = STROKE / 2;
   for (const g of layoutWordmark()) {

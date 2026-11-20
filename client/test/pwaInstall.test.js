@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { needsIosInstallHint } from '../src/components/pwa/PwaInstallPrompt.ts';
-import { renderLogoRgba, parseHexColor, flattenPath } from '../../scripts/logoPng.mjs';
+import { renderLogoRgba, parseHexColor } from '../../scripts/logoPng.mjs';
 import en from '../src/locales/en.json' with { type: 'json' };
 import bn from '../src/locales/bn.json' with { type: 'json' };
 
@@ -111,7 +111,7 @@ describe('PNG app icons', () => {
     assert.ok(href?.endsWith('.png'), `apple-touch-icon must be a PNG, got ${href}`);
     const { width, height, px } = decodePng(readFileSync(join(PUBLIC, href)));
     assert.equal(`${width}x${height}`, '180x180');
-    // iOS fills transparency with black, so the corner must already be the badge colour.
+    // iOS fills transparency with black, so the corner must already be the tile colour.
     assert.equal(px(0, 0)[3], 255, 'corner is opaque');
   });
 
@@ -126,33 +126,34 @@ describe('PNG app icons', () => {
 
   test('the PNGs carry the same colours as the SVGs written in the same run', () => {
     const svg = readFileSync(join(PUBLIC, 'icons', 'icon-192.svg'), 'utf8');
-    // logoMark.ts draws the badge circle first and the centre hole last.
-    const [bg, hole] = [...svg.matchAll(/<circle[^>]*fill="(#[0-9a-f]+)"/gi)].map((m) => parseHexColor(m[1]));
-    assert.ok(bg && hole, 'icon-192.svg has a badge circle and a hole circle');
+    // logoMark.ts draws the left ring, the right ring, then the left ring's lower strand again.
+    const [left, right] = [...svg.matchAll(/<circle[^>]*stroke="(#[0-9a-f]+)"/gi)].map((m) => parseHexColor(m[1]));
+    assert.ok(left && right, 'icon-192.svg has two ring circles');
     const { px } = decodePng(readFileSync(join(PUBLIC, 'icons', 'icon-192.png')));
-    assert.deepEqual(px(96, 96), [...hole, 255], 'centre hole');
-    // (48, 48) is (25, 25) in the 0..100 viewBox: inside the badge, between two sparkle points.
-    assert.deepEqual(px(48, 48), [...bg, 255], 'badge between the sparkle points');
-    assert.equal(px(0, 0)[3], 0, 'outside the round badge is transparent');
+    // 192 px over a 0..100 viewBox: (19, 96) is (10, 50), the left ring's outer edge; (172, 96) the right ring's.
+    assert.deepEqual(px(19, 96), [...left, 255], 'left ring');
+    assert.deepEqual(px(172, 96), [...right, 255], 'right ring');
+    assert.deepEqual(px(96, 57), [...right, 255], 'right ring passes over at the top crossing');
+    assert.deepEqual(px(96, 134), [...left, 255], 'left ring passes over at the bottom crossing');
+    assert.equal(px(96, 96)[3], 0, 'between the rings is transparent');
+    assert.equal(px(0, 0)[3], 0, 'the corner is transparent');
   });
 });
 
 describe('logoPng rasterizer', () => {
-  test('paints the round badge on transparency and the maskable one full-bleed', () => {
-    const colours = { bg: '#102030', hole: '#405060' };
+  test('paints the rings on transparency and the maskable icon full-bleed, interlocked', () => {
+    const colours = { ring1: '#102030', ring2: '#405060', bg: '#a0b0c0' };
     const size = 40;
     const round = renderLogoRgba({ size, ...colours });
     const square = renderLogoRgba({ size, maskable: true, ...colours });
     const at = (rgba, x, y) => [...rgba.subarray((y * size + x) * 4, (y * size + x) * 4 + 4)];
     assert.equal(at(round, 0, 0)[3], 0);
-    assert.deepEqual(at(square, 0, 0), [16, 32, 48, 255]);
-    assert.deepEqual(at(round, 20, 20), [64, 80, 96, 255], 'centre hole');
-    const gold = at(round, 20, 8); // on the upper sparkle point
-    assert.ok(gold[0] > 200 && gold[2] < 120, `upper point is gold, got ${gold}`);
+    assert.deepEqual(at(square, 0, 0), [160, 176, 192, 255]);
+    assert.deepEqual(at(round, 20, 11), [64, 80, 96, 255], 'top crossing: the right ring is on top');
+    assert.deepEqual(at(round, 20, 28), [16, 32, 48, 255], 'bottom crossing: the left ring is on top');
   });
 
-  test('refuses a path command it cannot paint instead of drawing the wrong shape', () => {
-    assert.throws(() => flattenPath('M0,0 Q10,10 20,0 Z'), /not supported/);
+  test('refuses a colour it cannot paint instead of drawing the wrong one', () => {
     assert.throws(() => parseHexColor('var(--brand-900)'), /#hex/);
   });
 });

@@ -1,5 +1,5 @@
 /**
- * scripts/logo.mjs — bakes the Explooro sparkle-badge mark to static SVG files.
+ * scripts/logo.mjs — bakes the Explooro linked-rings mark to static SVG files.
  *
  * Run: node scripts/logo.mjs --write
  *
@@ -47,7 +47,7 @@ const PUBLIC_DIR = join(ROOT, 'client', 'public');
 const ICONS_DIR = join(PUBLIC_DIR, 'icons');
 const BRAND_DIR = join(ICONS_DIR, 'brand');
 
-/** { bg, hole, stops } for a preset key: the same colours the live mark and favicon get (services/logoTheme.ts). */
+/** { ring1, ring2, bg } for a preset key: the same colours the live mark and favicon get (services/logoTheme.ts). */
 function colorsFor(presetKey) {
   return logoColorsFromPalette(generatePalette(MASTER_PRESETS[presetKey].master));
 }
@@ -84,9 +84,9 @@ const defaultPalette = generatePalette(MASTER_PRESETS[DEFAULT_MASTER_PRESET].mas
 writeFileSync(
   join(PUBLIC_DIR, 'og-banner.png'),
   encodePng(OG_WIDTH, OG_HEIGHT, renderOgBannerRgba({
-    // WHY the dark neutral and not the icon's badge: the banner is a whole canvas, and the brand
-    // badge colour as a 1200px field is far louder than the dark card it has always been.
     bg: defaultPalette.neutral[900],
+    ring1: defaultColors.ring1,
+    ring2: defaultColors.ring2,
     text: defaultPalette.neutral[0],
     accent: defaultPalette.brand[defaultPalette.meta.anchorStep],
   })),

@@ -21,6 +21,7 @@ import { dirname, join } from 'node:path';
 import { generatePalette } from '../src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.ts';
 import { parseHexColor } from '../../scripts/logoPng.mjs';
+import { logoColorsFromPalette } from '../src/services/logoMark.ts';
 import { layoutWordmark, OG_LAYOUT, OG_WIDTH, OG_HEIGHT } from '../../scripts/ogBanner.mjs';
 
 const CLIENT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -127,10 +128,15 @@ describe('link-preview image (og:image)', () => {
     assert.deepEqual(px(0, 0), rgba(palette.neutral[900]), 'canvas is the app icon\'s dark ink');
     assert.deepEqual(px(...midStroke(first)), rgba(palette.neutral[0]), 'wordmark ink');
     assert.deepEqual(px(...midStroke(accent)), rgba(palette.brand[palette.meta.anchorStep]), 'fifth letter in the brand colour, as the top bar draws it');
-    const markCentre = [OG_WIDTH / 2, OG_LAYOUT.MARK_TOP + OG_LAYOUT.MARK_SIZE / 2];
-    assert.deepEqual(px(...markCentre), rgba(palette.neutral[900]), 'the mark\'s centre hole');
-    const [r, , b] = px(markCentre[0], markCentre[1] - Math.round(OG_LAYOUT.MARK_SIZE / 8));
-    assert.ok(r > 200 && b < 100, 'the sparkle above the hole is gold');
+    // The rings are 0..100 across MARK_SIZE; (10, 50) is the left ring's outer edge, (90, 50) the right one's.
+    const { ring1, ring2 } = logoColorsFromPalette(palette);
+    const markAt = (x, y) => [
+      OG_WIDTH / 2 - OG_LAYOUT.MARK_SIZE / 2 + Math.round((x / 100) * OG_LAYOUT.MARK_SIZE),
+      OG_LAYOUT.MARK_TOP + Math.round((y / 100) * OG_LAYOUT.MARK_SIZE),
+    ];
+    assert.deepEqual(px(...markAt(10, 50)), rgba(ring1), 'the left ring');
+    assert.deepEqual(px(...markAt(90, 50)), rgba(ring2), 'the right ring');
+    assert.deepEqual(px(...markAt(50, 50)), rgba(palette.neutral[900]), 'the canvas shows between the rings');
   });
 
   test('the wordmark fits the centred square WhatsApp and Messenger crop small previews to', () => {

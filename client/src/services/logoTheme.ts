@@ -1,7 +1,7 @@
 /**
  * logoTheme.ts — keeps the brand mark and the browser-tab favicon in the live theme's colours.
  *
- * The in-app mark (icons.ts getExplooroLogoSvg) reads --logo-bg and --logo-star-1..3, set here
+ * The in-app mark (icons.ts getExplooroLogoSvg) reads --logo-ring-1 and --logo-ring-2, set here
  * from the palette. The favicon is a separate document that cannot read the page's CSS, so it is
  * re-drawn with the same colours and swapped in as a data: URL. Both come from one function,
  * logoColorsFromPalette, which scripts/logo.mjs also bakes the static icons with, so the tab, the
@@ -14,7 +14,7 @@
 import { buildLogoMarkSvg, logoColorsFromPalette } from './logoMark.ts';
 import type { Palette } from './colorRamp.ts';
 
-const STAR_VARS = ['--logo-star-1', '--logo-star-2', '--logo-star-3'];
+const RING_VARS = ['--logo-ring-1', '--logo-ring-2'] as const;
 
 /** The href index.html shipped with, so a reset can put the static file back. */
 let shippedFavicon: string | null = null;
@@ -25,8 +25,8 @@ function faviconLink(): HTMLLinkElement | null {
 
 /** The favicon for a palette, as the data: URL a <link rel="icon"> can take. */
 export function faviconHrefFor(palette: Pick<Palette, 'brand' | 'neutral' | 'meta'>): string {
-  const { bg, hole, stops } = logoColorsFromPalette(palette);
-  return `data:image/svg+xml,${encodeURIComponent(buildLogoMarkSvg({ size: 32, bg, hole, stops }))}`;
+  const { ring1, ring2 } = logoColorsFromPalette(palette);
+  return `data:image/svg+xml,${encodeURIComponent(buildLogoMarkSvg({ size: 32, ring1, ring2 }))}`;
 }
 
 /**
@@ -40,8 +40,7 @@ export function applyLogoTheme(palette: Pick<Palette, 'brand' | 'neutral' | 'met
   if (link && shippedFavicon === null) shippedFavicon = link.getAttribute('href');
 
   if (!palette) {
-    root.style.removeProperty('--logo-bg');
-    STAR_VARS.forEach((v) => root.style.removeProperty(v));
+    RING_VARS.forEach((v) => root.style.removeProperty(v));
     if (link && shippedFavicon) {
       link.setAttribute('href', shippedFavicon);
       link.setAttribute('type', 'image/svg+xml');
@@ -49,9 +48,9 @@ export function applyLogoTheme(palette: Pick<Palette, 'brand' | 'neutral' | 'met
     return;
   }
 
-  const { bg, stops } = logoColorsFromPalette(palette);
-  root.style.setProperty('--logo-bg', bg);
-  stops.forEach((s, i) => root.style.setProperty(STAR_VARS[i], s.color));
+  const { ring1, ring2 } = logoColorsFromPalette(palette);
+  root.style.setProperty(RING_VARS[0], ring1);
+  root.style.setProperty(RING_VARS[1], ring2);
   if (link) {
     link.setAttribute('type', 'image/svg+xml');
     link.setAttribute('href', faviconHrefFor(palette));

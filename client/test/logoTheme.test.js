@@ -1,15 +1,15 @@
 /**
  * logoTheme.test.js — the brand mark and the favicon follow the theme, and stay legible doing it.
  *
- * WHY (owner, 2026-11-20): the mark was locked to gold on 2026-08-26, so after a re-theme it was the
- * one thing on screen still in the old colour, and so was the browser tab's favicon. It now takes
- * its sparkle from the live brand ramp (services/logoMark.ts logoColorsFromPalette), set as
- * --logo-* properties and a re-drawn favicon by services/logoTheme.ts.
+ * The mark is two linked rings (owner, 2026-11-20), both from the live brand ramp
+ * (services/logoMark.ts logoColorsFromPalette), set as --logo-ring-* properties and a re-drawn
+ * favicon by services/logoTheme.ts.
  *
- *   1. On every preset the white sparkle keeps 3:1 against its brand badge (WCAG 1.4.11, a graphic).
- *   2. The badge is the theme's colour (owner, 2026-11-20: the dark badge clashed with a blue sparkle).
- *   3. The live mark reads the --logo-* properties (white on --brand as the pre-theme fallback),
- *      and a var() stop is written as a style, since an SVG presentation attribute takes no var().
+ *   1. On every preset the first ring keeps 3:1 against the lightest surface (WCAG 1.4.11), and the
+ *      second ring is a lighter step of the same ramp, so the pair reads as two rings.
+ *   2. The rings are the theme's colour: the first ring is the seed's own step when that passes.
+ *   3. The live mark reads the --logo-ring-* properties (with the shipped default as the pre-theme
+ *      fallback), and a var() paint is written as a style, since an SVG attribute takes no var().
  *   4. The static favicon scripts/logo.mjs bakes is the picture the runtime draws for the shipped
  *      default, so the tab does not change colour when the theme loads.
  */
@@ -20,40 +20,48 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { generatePalette, contrastRatio, DEFAULT_MASTER } from '../src/services/colorRamp.ts';
+import { generatePalette, contrastRatio, DEFAULT_MASTER, BRAND_STEPS } from '../src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.ts';
-import { logoColorsFromPalette, buildLogoMarkSvg, LOGO_STAR_MIN_CONTRAST } from '../src/services/logoMark.ts';
+import {
+  logoColorsFromPalette,
+  buildLogoMarkSvg,
+  LOGO_RING_MIN_CONTRAST,
+  LOGO_FALLBACK_COLORS,
+} from '../src/services/logoMark.ts';
 import { faviconHrefFor } from '../src/services/logoTheme.ts';
 import { getExplooroLogoSvg } from '../src/components/ui/icons.ts';
 
 const CLIENT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-test('on every preset the white sparkle keeps 3:1 against the brand badge', () => {
+test('on every preset the first ring reads on the page and the second is a lighter step', () => {
   for (const [key, preset] of Object.entries(MASTER_PRESETS)) {
-    const { bg, hole, stops } = logoColorsFromPalette(generatePalette(preset.master));
-    assert.equal(hole, bg, `${key}: the hole is punched through to the badge`);
-    for (const stop of stops) {
-      const ratio = contrastRatio(stop.color, bg);
-      assert.ok(ratio >= LOGO_STAR_MIN_CONTRAST, `${key}: ${stop.color} on ${bg} is ${ratio.toFixed(2)}:1`);
-    }
+    const palette = generatePalette(preset.master);
+    const { ring1, ring2, bg } = logoColorsFromPalette(palette);
+    assert.equal(bg, palette.neutral[0], `${key}: the icon tile is the lightest surface`);
+    const ratio = contrastRatio(ring1, bg);
+    assert.ok(ratio >= LOGO_RING_MIN_CONTRAST, `${key}: ${ring1} on ${bg} is ${ratio.toFixed(2)}:1`);
+    const stepOf = (c) => BRAND_STEPS.find((s) => palette.brand[s] === c);
+    assert.ok(stepOf(ring2) < stepOf(ring1), `${key}: the second ring is a lighter step of the ramp`);
   }
 });
 
-test('the badge is the theme colour: the seed step when white reads on it, else a deeper step', () => {
+test('the rings are the theme colour, not a fixed one', () => {
   const blue = generatePalette(MASTER_PRESETS.macos_native.master);
   const gold = generatePalette(MASTER_PRESETS.pure_gold.master);
-  const bgOf = (p) => logoColorsFromPalette(p).bg;
-  assert.notEqual(bgOf(blue), bgOf(gold));
-  assert.equal(bgOf(blue), blue.brand[blue.meta.anchorStep]);
-  assert.ok(Object.values(gold.brand).includes(bgOf(gold)), 'a light seed still gets a shade of its own ramp');
-  assert.notEqual(bgOf(gold), gold.brand[gold.meta.anchorStep]);
+  assert.notEqual(logoColorsFromPalette(blue).ring1, logoColorsFromPalette(gold).ring1);
+  assert.equal(logoColorsFromPalette(blue).ring1, blue.brand[blue.meta.anchorStep]);
 });
 
-test('the live mark reads the --logo-* properties, as styles', () => {
+test('the live mark reads the --logo-ring-* properties, as styles', () => {
   const svg = getExplooroLogoSvg({ size: 28 });
-  for (const i of [1, 2, 3]) assert.match(svg, new RegExp(`style="stop-color: var\\(--logo-star, var\\(--logo-star-${i}, #`));
-  assert.match(svg, /fill="var\(--logo-bg, var\(--brand\)\)"/);
-  assert.doesNotMatch(svg, /stop-color="var\(/, 'an SVG attribute ignores var(): the sparkle would render black');
+  assert.match(svg, /style="stroke: var\(--logo-star, var\(--logo-ring-1, #/);
+  assert.match(svg, /style="stroke: var\(--logo-ring-2, #/);
+  assert.doesNotMatch(svg, /stroke="var\(/, 'an SVG attribute ignores var(): the ring would not paint');
+});
+
+test('the pre-theme fallback is the shipped default, so the mark does not change colour on load', () => {
+  const { ring1, ring2, bg } = logoColorsFromPalette(generatePalette(MASTER_PRESETS[DEFAULT_MASTER_PRESET].master));
+  assert.deepEqual(LOGO_FALLBACK_COLORS, { ring1, ring2, bg });
 });
 
 test('the static favicon is the runtime favicon of the shipped default', () => {

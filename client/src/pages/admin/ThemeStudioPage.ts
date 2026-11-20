@@ -9,6 +9,7 @@ import { Modal } from '../../components/ui/Modal.ts';
 import { confirmDialog, confirmDialogWithReason } from '../../components/ui/ConfirmDialog.ts';
 import { THEME_PRESETS } from '../../config/theme-presets.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../../config/master-themes.ts';
+import { getExplooroLogoSvg } from '../../components/ui/icons.ts';
 import {
   applyTheme,
   getContrastRatio,
@@ -545,8 +546,7 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
           { token: 'navbar.bg', label: 'Navbar Background', fgOrBg: 'bg', compareToken: 'navbar.text' },
           { token: 'navbar.text', label: 'Navbar Text', fgOrBg: 'fg', compareToken: 'navbar.bg' },
           { token: 'navbar.logo_text', label: 'Logo Brand Text ("EXPLOORO")', fgOrBg: 'fg', compareToken: 'navbar.bg' },
-          { token: 'navbar.logo_bg', label: 'Logo Badge BG', fgOrBg: 'other' },
-          { token: 'navbar.logo_star', label: 'Logo Sparkle Star', fgOrBg: 'other' },
+          { token: 'navbar.logo_star', label: 'Logo First Ring', fgOrBg: 'other' },
           { token: 'navbar.icon_color', label: 'Header Icons Color', fgOrBg: 'other' },
           { token: 'navbar.icon_hover', label: 'Header Icons Hover Color', fgOrBg: 'other' },
           { token: 'navbar.border', label: 'Navbar Border', fgOrBg: 'other' },
@@ -831,12 +831,7 @@ export default function ThemeStudioPage(root: HTMLElement, { navigate }: PageCon
     wrap.innerHTML = `
       <div class="mini-navbar">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <div style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--logo-bg, var(--neutral-900)); color: var(--logo-star, var(--logo-star-2, #ffbc00));">
-            <svg viewBox="0 0 100 100" width="16" height="16" aria-hidden="true">
-              <path d="M50,4 C58,34 66,42 96,50 C66,58 58,66 50,96 C42,66 34,58 4,50 C34,42 42,34 50,4 Z" fill="var(--logo-star, var(--logo-star-2, #ffbc00))" />
-              <circle cx="50" cy="50" r="9" fill="var(--logo-hole, var(--neutral-900))" />
-            </svg>
-          </div>
+          ${getExplooroLogoSvg({ size: 22, className: '' })}
           <span style="font-weight: 700; color: var(--logo-text, var(--navbar-text)); font-size: 13px;">EXPL<span data-brand style="color: var(--brand, #ffbc00);">O</span>ORO</span>
         </div>
         <div style="padding: 3px 10px; background: var(--navbar-search-bg); border: 1px solid var(--navbar-border); border-radius: 4px; font-size: 10px; color: var(--navbar-text);">
