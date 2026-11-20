@@ -269,6 +269,8 @@
 :root[data-ui-style='macos'] .sidebar__quick-btn:focus-visible { outline: none; box-shadow: var(--mac-focus); }
 :root[data-ui-style='macos'] .sidebar__quick-icon { color: var(--text-muted); }
 :root[data-ui-style='macos'] .sidebar__quick-icon svg { width: 15px; height: 15px; }
+:root[data-ui-style='macos'] .sidebar__quick-glyph--default { display: none; }
+:root[data-ui-style='macos'] .sidebar__quick-glyph--mac { display: inline-flex; }
 :root[data-ui-style='macos'] .sidebar__quick-label { font-weight: var(--weight-regular, 400); }
 :root[data-ui-style='macos'] .sidebar__quick-key {
   padding: 0;
@@ -363,6 +365,10 @@
 :root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .nav-item--active .nav-item__icon { color: var(--brand-contrast); }
 :root[data-ui-style='macos'] .nav-item--active:hover { background: var(--brand); color: var(--brand-contrast); }
 :root[data-ui-style='macos'] .nav-item__icon { color: var(--text-brand); }
+/* Mac sidebar symbols sit at about the label's cap height: 16px in the list, not 18px. The
+   collapsed rail has no label beside it, so it keeps a larger 18px target glyph. */
+:root[data-ui-style='macos'] .nav-item__icon svg { width: 16px; height: 16px; }
+:root[data-ui-style='macos'] .sidebar[data-collapsed='true'] .nav-item__icon svg { width: 18px; height: 18px; }
 
 /* ── Tabs: a Mac segmented control ──────────────────────────────────────── */
 :root[data-ui-style='macos'] .tabs__list {

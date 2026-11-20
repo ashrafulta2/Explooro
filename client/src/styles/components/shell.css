@@ -51,6 +51,8 @@
 .sidebar__quick-btn:hover { background: var(--surface-3); border-color: var(--brand); }
 .sidebar__quick-icon { display: inline-flex; color: var(--brand-800); }
 .sidebar__quick-icon svg { width: 18px; height: 18px; }
+.sidebar__quick-glyph { display: inline-flex; }
+.sidebar__quick-glyph--mac { display: none; }
 .sidebar__quick-label { flex: 1; text-align: start; font-weight: var(--weight-medium); }
 .sidebar__quick-key { font-size: var(--text-xs); color: var(--text-muted); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-xs); padding: 1px 5px; background: var(--surface-1); }
 .sidebar[data-collapsed='true'] .sidebar__quick-btn { width: 36px; padding: 0; margin-inline: auto; margin-bottom: var(--space-2); justify-content: center; }

@@ -324,7 +324,10 @@ export function Sidebar({
     const quickIcon = document.createElement('span');
     quickIcon.className = 'sidebar__quick-icon';
     quickIcon.setAttribute('aria-hidden', 'true');
-    quickIcon.innerHTML = ICONS.bolt;
+    // WHY two glyphs: the standard style shows a bolt; the macOS style draws this button as a Mac
+    // sidebar search field, which carries a magnifier. CSS picks one, so a theme switch at runtime
+    // needs no re-render.
+    quickIcon.innerHTML = `<span class="sidebar__quick-glyph sidebar__quick-glyph--default">${ICONS.bolt}</span><span class="sidebar__quick-glyph sidebar__quick-glyph--mac">${ICONS.search}</span>`;
     const quickText = document.createElement('span');
     quickText.className = 'sidebar__quick-label';
     quickText.textContent = quickLabel;
