@@ -332,6 +332,45 @@
   font-weight: var(--weight-semibold);
   color: var(--text-muted);
 }
+
+/* Section headers ("More" in Simple mode, every group in Advanced): a Mac sidebar section title.
+   Small grey bold text with no icon and no hover fill, a thin chevron on the right, and sections
+   set apart by space rather than a rule. The collapsed rail keeps its icons: there they are the
+   only thing drawn. */
+:root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-icon { display: none; }
+:root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header {
+  min-height: 26px;
+  gap: 4px;
+  padding: 10px 8px 4px;
+  border-radius: 5px;
+}
+:root[data-ui-style='macos'] .sidebar__group-header:hover,
+:root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header:hover { background: transparent; }
+:root[data-ui-style='macos'] .sidebar__group-header:focus-visible { outline: none; box-shadow: var(--mac-focus); }
+:root[data-ui-style='macos'] .sidebar__more { margin-top: 6px; padding-top: 0; border-top: none; }
+/* The chevron: a thin stroked angle (the ▸ / ▾ glyph is hidden), pointing right when closed and
+   down when open, turning between the two. */
+:root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-chevron {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-inline: 4px 2px;
+  font-size: 0;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  color: var(--text-muted);
+  transform: rotate(-45deg);
+  transition: transform var(--dur-fast) var(--ease-standard), opacity var(--dur-fast) var(--ease-standard);
+}
+:root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header[aria-expanded='true'] .sidebar__group-chevron { transform: rotate(45deg); }
+/* WHY only an OPEN section hides its chevron until hovered, as a Mac does: a closed section
+   ("More" starts closed) with no visible chevron would not read as something that opens. Touch
+   screens have no hover, so they always show it. */
+@media (hover: hover) and (pointer: fine) {
+  :root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header[aria-expanded='true'] .sidebar__group-chevron { opacity: 0; }
+  :root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header[aria-expanded='true']:hover .sidebar__group-chevron,
+  :root[data-ui-style='macos'] .sidebar:not([data-collapsed='true']) .sidebar__group-header[aria-expanded='true']:focus-visible .sidebar__group-chevron { opacity: 1; }
+}
 :root[data-ui-style='macos'] .nav-item {
   min-height: 30px;
   padding: 5px 8px;
@@ -671,6 +710,7 @@
   :root[data-ui-style='macos'] .btn--sm,
   :root[data-ui-style='macos'] .sidebar__quick-btn,
   :root[data-ui-style='macos'] .sidebar__mode-btn,
+  :root[data-ui-style='macos'] .sidebar__group-header,
   :root[data-ui-style='macos'] .nav-item,
   :root[data-ui-style='macos'] .tabs__tab,
   :root[data-ui-style='macos'] .feed-switcher__tab,
