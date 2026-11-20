@@ -461,7 +461,7 @@ export class ReferralHubPage {
                         ? `<span class="badge badge--danger" style="font-size: 10px; font-weight: 800;">⚠️ ${isBn ? 'বাতিল' : 'Fraud Flagged'}</span>`
                         : `<span class="badge badge--neutral" style="font-size: 10px; font-weight: 800;">⏳ ${isBn ? 'অপেক্ষমাণ' : 'Pending'}</span>`}
                     </td>
-                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: #166534;">
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--success);">
                       ৳${Number(node.earned_from_referee || 0).toFixed(2)}
                     </td>
                   </tr>
@@ -534,7 +534,7 @@ export class ReferralHubPage {
                       <div>৳${Number(item.order_amount || 0).toFixed(2)}</div>
                       <span style="color: var(--text-muted); font-size: 10px;">@ ${Number(item.commission_rate_pct || 5).toFixed(1)}%</span>
                     </td>
-                    <td style="font-family: var(--font-mono); font-weight: 800; color: #166534; font-size: 12px;">
+                    <td style="font-family: var(--font-mono); font-weight: 800; color: var(--success); font-size: 12px;">
                       +৳${Number(item.commission_amount).toFixed(2)}
                     </td>
                     <td style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">
@@ -607,7 +607,7 @@ export class ReferralHubPage {
               <div class="referral-calc-result__amount" id="result-cash-est">
                 ৳${totalEstCash.toLocaleString()}
               </div>
-              <div style="font-size: var(--text-xs); color: #92400e; font-weight: 800;">
+              <div style="font-size: var(--text-xs); color: var(--warning); font-weight: 800;">
                 + ${totalCoins.toLocaleString()} 🪙 ${t('referrals.calc_result_coins', 'বোনাস লয়্যালটি কয়েন')}
               </div>
               <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 0;">

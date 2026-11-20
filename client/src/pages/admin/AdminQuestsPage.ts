@@ -135,7 +135,7 @@ export default function AdminQuestsPage(root: HTMLElement, { navigate }: PageCon
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মোট লয়ালটি কয়েন' : 'Coins in Circulation'}</div>
-          <div class="admin-kpi-card__val font-mono text-amber-500">🪙 ${(stats.coins_in_circulation / 1000).toFixed(1)}k</div>
+          <div class="admin-kpi-card__val font-mono text-warning">🪙 ${(stats.coins_in_circulation / 1000).toFixed(1)}k</div>
           <div class="admin-kpi-card__hint">${isBn ? `${coinPolicy.coins_per_bdt} কয়েন = ৳১.০০` : `Conversion Rate: ${coinPolicy.coins_per_bdt}🪙 = ৳1`}</div>
         </div>
 
@@ -147,7 +147,7 @@ export default function AdminQuestsPage(root: HTMLElement, { navigate }: PageCon
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'গত ৩০ দিনে রিডিম' : 'Redeemed (30d)'}</div>
-          <div class="admin-kpi-card__val text-emerald-600 font-mono">${(stats.redeemed_coins_30d / 1000).toFixed(1)}k <span class="text-xs font-normal">${isBn ? 'কয়েন' : 'coins'}</span></div>
+          <div class="admin-kpi-card__val text-success font-mono">${(stats.redeemed_coins_30d / 1000).toFixed(1)}k <span class="text-xs font-normal">${isBn ? 'কয়েন' : 'coins'}</span></div>
           <div class="admin-kpi-card__hint">${isBn ? 'চেকআউট ডিসকাউন্টে ব্যবহৃত' : 'Used at Checkout'}</div>
         </div>
 
@@ -284,7 +284,7 @@ export default function AdminQuestsPage(root: HTMLElement, { navigate }: PageCon
                 <tr>
                   <td><strong class="font-mono">${isBn ? 'দিন ' : 'Day '}${s.day}</strong></td>
                   <td><span class="badge badge--neutral font-mono">×${s.multiplier.toFixed(1)}</span></td>
-                  <td><strong class="font-mono text-amber-600">🪙 +${s.reward_coins}</strong></td>
+                  <td><strong class="font-mono text-warning">🪙 +${s.reward_coins}</strong></td>
                   <td>
                     <div class="system-infra-card__gauge" role="img" aria-label="${isBn ? 'মাল্টিপ্লায়ার' : 'Multiplier'} ${s.multiplier.toFixed(1)}">
                       <div class="system-infra-card__gauge-fill" style="width: ${Math.round((s.multiplier / maxMultiplier) * 100)}%; background: var(--brand);"></div>
@@ -332,7 +332,7 @@ export default function AdminQuestsPage(root: HTMLElement, { navigate }: PageCon
                 <tr>
                   <td><span class="font-bold text-primary">${q.title}</span></td>
                   <td><span class="text-xs text-secondary">${q.description}</span></td>
-                  <td><strong class="font-mono text-amber-600">🪙 +${formatNumber(q.reward_coins)}</strong></td>
+                  <td><strong class="font-mono text-warning">🪙 +${formatNumber(q.reward_coins)}</strong></td>
                   <td><span class="badge badge--neutral text-xs">${questFrequencyLabels[q.frequency] || q.frequency}</span></td>
                   <td><span class="font-mono font-bold">${formatNumber(q.completions_today)}</span></td>
                   <td><span class="system-table__badge ${q.is_active ? 'system-table__badge--success' : ''}">${q.is_active ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Paused')}</span></td>
@@ -376,7 +376,7 @@ export default function AdminQuestsPage(root: HTMLElement, { navigate }: PageCon
                   <td><strong class="font-mono">#${formatNumber(row.rank)}</strong></td>
                   <td><span class="font-bold text-primary">${row.name}</span></td>
                   <td><span class="text-xs text-secondary">${row.district}</span></td>
-                  <td><strong class="font-mono text-amber-600">🪙 ${formatNumber(row.coins_earned_30d)}</strong></td>
+                  <td><strong class="font-mono text-warning">🪙 ${formatNumber(row.coins_earned_30d)}</strong></td>
                   <td><span class="badge badge--neutral font-mono">${formatNumber(row.streak_days)}</span></td>
                 </tr>
               `).join('')}

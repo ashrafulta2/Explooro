@@ -169,7 +169,7 @@ export default function AdminAdsPage(root: HTMLElement, { navigate }: PageContex
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'বিজ্ঞাপন রাজস্ব (Ad Spend)' : 'Total Ad Revenue'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">${formatCurrency(stats.total_spend_bdt)}</div>
+          <div class="admin-kpi-card__val font-mono text-success">${formatCurrency(stats.total_spend_bdt)}</div>
           <div class="admin-kpi-card__hint">${stats.active_campaigns} ${isBn ? 'টি সক্রিয় ক্যাম্পেইন' : 'Active Campaigns'}</div>
         </div>
 
@@ -187,7 +187,7 @@ export default function AdminAdsPage(root: HTMLElement, { navigate }: PageContex
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'ফ্রড ক্লিক ব্লকড' : 'Fraud Discarded Clicks'}</div>
-          <div class="admin-kpi-card__val text-rose-600 font-mono">${formatNumber(stats.fraud_blocked_clicks)}</div>
+          <div class="admin-kpi-card__val text-danger font-mono">${formatNumber(stats.fraud_blocked_clicks)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'সেলফ-ক্লিক ও বট প্রতিরোধ' : 'Self-Click & Bot Filtered'}</div>
         </div>
       </div>
@@ -226,7 +226,7 @@ export default function AdminAdsPage(root: HTMLElement, { navigate }: PageContex
                       <div class="text-xs text-muted">Total: ${formatCurrency(c.total_spent)}</div>
                     </td>
                     <td>
-                      <span class="font-bold text-emerald-600 font-mono">★ ${formatNumber(c.quality_score)} / 10</span>
+                      <span class="font-bold text-success font-mono">★ ${formatNumber(c.quality_score)} / 10</span>
                     </td>
                     <td>
                       <div class="font-mono">${formatNumber(c.impressions)} imp</div>

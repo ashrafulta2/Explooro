@@ -373,21 +373,21 @@
 }
 
 .channel-pill.whatsapp {
-  background: #e7f9ee;
-  color: #007f39;
-  border: 1px solid #b0e7bb;
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
 }
 
 .channel-pill.messenger {
-  background: #e8f1ff;
-  color: #264990;
-  border: 1px solid #bad3ff;
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  color: var(--text-brand);
+  border: 1px solid color-mix(in srgb, var(--brand) 40%, transparent);
 }
 
 .channel-pill.in-platform {
-  background: #f4ecfc;
-  color: #6a1b9a;
-  border: 1px solid #e1bee7;
+  background: color-mix(in srgb, var(--accent-500) 12%, transparent);
+  color: var(--accent-700);
+  border: 1px solid color-mix(in srgb, var(--accent-500) 40%, transparent);
 }
 
 /* ── Right Area: Conversation Box ── */
@@ -652,7 +652,7 @@
 .message-failed-footer {
   margin-top: 6px;
   padding-top: 4px;
-  border-top: 1px dashed rgba(220, 38, 38, 0.4);
+  border-top: 1px dashed color-mix(in srgb, var(--danger-500) 40%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;

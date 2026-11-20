@@ -325,32 +325,32 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     // Values in stat pills must use high-contrast greens and ambers
     assert.match(
       cssContent,
-      /\.coins-stat-pill__value--green\s*\{[^}]*color:\s*#166534/,
-      'coins-stat-pill__value--green must use high-contrast #166534 (not #16a34a)'
+      /\.coins-stat-pill__value--green\s*\{[^}]*color:\s*var\(--success\)/,
+      'coins-stat-pill__value--green must use the var(--success) token (700 light, 300 dark), not a fixed green'
     );
     assert.match(
       cssContent,
-      /\.coins-stat-pill__value--amber\s*\{[^}]*color:\s*#92400e/,
-      'coins-stat-pill__value--amber must use high-contrast #92400e (not #d97706)'
+      /\.coins-stat-pill__value--amber\s*\{[^}]*color:\s*var\(--warning\)/,
+      'coins-stat-pill__value--amber must use the var(--warning) token (700 light, 300 dark), not a fixed amber'
     );
 
-    // Streak badge must use #92400e
+    // Streak badge must use var(--warning)
     assert.match(
       cssContent,
-      /\.coins-streak-badge\s*\{[^}]*color:\s*#92400e/,
-      'coins-streak-badge must use #92400e'
+      /\.coins-streak-badge\s*\{[^}]*color:\s*var\(--warning\)/,
+      'coins-streak-badge must use var(--warning)'
     );
 
     // Claimed and today streak calendar nodes must satisfy contrast
     assert.match(
       cssContent,
-      /\.coins-day-node--claimed\s+\.coins-day-node__day[^}]*color:\s*#166534/,
-      'claimed day node text must use #166534'
+      /\.coins-day-node--claimed\s+\.coins-day-node__day[^}]*color:\s*var\(--success\)/,
+      'claimed day node text must use var(--success)'
     );
     assert.match(
       cssContent,
-      /\.coins-day-node--today\s+\.coins-day-node__day[^}]*color:\s*#92400e/,
-      'today day node text must use #92400e'
+      /\.coins-day-node--today\s+\.coins-day-node__day[^}]*color:\s*var\(--warning\)/,
+      'today day node text must use var(--warning)'
     );
 
     // Daily checkin and quest claim action buttons must use brand tokens with dark high-contrast text
@@ -418,23 +418,23 @@ test('A11y Auditor & Form Controls Accessibility Invariants', async (t) => {
     // KPI cards and tier badge contrast
     assert.match(
       cssContent,
-      /\.referral-kpi-card--green\s+\.referral-kpi-card__val\s*\{[^}]*color:\s*#166534/,
-      'referral-kpi-card--green must use #166534'
+      /\.referral-kpi-card--green\s+\.referral-kpi-card__val\s*\{[^}]*color:\s*var\(--success\)/,
+      'referral-kpi-card--green must use var(--success)'
     );
     assert.match(
       cssContent,
-      /\.referral-kpi-card--amber\s+\.referral-kpi-card__val\s*\{[^}]*color:\s*#92400e/,
-      'referral-kpi-card--amber must use #92400e'
+      /\.referral-kpi-card--amber\s+\.referral-kpi-card__val\s*\{[^}]*color:\s*var\(--warning\)/,
+      'referral-kpi-card--amber must use var(--warning)'
     );
     assert.match(
       cssContent,
-      /\.referral-tier-badge\s*\{[^}]*color:\s*#92400e/,
-      'referral-tier-badge must use #92400e'
+      /\.referral-tier-badge\s*\{[^}]*color:\s*var\(--warning\)/,
+      'referral-tier-badge must use var(--warning)'
     );
     assert.match(
       cssContent,
-      /\.referral-calc-result__amount\s*\{[^}]*color:\s*#166534/,
-      'referral-calc-result__amount must use #166534'
+      /\.referral-calc-result__amount\s*\{[^}]*color:\s*var\(--success\)/,
+      'referral-calc-result__amount must use var(--success)'
     );
   });
 

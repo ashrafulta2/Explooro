@@ -244,7 +244,7 @@ export default function AdminReferralsPage(root: HTMLElement) {
         </div>
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'যোগ্য রেফারেল' : 'Qualified'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">${formatNumber(stats.qualified_count || 0)}</div>
+          <div class="admin-kpi-card__val font-mono text-success">${formatNumber(stats.qualified_count || 0)}</div>
           <div class="admin-kpi-card__hint">
             ${formatNumber(stats.total_referrals ? Math.round((stats.qualified_count / stats.total_referrals) * 100) : 0)}% ${isBn ? 'রূপান্তর' : 'conversion'}
           </div>

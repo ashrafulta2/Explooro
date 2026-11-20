@@ -374,7 +374,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
             </tbody>
           </table>
 
-          <div style="font-size: 11px; color: var(--text-secondary); padding: 8px 12px; background: rgba(59, 130, 246, 0.08); border-radius: var(--radius-md); border-left: 3px solid var(--info);">
+          <div style="font-size: 11px; color: var(--text-secondary); padding: 8px 12px; background: color-mix(in srgb, var(--brand) 8%, transparent); border-radius: var(--radius-md); border-left: 3px solid var(--info);">
             * <strong>FEFO Rule:</strong> Strictly fulfill from indicated lot numbers to guarantee shelf-life compliance.
           </div>
         </div>

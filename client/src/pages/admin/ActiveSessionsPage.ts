@@ -115,7 +115,7 @@ export default function ActiveSessionsPage(root: HTMLElement, { navigate }: Page
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'আইপি অ্যাড্রেস সংখ্যা' : 'Unique IP Addresses'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">${stats.unique_ips}</div>
+          <div class="admin-kpi-card__val font-mono text-success">${stats.unique_ips}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'সকল বৈধ বিডি লোকেশন' : 'Bangladesh Localized IPs'}</div>
         </div>
 
@@ -170,7 +170,7 @@ export default function ActiveSessionsPage(root: HTMLElement, { navigate }: Page
                     ${new Date(s.logged_in_at).toLocaleTimeString()}
                   </td>
                   <td>
-                    <span class="text-xs font-mono font-bold text-emerald-600">${new Date(s.last_active_at).toLocaleTimeString()}</span>
+                    <span class="text-xs font-mono font-bold text-success">${new Date(s.last_active_at).toLocaleTimeString()}</span>
                   </td>
                   <td style="text-align: right;">
                     ${!s.is_current ? `

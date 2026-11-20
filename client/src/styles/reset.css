@@ -38,7 +38,7 @@ html:focus-within {
   }
 }
 
-/* `html body`, not `body`: index.html carries an inline `body { background: #fbfdfe }` to avoid a
+/* `html body`, not `body`: index.html carries an inline `body { background: color-mix(in srgb, var(--brand) 10%, transparent) }` to avoid a
    white flash before the stylesheets land, and nothing here overrode it — so the page canvas was
    a hardcoded near-white in every theme, light or dark. The extra element in the selector wins on
    specificity regardless of whether the stylesheet loads before or after that inline block, which

@@ -195,7 +195,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
         </div>
         <div class="text-right">
           <div class="text-xs text-muted">${isBn ? 'মোট মূল্য' : 'Total Amount'}</div>
-          <div class="text-2xl font-bold font-mono text-emerald-600">${formatCurrency(order.total_amount)}</div>
+          <div class="text-2xl font-bold font-mono text-success">${formatCurrency(order.total_amount)}</div>
         </div>
       </div>
 
@@ -219,7 +219,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
           </div>
         </div>
       ` : `
-        <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-lg">
+        <div class="p-3 bg-rose-50 border border-rose-200 text-danger text-sm rounded-lg">
           ⚠️ ${isBn ? 'এই অর্ডারটি বাতিল করা হয়েছে এবং ইনভেন্টরি স্টক ফিরিয়ে দেওয়া হয়েছে।' : 'This order has been cancelled and stock inventory restored.'}
         </div>
       `}
@@ -260,7 +260,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
               <div class="grid grid-cols-4 gap-2 pt-2 border-t border-dashed border-border-subtle text-xs">
                 <div><span class="text-muted">Retail:</span> <strong class="font-mono">${formatCurrency(so.unit_price)}</strong></div>
                 <div><span class="text-muted">Explooro Partner Comm:</span> <strong class="font-mono text-brand">${formatCurrency(so.saler_commission)}</strong></div>
-                <div><span class="text-muted">Platform Fee:</span> <strong class="font-mono text-emerald-600">${formatCurrency(so.platform_fee)}</strong></div>
+                <div><span class="text-muted">Platform Fee:</span> <strong class="font-mono text-success">${formatCurrency(so.platform_fee)}</strong></div>
                 <div><span class="text-muted">Supplier Net:</span> <strong class="font-mono">${formatCurrency(so.supplier_payout)}</strong></div>
               </div>
             </div>
@@ -381,7 +381,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মোট অর্ডার মূল্য (GMV)' : 'Gross GMV Volume'}</div>
-          <div class="admin-kpi-card__val text-emerald-600">${formatCurrency(stats.gross_volume)}</div>
+          <div class="admin-kpi-card__val text-success">${formatCurrency(stats.gross_volume)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'গ্রাহক দ্বারা প্রদেয়' : 'Total Gross Customer Spend'}</div>
         </div>
 
@@ -393,7 +393,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'বাতিল / রিফান্ড' : 'Cancelled'}</div>
-          <div class="admin-kpi-card__val text-rose-600">${stats.cancelled_count}</div>
+          <div class="admin-kpi-card__val text-danger">${stats.cancelled_count}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'স্টক রিস্টোরকৃত' : 'Restored Stock'}</div>
         </div>
       </div>
@@ -462,7 +462,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
                       </span>
                     </td>
                     <td>
-                      <div class="font-mono font-bold text-emerald-600">${formatCurrency(o.total_amount)}</div>
+                      <div class="font-mono font-bold text-success">${formatCurrency(o.total_amount)}</div>
                     </td>
                     <td>
                       <span class="badge badge--info text-xs font-bold">${o.payment_method}</span>

@@ -764,7 +764,7 @@
   color: var(--text-primary);
 }
 
-/* WHY --text-brand and not --brand: --brand is the FILL token (#ffbc00 on the shipped palette).
+/* WHY --text-brand and not --brand: --brand is the FILL token (var(--warning-500) on the shipped palette).
    Painted as text on --surface-2 it measures 1.51:1 — the selected tab in the Finance and Platform
    sub-navs was the least readable label on the page, which is the exact opposite of what "active"
    should look like. themes.css defines --text-brand as the shallowest brand step clearing AA on the

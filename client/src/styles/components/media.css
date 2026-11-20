@@ -76,7 +76,7 @@
 .media-dropzone:hover,
 .media-dropzone--active {
   border-color: var(--brand);
-  background: rgba(218, 105, 76, 0.05);
+  background: color-mix(in srgb, var(--warning-500) 5%, transparent);
 }
 
 .media-dropzone__icon {
@@ -319,7 +319,7 @@
 
 .media-library-item.active {
   border-color: var(--brand);
-  box-shadow: 0 0 0 2px rgba(218, 105, 76, 0.3);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--warning-500) 30%, transparent);
 }
 
 .media-library-item__meta {

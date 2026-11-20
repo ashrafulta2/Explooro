@@ -19,7 +19,7 @@
 
 @keyframes pulse-border {
   0%, 100% { border-color: var(--warning, #f59e0b); }
-  50% { border-color: rgba(245, 158, 11, 0.4); }
+  50% { border-color: color-mix(in srgb, var(--warning-500) 40%, transparent); }
 }
 
 .elevated-chip__icon {
@@ -91,10 +91,10 @@
 
 .permission-gate-restricted {
   padding: var(--space-4);
-  background: #fee2e2;
-  border: 1px solid #ef4444;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-border);
   border-radius: var(--radius-md);
-  color: #991b1b;
+  color: var(--danger);
   margin: var(--space-4) 0;
 }
 

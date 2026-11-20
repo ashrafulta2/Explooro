@@ -400,16 +400,16 @@
 }
 
 .saler-quest-card--completed {
-  border-color: rgba(34, 197, 94, 0.3);
-  background: rgba(34, 197, 94, 0.03);
+  border-color: color-mix(in srgb, var(--success-500) 30%, transparent);
+  background: color-mix(in srgb, var(--success-500) 3%, transparent);
 }
 
 .saler-quest-card__icon {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-xl, 16px);
-  background: var(--primary-50, #eff6ff);
-  color: var(--primary-600, #2563eb);
+  background: color-mix(in srgb, var(--brand) 10%, transparent);
+  color: var(--text-brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,18 +439,18 @@
 }
 
 .saler-podium-card--gold {
-  border-color: #f59e0b;
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, var(--surface-0, #ffffff) 100%);
+  border-color: var(--warning-border);
+  background: color-mix(in srgb, var(--warning-500) 6%, var(--surface-0));
 }
 
 .saler-podium-card--silver {
   border-color: #94a3b8;
-  background: linear-gradient(180deg, rgba(148, 163, 184, 0.08) 0%, var(--surface-0, #ffffff) 100%);
+  background: color-mix(in srgb, var(--neutral-400) 6%, var(--surface-0));
 }
 
 .saler-podium-card--bronze {
-  border-color: #d97706;
-  background: linear-gradient(180deg, rgba(217, 119, 6, 0.08) 0%, var(--surface-0, #ffffff) 100%);
+  border-color: var(--warning-border);
+  background: color-mix(in srgb, var(--warning-700) 6%, var(--surface-0));
 }
 
 /* ── Explooro Partner Dashboard Header & Mode Toggle ── */
@@ -635,8 +635,8 @@
 }
 
 .saler-onboarding-step--completed {
-  border-color: rgba(34, 197, 94, 0.3);
-  background: rgba(34, 197, 94, 0.02);
+  border-color: color-mix(in srgb, var(--success-500) 30%, transparent);
+  background: color-mix(in srgb, var(--success-500) 2%, transparent);
 }
 
 /* WHY: --success-600 (#16a34a) is ~3.06:1 and --brand-600 gold is ~2.30:1 on the step

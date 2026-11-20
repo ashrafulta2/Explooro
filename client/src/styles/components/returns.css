@@ -63,7 +63,7 @@
 
 .resolution-card--selected {
   border-color: var(--brand);
-  background: rgba(37, 99, 235, 0.05);
+  background: color-mix(in srgb, var(--brand) 5%, transparent);
 }
 
 .resolution-card__body {

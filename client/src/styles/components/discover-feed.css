@@ -812,6 +812,6 @@
 }
 .discover-page__clear-btn:hover {
   background: var(--surface-2);
-  color: var(--text-danger, #ef4444);
+  color: var(--danger);
   border-color: var(--border-strong);
 }

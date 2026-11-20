@@ -182,7 +182,7 @@ export function openTeamPurchaseModal({
         <div class="team-purchase-modal__price-row">
           <span class="team-purchase-modal__team-price">${formatCurrency(currentGroupPrice)}</span>
           <span class="team-purchase-modal__original-price">${formatCurrency(retailPrice)}</span>
-          <span class="text-xs font-semibold text-emerald-700 ml-1">
+          <span class="text-xs font-semibold text-success ml-1">
             (${isBn ? `${formatCurrency(currentSavings)} সাশ্রয়` : `Save ${formatCurrency(currentSavings)}`})
           </span>
         </div>
@@ -225,7 +225,7 @@ export function openTeamPurchaseModal({
             <div class="min-w-0">
               <div class="text-xs font-bold text-primary truncate">${hostMember.user_name || 'Team Host'}</div>
               <div class="text-[11px] text-muted flex items-center gap-1.5 font-mono">
-                <span class="text-amber-600 font-bold">${isBn ? `বাকি ${required - current} জন` : `${required - current} spot left`}</span>
+                <span class="text-warning font-bold">${isBn ? `বাকি ${required - current} জন` : `${required - current} spot left`}</span>
                 <span>·</span>
                 <span>⏱️ ${formatCountdown(remainingSec)}</span>
               </div>
@@ -280,7 +280,7 @@ export function openTeamPurchaseModal({
     size2Option.innerHTML = `
       <div class="font-bold text-xs">${isBn ? '২ জনের টিম' : '2-Member Team'}</div>
       <div class="text-sm font-extrabold text-primary mt-0.5">${formatCurrency(calcGroupPrice(2))}</div>
-      <div class="text-[10px] text-emerald-700 font-semibold">${isBn ? `${discountPctFor(2)}% ছাড়` : `${discountPctFor(2)}% OFF`}</div>
+      <div class="text-[10px] text-success font-semibold">${isBn ? `${discountPctFor(2)}% ছাড়` : `${discountPctFor(2)}% OFF`}</div>
     `;
     size2Option.addEventListener('click', () => {
       selectedMembers = 2;
@@ -292,7 +292,7 @@ export function openTeamPurchaseModal({
     size3Option.innerHTML = `
       <div class="font-bold text-xs">${isBn ? '৩ জনের টিম (সেরা ডিল)' : '3-Member Team (Best Deal)'}</div>
       <div class="text-sm font-extrabold text-primary mt-0.5">${formatCurrency(calcGroupPrice(3))}</div>
-      <div class="text-[10px] text-emerald-700 font-semibold">${isBn ? `${discountPctFor(3)}% ছাড়` : `${discountPctFor(3)}% OFF`}</div>
+      <div class="text-[10px] text-success font-semibold">${isBn ? `${discountPctFor(3)}% ছাড়` : `${discountPctFor(3)}% OFF`}</div>
     `;
     size3Option.addEventListener('click', () => {
       selectedMembers = 3;

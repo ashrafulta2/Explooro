@@ -28,7 +28,7 @@
 /* Section Cards */
 .checkout-section-card, .checkout-step { border: 1.5px solid var(--border-subtle); border-radius: 16px; background: var(--surface-0); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); overflow: hidden; transition: all 0.2s ease; }
 .checkout-section-card:hover, .checkout-step--active { border-color: var(--brand); }
-.checkout-step--active { box-shadow: 0 4px 20px -2px rgba(255, 188, 0, 0.15); }
+.checkout-step--active { box-shadow: 0 4px 20px -2px color-mix(in srgb, var(--warning-500) 15%, transparent); }
 .checkout-section-card__header, .checkout-step__header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--surface-1); border-bottom: 1px solid var(--border-subtle); }
 .checkout-section-card__title-wrap, .checkout-step__title-wrap { display: flex; align-items: center; gap: 10px; }
 .checkout-section-card__icon { font-size: 1.25rem; display: inline-flex; align-items: center; justify-content: center; }

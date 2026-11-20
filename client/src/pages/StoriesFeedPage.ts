@@ -158,7 +158,7 @@ export default function StoriesFeedPage(root: HTMLElement, ctx: PageContext = {}
             ${(story.author_name || 'A')[0].toUpperCase()}
           </div>
           <div>
-            <div class="font-bold text-sm text-slate-900">${story.author_name || 'Explooro Partner'}</div>
+            <div class="font-bold text-sm text-primary">${story.author_name || 'Explooro Partner'}</div>
             <div class="text-xs text-muted flex items-center gap-2">
               <span class="badge badge-neutral text-xs font-mono uppercase">${story.author_user_role || 'saler'}</span>
               <span>•</span>
@@ -176,8 +176,8 @@ export default function StoriesFeedPage(root: HTMLElement, ctx: PageContext = {}
         ` : ''}
 
         <div>
-          <h3 class="text-xl font-bold text-slate-900 m-0 mb-2">${title}</h3>
-          <p class="text-sm text-slate-700 leading-relaxed m-0">${content}</p>
+          <h3 class="text-xl font-bold text-primary m-0 mb-2">${title}</h3>
+          <p class="text-sm text-secondary leading-relaxed m-0">${content}</p>
         </div>
 
         ${products.length > 0 ? `

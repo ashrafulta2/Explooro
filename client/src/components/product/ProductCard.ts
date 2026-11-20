@@ -126,19 +126,21 @@ export interface ProductCardOptions {
 /** `window.__explooroRouter`, read as a navigation fallback; nothing in client/src sets it. */
 type RouterWindow = Window & { __explooroRouter?: { navigate?: (path: string) => void } };
 
-// Ten HSL-defined, accessible background colours for the SVG image placeholder.
-// Each maps to a distinct category visual identity — consistent per image_index.
+// Ten background colours for the image placeholder, consistent per image_index.
+// WHY ramp steps and not hex: hand-picked hex ignored the master seed, so a re-theme left these
+// tiles on the old palette. The 700/800 steps of the theme-independent ramps keep white initials
+// above 4.5:1 on any seed. ImageGallery.ts keeps the same list.
 export const PLACEHOLDER_COLOURS = [
-  { bg: '#9b467b', fg: '#fff' }, // pink (brand-900) — Clothing
-  { bg: '#2d7b44', fg: '#fff' }, // green — Kids
-  { bg: '#1e5fa8', fg: '#fff' }, // blue — Electronics
-  { bg: '#592a47', fg: '#fff' }, // deep plum (brand-1000) — Bags
-  { bg: '#7b3da0', fg: '#fff' }, // purple — Jewellery
-  { bg: '#936412', fg: '#fff' }, // amber — Food & Grocery
-  { bg: '#205b31', fg: '#fff' }, // dark green — Crafts
-  { bg: '#2c343a', fg: '#fff' }, // charcoal — Footwear
-  { bg: '#8b1f17', fg: '#fff' }, // deep red — Beauty & Health
-  { bg: '#464e55', fg: '#fff' }, // dark grey — Wholesale
+  { bg: 'var(--accent-700)', fg: 'var(--neutral-0)' }, // Clothing
+  { bg: 'var(--success-700)', fg: 'var(--neutral-0)' }, // Kids
+  { bg: 'var(--brand)', fg: 'var(--brand-contrast)' }, // Electronics
+  { bg: 'var(--danger-800)', fg: 'var(--neutral-0)' }, // Bags
+  { bg: 'var(--info-800)', fg: 'var(--neutral-0)' }, // Jewellery
+  { bg: 'var(--warning-800)', fg: 'var(--neutral-0)' }, // Food & Grocery
+  { bg: 'var(--success-800)', fg: 'var(--neutral-0)' }, // Crafts
+  { bg: 'var(--neutral-800)', fg: 'var(--neutral-0)' }, // Footwear
+  { bg: 'var(--danger-700)', fg: 'var(--neutral-0)' }, // Beauty & Health
+  { bg: 'var(--neutral-700)', fg: 'var(--neutral-0)' }, // Wholesale
 ];
 
 const CATEGORY_DUMMY_IMAGES: Record<string, string[]> = {

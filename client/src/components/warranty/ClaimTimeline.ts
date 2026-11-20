@@ -133,7 +133,7 @@ export function ClaimTimeline({
         ` : ''}
 
         ${claim.reverse_tracking_number ? `
-          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius-lg); padding: 10px 12px; font-size: 12px; color: #166534;">
+          <div style="background: var(--success-bg); border: 1px solid var(--success-border); border-radius: var(--radius-lg); padding: 10px 12px; font-size: 12px; color: var(--success);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong>🚚 ${t('warranty.reverse_courier_booked')}</strong>
               <span class="badge badge--emerald" style="font-size: 10px;">${claim.reverse_courier || 'Courier'}</span>
@@ -149,7 +149,7 @@ export function ClaimTimeline({
         ` : ''}
 
         ${claim.rejection_reason ? `
-          <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius-lg); padding: 10px 12px; font-size: 12px; color: #991b1b;">
+          <div style="background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: var(--radius-lg); padding: 10px 12px; font-size: 12px; color: var(--danger);">
             <strong>❌ ${t('warranty.rejection_reason')}:</strong>
             <p style="margin: 3px 0 0; font-size: 11px;">${claim.rejection_reason}</p>
           </div>

@@ -192,7 +192,7 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
       <div class="border-b border-subtle pb-2">
         <h3 class="font-bold text-sm text-foreground">🚚 ${t('saler_orders.detail_timeline_title')}</h3>
       </div>
-      <div class="saler-stack--sm text-xs pl-2" style="border-left: 2px solid var(--primary-300, #93c5fd);">
+      <div class="saler-stack--sm text-xs pl-2" style="border-left: 2px solid color-mix(in srgb, var(--brand) 40%, transparent);">
         <div class="relative pl-4">
           <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full bg-primary"></div>
           <div class="font-bold text-foreground">${t('saler_orders.timeline_placed')}</div>

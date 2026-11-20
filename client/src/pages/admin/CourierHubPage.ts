@@ -173,7 +173,7 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'সার্বিক ডেলিভারি সাকসেস' : 'Delivery Success Rate'}</div>
-          <div class="admin-kpi-card__val text-emerald-600">${formatNumber(stats.delivered_rate)}%</div>
+          <div class="admin-kpi-card__val text-success">${formatNumber(stats.delivered_rate)}%</div>
           <div class="admin-kpi-card__hint">${isBn ? '৯৫% লক্ষ্যের উপরে' : 'Above the 95% target'}</div>
         </div>
 
@@ -211,7 +211,7 @@ export default function CourierHubPage(root: HTMLElement, { navigate }: PageCont
             <div class="system-infra-card__gauge">
               <div class="system-infra-card__gauge-head">
                 <span>${isBn ? 'ডেলিভারি সাকসেস' : 'Delivery success'}</span>
-                <span class="font-mono font-bold text-emerald-600">${c.delivery_rate_pct}%</span>
+                <span class="font-mono font-bold text-success">${c.delivery_rate_pct}%</span>
               </div>
               <div class="system-infra-card__gauge-bar">
                 <div class="system-infra-card__gauge-fill" style="width: ${c.delivery_rate_pct}%;"></div>

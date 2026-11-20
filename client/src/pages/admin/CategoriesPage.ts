@@ -479,7 +479,7 @@ export default function CategoriesPage(root: HTMLElement, { navigate }: PageCont
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${t('admin_categories.active_published')}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">${stats.active_count}</div>
+          <div class="admin-kpi-card__val font-mono text-success">${stats.active_count}</div>
           <div class="admin-kpi-card__hint">${t('admin_categories.live_on_marketplace')}</div>
         </div>
 
@@ -583,7 +583,7 @@ export default function CategoriesPage(root: HTMLElement, { navigate }: PageCont
                     <code class="font-mono text-xs text-muted">/category/${c.slug}</code>
                   </td>
                   <td>
-                    <span class="font-bold text-emerald-600 font-mono">${c.commission_pct}%</span>
+                    <span class="font-bold text-success font-mono">${c.commission_pct}%</span>
                   </td>
                   <td>
                     <span class="font-semibold font-mono">${c.products_count || 0}</span>

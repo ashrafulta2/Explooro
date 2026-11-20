@@ -359,17 +359,17 @@ function createStatCard(label, value) {
 }
 
 const CATEGORY_META = {
-  'Clothing': { icon: '🥻', bg: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', color: '#9d174d' },
-  'Jewellery': { icon: '💍', bg: 'linear-gradient(135deg, #fae8ff 0%, #f5d0fe 100%)', color: '#86198f' },
-  'Crafts': { icon: '🏺', bg: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', color: '#166534' },
-  'Electronics': { icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', bg: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', color: '#1e40af' },
-  'Home & Kitchen': { icon: '🍳', bg: 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)', color: '#9a3412' },
-  'Food & Grocery': { icon: '🍯', bg: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', color: '#92400e' },
-  'Footwear': { icon: '👟', bg: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', color: '#334155' },
-  'Bags': { icon: '👜', bg: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)', color: '#5b21b6' },
-  'Beauty & Health': { icon: '✨', bg: 'linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%)', color: '#9f1239' },
-  'Kids': { icon: '🧸', bg: 'linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 100%)', color: '#065f46' },
-  default: { icon: '📦', bg: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)', color: '#374151' },
+  'Clothing': { icon: '🥻', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'var(--accent-700)' },
+  'Jewellery': { icon: '💍', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'var(--accent-700)' },
+  'Crafts': { icon: '🏺', bg: 'var(--success-bg)', color: 'var(--success)' },
+  'Electronics': { icon: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="inline-icon"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>', bg: 'color-mix(in srgb, var(--brand) 10%, var(--surface-0))', color: 'var(--text-brand)' },
+  'Home & Kitchen': { icon: '🍳', bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  'Food & Grocery': { icon: '🍯', bg: 'var(--warning-bg)', color: 'var(--warning)' },
+  'Footwear': { icon: '👟', bg: 'var(--surface-2)', color: 'var(--text-secondary)' },
+  'Bags': { icon: '👜', bg: 'color-mix(in srgb, var(--accent-500) 12%, var(--surface-0))', color: 'var(--accent-700)' },
+  'Beauty & Health': { icon: '✨', bg: 'var(--danger-bg)', color: 'var(--danger)' },
+  'Kids': { icon: '🧸', bg: 'var(--success-bg)', color: 'var(--success)' },
+  default: { icon: '📦', bg: 'var(--surface-2)', color: 'var(--text-secondary)' },
 };
 
 function createSourcingCard(product, { onAddToStore, isSellRestricted = false, sponsored = false }) {

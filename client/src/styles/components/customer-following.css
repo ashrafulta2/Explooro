@@ -336,7 +336,7 @@
 
 .following-live-card {
   background: var(--surface-0);
-  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  border: 1.5px solid color-mix(in srgb, var(--danger-500) 40%, transparent);
   border-radius: var(--radius-xl);
   padding: var(--space-4);
   display: flex;

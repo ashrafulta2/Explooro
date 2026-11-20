@@ -115,7 +115,7 @@
 
 .dot-whatsapp { background: #22c55e; }
 .dot-messenger { background: #3b82f6; }
-.dot-inplatform { background: #a855f7; }
+.dot-inplatform { background: var(--accent-500); }
 
 /* ── Two-pane layout ── */
 .unified-inbox-layout {
@@ -264,7 +264,7 @@
 /* Channel colours — used on avatars (the avatar colour IS the channel) */
 .tag-whatsapp { background: #dcfce7; color: #15803d; }
 .tag-messenger { background: #dbeafe; color: #1d4ed8; }
-.tag-inplatform { background: #f3e8ff; color: #7e22ce; }
+.tag-inplatform { background: color-mix(in srgb, var(--accent-500) 12%, transparent); color: var(--accent-700); }
 
 /* ── Right: open conversation ── */
 .inbox-chat-pane {
@@ -355,9 +355,9 @@
 
 .chat-window-notice {
   padding: 10px var(--space-5, 20px);
-  background: #fffbeb;
-  border-bottom: 1px solid #fde68a;
-  color: #92400e;
+  background: var(--warning-bg);
+  border-bottom: 1px solid var(--warning-border);
+  color: var(--warning);
   font-size: var(--text-sm, 14px);
   line-height: 1.4;
   flex-shrink: 0;

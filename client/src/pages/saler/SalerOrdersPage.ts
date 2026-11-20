@@ -109,7 +109,7 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
           <span>${t('saler_orders.kpi_pending_fulfillment')}</span>
           <span>⏳</span>
         </div>
-        <div class="saler-kpi-card__value text-amber-600">${summary.pending_fulfillment || orders.filter(o => o.fulfillment_status === 'PROCESSING').length}</div>
+        <div class="saler-kpi-card__value text-warning">${summary.pending_fulfillment || orders.filter(o => o.fulfillment_status === 'PROCESSING').length}</div>
         <div class="saler-kpi-card__subtext">${isBn ? 'সাপ্লায়ার প্যাকেজিং চলছে' : 'Supplier is packing'}</div>
       </div>
       <div class="saler-kpi-card">
@@ -117,7 +117,7 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
           <span>${t('saler_orders.kpi_in_transit')}</span>
           <span>🚚</span>
         </div>
-        <div class="saler-kpi-card__value text-blue-600">${summary.in_transit_count || orders.filter(o => o.fulfillment_status === 'SHIPPED').length}</div>
+        <div class="saler-kpi-card__value text-brand">${summary.in_transit_count || orders.filter(o => o.fulfillment_status === 'SHIPPED').length}</div>
         <div class="saler-kpi-card__subtext">${isBn ? 'কুরিয়ারে ডেলিভারির পথে' : 'Courier on the road'}</div>
       </div>
     `;

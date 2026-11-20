@@ -389,7 +389,7 @@ export class CoinsPage {
             </div>
           </div>
 
-          <div style="font-size: var(--text-xs); color: #15803d; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px 14px; border-radius: var(--radius-lg); font-weight: 600;">
+          <div style="font-size: var(--text-xs); color: var(--success); background: var(--success-bg); border: 1px solid var(--success-border); padding: 10px 14px; border-radius: var(--radius-lg); font-weight: 600;">
             ${t('gamification.spend_rule_refund')}
           </div>
         </div>
@@ -523,7 +523,7 @@ export class CoinsPage {
                           ${item.entry_type}
                         </span>
                       </td>
-                      <td style="font-family: var(--font-mono); font-weight: 800; font-size: var(--text-sm); color: ${isCredit ? '#15803d' : '#b91c1c'};">
+                      <td style="font-family: var(--font-mono); font-weight: 800; font-size: var(--text-sm); color: ${isCredit ? 'var(--success)' : 'var(--danger)'};">
                         ${isCredit ? '+' : '-'}${item.amount.toLocaleString()}
                       </td>
                       <td style="font-family: var(--font-mono); font-weight: 700; color: var(--text-secondary);">

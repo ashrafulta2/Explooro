@@ -145,7 +145,7 @@ export default function ChatPage(root: HTMLElement, { params, query, navigate }:
       }
     } catch (err) {
       const sidebar = container.querySelector('#threads-sidebar-box');
-      if (sidebar) sidebar.innerHTML = `<div class="p-4 text-xs text-rose-500">${err.message}</div>`;
+      if (sidebar) sidebar.innerHTML = `<div class="p-4 text-xs text-danger">${err.message}</div>`;
     }
   }
 

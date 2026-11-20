@@ -90,7 +90,7 @@ export default function AdminLiveCommercePage(root: HTMLElement, { navigate }: P
       <div class="admin-kpi-grid">
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'চলমান লাইভ স্ট্রিম' : 'Active Broadcasts'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">🔴 ${formatNumber(stats.active_broadcasts)} Live</div>
+          <div class="admin-kpi-card__val font-mono text-success">🔴 ${formatNumber(stats.active_broadcasts)} Live</div>
           <div class="admin-kpi-card__hint">${isBn ? 'রিয়েল-টাইম সম্প্রচার' : 'Real-time Streaming'}</div>
         </div>
 
@@ -102,13 +102,13 @@ export default function AdminLiveCommercePage(root: HTMLElement, { navigate }: P
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'ইন-স্ট্রিম বিক্রয় (GMV)' : 'In-Stream Live Sales'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">${formatCurrency(stats.live_gmv_bdt)}</div>
+          <div class="admin-kpi-card__val font-mono text-success">${formatCurrency(stats.live_gmv_bdt)}</div>
           <div class="admin-kpi-card__hint">52 ${isBn ? 'টি অর্ডার প্লেসড' : 'Orders Placed in Stream'}</div>
         </div>
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মডারেশন অ্যালার্ট' : 'Moderation Flags'}</div>
-          <div class="admin-kpi-card__val font-mono text-amber-500">${formatNumber(stats.flagged_messages)}</div>
+          <div class="admin-kpi-card__val font-mono text-warning">${formatNumber(stats.flagged_messages)}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'অটো-মিউট কার্যকর' : 'Auto-Filtered Words'}</div>
         </div>
       </div>
@@ -127,7 +127,7 @@ export default function AdminLiveCommercePage(root: HTMLElement, { navigate }: P
                 👥 ${formatNumber(s.viewers_count)}
               </div>
               <div class="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur text-white text-xs p-2 rounded">
-                <div class="text-amber-300 font-bold">📌 Pinned Deal:</div>
+                <div class="text-warning font-bold">📌 Pinned Deal:</div>
                 <div class="truncate">${s.pinned_product}</div>
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function AdminLiveCommercePage(root: HTMLElement, { navigate }: P
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'লাইভ সেলস আয়' : 'In-Stream GMV'}</span>
-                <span class="system-infra-card__val font-mono text-emerald-600">${formatCurrency(s.live_gmv)}</span>
+                <span class="system-infra-card__val font-mono text-success">${formatCurrency(s.live_gmv)}</span>
               </div>
             </div>
 

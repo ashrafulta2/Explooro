@@ -889,8 +889,8 @@ export class TeamPurchasePage {
             ${t.status === 'ACTIVE'
               ? `<span class="team-card__status-dot"></span><span>${isBn ? `আর মাত্র ${required - current} জন বাকি` : `Need ${required - current} more to complete`}</span>`
               : t.status === 'COMPLETED'
-              ? `<span class="text-emerald-600 font-bold">✓ ${isBn ? 'টিম সফল হয়েছে' : 'Goal achieved'}</span>`
-              : `<span class="text-rose-500 font-medium">⏰ ${isBn ? 'সময় শেষ' : 'Window closed'}</span>`}
+              ? `<span class="text-success font-bold">✓ ${isBn ? 'টিম সফল হয়েছে' : 'Goal achieved'}</span>`
+              : `<span class="text-danger font-medium">⏰ ${isBn ? 'সময় শেষ' : 'Window closed'}</span>`}
           </div>
 
           <div class="team-card__actions">

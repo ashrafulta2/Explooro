@@ -436,7 +436,7 @@ export default function SettingsPage(root: HTMLElement, { navigate }: PageContex
     // SECTION 6: Emergency Controls & Maintenance Mode
     const sec6 = document.createElement('div');
     sec6.className = 'settings-section-card';
-    sec6.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+    sec6.style.border = '1px solid color-mix(in srgb, var(--danger-500) 40%, transparent)';
     sec6.innerHTML = `
       <div class="settings-section-card__header">
         <div>

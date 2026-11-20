@@ -89,7 +89,7 @@ export class QuestPanel {
           </div>
 
           ${claimableCount > 0 ? `
-            <span style="font-size: 11px; font-weight: 800; color: #b45309; background: #fef3c7; border: 1px solid #fde68a; padding: 3px 10px; border-radius: var(--radius-full);">
+            <span style="font-size: 11px; font-weight: 800; color: var(--warning); background: var(--warning-bg); border: 1px solid var(--warning-border); padding: 3px 10px; border-radius: var(--radius-full);">
               🎁 ${claimableCount} ${isBn ? 'টি রিওয়ার্ড সংগ্রহযোগ্য' : 'Reward(s) ready to claim!'}
             </span>
           ` : ''}

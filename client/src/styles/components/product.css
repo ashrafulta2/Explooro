@@ -729,6 +729,6 @@ button.star-row__star:focus-visible { outline: 2px solid var(--brand); outline-o
 }
 .home-floating-toolbar__clear-btn:hover {
   background: var(--surface-2);
-  color: var(--text-danger, #ef4444);
+  color: var(--danger);
   border-color: var(--border-strong);
 }

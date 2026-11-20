@@ -129,7 +129,7 @@ export function LiveStreamCard({ stream, onWatchClick }: LiveStreamCardOptions):
         <div class="live-stream-card__host-info">
           <span class="live-stream-card__host-name">
             ${stream.host_name || 'Verified Host'}
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Verified"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" style="color: var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Verified"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
           </span>
           <span class="live-stream-card__store-name">${stream.store_name || 'Explooro Merchant'}</span>
         </div>

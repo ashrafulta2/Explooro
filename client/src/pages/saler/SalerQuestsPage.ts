@@ -90,7 +90,7 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
             <span class="text-xs text-muted font-normal">${isBn ? 'কয়েন' : 'Coins'}</span>
           </div>
           <div class="h-4 w-px bg-subtle"></div>
-          <div class="flex items-center gap-1.5 font-bold text-amber-600 text-xs">
+          <div class="flex items-center gap-1.5 font-bold text-warning text-xs">
             <span>🔥</span>
             <span>${streakDays} ${t('saler_quests.streak_badge')}</span>
           </div>

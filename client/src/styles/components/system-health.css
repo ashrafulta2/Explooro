@@ -62,9 +62,9 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-radius: var(--radius-full);
-  background: rgba(34, 197, 94, 0.12);
+  background: color-mix(in srgb, var(--success-500) 12%, transparent);
   color: var(--success);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border: 1px solid color-mix(in srgb, var(--success-500) 30%, transparent);
 }
 
 .system-health__pulse-dot {
@@ -72,14 +72,14 @@
   height: 8px;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--success-500) 70%, transparent);
   animation: pulse-green 2s infinite cubic-bezier(0.66, 0, 0, 1);
   display: inline-block;
 }
 
 @keyframes pulse-green {
   to {
-    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--success-500) 0%, transparent);
   }
 }
 
@@ -241,9 +241,9 @@
   font-size: 11px;
   font-weight: 700;
   border-radius: var(--radius-full);
-  background: rgba(34, 197, 94, 0.12);
+  background: color-mix(in srgb, var(--success-500) 12%, transparent);
   color: var(--success);
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  border: 1px solid color-mix(in srgb, var(--success-500) 25%, transparent);
 }
 
 .system-vital-card__val {
@@ -351,15 +351,15 @@
   font-weight: 800;
   text-transform: uppercase;
   border-radius: var(--radius-sm);
-  background: rgba(34, 197, 94, 0.12);
+  background: color-mix(in srgb, var(--success-500) 12%, transparent);
   color: var(--success);
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  border: 1px solid color-mix(in srgb, var(--success-500) 25%, transparent);
 }
 
 .system-infra-card__badge--warn {
-  background: rgba(245, 158, 11, 0.12);
+  background: color-mix(in srgb, var(--warning-500) 12%, transparent);
   color: var(--warning);
-  border-color: rgba(245, 158, 11, 0.3);
+  border-color: color-mix(in srgb, var(--warning-500) 30%, transparent);
 }
 
 .system-infra-card__gauge {
@@ -384,7 +384,7 @@
 
 .system-infra-card__gauge-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--brand), #38bdf8);
+  background: var(--brand);
   border-radius: var(--radius-full);
   transition: width 0.3s ease;
 }
@@ -540,9 +540,9 @@
 }
 
 .system-table__badge--success {
-  background: rgba(34, 197, 94, 0.12);
+  background: color-mix(in srgb, var(--success-500) 12%, transparent);
   color: var(--success);
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  border: 1px solid color-mix(in srgb, var(--success-500) 25%, transparent);
 }
 
 /* The sibling badges all use their status token for the text; this one was left on a literal
@@ -555,15 +555,15 @@
 }
 
 .system-table__badge--warn {
-  background: rgba(245, 158, 11, 0.12);
+  background: color-mix(in srgb, var(--warning-500) 12%, transparent);
   color: var(--warning);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid color-mix(in srgb, var(--warning-500) 25%, transparent);
 }
 
 .system-table__badge--danger {
-  background: rgba(239, 68, 68, 0.12);
+  background: color-mix(in srgb, var(--danger-500) 12%, transparent);
   color: var(--danger);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid color-mix(in srgb, var(--danger-500) 25%, transparent);
 }
 
 /* ==========================================================================
@@ -574,8 +574,8 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: color-mix(in srgb, var(--danger-500) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger-500) 25%, transparent);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: var(--text-xs);

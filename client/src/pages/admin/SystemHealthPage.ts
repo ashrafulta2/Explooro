@@ -389,7 +389,7 @@ export default function SystemHealthPage(root: HTMLElement, { navigate }: PageCo
                 <span style="color: var(--success); font-weight: 700;">${pctText(hitRate)}</span>
               </div>
               <div class="system-infra-card__gauge-bar">
-                <div class="system-infra-card__gauge-fill" style="width: ${hitRate ?? 0}%; background: linear-gradient(90deg, #10b981, #06b6d4);"></div>
+                <div class="system-infra-card__gauge-fill" style="width: ${hitRate ?? 0}%; background: var(--success-500);"></div>
               </div>
             </div>
 
@@ -435,7 +435,7 @@ export default function SystemHealthPage(root: HTMLElement, { navigate }: PageCo
                 <span style="color: var(--success); font-weight: 700;">${pctText(whRate, 2)}</span>
               </div>
               <div class="system-infra-card__gauge-bar">
-                <div class="system-infra-card__gauge-fill" style="width: ${whRate ?? 0}%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                <div class="system-infra-card__gauge-fill" style="width: ${whRate ?? 0}%; background: var(--brand);"></div>
               </div>
             </div>
 

@@ -1206,7 +1206,7 @@ function openInStreamCheckoutDrawer(product, streamId) {
       // WHY a bad code is dropped: the order refuses an invalid coupon, so keeping it applied would
       // make the next confirm fail for a reason the shopper has already seen.
       if (quote.coupon?.valid) {
-        couponMsg.style.color = 'var(--text-success, var(--text-muted))';
+        couponMsg.style.color = 'var(--success)';
         couponMsg.textContent = (t('live.chk_coupon_applied') || 'Coupon {{code}} applied: -{{amount}}')
           .replace('{{code}}', quote.coupon.code)
           .replace('{{amount}}', formatBdt(quote.discount_amount));

@@ -276,19 +276,19 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'ফ্রেশ / সুরক্ষিত' : 'Fresh Batches (>45d)'}</div>
-          <div class="admin-kpi-card__val text-emerald-600">${stats.fresh_count}</div>
+          <div class="admin-kpi-card__val text-success">${stats.fresh_count}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'পর্যাপ্ত মেয়াদ রয়েছে' : 'Optimal Shelf Life'}</div>
         </div>
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'মেয়াদ শেষের পথে (<৪৫ দিন)' : 'Expiring Soon (<45d)'}</div>
-          <div class="admin-kpi-card__val text-amber-600">${stats.expiring_soon_count}</div>
+          <div class="admin-kpi-card__val text-warning">${stats.expiring_soon_count}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'ক্লিয়ারেন্স সেল অ্যাকশন যোগ্য' : 'Eligible for Clearance Action'}</div>
         </div>
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'কোয়ারেন্টাইন / রিকল' : 'Quarantined / Recalled'}</div>
-          <div class="admin-kpi-card__val text-rose-600">${stats.quarantined_count}</div>
+          <div class="admin-kpi-card__val text-danger">${stats.quarantined_count}</div>
           <div class="admin-kpi-card__hint">${isBn ? 'বিক্রয় ব্লক করা হয়েছে' : 'Locked from Orders'}</div>
         </div>
       </div>
@@ -346,7 +346,7 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
                       <div class="text-xs text-muted">${b.supplier_name}</div>
                     </td>
                     <td>
-                      <div class="text-xs font-bold ${isExpired ? 'text-rose-600' : (isExpiring ? 'text-amber-600' : 'text-primary')}">
+                      <div class="text-xs font-bold ${isExpired ? 'text-danger' : (isExpiring ? 'text-warning' : 'text-primary')}">
                         ${formatDate(b.expires_at)}
                       </div>
                       <div class="text-xs text-muted">
@@ -383,7 +383,7 @@ export default function BatchesPage(root: HTMLElement, { navigate }: PageContext
                           </button>
                         ` : ''}
                         
-                        <button type="button" class="btn btn--ghost btn--sm quarantine-btn ${b.is_quarantined ? 'text-emerald-600' : 'text-rose-600'}" data-id="${b.id}" title="${b.is_quarantined ? 'Release Quarantine' : 'Quarantine Batch'}">
+                        <button type="button" class="btn btn--ghost btn--sm quarantine-btn ${b.is_quarantined ? 'text-success' : 'text-danger'}" data-id="${b.id}" title="${b.is_quarantined ? 'Release Quarantine' : 'Quarantine Batch'}">
                           ${b.is_quarantined ? '🔓' : '🔒'}
                         </button>
                       </div>

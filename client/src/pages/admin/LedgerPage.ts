@@ -153,7 +153,7 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
       <div class="finance-subnav-mount"></div>
 
       <!-- Zero-Drift Integrity Banner -->
-      <div class="system-backup-banner" style="background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.25);">
+      <div class="system-backup-banner" style="background: color-mix(in srgb, var(--success-500) 8%, transparent); border-color: color-mix(in srgb, var(--success-500) 25%, transparent);">
         <span class="system-backup-banner__icon">🛡️</span>
         <div>
           <strong style="color: var(--success);">${isBn ? 'জিরো-ড্রিফট ব্যালেন্স নিশ্চিত' : 'Money records balance'}</strong>
@@ -183,7 +183,7 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'অডিট ড্রিফট' : 'Reconciliation Drift'}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">৳0.00</div>
+          <div class="admin-kpi-card__val font-mono text-success">৳0.00</div>
           <div class="admin-kpi-card__hint">${isBn ? 'নিখুঁত অ্যাকাউন্টিং' : 'No difference in the records'}</div>
         </div>
       </div>
@@ -233,10 +233,10 @@ export default function LedgerPage(root: HTMLElement, { navigate }: PageContext 
                     <code class="font-mono text-xs text-muted">${tx.sub_order_ref}</code>
                   </td>
                   <td>
-                    <div class="font-mono text-xs font-semibold text-rose-600">${tx.debit_account}</div>
+                    <div class="font-mono text-xs font-semibold text-danger">${tx.debit_account}</div>
                   </td>
                   <td>
-                    <div class="font-mono text-xs font-semibold text-emerald-600">${tx.credit_account}</div>
+                    <div class="font-mono text-xs font-semibold text-success">${tx.credit_account}</div>
                   </td>
                   <td>
                     <div class="font-mono font-bold text-primary">${formatCurrency(tx.amount)}</div>

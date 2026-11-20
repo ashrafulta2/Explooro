@@ -448,7 +448,7 @@ export default function StoriesManagerPage(root: HTMLElement) {
             ${
               reel.product
                 ? `
-              <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--brand-50, #fdf8ef); border-radius: var(--radius-md); border: 1px solid rgba(236, 174, 0, 0.3); margin-top: 4px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--brand-50, #fdf8ef); border-radius: var(--radius-md); border: 1px solid color-mix(in srgb, var(--warning-500) 30%, transparent); margin-top: 4px;">
                 <div style="display: flex; flex-direction: column; gap: 2px;">
                   <span class="text-xs font-bold text-primary">${reel.product.title_en}</span>
                   <span class="text-xs font-mono font-bold text-success">${formatCurrency(reel.product.retail_price)}</span>

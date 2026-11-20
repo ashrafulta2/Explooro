@@ -604,7 +604,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${t('payout.metric.completed_today')}</div>
-          <div class="admin-kpi-card__val font-mono text-emerald-600">${completedCount}</div>
+          <div class="admin-kpi-card__val font-mono text-success">${completedCount}</div>
           <div class="admin-kpi-card__hint">${t('payout.metric.completed_hint')}</div>
         </div>
       </div>

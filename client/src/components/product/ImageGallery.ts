@@ -36,10 +36,16 @@ export interface GalleryElement extends HTMLDivElement {
 }
 
 const PLACEHOLDER_COLOURS = [
-  { bg: '#9b467b', fg: '#fff' }, { bg: '#2d7b44', fg: '#fff' }, { bg: '#1e5fa8', fg: '#fff' },
-  { bg: '#592a47', fg: '#fff' }, { bg: '#7b3da0', fg: '#fff' }, { bg: '#936412', fg: '#fff' },
-  { bg: '#205b31', fg: '#fff' }, { bg: '#2c343a', fg: '#fff' }, { bg: '#8b1f17', fg: '#fff' },
-  { bg: '#464e55', fg: '#fff' },
+  { bg: 'var(--accent-700)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--success-700)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--brand)', fg: 'var(--brand-contrast)' },
+  { bg: 'var(--danger-800)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--info-800)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--warning-800)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--success-800)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--neutral-800)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--danger-700)', fg: 'var(--neutral-0)' },
+  { bg: 'var(--neutral-700)', fg: 'var(--neutral-0)' },
 ];
 
 function placeholderInitials(title: string): string {

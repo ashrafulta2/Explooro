@@ -409,7 +409,7 @@ function renderToolsGrid(container, data, nav) {
           ${t('saler.dashboard.tools_desc', 'Every specialized sales, marketing, sourcing, and vault tool reachable within 2 clicks.')}
         </p>
       </div>
-      <a href="/saler/analytics" style="font-size: 12px; font-weight: 700; color: var(--primary-600, #2563eb); text-decoration: none; display: flex; align-items: center; gap: 4px;">
+      <a href="/saler/analytics" style="font-size: 12px; font-weight: 700; color: var(--text-brand); text-decoration: none; display: flex; align-items: center; gap: 4px;">
         📈 View Full Analytics →
       </a>
     </div>
@@ -593,7 +593,7 @@ function renderToolsGrid(container, data, nav) {
         <h4 class="saler-tool-card__title">${tool.name}</h4>
         <p class="saler-tool-card__desc">${tool.desc}</p>
       </div>
-      <div style="display: flex; align-items: center; justify-content: flex-end; font-size: 11px; font-weight: 700; color: var(--primary-600, #2563eb); padding-top: 4px;">
+      <div style="display: flex; align-items: center; justify-content: flex-end; font-size: 11px; font-weight: 700; color: var(--text-brand); padding-top: 4px;">
         ${isAccessible ? 'Launch →' : '🔒 Locked'}
       </div>
     `;

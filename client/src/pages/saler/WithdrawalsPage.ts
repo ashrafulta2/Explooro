@@ -108,7 +108,7 @@ export default function WithdrawalsPage(root: HTMLElement, { navigate }: PageCon
           <span>${t('saler_withdrawals.kpi_pending')}</span>
           <span>⏳</span>
         </div>
-        <div class="saler-kpi-card__value text-amber-600">
+        <div class="saler-kpi-card__value text-warning">
           ${formatCurrency(summary.pending_payout_amount || 0)}
         </div>
         <div class="saler-kpi-card__subtext">${t('saler_withdrawals.plain_kpi_pending_sub')}</div>

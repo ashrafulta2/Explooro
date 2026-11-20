@@ -266,7 +266,7 @@ export default function WarehousesPage(root: HTMLElement, { navigate }: PageCont
 
         <div class="admin-kpi-card">
           <div class="admin-kpi-card__label">${isBn ? 'বর্তমান মজুদ সংখ্যা' : 'Current Stocked Units'}</div>
-          <div class="admin-kpi-card__val text-emerald-600">${Math.round(stats.current_units / 1000)}k <span class="text-xs font-normal">units</span></div>
+          <div class="admin-kpi-card__val text-success">${Math.round(stats.current_units / 1000)}k <span class="text-xs font-normal">units</span></div>
           <div class="admin-kpi-card__hint">${isBn ? 'সরাসরি শিপমেন্ট প্রস্তুত' : 'Ready for Dispatch'}</div>
         </div>
 
@@ -317,10 +317,10 @@ export default function WarehousesPage(root: HTMLElement, { navigate }: PageCont
               <div class="system-infra-card__gauge">
                 <div class="system-infra-card__gauge-head">
                   <span>${isBn ? 'স্টোরেজ পূর্ণতা' : 'Storage Capacity'}</span>
-                  <span class="font-mono font-bold ${isHigh ? 'text-amber-600' : 'text-emerald-600'}">${formatNumber(utilPct)}% (${formatNumber(w.current_units)} / ${formatNumber(w.capacity_units)})</span>
+                  <span class="font-mono font-bold ${isHigh ? 'text-warning' : 'text-success'}">${formatNumber(utilPct)}% (${formatNumber(w.current_units)} / ${formatNumber(w.capacity_units)})</span>
                 </div>
                 <div class="system-infra-card__gauge-bar">
-                  <div class="system-infra-card__gauge-fill" style="width: ${utilPct}%; background: ${isHigh ? 'linear-gradient(90deg, #f59e0b, #ef4444)' : 'linear-gradient(90deg, #10b981, #06b6d4)'};"></div>
+                  <div class="system-infra-card__gauge-fill" style="width: ${utilPct}%; background: ${isHigh ? 'var(--danger-500)' : 'var(--success-500)'};"></div>
                 </div>
               </div>
 

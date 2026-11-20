@@ -195,7 +195,7 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
     </div>
     <div class="saler-row text-xs">
       <span class="saler-row text-muted font-medium" style="gap:6px;">
-        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10B981;"></span> Gross GMV
+        <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--success-500);"></span> Gross GMV
       </span>
     </div>
   `;
@@ -248,7 +248,7 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
 
   // Dots
   const grossDots = trends.map((t, idx) => `
-    <circle cx="${getX(idx)}" cy="${getY(Number(t.gross_sales))}" r="3" fill="#10B981" stroke="#fff" stroke-width="1.5">
+    <circle cx="${getX(idx)}" cy="${getY(Number(t.gross_sales))}" r="3" style="fill: var(--success-500); stroke: var(--surface-0);" stroke-width="1.5">
       <title>${t.label}: Gross ৳${t.gross_sales}</title>
     </circle>
   `).join('');
@@ -260,13 +260,13 @@ function renderRevenueTrendChart(container, trends = [], summary: Record<string,
     <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: auto; color: var(--text-primary);" preserveAspectRatio="none">
       <defs>
         <linearGradient id="grossGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#10B981" stop-opacity="0.25" />
-          <stop offset="100%" stop-color="#10B981" stop-opacity="0.0" />
+          <stop offset="0%" style="stop-color: var(--success-500);" stop-opacity="0.25" />
+          <stop offset="100%" style="stop-color: var(--success-500);" stop-opacity="0.0" />
         </linearGradient>
       </defs>
       ${gridLines}
       <path d="${grossArea}" fill="url(#grossGrad)" />
-      <polyline fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${grossPoints}" />
+      <polyline fill="none" style="stroke: var(--success-500);" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${grossPoints}" />
       ${grossDots}
       ${xLabels}
     </svg>

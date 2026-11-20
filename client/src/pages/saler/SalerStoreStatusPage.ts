@@ -139,7 +139,7 @@ export default function SalerStoreStatusPage(root: HTMLElement, { navigate }: Pa
       <div class="saler-row--between">
         <div class="saler-stack--xs">
           <div class="saler-row" style="gap: 8px;">
-            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${store.is_open ? '#10B981' : '#EF4444'};"></span>
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${store.is_open ? 'var(--success-500)' : 'var(--danger-500)'};"></span>
             <span class="badge ${store.is_open ? 'badge--success' : 'badge--danger'} text-xs font-bold font-mono">
               ${store.is_open ? t('saler_store_status.status_open_badge') : t('saler_store_status.status_closed_badge')}
             </span>

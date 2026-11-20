@@ -38,6 +38,10 @@ html:where([data-ui-style='macos']) .academy-cert__kicker {
 html:where([data-ui-style='macos']) .elevated-chip {
   background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
 }
+html:where([data-ui-style='macos']) .permission-gate-restricted {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .request-access-meta {
   border-left: var(--border-width) solid var(--border-subtle);
 }
@@ -511,6 +515,10 @@ html:where([data-ui-style='macos']) .channel-pill {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .channel-pill.whatsapp {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .chat-product-inquiry-banner {
   box-shadow: var(--elevation-1);
 }
@@ -541,9 +549,6 @@ html:where([data-ui-style='macos']) .checkout-stepper {
 html:where([data-ui-style='macos']) .checkout-section-card,
 html:where([data-ui-style='macos']) .checkout-step {
   box-shadow: var(--elevation-1);
-}
-html:where([data-ui-style='macos']) .checkout-step--active {
-  box-shadow: var(--elevation-3);
 }
 @media (forced-colors: none) {
   html:where([data-ui-style='macos']) .address-form .form-input:focus,
@@ -765,8 +770,8 @@ html:where([data-ui-style='macos']) .become-saler-faq__title {
 }
 
 /* ── components/customer-coins.css ── */
-html:where([data-ui-style='macos']) .coins-hero {
-  box-shadow: var(--elevation-3);
+html:where([data-ui-style='macos']) .coins-medallion {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .coins-hero__label {
   font-weight: 700;
@@ -774,6 +779,10 @@ html:where([data-ui-style='macos']) .coins-hero__label {
 }
 html:where([data-ui-style='macos']) .coins-hero__balance {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .coins-hero__cash-tag {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .coins-stat-pill__label {
   text-transform: none;
@@ -785,16 +794,25 @@ html:where([data-ui-style='macos']) .coins-hero__btn-redeem {
   border-radius: var(--radius-sm);
   font-weight: var(--weight-medium);
 }
+html:where([data-ui-style='macos']) .coins-hero__btn-redeem:hover {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .coins-streak-card__title {
   font-weight: 700;
 }
 html:where([data-ui-style='macos']) .coins-streak-badge {
   font-weight: 700;
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .coins-checkin-btn {
   border-radius: var(--radius-sm);
   font-weight: var(--weight-medium);
   box-shadow: var(--elevation-1);
+}
+html:where([data-ui-style='macos']) .coins-checkin-btn--claimed {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent) !important;
+  border-color: transparent !important;
 }
 html:where([data-ui-style='macos']) .coins-day-node__day {
   font-weight: 700;
@@ -803,8 +821,20 @@ html:where([data-ui-style='macos']) .coins-day-node__day {
 html:where([data-ui-style='macos']) .coins-day-node__reward {
   font-weight: 700;
 }
+html:where([data-ui-style='macos']) .coins-day-node--claimed {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .coins-day-node--today {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
 html:where([data-ui-style='macos']) .coins-day-node--today::after {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .coins-day-node--mega {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .coins-section-title {
   font-weight: 700;
@@ -814,6 +844,8 @@ html:where([data-ui-style='macos']) .coins-earn-card__title {
 }
 html:where([data-ui-style='macos']) .coins-earn-card__reward {
   font-weight: 700;
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .coins-spend-step__num {
   font-weight: 700;
@@ -834,9 +866,13 @@ html:where([data-ui-style='macos']) .coins-table th {
 }
 html:where([data-ui-style='macos']) .coins-badge-credit {
   font-weight: 700;
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .coins-badge-debit {
   font-weight: 700;
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .quest-cadence-badge {
   font-weight: 700;
@@ -847,6 +883,8 @@ html:where([data-ui-style='macos']) .quest-item-card__title {
 }
 html:where([data-ui-style='macos']) .quest-reward-pill {
   font-weight: 700;
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .quest-btn-claim {
   border-radius: var(--radius-sm);
@@ -856,6 +894,8 @@ html:where([data-ui-style='macos']) .quest-btn-claim {
 html:where([data-ui-style='macos']) .quest-btn-claimed {
   border-radius: var(--radius-sm);
   font-weight: var(--weight-medium);
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .quest-btn-pending {
   border-radius: var(--radius-sm);
@@ -1129,6 +1169,9 @@ html:where([data-ui-style='macos']) .pending-review-card {
 html:where([data-ui-style='macos']) .pending-review-card__title {
   font-weight: 700;
 }
+html:where([data-ui-style='macos']) .pending-review-card__incentive {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .pending-review-card__btn-write {
   border-radius: var(--radius-sm);
   font-weight: var(--weight-medium);
@@ -1171,6 +1214,10 @@ html:where([data-ui-style='macos']) .warranty-meta-item__label {
   font-weight: 700;
   text-transform: none;
 }
+html:where([data-ui-style='macos']) .warranty-countdown--urgent {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
 html:where([data-ui-style='macos']) .warranty-countdown__status {
   font-weight: 700;
 }
@@ -1182,6 +1229,10 @@ html:where([data-ui-style='macos']) .countdown-label {
 }
 html:where([data-ui-style='macos']) .countdown-sep {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .warranty-active-claim-banner {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1.5px solid transparent;
 }
 html:where([data-ui-style='macos']) .warranty-active-claim-banner__title {
   font-weight: 700;
@@ -1220,6 +1271,10 @@ html:where([data-ui-style='macos']) .cert-stamp {
 }
 html:where([data-ui-style='macos']) .claim-resolution-card__label {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .claim-step--done .claim-step__node {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
 }
 
 /* ── components/discover-feed.css ── */
@@ -1269,7 +1324,6 @@ html:where([data-ui-style='macos']) .editor-kpi-card {
   box-shadow: var(--elevation-1);
 }
 html:where([data-ui-style='macos']) .editor-kpi-card:hover {
-  box-shadow: var(--elevation-3);
   transform: translateY(-1px);
 }
 html:where([data-ui-style='macos']) .editor-kpi-card__label {
@@ -1281,7 +1335,6 @@ html:where([data-ui-style='macos']) .editor-kpi-card__value {
 }
 html:where([data-ui-style='macos']) .editor-launchpad-card:hover {
   transform: translateY(-1px);
-  box-shadow: var(--elevation-3);
 }
 html:where([data-ui-style='macos']) .editor-launchpad-card__title {
   font-weight: 700;
@@ -1297,19 +1350,9 @@ html:where([data-ui-style='macos']) .editor-banner-item:hover {
 }
 html:where([data-ui-style='macos']) .editor-story-card:hover {
   transform: translateY(-1px);
-  box-shadow: var(--elevation-3);
-}
-html:where([data-ui-style='macos']) .editor-course-card:hover {
-  box-shadow: var(--elevation-3);
 }
 html:where([data-ui-style='macos']) .editor-changelog-item:hover {
   box-shadow: var(--elevation-2);
-}
-html:where([data-ui-style='macos']) .editor-faq-item:hover {
-  box-shadow: var(--elevation-2);
-}
-html:where([data-ui-style='macos']) .editor-chip--active {
-  box-shadow: var(--elevation-1);
 }
 
 /* ── components/feedback.css ── */
@@ -1459,19 +1502,24 @@ html:where([data-ui-style='macos']) .live-status-pill {
   font-weight: 700;
   text-transform: none;
 }
-html:where([data-ui-style='macos']) .live-status-pill--live {
-  box-shadow: var(--elevation-2);
-}
 html:where([data-ui-style='macos']) .pinned-card {
   box-shadow: var(--elevation-3);
 }
 html:where([data-ui-style='macos']) .pinned-card__badge {
   font-weight: 700;
 }
+html:where([data-ui-style='macos']) .chat-msg--host {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
 
 /* ── components/logistics.css ── */
 html:where([data-ui-style='macos']) .live-map-fallback-banner {
   border-left: var(--border-width) solid var(--border-subtle);
+}
+
+/* ── components/module-control.css ── */
+html:where([data-ui-style='macos']) .module-control__banner {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
 }
 
 /* ── components/next-step-card.css ── */
@@ -1709,6 +1757,8 @@ html:where([data-ui-style='macos']) .referral-tier-bar__title {
 }
 html:where([data-ui-style='macos']) .referral-tier-badge {
   font-weight: 700;
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .referral-tab-btn {
   font-weight: var(--weight-medium);
@@ -1785,6 +1835,10 @@ html:where([data-ui-style='macos']) .customer-return-card__evidence-thumb:focus-
     outline: none;
     box-shadow: var(--mac-focus);
   }
+}
+html:where([data-ui-style='macos']) .chat-window-notice {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-bottom: 1px solid transparent;
 }
 
 /* ── components/saler-pro.css ── */
@@ -1974,7 +2028,6 @@ html:where([data-ui-style='macos']) .sourcing-card__placeholder-cat {
 }
 html:where([data-ui-style='macos']) .sourcing-card__margin-badge {
   font-weight: 700;
-  box-shadow: var(--elevation-2);
 }
 html:where([data-ui-style='macos']) .sourcing-card__tier-badge {
   text-transform: none;
@@ -2107,11 +2160,7 @@ html:where([data-ui-style='macos']) .thermal-shipping-label__cod-banner {
   font-weight: 700;
 }
 html:where([data-ui-style='macos']) .supplier-region-card:hover {
-  box-shadow: var(--elevation-3);
   transform: translateY(-1px);
-}
-html:where([data-ui-style='macos']) .supplier-region-card--top {
-  box-shadow: var(--elevation-2);
 }
 html:where([data-ui-style='macos']) .supplier-region-card__title {
   font-weight: 700;
@@ -2145,9 +2194,6 @@ html:where([data-ui-style='macos']) .supplier-wh-stock {
   font-weight: 700;
 }
 html:where([data-ui-style='macos']) .supplier-store-hero {
-  box-shadow: var(--elevation-1);
-}
-html:where([data-ui-style='macos']) .supplier-day-card--open {
   box-shadow: var(--elevation-1);
 }
 html:where([data-ui-style='macos']) .supplier-day-card__title {
@@ -2184,9 +2230,6 @@ html:where([data-ui-style='macos']) .system-health__status-badge {
   font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
-}
-html:where([data-ui-style='macos']) .system-health__pulse-dot {
-  box-shadow: var(--elevation-1);
 }
 html:where([data-ui-style='macos']) .system-health__title {
   font-weight: 700;

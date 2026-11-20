@@ -143,7 +143,7 @@ export class CartInsightsPage {
               <span>${isBn ? 'উদ্ধারকৃত কার্ট' : 'Recovered Carts'}</span>
               <span>📦</span>
             </div>
-            <div class="saler-kpi-card__value" style="color: var(--primary-600, #2563eb);">
+            <div class="saler-kpi-card__value" style="color: var(--text-brand);">
               ${summary?.total_recovered_carts || 0}
             </div>
             <div class="saler-kpi-card__subtext">${isBn ? 'সফলভাবে অর্ডারে রূপান্তর' : 'Converted to real orders'}</div>
@@ -270,7 +270,7 @@ export class CartInsightsPage {
                   ${active_queue.map(c => `
                     <tr>
                       <td style="font-weight: 700;">${c.customer_name || 'Guest Shopper'}</td>
-                      <td style="font-family: var(--font-mono); font-weight: 800; color: var(--primary-600, #2563eb);">৳${Number(c.items_value).toFixed(2)}</td>
+                      <td style="font-family: var(--font-mono); font-weight: 800; color: var(--text-brand);">৳${Number(c.items_value).toFixed(2)}</td>
                       <td class="text-muted">${c.hours_abandoned}h ago</td>
                       <td>
                         <span class="badge badge--${c.sequence_step === 3 ? 'danger' : c.sequence_step === 2 ? 'warning' : 'neutral'} text-xs font-bold uppercase">
