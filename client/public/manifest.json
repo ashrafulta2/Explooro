@@ -7,7 +7,7 @@
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f8f8f8",
-  "theme_color": "#ffbc00",
+  "theme_color": "#007aff",
   "lang": "en-BD",
   "dir": "ltr",
   "categories": ["shopping", "business", "social"],

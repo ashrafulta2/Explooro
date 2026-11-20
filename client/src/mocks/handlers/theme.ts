@@ -30,11 +30,14 @@ function loadStoredPalettes() {
   return [
     {
       id: 1,
-      name: 'Midnight Slate (Shipped Default)',
+      name: `${MASTER_PRESETS[DEFAULT_MASTER_PRESET].name_en} (Shipped Default)`,
       preset_key: DEFAULT_MASTER_PRESET,
       is_active: true,
       is_published: true,
-      tokens_json: { master: { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master } },
+      tokens_json: {
+        master: { ...MASTER_PRESETS[DEFAULT_MASTER_PRESET].master },
+        ...(MASTER_PRESETS[DEFAULT_MASTER_PRESET].uiStyle ? { ui_style: MASTER_PRESETS[DEFAULT_MASTER_PRESET].uiStyle } : {}),
+      },
       created_by: 1,
       published_by: 1,
       created_at: new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString(),

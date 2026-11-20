@@ -278,4 +278,6 @@ export const MASTER_PRESETS: Record<string, MasterPreset> = {
  * Changing the shipped colour therefore means: edit both, then run `node scripts/palette.mjs
  * --write`. Skip the regenerate and the product flashes the old colour on every cold load.
  */
-export const DEFAULT_MASTER_PRESET = 'pure_gold';
+// WHY macOS Native (owner, 2026-11-20): the blue matches the brand mark and the wordmark's accent
+// letter; the gold default sat oddly beside them. It brings the Mac component style with it.
+export const DEFAULT_MASTER_PRESET = 'macos_native';
