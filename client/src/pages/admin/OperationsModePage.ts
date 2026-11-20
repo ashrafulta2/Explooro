@@ -481,7 +481,7 @@ export default function OperationsModePage(root: HTMLElement, { navigate }: Page
             <td>${escapeHtml(money(p.courier_charge))}</td>
             <td>${escapeHtml(money(p.courier_billed))}</td>
             <td>${escapeHtml(money(p.gap))}</td>
-            <td>${canUpdate ? `<button type="button" class="btn btn--ghost btn--sm" data-record-bill="${escapeHtml(String(p.id))}">${escapeHtml(t('admin.operations.pickup_charges.record_bill'))}</button>` : ''}</td>
+            <td>${canUpdate ? `<button type="button" class="btn btn--secondary btn--sm" data-record-bill="${escapeHtml(String(p.id))}">${escapeHtml(t('admin.operations.pickup_charges.record_bill'))}</button>` : ''}</td>
           </tr>`).join('')}</tbody>
       </table>`;
     wrap.querySelectorAll<HTMLElement>('[data-record-bill]').forEach((btn) => {

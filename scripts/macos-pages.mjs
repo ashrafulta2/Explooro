@@ -17,6 +17,9 @@
  *   lift           a hover translateY(-2px or more) → -1px
  *   brand stripe   a 3–9px brand-coloured leading border → the hairline every other edge has
  *   shadow         a hand-typed rgba() drop shadow → the nearest Mac elevation token
+ *   status box     a --{status}-bg callout → its own pale fill at 70%, translucent, and
+ *                  its --{status}-border edge in the same rule → transparent (Mac status areas
+ *                  have no coloured outline)
  *   focus          an outline or ring on :focus → the Mac accent halo (only while forced
  *                  colours are off, where box-shadow still paints)
  *
@@ -170,6 +173,10 @@ function scope(selector) {
 
 /* ── The transforms ─────────────────────────────────────────────────────── */
 
+const STATUS_FILL = /^var\(--(warning|danger|success|info)-bg\)$/;
+const STATUS_EDGE = /var\(--(warning|danger|success|info)-border\)/i;
+const STATUS_EDGE_ALL = /var\(--(warning|danger|success|info)-border\)/gi;
+
 const PILL = /^(9{3,}px|var\(--radius-full\)|[1-9]\d{2,}px)$/;
 
 /** Largest blur radius across a shadow list, or null when it is not a plain drop shadow. */
@@ -249,6 +256,26 @@ function twinDeclarations(rule) {
     if (prop === 'box-shadow' && !allFocus) {
       const blur = dropShadowBlur(v);
       if (blur !== null && blur >= 0) add(normal, 'box-shadow', elevationFor(blur), important);
+    }
+  }
+
+  // A status callout (a warning, error, success or info box) is a pale fill with a saturated
+  // coloured border: a web alert. A Mac status area is a faint translucent tint of the status
+  // colour with no coloured edge. WHY the pale fill at 70% and not the status colour at ~10%: the
+  // text on these boxes is the status colour itself, and a tint of it cost 0.3–0.7 of contrast and
+  // pushed dozens of badges under 4.5:1. Thinning the pale fill moves the box toward the surface,
+  // which only raises contrast, in light and dark alike. Only a rule that sets the status fill is a callout; a rule that
+  // only colours a border (an invalid field, a selected card) is information and is left alone,
+  // and so is a leading stripe, which marks the status on its own.
+  const statusFill = rule.decls.find((d) => (d.prop === 'background' || d.prop === 'background-color')
+    && STATUS_FILL.test(d.value.trim().toLowerCase()));
+  if (statusFill) {
+    const status = statusFill.value.trim().toLowerCase().match(STATUS_FILL)[1];
+    add(normal, statusFill.prop, `color-mix(in srgb, var(--${status}-bg) 70%, transparent)`, statusFill.important);
+    for (const { prop, value, important } of rule.decls) {
+      if (!/^border(-color|-top|-right|-bottom|-block|-inline|-width)?$/.test(prop)) continue;
+      if (!STATUS_EDGE.test(value)) continue;
+      add(normal, prop, value.replace(STATUS_EDGE_ALL, 'transparent'), important);
     }
   }
 

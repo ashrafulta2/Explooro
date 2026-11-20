@@ -465,7 +465,7 @@ export default function LiveModerationPage(root: HTMLElement, ctx: PageContext =
           ${isHost ? `<span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: var(--info-bg, rgba(79,70,229,0.1)); color: var(--text-brand, #4f46e5);">${esc(t('live_mod.host_badge'))}</span>` : ''}
           ${isSystem ? `<span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: var(--surface-2, #f8fafc); color: var(--text-muted, #64748b); font-family: inherit; font-variant-numeric: tabular-nums;">${esc(m.message_type)}</span>` : ''}
           ${flagged ? `<span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: var(--danger-bg, rgba(225,29,72,0.1)); color: var(--danger, #e11d48);">⚠ ${esc(t('live_mod.flagged_badge'))}</span>` : ''}
-          ${removed ? `<span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: var(--surface-3, #f1f5f9); color: var(--text-secondary, #475569);">${esc(t('live_mod.removed_badge'))}</span>` : ''}
+          ${removed ? `<span style="font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; background: var(--surface-3); color: var(--text-primary);">${esc(t('live_mod.removed_badge'))}</span>` : ''}
           <span style="margin-left: auto; font-size: 11px; color: var(--text-muted, #64748b);">${esc(formatDate(m.created_at))}</span>
         </div>
 

@@ -653,7 +653,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
           </div>
 
           ${hasActiveFilters ? `
-            <button type="button" class="btn btn--ghost btn--sm payout-queue-page__clear-btn" title="${t('payout.filter.clear')}">
+            <button type="button" class="btn btn--secondary btn--sm payout-queue-page__clear-btn" title="${t('payout.filter.clear')}">
               ✕ ${t('payout.filter.clear')}
             </button>
           ` : ''}

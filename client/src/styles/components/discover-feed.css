@@ -421,7 +421,7 @@
 }
 .discover-slide__reason--explore {
   background: oklch(from var(--success-500) l c h / 0.12);
-  color: var(--success-700);
+  color: var(--success-800);
   border: 1px solid oklch(from var(--success-500) l c h / 0.25);
 }
 .discover-slide__reason--catalog {

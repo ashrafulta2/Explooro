@@ -35,6 +35,9 @@ html:where([data-ui-style='macos']) .academy-cert__kicker {
 }
 
 /* ── components/access.css ── */
+html:where([data-ui-style='macos']) .elevated-chip {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .request-access-meta {
   border-left: var(--border-width) solid var(--border-subtle);
 }
@@ -45,9 +48,33 @@ html:where([data-ui-style='macos']) .account-page__title {
 }
 
 /* ── components/actions.css ── */
+html:where([data-ui-style='macos']) .badge--verified {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .badge--status[data-status='open'] {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
 html:where([data-ui-style='macos']) .badge--tier {
   text-transform: none;
   letter-spacing: normal;
+}
+html:where([data-ui-style='macos']) .badge--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .badge--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .badge--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .badge--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
 }
 
 /* ── components/ad-store.css ── */
@@ -55,9 +82,20 @@ html:where([data-ui-style='macos']) .ad-format-card__badge {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .ad-format-card__badge--best_value {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .ad-wizard__step--done .ad-wizard__step-num {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
 html:where([data-ui-style='macos']) .ad-quote__title {
   text-transform: none;
   letter-spacing: normal;
+}
+html:where([data-ui-style='macos']) .ad-density__cell--ad {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
 }
 
 /* ── components/admin-access.css ── */
@@ -87,6 +125,14 @@ html:where([data-ui-style='macos']) .approval-diff__tag {
 html:where([data-ui-style='macos']) .access-grants__eyebrow {
   text-transform: none;
 }
+html:where([data-ui-style='macos']) .access-grants__chip {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
+}
+html:where([data-ui-style='macos']) .access-grants__chip--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
 
 /* ── components/admin-cockpit.css ── */
 @media (forced-colors: none) {
@@ -99,10 +145,24 @@ html:where([data-ui-style='macos']) .access-grants__eyebrow {
     box-shadow: var(--mac-focus);
   }
 }
+html:where([data-ui-style='macos']) .admin-cockpit .admin-banner {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
+}
+html:where([data-ui-style='macos']) .admin-cockpit .admin-pill--warn {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
 html:where([data-ui-style='macos']) .admin-cockpit .admin-kpi-group__title {
   font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
+}
+html:where([data-ui-style='macos']) .admin-cockpit .admin-kpi-card__badge--good {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .admin-cockpit .admin-kpi-card__badge--bad {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .admin-cockpit .admin-legend-btn {
   font-weight: var(--weight-medium);
@@ -170,11 +230,46 @@ html:where([data-ui-style='macos']) .admin-table th {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .badge--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .badge--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .badge--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .badge--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .btn--danger-outline:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .split-pill__lbl {
   text-transform: none;
 }
 html:where([data-ui-style='macos']) .split-breakdown-chip__title {
   text-transform: none;
+}
+html:where([data-ui-style='macos']) .pricing-conflicts[data-state='warning'] {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .pricing-conflicts[data-state='error'] {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .module-status-banner--dormant {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .module-status-banner--active {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .subscription-plan-card:hover {
   transform: translateY(-1px);
@@ -184,6 +279,12 @@ html:where([data-ui-style='macos']) .subscription-plan-card:hover {
     outline: none;
     box-shadow: var(--mac-focus);
   }
+}
+html:where([data-ui-style='macos']) .test-latency-pill--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .test-latency-pill--error {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
 }
 
 /* ── components/admin-staff.css ── */
@@ -205,6 +306,21 @@ html:where([data-ui-style='macos']) .admin-staff-vital__label {
 html:where([data-ui-style='macos']) .admin-staff__table th {
   text-transform: none;
   letter-spacing: normal;
+}
+html:where([data-ui-style='macos']) .admin-staff-avatar--super_admin {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .admin-staff-avatar--moderator {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .admin-staff-avatar--editor {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .admin-staff-actions .btn--success-outline:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .admin-staff-drawer__heading {
   text-transform: none;
@@ -259,8 +375,19 @@ html:where([data-ui-style='macos']) .advertise-label {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .advertise-note--warn {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
+html:where([data-ui-style='macos']) .advertise-note--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 
 /* ── components/ai.css ── */
+html:where([data-ui-style='macos']) .assistant-panel__degraded-banner {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .assistant-panel__usage-stat-label {
   text-transform: none;
   letter-spacing: normal;
@@ -298,6 +425,10 @@ html:where([data-ui-style='macos']) .b2b-milestones__heading {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .b2b-milestone--ready {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
 html:where([data-ui-style='macos']) .b2b-milestone__amount {
   font-weight: 700;
 }
@@ -305,10 +436,34 @@ html:where([data-ui-style='macos']) .b2b-pill {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .b2b-pill--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .b2b-pill--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .b2b-pill--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .b2b-pill--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
 
 /* ── components/cart-page.css ── */
 html:where([data-ui-style='macos']) .cart-stepper__btn {
   font-weight: var(--weight-medium);
+}
+html:where([data-ui-style='macos']) .cart-item__warning--price {
+  background-color: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
+html:where([data-ui-style='macos']) .cart-item__warning--stock {
+  background-color: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .cart-summary__deliver-label {
   text-transform: none;
@@ -329,6 +484,9 @@ html:where([data-ui-style='macos']) .catalog-stat-card__label {
 html:where([data-ui-style='macos']) .catalog-table th {
   text-transform: none;
   letter-spacing: normal;
+}
+html:where([data-ui-style='macos']) .catalog-icon-btn--danger:hover {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .catalog-card:hover {
   transform: translateY(-1px);
@@ -457,6 +615,10 @@ html:where([data-ui-style='macos']) .cod-recon-summary-item__label {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .cod-recon-notice {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
+}
 
 /* ── components/community.css ── */
 html:where([data-ui-style='macos']) .cm-segment__btn {
@@ -465,14 +627,52 @@ html:where([data-ui-style='macos']) .cm-segment__btn {
 html:where([data-ui-style='macos']) .cm-segment__btn--on {
   font-weight: var(--weight-medium);
 }
+html:where([data-ui-style='macos']) .cm-avatar--customer,
+html:where([data-ui-style='macos']) .cm-role--customer {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-avatar--supplier,
+html:where([data-ui-style='macos']) .cm-role--supplier {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-card--review .cm-kind {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-card--update .cm-kind {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-card--idea .cm-kind {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-card--announcement .cm-kind {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-tip {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-action--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-report {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .cm-comment__remove:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .cm-link-btn {
   font-weight: var(--weight-medium);
+}
+html:where([data-ui-style='macos']) .cm-callout {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
 }
 @media (forced-colors: none) {
   html:where([data-ui-style='macos']) .cm-media__link:focus-visible {
     outline: none;
     box-shadow: var(--mac-focus);
   }
+}
+html:where([data-ui-style='macos']) .cm-pill--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
 }
 
 /* ── components/customer-addresses.css ── */
@@ -720,8 +920,14 @@ html:where([data-ui-style='macos']) .coupon-card__discount-sub {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .coupon-badge--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .coupon-badge--urgent {
   font-weight: 700;
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .coupon-card__code-pill {
   font-weight: 700;
@@ -1181,6 +1387,22 @@ html:where([data-ui-style='macos']) .home-band__cta {
     box-shadow: var(--mac-focus);
   }
 }
+html:where([data-ui-style='macos']) .incentive-status--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .incentive-status--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .incentive-status--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .incentive-status--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
 
 /* ── components/input-affordance.css ── */
 @media (forced-colors: none) {
@@ -1206,9 +1428,26 @@ html:where([data-ui-style='macos']) .home-band__cta {
   }
 }
 
+/* ── components/language-settings.css ── */
+html:where([data-ui-style='macos']) .locale-card__current {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+
+/* ── components/legal.css ── */
+html:where([data-ui-style='macos']) .legal-page__old {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
+}
+html:where([data-ui-style='macos']) .legal-admin__warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+
 /* ── components/live.css ── */
 html:where([data-ui-style='macos']) .live-indicator-chip {
   text-transform: none;
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .stream-discovery__tabs .tab-btn {
   font-weight: var(--weight-medium);
@@ -1246,6 +1485,10 @@ html:where([data-ui-style='macos']) .next-step-card__eyebrow {
 html:where([data-ui-style='macos']) .next-step-card__title {
   font-weight: 700;
 }
+html:where([data-ui-style='macos']) .next-step-card__waiting {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .action-result__title {
   font-weight: 700;
 }
@@ -1255,6 +1498,10 @@ html:where([data-ui-style='macos']) .action-result__title {
     box-shadow: var(--mac-focus);
   }
 }
+html:where([data-ui-style='macos']) .action-result__waiting {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .setup-checklist {
   border-left: var(--border-width) solid var(--border-subtle);
 }
@@ -1263,6 +1510,10 @@ html:where([data-ui-style='macos']) .setup-checklist__title {
 }
 html:where([data-ui-style='macos']) .setup-checklist__mark {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .setup-checklist__waiting {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 
 /* ── components/notification-prefs.css ── */
@@ -1274,6 +1525,14 @@ html:where([data-ui-style='macos']) .setup-checklist__mark {
 }
 
 /* ── components/page-availability.css ── */
+html:where([data-ui-style='macos']) .page-avail__banner {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
+html:where([data-ui-style='macos']) .page-avail__note {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 @media (forced-colors: none) {
   html:where([data-ui-style='macos']) .page-avail__search:focus-visible,
   html:where([data-ui-style='macos']) .page-avail__filter:focus-visible {
@@ -1290,6 +1549,18 @@ html:where([data-ui-style='macos']) .page-avail__group-title {
     outline: none;
     box-shadow: var(--mac-focus);
   }
+}
+html:where([data-ui-style='macos']) .page-avail-state--active.page-avail-state--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .page-avail-state--active.page-avail-state--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .page-avail-state--active.page-avail-state--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .page-avail-modal__roles legend {
   text-transform: none;
@@ -1394,6 +1665,11 @@ html:where([data-ui-style='macos']) .profile-hero__name {
 html:where([data-ui-style='macos']) .profile-hero__facts dt {
   text-transform: none;
   letter-spacing: normal;
+}
+
+/* ── components/reco-settings.css ── */
+html:where([data-ui-style='macos']) .reco-notice--warn {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
 }
 
 /* ── components/referrals.css ── */
@@ -1532,6 +1808,13 @@ html:where([data-ui-style='macos']) .saler-table th {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .sp-visibility[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .sp-remove:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
 @media (max-width: 767.98px) {
   html:where([data-ui-style='macos']) .sp-table td[data-label]::before {
     text-transform: none;
@@ -1634,6 +1917,10 @@ html:where([data-ui-style='macos']) .topbar__avatar-panel-role {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) .elevated-chip {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
+}
 @media (forced-colors: none) {
   html:where([data-ui-style='macos']) .command-palette__field:focus-within {
     outline: none;
@@ -1655,6 +1942,10 @@ html:where([data-ui-style='macos']) .command-palette__key {
 }
 
 /* ── components/shoppable-reels.css ── */
+html:where([data-ui-style='macos']) .reels__saver--on {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
 @media (forced-colors: none) {
   html:where([data-ui-style='macos']) .reels__nav-btn:focus-visible,
   html:where([data-ui-style='macos']) .reels__action:focus-visible,
@@ -1701,8 +1992,16 @@ html:where([data-ui-style='macos']) .sourcing-card__add-btn {
   font-weight: var(--weight-medium);
   box-shadow: var(--elevation-1);
 }
+html:where([data-ui-style='macos']) .profit-calc__error {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 
 /* ── components/sponsored-slot.css ── */
+html:where([data-ui-style='macos']) .sponsored-tag {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .sponsored-slot:hover .sponsored-product-card {
   transform: translateY(-1px);
 }
@@ -1740,6 +2039,38 @@ html:where([data-ui-style='macos']) .social-kit-btn {
 /* ── components/supplier-scorecard.css ── */
 html:where([data-ui-style='macos']) .scorecard-chip__grade {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .scorecard-chip--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .scorecard-chip--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .scorecard-chip--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .scorecard-chip--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .scorecard__grade--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .scorecard__grade--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .scorecard__grade--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .scorecard__grade--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .scorecard__grade-letter {
   font-weight: 700;
@@ -1893,6 +2224,10 @@ html:where([data-ui-style='macos']) .system-table th {
 html:where([data-ui-style='macos']) .system-table__badge {
   text-transform: none;
 }
+html:where([data-ui-style='macos']) .system-table__badge--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .system-btn-action {
   font-weight: var(--weight-medium);
 }
@@ -1945,15 +2280,22 @@ html:where([data-ui-style='macos']) .team-card__group-price {
 }
 html:where([data-ui-style='macos']) .team-card__save-badge {
   font-weight: 700;
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .team-card__progress-timer {
   font-weight: 700;
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .team-card__progress-status--completed {
   font-weight: 700;
 }
 html:where([data-ui-style='macos']) .team-slot-dot--filled {
   box-shadow: var(--elevation-1);
+}
+html:where([data-ui-style='macos']) .team-slot-dot--host {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .team-card__btn-copy {
   border-radius: var(--radius-sm);
@@ -1973,6 +2315,14 @@ html:where([data-ui-style='macos']) .team-card__btn-view:hover {
 }
 html:where([data-ui-style='macos']) .team-status-banner {
   box-shadow: var(--elevation-2);
+}
+html:where([data-ui-style='macos']) .team-status-banner--completed {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .team-status-banner--expired {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .team-status-banner__icon {
   box-shadow: var(--elevation-2);
@@ -1994,6 +2344,10 @@ html:where([data-ui-style='macos']) .team-detail-product-card__title {
 }
 html:where([data-ui-style='macos']) .team-detail-product-card__group-price {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .team-detail-product-card__save-tag {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border: 1px solid transparent;
 }
 html:where([data-ui-style='macos']) .team-detail-slots-card {
   box-shadow: var(--elevation-2);
@@ -2086,6 +2440,18 @@ html:where([data-ui-style='macos']) .wishlist-card:hover {
   box-shadow: var(--elevation-3);
   transform: translateY(-1px);
 }
+html:where([data-ui-style='macos']) .wishlist-badge--in {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
+html:where([data-ui-style='macos']) .wishlist-badge--out {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
+html:where([data-ui-style='macos']) .wishlist-badge--drop {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: 1px solid transparent;
+}
 html:where([data-ui-style='macos']) .wishlist-card__price {
   font-weight: 700;
 }
@@ -2096,6 +2462,10 @@ html:where([data-ui-style='macos']) .wishlist-card__btn-cart {
 }
 html:where([data-ui-style='macos']) .wishlist-card__btn-cart:hover:not(:disabled) {
   box-shadow: var(--elevation-2);
+}
+html:where([data-ui-style='macos']) .wishlist-card__btn-remove:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .wishlist-empty-btn {
   border-radius: var(--radius-sm);

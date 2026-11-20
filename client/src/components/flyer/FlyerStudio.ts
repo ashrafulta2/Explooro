@@ -603,13 +603,13 @@ export function FlyerStudio(root: HTMLElement, source: StudioSource, query: Reco
         <div class="flyer-studio__progress" data-ref="bulk-progress" hidden>
           <progress max="1" value="0" data-ref="bulk-bar" aria-label="${t('flyer.bulk_title')}"></progress>
           <span role="status" aria-live="polite" data-ref="bulk-text"></span>
-          <button type="button" class="btn btn--sm btn--ghost" data-action="bulk-cancel">${t('flyer.bulk_cancel')}</button>
+          <button type="button" class="btn btn--sm btn--secondary" data-action="bulk-cancel">${t('flyer.bulk_cancel')}</button>
         </div>
       </div>
 
       <div class="flyer-studio__secondary">
-        <button type="button" class="btn btn--sm btn--ghost" data-action="svg">${t('flyer.download_svg')}</button>
-        <button type="button" class="btn btn--sm btn--ghost" data-action="print">${t('flyer.print')}</button>
+        <button type="button" class="btn btn--sm btn--secondary" data-action="svg">${t('flyer.download_svg')}</button>
+        <button type="button" class="btn btn--sm btn--secondary" data-action="print">${t('flyer.print')}</button>
       </div>
     `;
 

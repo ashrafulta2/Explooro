@@ -277,7 +277,7 @@ export default function LegalDocumentsPage(root: HTMLElement, { navigate }: Page
     actions.className = 'legal-admin__doc-actions';
     const view = document.createElement('a');
     view.href = doc.path;
-    view.className = 'btn btn--ghost btn--sm';
+    view.className = 'btn btn--secondary btn--sm';
     view.textContent = t('admin.legal.view');
     view.target = '_blank';
     view.rel = 'noopener';

@@ -1837,7 +1837,7 @@ function renderLiveModerationSpecimen() {
     </li>
     <li style="list-style:none;padding:10px 12px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--surface-2);opacity:0.72;">
       <strong style="font-size:12px;">Rakib_Hasan_01</strong>
-      <span style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--text-muted);">Removed</span>
+      <span style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;background:var(--surface-3);color:var(--text-primary);">Removed</span>
       <p style="margin:4px 0 0;font-size:13px;text-decoration:line-through;color:var(--text-muted);">Eta to first copy replica.</p>
       <span style="font-size:11px;color:var(--text-muted);">Removed by Dev Moderator &mdash; Unsubstantiated counterfeit claim</span>
     </li>

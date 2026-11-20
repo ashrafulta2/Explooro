@@ -526,7 +526,7 @@ export default function CategoriesPage(root: HTMLElement, { navigate }: PageCont
           </select>
 
           ${hasActiveFilters ? `
-            <button type="button" class="btn btn--ghost btn--sm clear-filters-btn">
+            <button type="button" class="btn btn--secondary btn--sm clear-filters-btn">
               ✕ ${t('admin_categories.clear')}
             </button>
           ` : ''}

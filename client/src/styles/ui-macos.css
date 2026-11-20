@@ -115,6 +115,20 @@
 :root[data-ui-style='macos'] .btn--ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text-primary); }
 :root[data-ui-style='macos'] .btn--ghost:active:not(:disabled) { background: var(--surface-3); }
 
+/* A ghost button that sits beside a filled or bezel button (a modal's Cancel next to Save, Clear
+   next to a filter, Deselect next to Disburse) is a push button on a Mac, not a bare label. WHY a
+   sibling rule instead of changing ~40 call sites: the defect is the pairing, and this catches the
+   next pairing too. A ghost on its own (a toolbar icon, a breadcrumb back link) stays borderless. */
+:root[data-ui-style='macos'] :has(> .btn:not(.btn--ghost):not(.btn--link)) > .btn--ghost {
+  background: var(--surface-0);
+  border-color: transparent;
+  color: var(--text-primary);
+  box-shadow: var(--mac-bezel);
+}
+:root[data-ui-style='macos'] :has(> .btn:not(.btn--ghost):not(.btn--link)) > .btn--ghost:hover:not(:disabled) { background: var(--surface-1); color: var(--text-primary); }
+:root[data-ui-style='macos'] :has(> .btn:not(.btn--ghost):not(.btn--link)) > .btn--ghost:active:not(:disabled) { background: var(--surface-3); }
+:root[data-ui-style='macos'] :has(> .btn:not(.btn--ghost):not(.btn--link)) > .btn--ghost.text-danger { color: var(--danger); }
+
 /* Setup checklist (components/guide/SetupChecklist.ts). WHY: its fold toggle is a text-only ghost
    button, which at rest is black text with no bezel and reads as a label. A Mac card's "Show All" /
    "Hide" is an accent-coloured borderless button, so it takes the accent here. The waiting note is
