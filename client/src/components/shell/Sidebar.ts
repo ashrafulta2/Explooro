@@ -352,10 +352,15 @@ export function Sidebar({
     // Expanded view: Two-button switch
     const expandedGroup = document.createElement('div');
     expandedGroup.className = 'sidebar__mode-expanded';
+    // WHY role + aria-pressed: the selected mode was shown only by colour, so a screen reader heard
+    // two plain buttons and could not tell which mode is on.
+    expandedGroup.setAttribute('role', 'group');
+    expandedGroup.setAttribute('aria-label', t('shell.mode.toggle_label', 'Mode'));
     for (const value of ['simple', 'advanced']) {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = `sidebar__mode-btn${mode === value ? ' sidebar__mode-btn--active' : ''}`;
+      btn.setAttribute('aria-pressed', String(mode === value));
       btn.textContent = t(`shell.mode.${value}`);
       btn.addEventListener('click', () => setUiMode(role, value));
       expandedGroup.append(btn);

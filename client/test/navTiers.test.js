@@ -94,6 +94,12 @@ describe('nav tiers — the shell', () => {
     assert.match(read('components/shell/Sidebar.ts'), /uiMode\[role\] \?\? defaultUiMode\(role, journeyState\)/);
   });
 
+  it('the Simple/Advanced switch tells a screen reader which mode is on, not only a colour', () => {
+    const sidebar = read('components/shell/Sidebar.ts');
+    assert.match(sidebar, /btn\.setAttribute\('aria-pressed', String\(mode === value\)\)/);
+    assert.match(sidebar, /expandedGroup\.setAttribute\('role', 'group'\)/);
+  });
+
   it('the command palette still searches the whole tree, not the core set', () => {
     const palette = read('components/shell/CommandPalette.ts');
     assert.match(palette, /navItems\.filter\(/);
