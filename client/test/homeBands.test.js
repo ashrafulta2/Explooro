@@ -147,10 +147,22 @@ describe('home bands', () => {
     assert.match(css, /\.home-band__bars \{[^}]*padding: var\(--space-\d\) var\(--space-\d\)/);
   });
 
-  it('side-panel rows never shrink below their text, and only figure rows wrap', () => {
+  it('side-panel rows never shrink below their text, and only figure rows stack', () => {
     assert.match(css, /\.home-band__row \{ flex: 1 0 auto;/);
     assert.doesNotMatch(css, /\.home-band__row \{ flex-wrap: wrap/, 'wrapping every row pushed the "›" out of shortcut rows');
-    assert.match(css, /\.home-band__row--stat \{ flex-wrap: wrap;/);
+    assert.doesNotMatch(css, /\.home-band__row \{[^}]*flex-direction: column/, 'stacking every row pushed the "›" under the label');
+    // A figure row puts its label over the figure, so a long label never squeezes a money figure.
+    assert.match(css, /\.home-band__row--stat \{ flex-direction: column;/);
+  });
+
+  it('figure and shortcut type scales with the tile it sits in, never a fixed size in a stretched box', () => {
+    // A 3-up metric row in the centre band is ~330px square; a fixed 12px label sat lost in it.
+    assert.match(css, /\.home-band__metric \{[^}]*container-type: inline-size/);
+    assert.match(css, /\.home-band__metric-value \{ font-size: clamp\([^;]*cqi/);
+    assert.match(css, /\.home-band__metric-label \{ font-size: clamp\([^;]*cqi/);
+    assert.match(css, /\.home-band__tiles \{[^}]*container-type: inline-size/);
+    // The global `p` measure (65ch) once stopped the empty-ranking card two thirds across the slide.
+    assert.match(css, /\.home-band__board-empty \{[^}]*max-width: none/);
   });
 
   it('share percentages always add up to exactly 100', () => {
