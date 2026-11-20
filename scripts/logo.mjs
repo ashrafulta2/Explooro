@@ -37,7 +37,7 @@ import { dirname, join } from 'node:path';
 
 import { generatePalette } from '../client/src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../client/src/config/master-themes.ts';
-import { buildLogoMarkSvg, buildLogoMaskableSvg, logoColorsFromPalette } from '../client/src/services/logoMark.ts';
+import { buildLogoMarkSvg, buildLogoMaskableSvg, logoColorsFromPalette, logoDarkRingsFromPalette } from '../client/src/services/logoMark.ts';
 import { renderLogoPng, encodePng } from './logoPng.mjs';
 import { renderOgBannerRgba, OG_WIDTH, OG_HEIGHT } from './ogBanner.mjs';
 import { syncPwaColors } from './pwaColors.mjs';
@@ -78,17 +78,17 @@ writeFileSync(join(ICONS_DIR, 'apple-touch-icon.png'), renderLogoPng({ size: 180
 
 console.log('wrote icons/icon-192.png, icons/icon-512.png, icons/icon-maskable-512.png, icons/apple-touch-icon.png');
 
-// The wordmark's ink is the lightest neutral and its accent letter is the brand step the seed pins
-// (the colour --brand paints the top bar's accent "O" with), so both follow a re-seed like the icons.
+// The banner is a dark canvas, so its rings and the wordmark's "oo" take the pair the top bar uses
+// in dark mode; the rest of the wordmark is the lightest neutral. All follow a re-seed like the icons.
 const defaultPalette = generatePalette(MASTER_PRESETS[DEFAULT_MASTER_PRESET].master);
+const darkRings = logoDarkRingsFromPalette(defaultPalette);
 writeFileSync(
   join(PUBLIC_DIR, 'og-banner.png'),
   encodePng(OG_WIDTH, OG_HEIGHT, renderOgBannerRgba({
     bg: defaultPalette.neutral[900],
-    ring1: defaultColors.ring1,
-    ring2: defaultColors.ring2,
+    ring1: darkRings.ring1,
+    ring2: darkRings.ring2,
     text: defaultPalette.neutral[0],
-    accent: defaultPalette.brand[defaultPalette.meta.anchorStep],
   })),
 );
 

@@ -21,7 +21,7 @@ import { dirname, join } from 'node:path';
 import { generatePalette } from '../src/services/colorRamp.ts';
 import { MASTER_PRESETS, DEFAULT_MASTER_PRESET } from '../src/config/master-themes.ts';
 import { parseHexColor } from '../../scripts/logoPng.mjs';
-import { logoColorsFromPalette } from '../src/services/logoMark.ts';
+import { logoDarkRingsFromPalette } from '../src/services/logoMark.ts';
 import { layoutWordmark, OG_LAYOUT, OG_WIDTH, OG_HEIGHT } from '../../scripts/ogBanner.mjs';
 
 const CLIENT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -122,14 +122,17 @@ describe('link-preview image (og:image)', () => {
     const palette = generatePalette(MASTER_PRESETS[DEFAULT_MASTER_PRESET].master);
     const px = readPng(join(PUBLIC, server.image)).pixel();
     const rgba = (hex) => [...parseHexColor(hex), 255];
-    const [first, , , , accent] = layoutWordmark();
-    const midStroke = (g) => [g.x + Math.floor(OG_LAYOUT.STROKE / 2), OG_LAYOUT.WORD_TOP + Math.floor(OG_LAYOUT.CAP / 2)];
+    const glyphs = layoutWordmark();
+    const at = (g) => [Math.floor(g.x + g.probe[0]), Math.floor(OG_LAYOUT.WORD_TOP + g.probe[1])];
+    // The banner is a dark canvas, so it uses the pair the top bar uses in dark mode.
+    const { ring1, ring2 } = logoDarkRingsFromPalette(palette);
 
-    assert.deepEqual(px(0, 0), rgba(palette.neutral[900]), 'canvas is the app icon\'s dark ink');
-    assert.deepEqual(px(...midStroke(first)), rgba(palette.neutral[0]), 'wordmark ink');
-    assert.deepEqual(px(...midStroke(accent)), rgba(palette.brand[palette.meta.anchorStep]), 'fifth letter in the brand colour, as the top bar draws it');
+    assert.deepEqual(px(0, 0), rgba(palette.neutral[900]), 'canvas is the theme\'s dark ink');
+    assert.deepEqual(px(...at(glyphs[0])), rgba(palette.neutral[0]), 'wordmark ink');
+    assert.deepEqual(px(...at(glyphs[4])), rgba(ring1), 'the first o of "oo" in the first ring colour, as the top bar draws it');
+    assert.deepEqual(px(...at(glyphs[5])), rgba(ring2), 'the second o in the second ring colour');
+    assert.equal([...glyphs].length, 8, 'eight letters: explooro');
     // The rings are 0..100 across MARK_SIZE; (10, 50) is the left ring's outer edge, (90, 50) the right one's.
-    const { ring1, ring2 } = logoColorsFromPalette(palette);
     const markAt = (x, y) => [
       OG_WIDTH / 2 - OG_LAYOUT.MARK_SIZE / 2 + Math.round((x / 100) * OG_LAYOUT.MARK_SIZE),
       OG_LAYOUT.MARK_TOP + Math.round((y / 100) * OG_LAYOUT.MARK_SIZE),
