@@ -240,17 +240,17 @@ export function getItemIcon(item: { key: string; icon?: unknown; group?: string 
  * A four-point sparkle punched with a circle, on a badge — painted with --logo-* custom properties
  * that services/logoTheme.ts sets from the live palette on every theme change (any preset AND any
  * custom Theme Studio seed), so the mark repaints with the theme. Before a theme loads it falls
- * back to the shipped gold. Geometry lives once in services/logoMark.ts so this and the static
+ * back to a white sparkle on --brand. Geometry lives once in services/logoMark.ts so this and the static
  * files scripts/logo.mjs bakes never drift apart.
  */
 export function getExplooroLogoSvg({ size = 28, className = 'explooro-logo-mark' }: { size?: number; className?: string } = {}): string {
   return buildLogoMarkSvg({
     size,
     className,
-    bg: 'var(--logo-bg, var(--neutral-900))',
-    hole: 'var(--logo-hole, var(--logo-bg, var(--neutral-900)))',
+    bg: 'var(--logo-bg, var(--brand))',
+    hole: 'var(--logo-hole, var(--logo-bg, var(--brand)))',
     // --logo-star is Theme Studio's hand-picked single sparkle colour; unset, the gradient runs.
-    stops: LOGO_GOLD_STOPS.map((s, i) => ({ offset: s.offset, color: `var(--logo-star, var(--logo-star-${i + 1}, ${s.color}))` })),
+    stops: LOGO_GOLD_STOPS.map((s, i) => ({ offset: s.offset, color: `var(--logo-star, var(--logo-star-${i + 1}, #ffffff))` })),
   });
 }
 

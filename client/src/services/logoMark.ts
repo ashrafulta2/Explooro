@@ -18,6 +18,12 @@ export const LOGO_SPARKLE_PATH =
 
 export const LOGO_BADGE_RADIUS = 48;
 export const LOGO_HOLE_RADIUS = 9;
+/**
+ * How far the sparkle is shrunk inside its badge. WHY (owner, 2026-11-20): with a white sparkle on
+ * a brand badge, points that reach the rim cut the disc into four slices; at 80% the badge reads as
+ * one round shape with the sparkle inside it.
+ */
+export const LOGO_SPARKLE_SCALE = 0.8;
 /** How much the maskable variant shrinks the mark so an OS circle/squircle crop never cuts it. */
 export const LOGO_MASKABLE_SCALE = 0.8;
 
@@ -36,42 +42,38 @@ export const LOGO_GOLD_STOPS: ReadonlyArray<LogoStop> = [
   { offset: 1, color: '#d98200' },
 ];
 
-/** The badge's own colours: a dark disc and hole, and the sparkle's three gradient stops. */
+/** The badge's own colours: the disc and hole, and the sparkle's three gradient stops. */
 export interface LogoColors {
   bg: string;
   hole: string;
   stops: LogoStop[];
 }
 
-/** The sparkle must stand out from the dark badge at least as much as any graphic (WCAG 1.4.11). */
+/** The sparkle must stand out from the badge at least as much as any graphic (WCAG 1.4.11). */
 export const LOGO_STAR_MIN_CONTRAST = 3;
 
 /**
- * The mark's colours for a palette: the sparkle runs through the theme's own brand ramp, centred
- * on the seed's step, on the palette's darkest working neutral.
+ * The mark's colours for a palette: a badge in the theme's own brand colour with a near-white
+ * sparkle (the palette's lightest neutral) punched through it.
  *
- * WHY derive and not keep the gold (owner, 2026-11-20): the mark was locked to gold on 2026-08-26
- * so it stayed legible on every preset, but then it was the one thing on screen that did not
- * follow a re-theme. Legibility is kept by rule instead of by a fixed colour: the middle stop
- * walks toward the light end of the ramp until it has 3:1 on the badge (a dark seed such as
- * midnight slate would otherwise vanish into it), and the dark stop never drops below that line.
+ * WHY a brand badge and not a dark one (owner, 2026-11-20): the dark neutral disc under a blue
+ * sparkle read as two unrelated colours. The badge now starts at the seed's own step and walks
+ * toward the dark end of the ramp until the white sparkle has 3:1 on it, so a light seed (gold,
+ * pink) gets a deeper shade of itself rather than an illegible pale disc.
  */
 export function logoColorsFromPalette(palette: Pick<Palette, 'brand' | 'neutral' | 'meta'>): LogoColors {
-  const bg = palette.neutral[900];
-  const passes = (i: number) => contrastRatio(palette.brand[BRAND_STEPS[i]], bg) >= LOGO_STAR_MIN_CONTRAST;
-  let mid = Math.max(0, BRAND_STEPS.indexOf(palette.meta.anchorStep));
-  while (mid > 0 && !passes(mid)) mid--;
-  let dark = Math.min(mid + 2, BRAND_STEPS.length - 1);
-  while (dark > mid && !passes(dark)) dark--;
-  const light = Math.max(mid - 2, 0);
+  const star = palette.neutral[0];
   const step = (i: number) => palette.brand[BRAND_STEPS[i]];
+  let i = Math.max(0, BRAND_STEPS.indexOf(palette.meta.anchorStep));
+  while (i < BRAND_STEPS.length - 1 && contrastRatio(star, step(i)) < LOGO_STAR_MIN_CONTRAST) i++;
+  const bg = step(i);
   return {
     bg,
     hole: bg,
     stops: [
-      { offset: 0, color: step(light) },
-      { offset: 0.45, color: step(mid) },
-      { offset: 1, color: step(dark) },
+      { offset: 0, color: star },
+      { offset: 0.45, color: star },
+      { offset: 1, color: star },
     ],
   };
 }
@@ -93,6 +95,8 @@ export interface LogoPaints {
   stops?: ReadonlyArray<LogoStop>;
 }
 
+const SPARKLE_TRANSFORM = ` transform="translate(50 50) scale(${LOGO_SPARKLE_SCALE}) translate(-50 -50)"`;
+
 /** The circular badge: background disc + sparkle + centre hole. Used at any size. */
 export function buildLogoMarkSvg({
   size = 28,
@@ -109,7 +113,7 @@ export function buildLogoMarkSvg({
       </linearGradient>
     </defs>
     <circle cx="50" cy="50" r="${LOGO_BADGE_RADIUS}" fill="${bg}" />
-    <path d="${LOGO_SPARKLE_PATH}" fill="url(#${gradId})" />
+    <path d="${LOGO_SPARKLE_PATH}" fill="url(#${gradId})"${SPARKLE_TRANSFORM} />
     <circle cx="50" cy="50" r="${LOGO_HOLE_RADIUS}" fill="${hole}" />
   </svg>`;
 }
@@ -129,7 +133,7 @@ export function buildLogoMaskableSvg({ size = 512, bg, hole, stops = LOGO_GOLD_S
     </defs>
     <rect width="100" height="100" fill="${bg}" />
     <g transform="translate(50 50) scale(${LOGO_MASKABLE_SCALE}) translate(-50 -50)">
-      <path d="${LOGO_SPARKLE_PATH}" fill="url(#${gradId})" />
+      <path d="${LOGO_SPARKLE_PATH}" fill="url(#${gradId})"${SPARKLE_TRANSFORM} />
       <circle cx="50" cy="50" r="${LOGO_HOLE_RADIUS}" fill="${hole}" />
     </g>
   </svg>`;

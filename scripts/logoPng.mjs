@@ -22,6 +22,7 @@ import {
   LOGO_BADGE_RADIUS,
   LOGO_HOLE_RADIUS,
   LOGO_MASKABLE_SCALE,
+  LOGO_SPARKLE_SCALE,
   LOGO_GOLD_STOPS,
 } from '../client/src/services/logoMark.ts';
 
@@ -136,9 +137,12 @@ export function renderLogoRgba({ size, bg, hole, stops = LOGO_GOLD_STOPS, maskab
           // The mark's own coordinates, undoing the maskable shrink around the centre.
           const qx = 50 + (px - 50) / scale;
           const qy = 50 + (py - 50) / scale;
-          if (qx >= minX && qx <= maxX && qy >= minY && qy <= maxY && insidePolygon(star, qx, qy)) {
+          // ...and the sparkle's own shrink inside its badge.
+          const sx2 = 50 + (qx - 50) / LOGO_SPARKLE_SCALE;
+          const sy2 = 50 + (qy - 50) / LOGO_SPARKLE_SCALE;
+          if (sx2 >= minX && sx2 <= maxX && sy2 >= minY && sy2 <= maxY && insidePolygon(star, sx2, sy2)) {
             // x1=0% y1=0% → x2=100% y2=100% of the sparkle's bounding box
-            color = goldAt(((qx - minX) / (maxX - minX) + (qy - minY) / (maxY - minY)) / 2, stops);
+            color = goldAt(((sx2 - minX) / (maxX - minX) + (sy2 - minY) / (maxY - minY)) / 2, stops);
           }
           if ((qx - 50) ** 2 + (qy - 50) ** 2 <= LOGO_HOLE_RADIUS ** 2) color = holeRgb;
           if (color) {

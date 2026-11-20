@@ -84,7 +84,9 @@ const defaultPalette = generatePalette(MASTER_PRESETS[DEFAULT_MASTER_PRESET].mas
 writeFileSync(
   join(PUBLIC_DIR, 'og-banner.png'),
   encodePng(OG_WIDTH, OG_HEIGHT, renderOgBannerRgba({
-    bg: defaultColors.bg,
+    // WHY the dark neutral and not the icon's badge: the banner is a whole canvas, and the brand
+    // badge colour as a 1200px field is far louder than the dark card it has always been.
+    bg: defaultPalette.neutral[900],
     text: defaultPalette.neutral[0],
     accent: defaultPalette.brand[defaultPalette.meta.anchorStep],
   })),

@@ -1,12 +1,12 @@
 <svg viewBox="0 0 100 100" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
       <linearGradient id="explooro-sparkle-gold-32" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#ffe6b8" />
-        <stop offset="45%" stop-color="#ffbc00" />
-        <stop offset="100%" stop-color="#d99f00" />
+        <stop offset="0%" stop-color="#fcfcfc" />
+        <stop offset="45%" stop-color="#fcfcfc" />
+        <stop offset="100%" stop-color="#fcfcfc" />
       </linearGradient>
     </defs>
-    <circle cx="50" cy="50" r="48" fill="#1f1f1f" />
-    <path d="M50,4 C58,34 66,42 96,50 C66,58 58,66 50,96 C42,66 34,58 4,50 C34,42 42,34 50,4 Z" fill="url(#explooro-sparkle-gold-32)" />
-    <circle cx="50" cy="50" r="9" fill="#1f1f1f" />
+    <circle cx="50" cy="50" r="48" fill="#a67900" />
+    <path d="M50,4 C58,34 66,42 96,50 C66,58 58,66 50,96 C42,66 34,58 4,50 C34,42 42,34 50,4 Z" fill="url(#explooro-sparkle-gold-32)" transform="translate(50 50) scale(0.8) translate(-50 -50)" />
+    <circle cx="50" cy="50" r="9" fill="#a67900" />
   </svg>
