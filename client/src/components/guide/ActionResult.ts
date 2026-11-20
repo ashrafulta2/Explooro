@@ -104,7 +104,8 @@ export function ActionResult({ title, body, waiting = null, primaryAction = null
   if (secondaryAction) actions.append(link(secondaryAction, 'secondary'));
   const close = document.createElement('button');
   close.type = 'button';
-  close.className = 'btn btn--ghost btn--sm';
+  // WHY secondary: a borderless dismiss beside a filled button read as plain text, not a button.
+  close.className = 'btn btn--secondary btn--sm';
   close.textContent = t('journey.result.dismiss');
   close.addEventListener('click', () => panel.remove());
   actions.append(close);

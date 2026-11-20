@@ -107,7 +107,9 @@ function stepItem(step: NextStepView, isCurrent: boolean): HTMLLIElement {
     li.append(link(t(isCurrent ? 'journey.checklist.do_it' : 'journey.checklist.go'), step.route, isCurrent ? 'primary' : 'secondary'));
   } else if (step.route && step.status === 'blocked') {
     // Waiting on a shopper or a delivery: the page shows the status, so it may be opened.
-    li.append(link(t('journey.checklist.open'), step.route, 'ghost'));
+    // WHY secondary, not ghost: a borderless button in a column of bezel "Go" buttons read as plain
+    // text, so the one row the user cannot finish yet looked like it had no way in.
+    li.append(link(t('journey.checklist.open'), step.route, 'secondary'));
   }
   return li;
 }

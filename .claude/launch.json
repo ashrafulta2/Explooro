@@ -29,6 +29,14 @@
       "url": "http://localhost:3100"
     },
     {
+      "name": "explooro-client-mock-2",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set VITE_API_MODE=mock&& npm run dev --workspace client -- --port 3102 --strictPort"],
+      "port": 3102,
+      "autoPort": false,
+      "url": "http://localhost:3102"
+    },
+    {
       "name": "explooro-preview",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "preview"],

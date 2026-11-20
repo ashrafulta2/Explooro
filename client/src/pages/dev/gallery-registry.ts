@@ -18,6 +18,9 @@
  */
 import '../../styles/components/customer-warranties.css';
 import '../../styles/components/community.css';
+// WHY: the ProductFeed specimen's styles ship only with /discover's page chunk; without this its
+// full-size images spill over the Guidance specimens below it.
+import '../../styles/components/discover-feed.css';
 import { PostCard } from '../../components/community/PostCard.ts';
 import { renderFlyer } from '../../lib/flyerEngine.ts';
 import { LAYOUTS as FLYER_LAYOUTS, PALETTES as FLYER_PALETTES, PATTERNS as FLYER_PATTERNS } from '../../config/flyerTemplates.ts';

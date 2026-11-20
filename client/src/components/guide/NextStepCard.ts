@@ -115,7 +115,8 @@ export function NextStepCard({ data = null, loading = false, navigate = null, on
   actions.append(
     Button({
       label: t('journey.card.later'),
-      variant: 'ghost',
+      // WHY secondary: a borderless "Later" beside a filled button read as plain text, not a button.
+      variant: 'secondary',
       size: 'sm',
       onClick: () => {
         setLater(data.journey, step.id);

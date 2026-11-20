@@ -115,6 +115,37 @@
 :root[data-ui-style='macos'] .btn--ghost:hover:not(:disabled) { background: var(--surface-2); color: var(--text-primary); }
 :root[data-ui-style='macos'] .btn--ghost:active:not(:disabled) { background: var(--surface-3); }
 
+/* Setup checklist (components/guide/SetupChecklist.ts). WHY: its fold toggle is a text-only ghost
+   button, which at rest is black text with no bezel and reads as a label. A Mac card's "Show All" /
+   "Hide" is an accent-coloured borderless button, so it takes the accent here. The waiting note is
+   a status line, not a callout: Mac shows it as secondary text after a coloured status dot, never in
+   a tinted box. */
+:root[data-ui-style='macos'] .setup-checklist__toggle { color: var(--text-brand); }
+:root[data-ui-style='macos'] .setup-checklist__toggle:hover:not(:disabled) { background: color-mix(in srgb, var(--brand) 10%, transparent); color: var(--text-brand); }
+:root[data-ui-style='macos'] .setup-checklist__waiting,
+:root[data-ui-style='macos'] .next-step-card__waiting,
+:root[data-ui-style='macos'] .action-result__waiting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+:root[data-ui-style='macos'] .setup-checklist__waiting::before,
+:root[data-ui-style='macos'] .next-step-card__waiting::before,
+:root[data-ui-style='macos'] .action-result__waiting::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--warning-500);
+}
+
 :root[data-ui-style='macos'] .btn--danger { box-shadow: 0 0.5px 1.5px hsl(var(--shadow-color) / 0.25); }
 :root[data-ui-style='macos'] .btn--link { text-decoration: none; }
 :root[data-ui-style='macos'] .btn--link:hover:not(:disabled) { text-decoration: underline; }
