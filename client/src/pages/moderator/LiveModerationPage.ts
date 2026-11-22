@@ -355,7 +355,7 @@ export default function LiveModerationPage(root: HTMLElement, ctx: PageContext =
           </div>
           ${
             stream.status === 'LIVE'
-              ? `<button id="btn-terminate-stream" style="padding: 9px 16px; font-size: 13px; font-weight: 700; border-radius: var(--radius-md, 8px); border: 1px solid var(--danger, #e11d48); background: var(--danger, #e11d48); color: #ffffff; cursor: pointer;">
+              ? `<button id="btn-terminate-stream" style="padding: 9px 16px; font-size: 13px; font-weight: 700; border-radius: var(--radius-md, 8px); border: 1px solid var(--danger, #e11d48); background: var(--danger, #e11d48); color: var(--text-inverse); cursor: pointer;">
                    ⛔ ${esc(t('live_mod.btn_terminate'))}
                  </button>`
               : ''
@@ -661,7 +661,7 @@ export default function LiveModerationPage(root: HTMLElement, ctx: PageContext =
             ${esc(t('live_mod.preview_title'))}
             ${
               isLive
-                ? `<span style="font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; background: var(--danger, #e11d48); color: #ffffff;">${esc(t('live_mod.preview_live_badge'))}</span>
+                ? `<span style="font-size: 11px; font-weight: 800; letter-spacing: 0.04em; padding: 2px 7px; border-radius: 999px; background: var(--danger, #e11d48); color: var(--text-inverse);">${esc(t('live_mod.preview_live_badge'))}</span>
                    <span style="font-size: 11px; font-weight: 600; color: var(--text-muted, #64748b);">${esc(t('live_mod.preview_viewers_watching', { count: stream.viewer_count ?? 0 }))}</span>`
                 : ''
             }

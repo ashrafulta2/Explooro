@@ -1807,9 +1807,9 @@ function renderKycSpecimen() {
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="font-bold text-sm">Akram Fabrics Ltd.</span>
-        <span class="badge badge--emerald text-xs">✓ Blue-Tick Verified</span>
+        <span class="badge badge--success text-xs">✓ Blue-Tick Verified</span>
       </div>
-      <span class="badge badge--indigo">ELITE_PARTNER (92 pts)</span>
+      <span class="badge badge--verified">ELITE_PARTNER (92 pts)</span>
     </div>
     <div class="text-xs text-secondary">NID: <span class="font-mono">********9218</span> • Trade License: <span class="font-mono">TRAD/DNCC/08219</span></div>
     <div class="flex gap-2">
@@ -1835,17 +1835,17 @@ function renderModeratorDashboardSpecimen() {
       <span class="text-secondary block text-xxs">My Queue</span>
       <span class="text-xl font-bold">12</span>
     </div>
-    <div class="card p-3 border-l-4 border-amber">
+    <div class="card p-3 border-l-4 border-warning">
       <span class="text-secondary block text-xxs">Unassigned</span>
       <span class="text-xl font-bold">48</span>
     </div>
-    <div class="card p-3 border-l-4 border-rose">
+    <div class="card p-3 border-l-4 border-danger">
       <span class="text-secondary block text-xxs">SLA At-Risk</span>
-      <span class="text-xl font-bold text-rose">3</span>
+      <span class="text-xl font-bold text-danger">3</span>
     </div>
-    <div class="card p-3 border-l-4 border-emerald">
+    <div class="card p-3 border-l-4 border-success">
       <span class="text-secondary block text-xxs">Resolved Today</span>
-      <span class="text-xl font-bold text-emerald">29</span>
+      <span class="text-xl font-bold text-success">29</span>
     </div>
   `;
 
@@ -1900,7 +1900,7 @@ function renderLiveModerationSpecimen() {
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;">
       <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;">
         <span class="pulse-dot"></span>Broadcast preview
-        <span style="font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--danger);color:#fff;">LIVE</span>
+        <span style="font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:var(--danger);color:var(--text-inverse);">LIVE</span>
         <span style="font-size:11px;font-weight:600;color:var(--text-muted);">142 watching</span>
       </div>
       <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">Audio only (data saver)</span>
@@ -1986,7 +1986,7 @@ function renderWhatsNewSpecimen() {
   previewBox.className = 'card p-4 space-y-3';
   previewBox.innerHTML = `
     <div class="flex items-center gap-2">
-      <span class="badge badge--indigo">v2.4.0 Release</span>
+      <span class="badge badge--verified">v2.4.0 Release</span>
       <span class="font-bold text-sm">Real-Time Chat & Multi-Channel Notifications</span>
     </div>
     <p class="text-xs text-secondary">Discover real-time messaging, debounced offline SMS fallback, and granular notification preferences.</p>
@@ -2039,7 +2039,7 @@ function renderUnifiedInboxSpecimen() {
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="font-bold text-sm">Customer +8801712345678</span>
-        <span class="badge badge--emerald text-xs">🟢 WhatsApp</span>
+        <span class="badge badge--success text-xs">🟢 WhatsApp</span>
         <span class="badge badge--primary text-xs">24h Window Active</span>
       </div>
       <span class="text-xs text-secondary">Ref: THR-WA-99A1</span>
@@ -2069,7 +2069,7 @@ function renderChatInterfaceSpecimen() {
     <div class="flex items-center justify-between border-b pb-2">
       <div class="flex items-center gap-2">
         <span class="font-bold text-sm">Conversation with Supplier #10</span>
-        <span class="badge badge--emerald text-xxs">🟢 Connected</span>
+        <span class="badge badge--success text-xxs">🟢 Connected</span>
       </div>
       <span class="text-xs text-muted">Offline Queue: 0 pending</span>
     </div>
@@ -2255,7 +2255,7 @@ function renderAdminReferralGovernanceSpecimen() {
       </div>
       <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
         <div class="text-muted text-[11px] font-bold uppercase">Qualified</div>
-        <div class="font-bold text-lg font-mono mt-1 text-emerald-600">980</div>
+        <div class="font-bold text-lg font-mono mt-1 text-success">980</div>
       </div>
       <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
         <div class="text-muted text-[11px] font-bold uppercase">Commission paid</div>
@@ -2330,7 +2330,7 @@ function renderReferralHubSpecimen() {
       </div>
       <div class="p-3 bg-surface-1 border border-subtle rounded-xl">
         <div class="text-muted text-[11px] font-bold uppercase">Total Earned</div>
-        <div class="font-bold text-lg text-green-600 font-mono mt-1">৳8,450.00</div>
+        <div class="font-bold text-lg text-success font-mono mt-1">৳8,450.00</div>
         <div class="text-[10px] text-muted">৳2,100 in escrow</div>
       </div>
     </div>
@@ -2531,12 +2531,12 @@ function renderLeaderboardWidgetSpecimen() {
         <div class="font-bold">Fahim Store</div>
         <div class="text-primary font-mono font-bold">৳142,500</div>
       </div>
-      <div class="p-2 border border-slate-400/40 rounded bg-slate-400/5">
+      <div class="p-2 border border-subtle rounded bg-surface-subtle">
         <div class="text-xl">🥈</div>
         <div class="font-bold">Dhaka Crafts</div>
         <div class="text-primary font-mono font-bold">৳118,200</div>
       </div>
-      <div class="p-2 border border-amber-600/40 rounded bg-amber-600/5">
+      <div class="p-2 border border-warning/30 rounded bg-warning/5">
         <div class="text-xl">🥉</div>
         <div class="font-bold">Bengal Loom</div>
         <div class="text-primary font-mono font-bold">৳94,800</div>
@@ -3050,7 +3050,7 @@ function renderSupplierDashboardWidgetsSpecimen() {
 
   // 1. FEFO Batch Expiry Widget Card
   const batchWidget = document.createElement('div');
-  batchWidget.className = 'p-4 rounded-xl border border-amber-500/40 bg-amber-500/5 max-w-sm space-y-2';
+  batchWidget.className = 'p-4 rounded-xl border border-warning/30 bg-warning/5 max-w-sm space-y-2';
   batchWidget.innerHTML = `
     <div class="flex justify-between items-center text-xs">
       <span class="font-mono font-bold text-primary">#LOT-2026-OCT-15</span>
@@ -3073,7 +3073,7 @@ function renderSupplierDashboardWidgetsSpecimen() {
     </div>
     <div class="font-bold text-sm">Tejgaon Central Depot</div>
     <div class="text-xs text-muted">📍 Plot 12, Tejgaon I/A, Dhaka</div>
-    <div class="text-xs font-mono text-green-600 font-bold">14 SKUs · 450 Units Stocked</div>
+    <div class="text-xs font-mono text-success font-bold">14 SKUs · 450 Units Stocked</div>
   `;
 
   wrap.append(

@@ -348,8 +348,8 @@
   height: 18px;
   padding: 0 5px;
   border-radius: var(--radius-full, 9999px);
-  background: var(--brand-500, #ecae00);
-  color: #000000;
+  background: var(--brand);
+  color: var(--brand-contrast);
   font-size: var(--text-2xs, 10px);
   font-weight: var(--weight-bold, 700);
   display: inline-flex;
@@ -574,8 +574,8 @@
 
 /* Outgoing Bubble (Sender / Self) */
 .chat-bubble-container.outgoing .message-bubble-body {
-  background: var(--brand-500, #ecae00);
-  color: #1a1a1a;
+  background: var(--brand);
+  color: var(--brand-contrast);
   border-bottom-right-radius: 3px;
 }
 
@@ -727,8 +727,8 @@
   width: 100%;
   padding: 7px 12px;
   border-radius: var(--radius-sm, 6px);
-  background: var(--brand-500, #ecae00);
-  color: #1a1a1a;
+  background: var(--brand);
+  color: var(--brand-contrast);
   font-weight: var(--weight-bold, 700);
   font-size: var(--text-xs, 11px);
   text-decoration: none;
@@ -737,7 +737,7 @@
 }
 
 .product-bubble-cta:hover {
-  background: var(--brand-600, #d99f00);
+  background: var(--brand-hover);
 }
 
 /* ── Typing Indicator ── */
@@ -896,9 +896,9 @@
   justify-content: center;
   gap: 6px;
   border-radius: var(--radius-md, 10px);
-  background: var(--brand-500, #ecae00);
-  color: #1a1a1a;
-  border: 1px solid var(--brand-600, #d99f00);
+  background: var(--brand);
+  color: var(--brand-contrast);
+  border: 1px solid var(--brand-active);
   font-weight: var(--weight-bold, 700);
   font-size: var(--text-sm, 13px);
   cursor: pointer;
@@ -907,7 +907,7 @@
 }
 
 .composer-send-btn:hover {
-  background: var(--brand-600, #d99f00);
+  background: var(--brand-hover);
 }
 
 .composer-send-btn:active {

@@ -59,7 +59,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  background: var(--brand-50);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface-1));
   border: 1px solid var(--brand-200);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
@@ -107,7 +107,7 @@
      brand-500 / success-500 pairings measured 2.85:1 and 3.19:1 in the in-app a11y auditor, under
      the 4.5:1 floor. A pale background with the dark end of the same ramp keeps the colour coding
      and clears the threshold. */
-  background: var(--brand-50);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface-1));
   color: var(--text-brand);
   border: 1px solid var(--brand-300);
 }

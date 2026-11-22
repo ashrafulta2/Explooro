@@ -53,7 +53,7 @@
 .assistant-panel__bubble--user {
   align-self: flex-end;
   background: var(--brand);
-  color: #ffffff;
+  color: var(--brand-contrast);
 }
 
 .assistant-panel__bubble--assistant {

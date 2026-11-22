@@ -1580,3 +1580,31 @@
   font-size: var(--text-sm);
   color: var(--text-primary);
 }
+
+/* Colour utilities that pages and widgets already use. WHY: their markup was written with
+   Tailwind-style colour names (text-foreground, bg-primary, border-subtle, ...) that no stylesheet
+   defined, so those surfaces rendered with no colour and never followed the master palette (macOS
+   blue by default). Every value is a theme token, so they follow the seed and dark mode. Soft tints
+   are color-mix on the role colour, which works in both modes where a fixed --brand-50 would glare
+   in dark mode. */
+.text-foreground, .text-main { color: var(--text-primary); }
+.text-white { color: #fff; }
+.text-accent { color: var(--accent-700); }
+.text-primary-contrast { color: var(--brand-contrast); }
+.hover\:text-primary:hover { color: var(--text-brand); }
+.hover\:text-foreground:hover { color: var(--text-primary); }
+.bg-surface, .hover\:bg-surface:hover { background: var(--surface-1); }
+.bg-surface-hover, .bg-muted, .bg-subtle, .bg-secondary, .hover\:bg-muted\/5:hover { background: var(--surface-2); }
+.bg-border { background: var(--border-subtle); }
+.bg-primary { background: var(--brand); color: var(--brand-contrast); }
+.bg-primary-soft, .bg-primary\/10, .bg-primary-50\/50 { background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.bg-success { background: var(--success-700); }
+.bg-success-soft { background: var(--success-bg); }
+.bg-warning\/5 { background: color-mix(in srgb, var(--warning-500) 6%, transparent); }
+.bg-black\/70 { background: rgb(0 0 0 / 0.7); }
+.border-border, .border-subtle { border-color: var(--border-subtle); }
+.border-success { border-color: var(--success-border); }
+.border-danger { border-color: var(--danger-border); }
+.border-warning\/30, .border-warning\/50 { border-color: var(--warning-border); }
+.border-primary, .border-brand, .border-l-primary { border-color: var(--brand); }
+.border-primary\/20, .border-primary\/30 { border-color: color-mix(in srgb, var(--brand) 30%, transparent); }

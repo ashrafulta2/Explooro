@@ -312,7 +312,7 @@ export default function UsersPage(root: HTMLElement, { navigate }: PageContext =
         <div class="admin-users-kpi-card">
           <div class="admin-users-kpi-card__head">
             <span class="admin-users-kpi-card__title">${t('admin_users.kpi_staff_users', 'Staff & Governance')}</span>
-            <span class="badge badge--purple" aria-hidden="true">🛡️ STAFF</span>
+            <span class="badge badge--elite" aria-hidden="true">🛡️ STAFF</span>
           </div>
           <div class="admin-users-kpi-card__value" id="kpi-users-staff-val">0</div>
           <span class="admin-users-kpi-card__hint">${t('admin_users.kpi_staff_users_hint', 'Admin, moderator & editor roles')}</span>

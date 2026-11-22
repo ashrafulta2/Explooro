@@ -219,7 +219,7 @@ export function openTeamPurchaseModal({
 
         itemEl.innerHTML = `
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-full bg-brand-100 text-brand-700 font-bold text-xs flex items-center justify-center shrink-0 border border-brand-200">
+            <div class="w-8 h-8 rounded-full bg-primary-soft text-brand font-bold text-xs flex items-center justify-center shrink-0 border border-primary/30">
               ${(hostMember.user_name || 'H').charAt(0).toUpperCase()}
             </div>
             <div class="min-w-0">

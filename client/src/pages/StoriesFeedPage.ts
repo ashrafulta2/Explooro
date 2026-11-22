@@ -170,7 +170,7 @@ export default function StoriesFeedPage(root: HTMLElement, ctx: PageContext = {}
         </div>
 
         ${story.cover_image_url ? `
-          <div class="rounded-xl overflow-hidden h-64 bg-slate-100">
+          <div class="rounded-xl overflow-hidden h-64 bg-surface-subtle">
             <img src="${story.cover_image_url}" alt="${title}" class="w-full h-full object-cover" loading="lazy" />
           </div>
         ` : ''}

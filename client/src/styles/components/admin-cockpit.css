@@ -129,6 +129,12 @@
 .admin-cockpit .admin-breakdown-item__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-cockpit .admin-breakdown-item__amount { font-size: var(--text-xs); color: var(--text-secondary); }
 .admin-cockpit .admin-breakdown-item__share { min-width: 44px; text-align: end; }
+/* WHY: the bars had no rule at all, so the share of each channel and category drew nothing. They are
+   theme fills, so they follow the master seed (macOS blue by default). */
+.admin-cockpit .admin-breakdown-item + .admin-breakdown-item { margin-top: var(--space-3); }
+.admin-cockpit .admin-breakdown-item__track { height: 6px; margin-top: var(--space-1); background: var(--surface-3); border-radius: var(--radius-full); overflow: hidden; }
+.admin-cockpit .admin-breakdown-item__bar { height: 100%; background: var(--brand); border-radius: inherit; }
+.admin-cockpit .admin-breakdown-item__bar--success { background: var(--success); }
 
 /* Skeletons — a slow opacity pulse, not a gradient shimmer */
 .admin-cockpit .admin-skel-card { display: flex; flex-direction: column; gap: var(--space-2); min-height: 105px; }

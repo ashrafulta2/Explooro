@@ -112,7 +112,7 @@
   border-color: var(--brand-500);
 }
 .store-builder__preset-btn--active {
-  background: var(--brand-50);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface-1));
   border-color: var(--brand-600);
   /* --text-brand is the brand step the engine proves at 4.5:1 per seed; a fixed --brand-700 was 2.5-3.2:1 */
   color: var(--text-brand);
@@ -160,7 +160,7 @@
 .store-header__stat-val { font-weight: var(--weight-bold); color: var(--text-primary); }
 .store-header__social { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
 .store-header__social-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-full); background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border-subtle); }
-.store-header__social-btn:hover { background: var(--brand-50); color: var(--text-brand); border-color: var(--brand-300); }
+.store-header__social-btn:hover { background: color-mix(in srgb, var(--brand) 10%, var(--surface-1)); color: var(--text-brand); border-color: var(--brand-300); }
 
 .shop-status-toggle { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-4); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
 .shop-status-toggle__header { display: flex; align-items: center; justify-content: space-between; }
@@ -213,7 +213,7 @@
 
 .qr-flyer-modal { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-6); gap: var(--space-4); }
 .qr-flyer-card { display: flex; flex-direction: column; align-items: center; background: #ffffff; color: #0b0f19; padding: var(--space-8); border-radius: var(--radius-xl); box-shadow: var(--elevation-4); border: 4px solid var(--brand-600); max-width: 360px; width: 100%; }
-.qr-flyer-card__logo { font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--brand-700); margin-bottom: var(--space-1); }
+.qr-flyer-card__logo { font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--text-brand); margin-bottom: var(--space-1); }
 .qr-flyer-card__shop-name { font-size: var(--text-lg); font-weight: var(--weight-bold); margin: 0 0 var(--space-4); color: #1e293b; }
 .qr-flyer-card__qr-canvas { width: 200px; height: 200px; background: #fff; padding: var(--space-2); border: 1px solid #e2e8f0; border-radius: var(--radius-md); }
 .qr-flyer-card__instructions { font-size: var(--text-xs); color: #64748b; margin-top: var(--space-3); line-height: var(--leading-xs); }

@@ -482,7 +482,7 @@
   flex-shrink: 0;
 }
 .discover-slide__title.is-clickable { cursor: pointer; transition: color var(--dur-fast) var(--ease-standard); }
-.discover-slide__title.is-clickable:hover { color: var(--brand); }
+.discover-slide__title.is-clickable:hover { color: var(--text-brand); }
 .discover-slide__title.is-clickable:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
@@ -701,7 +701,7 @@
 .discover-slide__btn--quick:hover:not(:disabled) {
   background: var(--surface-2);
   border-color: var(--brand);
-  color: var(--brand);
+  color: var(--text-brand);
 }
 
 .discover-slide__wishlist-wrap {

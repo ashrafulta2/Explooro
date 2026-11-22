@@ -243,7 +243,7 @@
   border-top: var(--border-width, 1px) solid var(--border-subtle, #e1e5e8);
   font-size: var(--text-xs, 0.75rem);
   font-weight: 700;
-  color: var(--brand, #334155);
+  color: var(--text-brand);
 }
 
 /* ── Quick Daily Actions Grid ── */
@@ -308,14 +308,14 @@
 }
 
 .supplier-action-tile--primary {
-  background: var(--brand, #334155);
-  color: #ffffff;
-  border-color: var(--brand, #334155);
+  background: var(--brand);
+  color: var(--brand-contrast);
+  border-color: var(--brand);
 }
 
 .supplier-action-tile--primary:hover {
-  background: #1e293b;
-  color: #ffffff;
+  background: var(--brand-hover);
+  color: var(--brand-contrast);
 }
 
 .supplier-action-tile__icon {
@@ -1228,9 +1228,9 @@
 }
 
 .supplier-preset-chip:hover {
-  background: var(--brand-50);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface-1));
   border-color: var(--brand, #0284c7);
-  color: var(--brand, #0284c7);
+  color: var(--text-brand);
   transform: translateY(-1px);
 }
 

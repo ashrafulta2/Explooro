@@ -25,7 +25,7 @@
 
 .cart-page__notice { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); background-color: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-size: var(--text-sm); line-height: var(--leading-sm); color: var(--text-secondary); }
 .cart-page__notice strong { display: block; color: var(--text-primary); }
-.cart-page__notice-icon { flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; color: var(--brand); }
+.cart-page__notice-icon { flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; color: var(--text-brand); }
 
 /* Parcels */
 .cart-parcel { background-color: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; }

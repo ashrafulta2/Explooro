@@ -92,7 +92,7 @@ export default function CodReconciliationPage(root: HTMLElement, { navigate }: P
       case 'TIMING_DIFFERENCE':
         return `<span class="badge badge--info">${t('cod.status.timing_difference')}</span>`;
       case 'RESOLVED':
-        return `<span class="badge badge--purple">${t('cod.status.resolved')}</span>`;
+        return `<span class="badge badge--elite">${t('cod.status.resolved')}</span>`;
       default:
         return `<span class="badge badge--neutral">${escapeHtml(status)}</span>`;
     }

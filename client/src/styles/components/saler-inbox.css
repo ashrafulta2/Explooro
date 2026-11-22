@@ -113,8 +113,8 @@
   flex-shrink: 0;
 }
 
-.dot-whatsapp { background: #22c55e; }
-.dot-messenger { background: #3b82f6; }
+.dot-whatsapp { background: var(--success-500); }
+.dot-messenger { background: var(--info-500); }
 .dot-inplatform { background: var(--accent-500); }
 
 /* ── Two-pane layout ── */
@@ -251,8 +251,8 @@
   height: 22px;
   padding: 0 6px;
   border-radius: var(--radius-full, 9999px);
-  background: var(--brand-500, #ecae00);
-  color: #000000;
+  background: var(--brand);
+  color: var(--brand-contrast);
   font-size: 12px;
   font-weight: var(--weight-bold, 700);
   display: inline-flex;
@@ -262,8 +262,8 @@
 }
 
 /* Channel colours — used on avatars (the avatar colour IS the channel) */
-.tag-whatsapp { background: #dcfce7; color: #15803d; }
-.tag-messenger { background: #dbeafe; color: #1d4ed8; }
+.tag-whatsapp { background: var(--success-bg); color: var(--success); }
+.tag-messenger { background: var(--info-bg); color: var(--info); }
 .tag-inplatform { background: color-mix(in srgb, var(--accent-500) 12%, transparent); color: color-mix(in oklch, var(--accent-500) 60%, var(--text-primary)); }
 
 /* ── Right: open conversation ── */
@@ -390,8 +390,8 @@
 }
 
 .bubble-saler {
-  background: var(--brand-500, #ecae00);
-  color: #1a1a1a;
+  background: var(--brand);
+  color: var(--brand-contrast);
   border-bottom-right-radius: 3px;
 }
 

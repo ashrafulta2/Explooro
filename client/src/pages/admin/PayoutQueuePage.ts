@@ -107,7 +107,7 @@ export default function PayoutQueuePage(root: HTMLElement, { navigate }: PageCon
       case 'REQUESTED':
         return `<span class="badge badge--warning">⏳ ${t('payout.status.requested')}</span>`;
       case 'HELD':
-        return `<span class="badge badge--purple">🛡️ ${t('payout.status.held_maker_checker')}</span>`;
+        return `<span class="badge badge--elite">🛡️ ${t('payout.status.held_maker_checker')}</span>`;
       case 'FAILED':
         return `<span class="badge badge--danger">✕ ${t('payout.status.failed')}</span>`;
       case 'REJECTED':

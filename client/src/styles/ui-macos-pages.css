@@ -324,6 +324,9 @@ html:where([data-ui-style='macos']) .test-latency-pill--error {
 html:where([data-ui-style='macos']) .uppercase {
   text-transform: none;
 }
+html:where([data-ui-style='macos']) .bg-success-soft {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
 
 /* ── components/admin-staff.css ── */
 html:where([data-ui-style='macos']) .admin-staff__eyebrow {
@@ -1886,6 +1889,12 @@ html:where([data-ui-style='macos']) .customer-return-card__evidence-thumb:focus-
     outline: none;
     box-shadow: var(--mac-focus);
   }
+}
+html:where([data-ui-style='macos']) .tag-whatsapp {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .tag-messenger {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .chat-window-notice {
   background: color-mix(in srgb, var(--warning-bg) 70%, transparent);

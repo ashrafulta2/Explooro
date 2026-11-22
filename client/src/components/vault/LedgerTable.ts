@@ -53,7 +53,7 @@ export function LedgerTable({
         return `<span class="badge badge--success">${category}</span>`;
       case 'PAYOUT_DISBURSED':
       case 'WITHDRAWAL':
-        return `<span class="badge badge--purple">${category}</span>`;
+        return `<span class="badge badge--elite">${category}</span>`;
       case 'REFUND':
       case 'CLAWBACK':
         return `<span class="badge badge--danger">${category}</span>`;

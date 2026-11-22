@@ -136,7 +136,7 @@ export function ClaimTimeline({
           <div style="background: var(--success-bg); border: 1px solid var(--success-border); border-radius: var(--radius-lg); padding: 10px 12px; font-size: 12px; color: var(--success);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong>🚚 ${t('warranty.reverse_courier_booked')}</strong>
-              <span class="badge badge--emerald" style="font-size: 10px;">${claim.reverse_courier || 'Courier'}</span>
+              <span class="badge badge--success" style="font-size: 10px;">${claim.reverse_courier || 'Courier'}</span>
             </div>
             <div style="font-family: var(--font-mono); margin-top: 4px; display: flex; align-items: center; gap: 6px;">
               <span>${t('warranty.tracking_number')}: <strong>${claim.reverse_tracking_number}</strong></span>

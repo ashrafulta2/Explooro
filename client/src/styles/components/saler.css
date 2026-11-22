@@ -110,7 +110,7 @@
 }
 
 .saler-kpi-card__value--profit {
-  color: var(--success-600, #16a34a);
+  color: var(--success);
 }
 
 .saler-kpi-card__subtext {
@@ -540,7 +540,7 @@
 }
 
 .saler-simple-stat-val--profit {
-  color: var(--success-600, #16a34a);
+  color: var(--success);
 }
 
 .saler-simple-grid {

@@ -132,7 +132,7 @@ export class CartInsightsPage {
               <span>${isBn ? 'পরিত্যক্ত কার্ট মূল্য' : 'Abandoned Value'}</span>
               <span>⏳</span>
             </div>
-            <div class="saler-kpi-card__value" style="color: var(--danger-600, #dc2626);">
+            <div class="saler-kpi-card__value" style="color: var(--danger);">
               ৳${summary?.total_abandoned_value || '0.00'}
             </div>
             <div class="saler-kpi-card__subtext">${summary?.total_abandoned_carts || 0} ${isBn ? 'টি কার্ট বাকি রয়েছে' : 'abandoned carts detected'}</div>
@@ -179,7 +179,7 @@ export class CartInsightsPage {
                   <div class="text-muted" style="font-size: 11px;">${isBn ? 'কোনো ডিসকাউন্ট ছাড়া সরাসরি নোটিফিকেশন' : 'Direct in-app notification without discount'}</div>
                 </div>
                 <div style="text-align: right; font-family: var(--font-mono);">
-                  <div style="font-weight: 800; color: var(--success-600, #16a34a);">${this._getStepConverted(funnel, 1)} ${isBn ? 'উদ্ধার' : 'Recovered'}</div>
+                  <div style="font-weight: 800; color: var(--success);">${this._getStepConverted(funnel, 1)} ${isBn ? 'উদ্ধার' : 'Recovered'}</div>
                   <div class="text-muted" style="font-size: 11px;">৳${this._getStepRevenue(funnel, 1)}</div>
                 </div>
               </div>
@@ -190,7 +190,7 @@ export class CartInsightsPage {
                   <div class="text-muted" style="font-size: 11px;">${isBn ? 'স্বয়ংক্রিয় সিঙ্গেল-ইউজ কুপন কোড' : 'Automated single-use coupon issued'}</div>
                 </div>
                 <div style="text-align: right; font-family: var(--font-mono);">
-                  <div style="font-weight: 800; color: var(--success-600, #16a34a);">${this._getStepConverted(funnel, 2)} ${isBn ? 'উদ্ধার' : 'Recovered'}</div>
+                  <div style="font-weight: 800; color: var(--success);">${this._getStepConverted(funnel, 2)} ${isBn ? 'উদ্ধার' : 'Recovered'}</div>
                   <div class="text-muted" style="font-size: 11px;">৳${this._getStepRevenue(funnel, 2)}</div>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export class CartInsightsPage {
                   <div class="text-muted" style="font-size: 11px;">${isBn ? 'সর্বশেষ সংরক্ষিত অফার ও কার্ট রিস্টোর' : 'Final urgency message before expiry'}</div>
                 </div>
                 <div style="text-align: right; font-family: var(--font-mono);">
-                  <div style="font-weight: 800; color: var(--success-600, #16a34a);">${this._getStepConverted(funnel, 3)} ${isBn ? 'উদ্ধার' : 'Recovered'}</div>
+                  <div style="font-weight: 800; color: var(--success);">${this._getStepConverted(funnel, 3)} ${isBn ? 'উদ্ধার' : 'Recovered'}</div>
                   <div class="text-muted" style="font-size: 11px;">৳${this._getStepRevenue(funnel, 3)}</div>
                 </div>
               </div>
@@ -231,7 +231,7 @@ export class CartInsightsPage {
                       </div>
                     </div>
                     <div style="text-align: right; font-family: var(--font-mono);">
-                      <div style="font-weight: 800; color: var(--danger-600, #dc2626);">৳${Number(p.lost_revenue_estimate || 0).toFixed(2)}</div>
+                      <div style="font-weight: 800; color: var(--danger);">৳${Number(p.lost_revenue_estimate || 0).toFixed(2)}</div>
                       <div class="text-muted" style="font-size: 10px;">${isBn ? 'সম্ভাব্য হারানো আয়' : 'Lost potential'}</div>
                     </div>
                   </div>

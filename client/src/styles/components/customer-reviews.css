@@ -269,7 +269,7 @@
 }
 
 .customer-review-card__product-info:hover .customer-review-card__product-title {
-  color: var(--brand);
+  color: var(--text-brand);
 }
 
 .customer-review-card__product-meta {

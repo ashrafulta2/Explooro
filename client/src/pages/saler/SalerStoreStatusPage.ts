@@ -130,10 +130,10 @@ export default function SalerStoreStatusPage(root: HTMLElement, { navigate }: Pa
     // 2. Hero Live Status Banner
     const banner = document.createElement('div');
     banner.className = `saler-card ${
-      store.is_open ? 'border-emerald-500/30' : 'border-rose-500/30'
+      store.is_open ? 'border-success' : 'border-danger'
     }`;
     banner.style.borderLeftWidth = '4px';
-    banner.style.borderLeftColor = store.is_open ? 'var(--success-600, #16a34a)' : 'var(--danger-600, #dc2626)';
+    banner.style.borderLeftColor = store.is_open ? 'var(--success)' : 'var(--danger)';
 
     banner.innerHTML = `
       <div class="saler-row--between">

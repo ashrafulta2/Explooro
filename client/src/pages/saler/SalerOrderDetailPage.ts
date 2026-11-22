@@ -208,7 +208,7 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
           <div class="text-muted text-[11px]">${order.courier_name} (${order.tracking_number})</div>
         </div>
         <div class="relative pl-4">
-          <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full ${order.fulfillment_status === 'DELIVERED' ? 'bg-emerald-500' : 'bg-muted'}"></div>
+          <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full ${order.fulfillment_status === 'DELIVERED' ? 'bg-success' : 'bg-muted'}"></div>
           <div class="font-bold text-foreground">${t('saler_orders.timeline_delivered')}</div>
         </div>
       </div>

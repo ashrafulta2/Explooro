@@ -964,7 +964,7 @@ export default function AdminDashboardPage(root: HTMLElement, { navigate, query 
     const bd = state.overview?.breakdown || {};
     els.breakdowns.innerHTML =
       card(tr('channels_title'), tr('by_volume'), bd.channels || [], 'volume', '', true) +
-      card(tr('categories_title'), tr('by_revenue'), bd.categories || [], 'revenue', 'admin-breakdown-item__bar--emerald');
+      card(tr('categories_title'), tr('by_revenue'), bd.categories || [], 'revenue', 'admin-breakdown-item__bar--success');
   }
 
   // ── Boot / teardown ──────────────────────────────────────────────────────

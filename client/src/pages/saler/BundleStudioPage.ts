@@ -565,7 +565,7 @@ export default function BundleStudioPage(root: HTMLElement, ctx: PageContext) {
                 <div class="saler-row" style="gap: 16px;">
                   <div style="text-align: right;">
                     <span class="text-xs text-muted block line-through font-mono">${formatCurrency(rec.current_price)}</span>
-                    <span class="text-lg font-bold font-mono" style="color: var(--success-600, #16a34a);">${formatCurrency(rec.recommended_price)}</span>
+                    <span class="text-lg font-bold font-mono" style="color: var(--success);">${formatCurrency(rec.recommended_price)}</span>
                   </div>
                   <div class="saler-row" style="gap: 8px;">
                     <button class="accept-surge-btn btn btn--primary btn--sm font-bold" data-id="${rec.id}">

@@ -211,7 +211,7 @@ export default function ModerationQueuePage(root: HTMLElement, ctx: PageContext 
 
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
           <button id="btn-cancel-modal" style="padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border-subtle, #e2e8f0); background: var(--surface-1, #ffffff); color: var(--text-muted, #64748b); font-size: 12px; font-weight: 600; cursor: pointer;">${t('common.cancel', 'Cancel')}</button>
-          <button id="btn-confirm-reject" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--danger, #e11d48); color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">${t('moderation.confirm_reject', 'Confirm Rejection')}</button>
+          <button id="btn-confirm-reject" style="padding: 8px 18px; border-radius: 6px; border: none; background: var(--danger, #e11d48); color: var(--text-inverse); font-size: 12px; font-weight: 700; cursor: pointer;">${t('moderation.confirm_reject', 'Confirm Rejection')}</button>
         </div>
       </div>
     `;

@@ -529,7 +529,7 @@
 }
 
 .product-drop-card__store-link:hover {
-  color: var(--brand);
+  color: var(--text-brand);
 }
 
 .product-drop-card__title {

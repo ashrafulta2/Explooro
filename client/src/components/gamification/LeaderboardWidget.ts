@@ -78,7 +78,7 @@ export class LeaderboardWidget {
     this.rootEl.innerHTML = `
       <div class="space-y-4">
         <!-- Header & Category Switcher -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gradient-to-r from-primary/10 via-surface to-warning/10 p-4 border border-primary/20 rounded-xl">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-primary-soft p-4 border border-primary/20 rounded-xl">
           <div>
             <div class="flex items-center gap-2">
               <span class="text-xl">🏆</span>
@@ -91,10 +91,10 @@ export class LeaderboardWidget {
             </p>
           </div>
           <div class="flex gap-1 bg-surface p-1 rounded-lg border border-border text-xs">
-            <button class="btn-cat px-3 py-1 rounded font-semibold ${this.category === 'SALER_REVENUE' ? 'bg-primary text-white' : 'text-muted hover:text-foreground'}" data-cat="SALER_REVENUE">
+            <button class="btn-cat px-3 py-1 rounded font-semibold ${this.category === 'SALER_REVENUE' ? 'bg-primary' : 'text-muted hover:text-foreground'}" data-cat="SALER_REVENUE">
               💰 ${isBn ? 'বিক্রয় মূল্য' : 'Revenue'}
             </button>
-            <button class="btn-cat px-3 py-1 rounded font-semibold ${this.category === 'SALER_ORDERS' ? 'bg-primary text-white' : 'text-muted hover:text-foreground'}" data-cat="SALER_ORDERS">
+            <button class="btn-cat px-3 py-1 rounded font-semibold ${this.category === 'SALER_ORDERS' ? 'bg-primary' : 'text-muted hover:text-foreground'}" data-cat="SALER_ORDERS">
               📦 ${isBn ? 'অর্ডার সংখ্যা' : 'Orders'}
             </button>
           </div>
@@ -105,7 +105,7 @@ export class LeaderboardWidget {
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             ${top3.map((node, idx) => {
               const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉';
-              const borderCol = idx === 0 ? 'border-warning/50 bg-warning/5' : idx === 1 ? 'border-slate-400/40 bg-slate-400/5' : 'border-amber-600/40 bg-amber-600/5';
+              const borderCol = idx === 0 ? 'border-warning/50 bg-warning/5' : idx === 1 ? 'border-subtle bg-surface-subtle' : 'border-warning/30 bg-warning/5';
               return `
                 <div class="card p-4 border ${borderCol} rounded-xl text-center space-y-2 relative overflow-hidden">
                   <div class="text-3xl">${medal}</div>

@@ -365,17 +365,17 @@ export function initOfflineBanner() {
   const updateUI = async ({ isOnline: online, state, pendingCount }) => {
     if (!online) {
       banner.style.display = 'flex';
-      banner.style.background = '#991b1b';
+      banner.style.background = 'var(--danger-700)';
       banner.style.color = '#ffffff';
       banner.innerHTML = `<span>⚠️ You are offline.</span> <span>${pendingCount > 0 ? `(${pendingCount} pending updates queued)` : 'Browsing cached catalog.'}</span>`;
     } else if (state === 'SYNCING') {
       banner.style.display = 'flex';
-      banner.style.background = '#0284c7';
+      banner.style.background = 'var(--info-700)';
       banner.style.color = '#ffffff';
       banner.innerHTML = `<span>🔄 Reconnected! Syncing ${pendingCount} offline updates...</span>`;
     } else {
       if (banner.style.display !== 'none') {
-        banner.style.background = '#15803d';
+        banner.style.background = 'var(--success-700)';
         banner.innerHTML = `<span>✅ Back online — All updates synchronized!</span>`;
         setTimeout(() => { banner.style.display = 'none'; }, 2500);
       }
