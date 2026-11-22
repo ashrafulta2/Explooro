@@ -12,6 +12,7 @@ import { api, pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { formatDate } from '../../services/format.ts';
+import { getCurrentUser } from '../../services/session.ts';
 import { showActionResult } from '../../components/guide/ActionResult.ts';
 
 export default function KycSubmissionPage(root: HTMLElement) {
@@ -37,8 +38,10 @@ export default function KycSubmissionPage(root: HTMLElement) {
     try {
       loading = true;
       render();
-      const meRes = await api.get('/me');
-      userRole = meRes.data?.role || 'supplier';
+      // WHY: this used to call GET /me, which does not exist (the server has GET /auth/me), so the
+      // first request always failed and /kyc/status was never asked. The session already knows the role.
+      const roles = getCurrentUser()?.roles || [];
+      userRole = roles.includes('supplier') ? 'supplier' : 'saler';
 
       const statusRes = await api.get('/kyc/status');
       kycStatus = statusRes.data;

@@ -33,6 +33,7 @@ import legalHandlers from './handlers/legal.ts';
 import vaultHandlers from './handlers/vault.ts';
 import liveHandlers from './handlers/live.ts';
 import warrantyHandlers from './handlers/warranty.ts';
+import kycHandlers from './handlers/kyc.ts';
 import moderatorHandlers from './handlers/moderator.ts';
 import disputeHandlers from './handlers/disputes.ts';
 import returnHandlers from './handlers/returns.ts';
@@ -94,6 +95,7 @@ const handlers: (Omit<MockRoute, 'method'> & { method: string })[] = [
   ...vaultHandlers,
   ...liveHandlers,
   ...warrantyHandlers,
+  ...kycHandlers,
   ...moderatorHandlers,
   ...disputeHandlers,
   ...returnHandlers,
