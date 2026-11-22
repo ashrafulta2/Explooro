@@ -177,7 +177,10 @@
 .discover-page__search:focus-within {
   border-color: var(--brand);
 }
-.discover-page__search-icon { color: var(--text-muted); display: inline-flex; }
+/* WHY: display:none, not inline-flex. input-affordance.css draws the ONE search icon as the input's
+   background and hides this span, but this file loads later with equal specificity and won, which
+   showed two magnifiers (same defect as admin-users.css). */
+.discover-page__search-icon { color: var(--text-muted); display: none; }
 .discover-page__search-input {
   border: none;
   background: transparent;
