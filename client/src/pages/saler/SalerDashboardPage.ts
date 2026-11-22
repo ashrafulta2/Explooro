@@ -258,7 +258,7 @@ function renderSimpleMode(container, data, nav) {
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; align-items: center; justify-content: space-between;">
           <div class="saler-card-icon-box">${c.icon}</div>
-          <span class="badge badge--neutral text-[10px] font-mono">${c.badge}</span>
+          <span class="badge badge--neutral text-2xs font-mono">${c.badge}</span>
         </div>
         <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-primary);">${c.title}</h3>
         <p style="margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.45;">${c.desc}</p>
@@ -587,7 +587,7 @@ function renderToolsGrid(container, data, nav) {
     card.innerHTML = `
       <div class="saler-tool-card__top">
         <div class="saler-tool-card__icon">${tool.icon}</div>
-        <span class="badge badge--neutral text-[10px] font-mono">${tool.badge}</span>
+        <span class="badge badge--neutral text-2xs font-mono">${tool.badge}</span>
       </div>
       <div style="display: flex; flex-direction: column; gap: 4px;">
         <h4 class="saler-tool-card__title">${tool.name}</h4>

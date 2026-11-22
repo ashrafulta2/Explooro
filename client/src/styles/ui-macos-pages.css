@@ -324,6 +324,12 @@ html:where([data-ui-style='macos']) .test-latency-pill--error {
 html:where([data-ui-style='macos']) .uppercase {
   text-transform: none;
 }
+html:where([data-ui-style='macos']) .font-extrabold {
+  font-weight: 700;
+}
+html:where([data-ui-style='macos']) .font-black {
+  font-weight: 700;
+}
 html:where([data-ui-style='macos']) .bg-success-soft {
   background: color-mix(in srgb, var(--success-bg) 70%, transparent);
 }

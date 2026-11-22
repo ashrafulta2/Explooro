@@ -444,7 +444,7 @@
 }
 
 .saler-podium-card--silver {
-  border-color: #94a3b8;
+  border-color: var(--neutral-400);
   background: color-mix(in srgb, var(--neutral-400) 6%, var(--surface-0));
 }
 
@@ -1063,7 +1063,18 @@
 .commission-tier-card__ladder { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--space-2, 8px); }
 .commission-tier-card__step { display: flex; flex-direction: column; gap: 2px; padding: var(--space-2, 8px) var(--space-3, 12px); border: 1px solid var(--border-subtle, #e2e8f0); border-radius: var(--radius-lg, 12px); background: var(--surface-1, #f8fafc); }
 .commission-tier-card__step.is-passed { opacity: 0.7; }
-.commission-tier-card__step.is-current { border-color: var(--brand-400, #ffbc00); background: var(--brand-50, #fdf8ef); }
+/* WHY: --brand-50 stays a pale tint in dark mode, under light text; a tint of the role colour works in both */
+.commission-tier-card__step.is-current { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); }
 .commission-tier-card__step-name { font-size: var(--text-sm, 14px); font-weight: var(--weight-bold, 700); color: var(--text-primary); }
 .commission-tier-card__step-meta { font-size: var(--text-xs, 12px); color: var(--text-muted); font-family: var(--font-mono, monospace); }
 .commission-tier-card__foot { margin: 0; font-size: var(--text-xs, 12px); color: var(--text-muted); }
+
+/* WhatsApp contact button (saler orders list + order detail). WHY: the markup used bg-[#25D366],
+   which no stylesheet defines, beside a defined text-white, so the label was white on the plain
+   button. WhatsApp's own #25D366 under white is under 2:1; --success-700 keeps the green and 5:1. */
+.btn--whatsapp { background: var(--success-700); color: var(--neutral-0); border-color: var(--success-700); }
+.btn--whatsapp:hover:not(:disabled) { background: var(--success-800); border-color: var(--success-800); color: var(--neutral-0); }
+
+/* Leaderboard: the viewer's own row gets a brand stripe. A border on a <tr> does not draw in a
+   separated table, so it is an inset shadow on the first cell. */
+tr.border-l-4 > :first-child { box-shadow: inset 4px 0 0 var(--brand); }

@@ -212,21 +212,21 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
           <!-- Buyer Details & Courier Box -->
           <div class="saler-order-card__buyer-info">
             <div>
-              <div class="text-muted font-bold text-[10px] uppercase">${t('saler_orders.buyer_label')}</div>
+              <div class="text-muted font-bold text-2xs uppercase">${t('saler_orders.buyer_label')}</div>
               <div class="font-bold text-foreground">${ord.customer_name}</div>
               <div class="text-primary font-mono">${ord.customer_phone}</div>
             </div>
             <div>
-              <div class="text-muted font-bold text-[10px] uppercase">${t('saler_orders.delivery_address')}</div>
+              <div class="text-muted font-bold text-2xs uppercase">${t('saler_orders.delivery_address')}</div>
               <div class="text-muted text-xs">${ord.shipping_address} (${ord.district})</div>
             </div>
             <div>
-              <div class="text-muted font-bold text-[10px] uppercase">${t('saler_orders.courier_label')} & ${t('saler_orders.tracking_number')}</div>
+              <div class="text-muted font-bold text-2xs uppercase">${t('saler_orders.courier_label')} & ${t('saler_orders.tracking_number')}</div>
               <div class="font-bold text-foreground">${ord.courier_name}</div>
               <div class="text-xs font-mono text-muted">${ord.tracking_number}</div>
             </div>
             <div>
-              <div class="text-muted font-bold text-[10px] uppercase">${t('saler_orders.retail_total')}</div>
+              <div class="text-muted font-bold text-2xs uppercase">${t('saler_orders.retail_total')}</div>
               <div class="text-base font-black font-mono text-foreground">${formatCurrency(ord.total_retail_amount)}</div>
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function SalerOrdersPage(root: HTMLElement, { navigate }: PageCon
                 href="https://api.whatsapp.com/send?phone=${ord.customer_phone.replace(/[^0-9]/g, '')}&text=${encodeURIComponent(`Hello ${ord.customer_name}, thank you for ordering from our store (${ord.order_ref})!`)}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="btn btn--xs bg-[#25D366] text-white hover:bg-[#1ebc59] font-bold flex items-center gap-1"
+                class="btn btn--xs btn--whatsapp font-bold flex items-center gap-1"
               >
                 ${t('saler_orders.btn_contact_whatsapp')}
               </a>

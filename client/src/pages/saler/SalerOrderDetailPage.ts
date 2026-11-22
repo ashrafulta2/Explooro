@@ -96,7 +96,7 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
           href="https://api.whatsapp.com/send?phone=${order.customer_phone.replace(/[^0-9]/g, '')}&text=${encodeURIComponent(`Hello ${order.customer_name}, updates regarding your order ${order.order_ref}:`)}"
           target="_blank"
           rel="noopener noreferrer"
-          class="btn btn--sm bg-[#25D366] text-white hover:bg-[#1ebc59] font-bold flex items-center gap-1.5"
+          class="btn btn--sm btn--whatsapp font-bold flex items-center gap-1.5"
         >
           ${t('saler_orders.btn_contact_whatsapp')}
         </a>
@@ -165,19 +165,19 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
       </div>
       <div class="saler-stack--xs text-xs">
         <div>
-          <span class="text-muted font-bold uppercase text-[10px]">Name:</span>
+          <span class="text-muted font-bold uppercase text-2xs">Name:</span>
           <div style="font-weight: 700; font-size: 13px; color: var(--text-primary);">${order.customer_name}</div>
         </div>
         <div>
-          <span class="text-muted font-bold uppercase text-[10px]">Phone Number:</span>
+          <span class="text-muted font-bold uppercase text-2xs">Phone Number:</span>
           <div class="font-mono text-primary" style="font-weight: 700;">${order.customer_phone}</div>
         </div>
         <div>
-          <span class="text-muted font-bold uppercase text-[10px]">Delivery Address:</span>
+          <span class="text-muted font-bold uppercase text-2xs">Delivery Address:</span>
           <div style="color: var(--text-primary);">${order.shipping_address} (${order.district})</div>
         </div>
         <div class="pt-2" style="border-top: 1px solid var(--border-subtle);">
-          <span class="text-muted font-bold uppercase text-[10px]">Courier Tracking:</span>
+          <span class="text-muted font-bold uppercase text-2xs">Courier Tracking:</span>
           <div style="font-weight: 700; color: var(--text-primary);">${order.courier_name}</div>
           <div class="font-mono text-muted">${order.tracking_number}</div>
         </div>
@@ -196,7 +196,7 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
         <div class="relative pl-4">
           <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full bg-primary"></div>
           <div class="font-bold text-foreground">${t('saler_orders.timeline_placed')}</div>
-          <div class="text-muted text-[11px]">${formatDate(order.placed_at)}</div>
+          <div class="text-muted text-2xs">${formatDate(order.placed_at)}</div>
         </div>
         <div class="relative pl-4">
           <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full ${['SHIPPED', 'DELIVERED'].includes(order.fulfillment_status) ? 'bg-primary' : 'bg-muted'}"></div>
@@ -205,7 +205,7 @@ export default function SalerOrderDetailPage(root: HTMLElement, { params, naviga
         <div class="relative pl-4">
           <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full ${['SHIPPED', 'DELIVERED'].includes(order.fulfillment_status) ? 'bg-primary' : 'bg-muted'}"></div>
           <div class="font-bold text-foreground">${t('saler_orders.timeline_shipped')}</div>
-          <div class="text-muted text-[11px]">${order.courier_name} (${order.tracking_number})</div>
+          <div class="text-muted text-2xs">${order.courier_name} (${order.tracking_number})</div>
         </div>
         <div class="relative pl-4">
           <div class="absolute -left-[9px] top-1 w-2.5 h-2.5 rounded-full ${order.fulfillment_status === 'DELIVERED' ? 'bg-success' : 'bg-muted'}"></div>

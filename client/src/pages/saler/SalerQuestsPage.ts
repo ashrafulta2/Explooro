@@ -162,14 +162,14 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
           <div class="saler-stack--xs">
             <div class="saler-row" style="gap: 8px;">
               <span style="font-weight: 700; font-size: 14px; color: var(--text-primary);">${title}</span>
-              <span class="badge badge--neutral text-[10px] uppercase font-mono font-bold">${q.category}</span>
+              <span class="badge badge--neutral text-2xs uppercase font-mono font-bold">${q.category}</span>
             </div>
             <p class="text-xs text-muted leading-relaxed" style="margin: 0;">${desc}</p>
             <div class="saler-row pt-1" style="gap: 12px;">
               <div style="width: 128px; height: 6px; border-radius: 9999px; background: var(--surface-2); overflow: hidden;">
                 <div style="background: var(--brand-500, #ecae00); height: 100%; border-radius: 9999px; transition: width 0.3s ease; width: ${progressPct}%;"></div>
               </div>
-              <span class="text-[10px] font-mono font-bold text-muted">${q.current_count}/${q.target_count}</span>
+              <span class="text-2xs font-mono font-bold text-muted">${q.current_count}/${q.target_count}</span>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
         <div class="saler-row shrink-0" style="gap: 12px;">
           <div style="text-align: right;">
             <div style="font-size: 13px; font-weight: 900; font-family: var(--font-mono); color: var(--brand-700, #b48300);">+${q.reward_coins} 🪙</div>
-            <div class="text-[10px] text-muted uppercase">Reward</div>
+            <div class="text-2xs text-muted uppercase">Reward</div>
           </div>
           <div>
             ${
@@ -243,7 +243,7 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
         <!-- 2nd Place Silver -->
         <div class="saler-podium-card saler-podium-card--silver">
           <div class="text-3xl mb-1">${top2.avatar || '🥈'}</div>
-          <span class="badge badge--neutral text-[10px] font-bold uppercase">${t('saler_quests.podium_silver_title')}</span>
+          <span class="badge badge--neutral text-2xs font-bold uppercase">${t('saler_quests.podium_silver_title')}</span>
           <div class="font-black text-base text-foreground mt-1">${top2.saler_name}</div>
           <div class="text-xs text-muted font-mono">@${top2.store_slug}</div>
           <div class="text-sm font-extrabold text-foreground font-mono mt-2">${top2.sales_count} Sales · ৳${formatNumber(top2.gmv)}</div>
@@ -252,7 +252,7 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
         <!-- 1st Place Gold -->
         <div class="saler-podium-card saler-podium-card--gold">
           <div class="text-4xl mb-1 animate-pulse">${top1.avatar || '👑'}</div>
-          <span class="badge badge--warning text-[10px] font-bold uppercase">${t('saler_quests.podium_gold_title')}</span>
+          <span class="badge badge--warning text-2xs font-bold uppercase">${t('saler_quests.podium_gold_title')}</span>
           <div class="font-black text-lg text-foreground mt-1">${top1.saler_name}</div>
           <div class="text-xs text-muted font-mono">@${top1.store_slug}</div>
           <div class="text-base font-extrabold text-foreground font-mono mt-2">${top1.sales_count} Sales · ৳${formatNumber(top1.gmv)}</div>
@@ -261,7 +261,7 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
         <!-- 3rd Place Bronze -->
         <div class="saler-podium-card saler-podium-card--bronze">
           <div class="text-3xl mb-1">${top3.avatar || '🥉'}</div>
-          <span class="badge badge--neutral text-[10px] font-bold uppercase">${t('saler_quests.podium_bronze_title')}</span>
+          <span class="badge badge--neutral text-2xs font-bold uppercase">${t('saler_quests.podium_bronze_title')}</span>
           <div class="font-black text-base text-foreground mt-1">${top3.saler_name}</div>
           <div class="text-xs text-muted font-mono">@${top3.store_slug}</div>
           <div class="text-sm font-extrabold text-foreground font-mono mt-2">${top3.sales_count} Sales · ৳${formatNumber(top3.gmv)}</div>
@@ -308,7 +308,7 @@ export default function SalerQuestsPage(root: HTMLElement, { navigate }: PageCon
             <div>
               <div class="font-bold text-foreground text-sm flex items-center gap-1.5">
                 <span>${item.saler_name}</span>
-                ${item.is_current_user ? '<span class="badge badge--primary text-[10px]">YOU</span>' : ''}
+                ${item.is_current_user ? '<span class="badge badge--primary text-2xs">YOU</span>' : ''}
               </div>
               <div class="text-xs text-muted font-mono">@${item.store_slug}</div>
             </div>

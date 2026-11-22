@@ -244,7 +244,7 @@ export default function SalerStoreStatusPage(root: HTMLElement, { navigate }: Pa
       const dayConfig = store.weekly_schedule[day] || { is_open: true, open_time: '10:00 AM', close_time: '08:30 PM' };
       const row = document.createElement('div');
       row.className = `p-3 rounded-xl border ${
-        dayConfig.is_open ? 'border-subtle bg-surface' : 'border-subtle/50 bg-subtle/10 opacity-75'
+        dayConfig.is_open ? 'border-subtle bg-surface' : 'border-subtle bg-subtle opacity-75'
       } saler-row--between transition-all`;
 
       row.innerHTML = `
