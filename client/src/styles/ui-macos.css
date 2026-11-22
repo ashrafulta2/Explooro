@@ -813,7 +813,14 @@
 }
 
 /* ── Scrollbars: thin overlay-style ─────────────────────────────────────── */
-:root[data-ui-style='macos'] * { scrollbar-width: thin; }
+/* WHY: a default, not an override. Unlayered, `:root[data-ui-style] *` (0,2,0) out-ranked every
+   component's own `scrollbar-width: none` (0,1,0), so strips meant to scroll without a bar (the
+   /discover category pills, the feed scroller, …) grew a thin bar drawn under their pills. A
+   layered rule loses to every unlayered one whatever its specificity, so `thin` now applies only
+   where the component says nothing. */
+@layer macos-defaults {
+  :root[data-ui-style='macos'] * { scrollbar-width: thin; }
+}
 
 /* ── Touch: the 44px rule outranks the compact Mac sizes ────────────────── */
 @media (pointer: coarse) {
