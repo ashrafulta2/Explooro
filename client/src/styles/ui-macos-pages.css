@@ -255,6 +255,9 @@ html:where([data-ui-style='macos']) .admin-table th {
 html:where([data-ui-style='macos']) :where(.admin-page, .admin-order-drawer) :where(.bg-danger-soft) {
   background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
 }
+html:where([data-ui-style='macos']) :where(.admin-page, .admin-order-drawer) :where(.bg-warning-soft) {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .badge--success {
   background: color-mix(in srgb, var(--success-bg) 70%, transparent);
   border-color: transparent;
@@ -317,6 +320,9 @@ html:where([data-ui-style='macos']) .test-latency-pill--success {
 }
 html:where([data-ui-style='macos']) .test-latency-pill--error {
   background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
+html:where([data-ui-style='macos']) .uppercase {
+  text-transform: none;
 }
 
 /* ── components/admin-staff.css ── */
