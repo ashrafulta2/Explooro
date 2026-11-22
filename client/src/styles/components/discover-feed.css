@@ -365,6 +365,11 @@
   height: 100%;
   overflow-y: auto;
   padding-right: var(--space-1);
+  /* WHY: overflow-y:auto also clips horizontally, and the selected variant chip's ring (and every
+     focus ring) is drawn outside its border box, so with no left padding its left edge was cut off.
+     The padding gives the ring room; the equal negative margin keeps the text where it was. */
+  padding-left: var(--space-1);
+  margin-left: calc(-1 * var(--space-1));
   /* WHY: the floating Browse & filter pill is centered over the top of the card, so its right half
      sits over this panel's top-left. Drop the first panel element below it so the recommendation
      badge is never covered. Reset on mobile, where the panel is stacked below the image (no overlap). */
