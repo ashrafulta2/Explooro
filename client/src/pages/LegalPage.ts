@@ -9,7 +9,7 @@
 
 import { getLegalDocument, type LegalDocument } from '../services/legal.api.ts';
 import { renderLegalText } from '../services/legalText.ts';
-import { LEGAL_DOCS, legalDocBySlug } from '../config/legal.ts';
+import { legalDocBySlug } from '../config/legal.ts';
 import { t, getLanguage } from '../services/i18n.ts';
 import { formatDate } from '../services/format.ts';
 import type { PageContext } from './types.ts';
@@ -34,24 +34,15 @@ export default function LegalPage(root: HTMLElement, { params = {}, query = {}, 
     return a;
   };
 
-  function otherDocs() {
-    const nav = document.createElement('nav');
-    nav.className = 'legal-page__others';
-    nav.setAttribute('aria-label', t('legal.other_documents'));
-    for (const d of LEGAL_DOCS) {
-      const a = link(d.path, t(d.labelKey), 'legal-page__other');
-      if (d.key === def?.key) a.setAttribute('aria-current', 'page');
-      nav.append(a);
-    }
-    return nav;
-  }
-
+  // WHY no list of the other documents here: the site footer (components/shell/SiteFooter.ts)
+  // already ends every /legal/* page with the same four links, and marks this one as current.
+  // A second copy here showed them twice, one above the other.
   function message(text: string) {
     container.replaceChildren();
     const p = document.createElement('p');
     p.className = 'legal-page__message';
     p.textContent = text;
-    container.append(p, otherDocs());
+    container.append(p);
   }
 
   function render(doc: LegalDocument) {
@@ -145,7 +136,7 @@ export default function LegalPage(root: HTMLElement, { params = {}, query = {}, 
     article.innerHTML = html;
     layout.append(article);
 
-    container.append(header, layout, otherDocs());
+    container.append(header, layout);
   }
 
   if (!def) {

@@ -34,6 +34,7 @@ export function SiteFooter({ navigate = null as ((path: string) => void) | null,
     a.className = 'site-footer__link';
     a.href = d.path;
     a.textContent = t(d.labelKey);
+    if (typeof window !== 'undefined' && window.location.pathname === d.path) a.setAttribute('aria-current', 'page');
     a.addEventListener('click', (e) => {
       if (!navigate || e.metaKey || e.ctrlKey || e.shiftKey) return;
       e.preventDefault();
