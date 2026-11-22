@@ -176,7 +176,7 @@ export default function BundleStudioPage(root: HTMLElement, ctx: PageContext) {
     catalogCard.innerHTML = `
       <div class="saler-row--between">
         <h3 class="saler-card__title m-0">${t('bundle.catalog_picker_heading')}</h3>
-        <input type="text" id="catalog-search-input" aria-label="${t('bundle.search_products_placeholder')}" class="input input--sm text-sm" style="width: 240px;" placeholder="${t('bundle.search_products_placeholder')}" />
+        <input type="search" id="catalog-search-input" aria-label="${t('bundle.search_products_placeholder')}" class="input input--sm text-sm" style="width: 240px;" placeholder="${t('bundle.search_products_placeholder')}" />
       </div>
       <div id="catalog-picker-grid" class="saler-bundle-picker-grid">
         <p class="text-sm text-muted py-4 text-center" style="grid-column: 1 / -1;">${t('common.loading')}</p>

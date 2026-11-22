@@ -138,7 +138,7 @@ export default function SupplierOrdersPage(root: HTMLElement) {
     toolbar.innerHTML = `
       <div class="supplier-toolbar__search">
         <input
-          type="text"
+          type="search"
           id="orders-search-input"
           class="input input--sm"
           style="width: 100%;"

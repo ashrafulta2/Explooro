@@ -302,7 +302,7 @@ export default function StoriesManagerPage(root: HTMLElement) {
             🎬 Shoppable Video Reels (${reels.length})
           </button>
         </div>
-        <input type="search" id="content-search" aria-label="Search title or author..." placeholder="Search title or author..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="content-search" aria-label="Search title or author..." placeholder="Search title or author..." value="${searchQuery}" class="form-input" style="width: 240px; font-size: 12px; padding-block: 6px; padding-inline-end: 12px;" />
       </div>
     `;
 

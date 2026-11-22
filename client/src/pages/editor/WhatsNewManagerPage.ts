@@ -280,7 +280,7 @@ export default function WhatsNewManagerPage(root: HTMLElement) {
             🛡️ Security & payment protection
           </button>
         </div>
-        <input type="search" id="update-search" aria-label="Search release notes..." placeholder="Search release notes..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="update-search" aria-label="Search release notes..." placeholder="Search release notes..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding-block: 6px; padding-inline-end: 12px;" />
       </div>
     `;
 

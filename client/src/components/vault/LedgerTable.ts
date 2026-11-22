@@ -111,7 +111,7 @@ export function LedgerTable({
           </div>
 
           <div class="ledger-table__actions">
-            <input type="text" class="input input--sm ledger-table__search" aria-label="${t('vault.search_ledger', 'Search your transactions')}" placeholder="${t('common.search')}..." value="${searchQuery}" />
+            <input type="search" class="input input--sm ledger-table__search" aria-label="${t('vault.search_ledger', 'Search your transactions')}" placeholder="${t('common.search')}..." value="${searchQuery}" />
             <select class="select select--sm ledger-table__category-filter" aria-label="${t('vault.filter_category', 'Filter by category')}">
               <option value="" ${currentCategory === '' ? 'selected' : ''}>${t('common.all_categories')}</option>
               <option value="ESCROW_RELEASE" ${currentCategory === 'ESCROW_RELEASE' ? 'selected' : ''}>Order money received</option>

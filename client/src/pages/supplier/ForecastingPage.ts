@@ -234,9 +234,11 @@ export default function SupplierForecastingPage(root: HTMLElement) {
             color:${riskFilter===r?'var(--brand-contrast,#fff)':'var(--text-secondary,#64748b)'};">${t(RISK_LABEL_KEYS[r] || 'sup_forecast.risk_all', r)}</button>
         `).join('')}
         <!-- Search -->
-        <input id="inp-sku-search" type="text" aria-label="${t('sup_forecast.search_placeholder', 'Search products…')}" placeholder="${t('sup_forecast.search_placeholder', 'Search products…')}" value="${searchQuery}"
-          style="margin-left:auto;padding:7px 12px;border-radius:8px;border:1px solid var(--border-default,#e2e8f0);
-          font-size:0.82rem;background:var(--surface-0,#f8fafc);min-width:200px;color:var(--text-primary,#0f172a);">
+        <!-- WHY type=search + longhands: the shared search icon (input-affordance.css §5) only applies to
+             type=search, and the padding/background shorthands would wipe it. -->
+        <input id="inp-sku-search" type="search" aria-label="${t('sup_forecast.search_placeholder', 'Search products…')}" placeholder="${t('sup_forecast.search_placeholder', 'Search products…')}" value="${searchQuery}"
+          style="margin-left:auto;padding-block:7px;padding-inline-end:12px;border-radius:8px;border:1px solid var(--border-default,#e2e8f0);
+          font-size:0.82rem;background-color:var(--surface-0,#f8fafc);min-width:200px;color:var(--text-primary,#0f172a);">
       </div>
 
       <!-- Forecast List -->

@@ -129,7 +129,7 @@ export default function SupplierShipmentsPage(root: HTMLElement) {
     toolbar.innerHTML = `
       <div class="supplier-toolbar__search">
         <input
-          type="text"
+          type="search"
           id="shipment-search-input"
           class="input input--sm"
           style="width: 100%;"

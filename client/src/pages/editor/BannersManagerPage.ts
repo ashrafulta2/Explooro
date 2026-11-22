@@ -220,7 +220,7 @@ export default function BannersManagerPage(root: HTMLElement) {
             ⚡ Flash Sale Strip
           </button>
         </div>
-        <input type="search" id="banner-search" aria-label="Search banner title..." placeholder="Search banner title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="banner-search" aria-label="Search banner title..." placeholder="Search banner title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding-block: 6px; padding-inline-end: 12px;" />
       </div>
     `;
 

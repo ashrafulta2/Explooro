@@ -222,7 +222,7 @@ export default function AcademyManagerPage(root: HTMLElement) {
             💰 Payments & finance
           </button>
         </div>
-        <input type="search" id="course-search" aria-label="Search course title..." placeholder="Search course title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding: 6px 12px;" />
+        <input type="search" id="course-search" aria-label="Search course title..." placeholder="Search course title..." value="${searchQuery}" class="form-input" style="width: 220px; font-size: 12px; padding-block: 6px; padding-inline-end: 12px;" />
       </div>
     `;
 

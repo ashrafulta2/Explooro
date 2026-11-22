@@ -306,7 +306,7 @@ export default function SalerInsightsPage(root: HTMLElement) {
         </p>
       </div>
       <div style="display: flex; align-items: center; gap: 10px; min-width: 0; max-width: 100%;">
-        <input type="search" id="saler-search-input" aria-label="${t('supplier.si_search_label')}" placeholder="${t('supplier.si_search_ph')}" value="${searchQuery}" class="form-input" style="padding: 6px 12px; font-size: 12px; width: 220px; max-width: 100%; border-radius: 8px;" />
+        <input type="search" id="saler-search-input" aria-label="${t('supplier.si_search_label')}" placeholder="${t('supplier.si_search_ph')}" value="${searchQuery}" class="form-input" style="padding-block: 6px; padding-inline-end: 12px; font-size: 12px; width: 220px; max-width: 100%; border-radius: 8px;" />
         <span class="badge badge--neutral text-xs font-mono font-bold">${t('supplier.si_curators_active', { n: topSalers.length })}</span>
       </div>
     `;
