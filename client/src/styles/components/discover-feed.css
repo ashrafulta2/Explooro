@@ -145,7 +145,12 @@
   min-width: 0;
   height: auto;
   border-bottom: none;
-  padding: 0;
+  /* WHY: overflow-x:auto clips vertically too, and the Mac pill's edge is a box-shadow drawn outside
+     its (transparent) border, as is every focus ring. With padding 0 that edge was cut off on the
+     top, bottom and left, so the pills looked unfinished. The padding gives the ring room; the equal
+     negative margin keeps the pills where they were. */
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
 }
 /* WHY: category text read as too small; bump it up (from --text-xs) and give pills more padding
    so the labels are comfortably legible in the dropdown. */

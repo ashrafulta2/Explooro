@@ -614,7 +614,10 @@ button.star-row__star:focus-visible { outline: 2px solid var(--brand); outline-o
 }
 .home-floating-toolbar .category-pills {
   border-bottom: none;
-  padding: 0;
+  /* WHY: same as .discover-page__toolbar .category-pills: room for the pill's outside ring, which
+     overflow-x:auto would otherwise clip; the negative margin cancels it out of the layout. */
+  padding: var(--space-1);
+  margin: calc(-1 * var(--space-1));
 }
 .home-floating-toolbar .category-pills__pill {
   font-size: var(--text-sm);
