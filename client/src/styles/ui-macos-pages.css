@@ -185,11 +185,29 @@ html:where([data-ui-style='macos']) .admin-dashboard__tf-btn {
 }
 html:where([data-ui-style='macos']) .admin-alerts__count-badge {
   font-weight: 700;
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
+}
+html:where([data-ui-style='macos']) .admin-alerts__count-badge--critical {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .admin-alert-card__severity {
   font-weight: 700;
   text-transform: none;
   letter-spacing: normal;
+}
+html:where([data-ui-style='macos']) .admin-alert-card--critical .admin-alert-card__severity {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .admin-alert-card--high .admin-alert-card__severity {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .admin-alert-card--medium .admin-alert-card__severity {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .admin-alert-card__count {
   font-weight: 700;
