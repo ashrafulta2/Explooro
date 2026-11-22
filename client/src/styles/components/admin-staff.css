@@ -102,7 +102,10 @@
 .admin-staff-select:focus-within { border-color: var(--brand); outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .admin-staff-search__icon,
 .admin-staff-select__chevron { position: absolute; display: inline-flex; color: var(--text-muted); pointer-events: none; }
-.admin-staff-search__icon { inset-inline-start: var(--space-3); }
+/* WHY: display:none. input-affordance.css draws the ONE search icon as the input's background and
+   hides this span, but the shared rule above (loaded later) set it back to inline-flex, so the
+   staff search showed two magnifiers. */
+.admin-staff-search__icon { inset-inline-start: var(--space-3); display: none; }
 .admin-staff-select__chevron { inset-inline-end: var(--space-2); }
 .admin-staff-search input {
   width: 100%;

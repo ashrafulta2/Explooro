@@ -427,7 +427,9 @@
   height: 16px;
   color: var(--text-muted);
   pointer-events: none;
-  display: inline-flex;
+  /* WHY: none, not inline-flex. input-affordance.css draws the ONE search icon as the input's
+     background and hides this span; this file loads later and used to win, showing two. */
+  display: none;
   align-items: center;
 }
 

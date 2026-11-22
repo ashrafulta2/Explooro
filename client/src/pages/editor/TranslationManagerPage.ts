@@ -233,14 +233,16 @@ export default function TranslationManagerPage(root: HTMLElement, ctx: PageConte
         <div style="flex: 1; min-width: 240px;">
           <input type="search" id="trans-search-input" value="${searchQuery}" aria-label="Search translation keys or values..." placeholder="Search translation keys or values..." style="
             width: 100%;
-            padding: 8px 12px;
+            padding-block: 8px;
+            padding-inline-end: 12px;
             font-size: 12px;
             font-family: inherit;
             border-radius: 6px;
             border: 1px solid var(--border-subtle, #e2e8f0);
-            background: var(--surface-1, #ffffff);
+            background-color: var(--surface-1, #ffffff);
             color: var(--text-primary, #0f172a);
           "/>
+          <!-- WHY longhands: the padding/background shorthands wiped the shared search icon (input-affordance.css §5). -->
         </div>
 
         <div style="display: flex; align-items: center; gap: 16px; font-size: 12px;">

@@ -245,7 +245,7 @@ export default function IntegrationsPage(root: HTMLElement, { navigate }: PageCo
     const searchBox = document.createElement('div');
     searchBox.className = 'admin-search-box';
     searchBox.innerHTML = `
-      <input type="text" class="input input--sm" id="integration-search"
+      <input type="search" class="input input--sm" id="integration-search"
         aria-label="${escapeHtml(tx('search_label', 'Search integrations'))}"
         placeholder="${escapeHtml(tx('search_placeholder', 'Search by name or category...'))}"
         value="${escapeHtml(searchQuery)}" />

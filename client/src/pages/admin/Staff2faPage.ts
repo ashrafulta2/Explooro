@@ -312,8 +312,9 @@ export default function Staff2faPage(root: HTMLElement, { navigate }: PageContex
               aria-label="${isBn ? 'স্টাফ খুঁজুন' : 'Search staff'}"
               placeholder="${isBn ? 'নাম, ইমেইল বা বিভাগ দিয়ে খুঁজুন...' : 'Search by name, email or department...'}"
               value="${searchQuery}"
-              style="padding: 0.45rem 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary); min-width: 220px;"
+              style="padding-block: 0.45rem; padding-inline-end: 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background-color: var(--surface-0); color: var(--text-primary); min-width: 220px;"
             />
+            <!-- WHY longhands: the padding/background shorthands wiped the shared search icon (input-affordance.css §5). -->
             <select id="role-filter-select" aria-label="${t('admin_2fa.filter_all')}" style="padding: 0.45rem 0.75rem; font-size: 0.8125rem; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--surface-0); color: var(--text-primary);">
               <option value="ALL" ${roleFilter === 'ALL' ? 'selected' : ''}>${t('admin_2fa.filter_all')}</option>
               <option value="SUPER_ADMIN" ${roleFilter === 'SUPER_ADMIN' ? 'selected' : ''}>${t('admin_2fa.filter_super_admin')}</option>
