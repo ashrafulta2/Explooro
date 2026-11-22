@@ -10,10 +10,12 @@
   max-width: 1280px;
   margin: 0 auto;
   padding: var(--space-4, 16px) var(--space-6, 24px);
-  animation: fadeIn 0.2s ease-in-out;
+  animation: salerFadeIn 0.2s ease-in-out;
 }
 
-@keyframes fadeIn {
+/* WHY: supplier.css also defines a fadeIn; now that both sheets are route-split, the one loaded last
+   would win. A distinct name keeps this one deterministic. */
+@keyframes salerFadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }

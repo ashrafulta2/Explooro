@@ -226,7 +226,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/saler/SalerIncentivesPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./pages/saler/SalerIncentivesPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/saler/samples',
@@ -234,7 +234,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerSamplesPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerSamplesPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/saler/marketing-kits',
@@ -242,7 +242,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerMarketingKitsPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/saler/SalerMarketingKitsPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/saler/fast-payout',
@@ -250,7 +250,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerFastPayoutPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerFastPayoutPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/saler/return-protection',
@@ -258,7 +258,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.sourcing.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerReturnProtectionPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/saler/SalerReturnProtectionPage.ts')]).then(([, , , page]) => page),
       },
       // Prompt 10.3: AI Creative Studio (ad copy generation)
       {
@@ -300,7 +300,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/WarrantyClaimsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/warranty',
@@ -308,7 +308,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/WarrantyClaimsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/warranties',
@@ -316,7 +316,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/WarrantyClaimsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/warranty-claims',
@@ -324,7 +324,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'support.warranty.manage',
         module: 'digital_warranty',
-        load: () => import('./pages/supplier/WarrantyClaimsPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/WarrantyClaimsPage.ts')]).then(([, page]) => page),
       },
       // Prompt 10.5: Cross-Seller Bundling & Demand Surge Pricing
       {
@@ -333,7 +333,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.bundle.manage',
         module: 'product_bundling',
-        load: () => import('./pages/saler/BundleStudioPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/BundleStudioPage.ts')]).then(([, page]) => page),
       },
       // Prompt 10.6: B2B Wholesale Escrow & Milestone Settlement
       {
@@ -342,7 +342,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
-        load: () => import('./pages/supplier/B2bEscrowPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/B2bEscrowPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/b2b-escrow',
@@ -350,7 +350,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
-        load: () => import('./pages/supplier/B2bEscrowPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/B2bEscrowPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/b2b-escrow',
@@ -358,7 +358,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'b2b_escrow',
-        load: () => import('./pages/supplier/B2bEscrowPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/B2bEscrowPage.ts')]).then(([, page]) => page),
       },
       // Prompt 10.7: Open Marketplace API, Webhooks & Developer SDK
       {
@@ -545,7 +545,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/EditorDashboardPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/EditorDashboardPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/dashboard',
@@ -553,7 +553,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/EditorDashboardPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/EditorDashboardPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/banners',
@@ -561,7 +561,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.banner.publish',
         module: 'core',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/BannersManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/BannersManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/stories',
@@ -569,7 +569,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.story.curate',
         module: 'content_commerce',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/StoriesManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/StoriesManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/academy',
@@ -577,7 +577,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/AcademyManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/AcademyManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/whats-new',
@@ -585,7 +585,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.announcement.publish',
         module: 'whats_new',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/WhatsNewManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/WhatsNewManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/help-center',
@@ -593,7 +593,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.help.manage',
         module: 'core',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/HelpCenterManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/HelpCenterManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/help',
@@ -601,7 +601,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.help.manage',
         module: 'core',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/HelpCenterManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/HelpCenterManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/editor/translations',
@@ -626,7 +626,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.dashboard.view',
         module: 'core',
-        load: () => import('./pages/supplier/SupplierDashboardPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/SupplierDashboardPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/dashboard',
@@ -634,7 +634,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.dashboard.view',
         module: 'core',
-        load: () => import('./pages/supplier/SupplierDashboardPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/SupplierDashboardPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/inventory',
@@ -642,7 +642,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.inventory.manage',
         module: 'core',
-        load: () => import('./pages/supplier/InventoryPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/InventoryPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/batches',
@@ -650,7 +650,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.batch.manage',
         module: 'fefo_batches',
-        load: () => import('./pages/supplier/BatchManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/BatchManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/warehouses',
@@ -658,7 +658,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.warehouse.manage',
         module: 'multi_warehouse',
-        load: () => import('./pages/supplier/WarehousePage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/WarehousePage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/warehouse',
@@ -666,7 +666,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.warehouse.manage',
         module: 'multi_warehouse',
-        load: () => import('./pages/supplier/WarehousePage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/WarehousePage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/fulfilment',
@@ -674,7 +674,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.consignment.create',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/FulfilmentPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/FulfilmentPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/fulfillment',
@@ -682,7 +682,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.consignment.create',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/FulfilmentPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/FulfilmentPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/shipping',
@@ -690,7 +690,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.consignment.create',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/FulfilmentPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/FulfilmentPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/salers',
@@ -698,7 +698,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'core',
-        load: () => import('./pages/supplier/SalerInsightsPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/SalerInsightsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/scorecard',
@@ -706,7 +706,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./pages/supplier/SupplierScorecardPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/supplier-scorecard.css'), import('./pages/supplier/SupplierScorecardPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/incentive',
@@ -714,7 +714,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./pages/supplier/SupplierIncentivePage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./pages/supplier/SupplierIncentivePage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/supplier/samples',
@@ -722,7 +722,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierSamplesPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierSamplesPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/supplier/marketing-kits',
@@ -730,7 +730,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierMarketingKitsPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./pages/supplier/SupplierMarketingKitsPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/supplier/social-kit',
@@ -738,7 +738,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'catalog.product.manage_own',
         module: 'social_seller_kit',
-        load: () => import('./pages/supplier/SupplierSocialKitPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/supplier/SupplierSocialKitPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/fast-payout',
@@ -746,7 +746,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierFastPayoutPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierFastPayoutPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/supplier/return-protection',
@@ -754,7 +754,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.analytics.view',
         module: 'sourcing',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierReturnProtectionPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/payout-protection.css'), import('./pages/supplier/SupplierReturnProtectionPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/supplier/orders',
@@ -762,7 +762,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.order.view',
         module: 'core',
-        load: () => import('./pages/supplier/SupplierOrdersPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/SupplierOrdersPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/help',
@@ -770,7 +770,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/supplier/SupplierHelpPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/SupplierHelpPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/shipments',
@@ -778,7 +778,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'logistics.shipment.view',
         module: 'courier_hub',
-        load: () => import('./pages/supplier/SupplierShipmentsPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/SupplierShipmentsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/inquiries',
@@ -786,7 +786,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'chat.thread.view_own',
         module: 'chat',
-        load: () => import('./pages/supplier/SupplierInquiriesPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/SupplierInquiriesPage.ts')]).then(([, page]) => page),
       },
       // A supplier's own flash sales; the supplier pays the discount (migration 096).
       {
@@ -795,7 +795,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.flash_sale.manage_own',
         module: 'flash_sale',
-        load: () => Promise.all([import('./styles/components/incentive.css'), import('./styles/components/supplier-flash.css'), import('./pages/supplier/SupplierFlashSalesPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/incentive.css'), import('./styles/components/supplier-flash.css'), import('./pages/supplier/SupplierFlashSalesPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/supplier/store-status',
@@ -803,7 +803,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'supplier.store.manage',
         module: 'physical_shop_status',
-        load: () => import('./pages/supplier/StoreStatusPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/supplier/StoreStatusPage.ts')]).then(([, page]) => page),
       },
       // Prompt 4.8: Explooro Partner Virtual Storefront Builder
       {
@@ -820,7 +820,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'physical_shop_status',
-        load: () => import('./pages/saler/SalerStoreStatusPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerStoreStatusPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/social-kit',
@@ -828,7 +828,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/saler/SocialKitPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SocialKitPage.ts')]).then(([, page]) => page),
       },
       // Prompt 11.2: Explooro Partner Dashboard & Analytics
       // WHY this is the only `/saler` entry: a Prompt-1.5 guard-demo stub was also registered at
@@ -841,7 +841,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerDashboardPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerDashboardPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/dashboard',
@@ -849,7 +849,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.dashboard.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerDashboardPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerDashboardPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/orders',
@@ -857,7 +857,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerOrdersPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerOrdersPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/orders/:id',
@@ -865,7 +865,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/saler/SalerOrderDetailPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerOrderDetailPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/analytics',
@@ -873,7 +873,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.order.view',
         module: 'core',
-        load: () => import('./pages/saler/AnalyticsPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/AnalyticsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/academy',
@@ -1236,7 +1236,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.partner_reward.view',
         module: 'virtual_storefront',
-        load: () => import('./pages/admin/AdminPartnerRewardsPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/admin/AdminPartnerRewardsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/group-buy',
@@ -1254,7 +1254,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.banner.publish',
         module: 'core',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/BannersManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/BannersManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/admin/content/stories',
@@ -1262,7 +1262,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.story.curate',
         module: 'content_commerce',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/StoriesManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/StoriesManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/admin/content/academy',
@@ -1270,7 +1270,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/AcademyManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/AcademyManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/admin/content/whats-new',
@@ -1278,7 +1278,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.announcement.publish',
         module: 'whats_new',
-        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/WhatsNewManagerPage.ts')]).then(([, page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./styles/components/editor.css'), import('./pages/editor/WhatsNewManagerPage.ts')]).then(([, , page]) => page),
       },
       {
         path: '/admin/content/translations',
@@ -1600,7 +1600,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.payout.request',
         module: 'core',
-        load: () => import('./pages/saler/WithdrawalsPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/WithdrawalsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/supplier/vault',
@@ -1764,7 +1764,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.store.manage',
         module: 'virtual_storefront',
-        load: () => import('./pages/saler/MyProductsPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/MyProductsPage.ts')]).then(([, page]) => page),
       },
       // Prompt 7.5: KYC Verification, Blue-Tick & Trust Tiers
       {
@@ -1773,7 +1773,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'supplier_verification',
-        load: () => import('./pages/seller/KycSubmissionPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/seller/KycSubmissionPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/account/kyc',
@@ -1781,7 +1781,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'supplier_verification',
-        load: () => import('./pages/seller/KycSubmissionPage.ts'),
+        load: () => Promise.all([import('./styles/components/supplier.css'), import('./pages/seller/KycSubmissionPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/verification',
@@ -1970,7 +1970,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.ad.manage_own',
         module: 'sponsored_ads',
-        load: () => import('./pages/saler/AdCampaignPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/AdCampaignPage.ts')]).then(([, page]) => page),
       },
       // Prompt 9.2: Coupons, Vouchers & Flash Sale Campaigns
       {
@@ -2037,7 +2037,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/ReferralHubPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/customer/referrals',
@@ -2045,7 +2045,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/ReferralHubPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/referrals',
@@ -2053,7 +2053,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/ReferralHubPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/referrals',
@@ -2061,7 +2061,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'growth.referral.view_own',
         module: 'referral_engine',
-        load: () => import('./pages/saler/ReferralHubPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/ReferralHubPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/growth/referrals',
@@ -2098,7 +2098,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'finance.subscription.subscribe_own',
         module: 'subscription_fees',
-        load: () => import('./pages/saler/SalerProPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerProPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/quests',
@@ -2106,7 +2106,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'daily_quests',
-        load: () => import('./pages/saler/SalerQuestsPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerQuestsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/saler/leaderboard',
@@ -2114,7 +2114,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'gamification',
-        load: () => import('./pages/saler/SalerQuestsPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/SalerQuestsPage.ts')]).then(([, page]) => page),
       },
       // Prompt 9.5: Social Group Buying (Team Purchase)
       {
@@ -2148,7 +2148,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'saler.analytics.view',
         module: 'cart_recovery',
-        load: () => import('./pages/saler/CartInsightsPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler.css'), import('./pages/saler/CartInsightsPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/cart/recover/:token',
@@ -2167,7 +2167,7 @@ async function bootRouterDemo() {
               title: 'Component Gallery — Explooro (dev)',
               permission: null,
               module: 'core',
-              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./styles/components/payout-protection.css'), import('./styles/components/wishlist.css'), import('./styles/components/customer-following.css'), import('./styles/components/customer-addresses.css'), import('./styles/components/audit-explorer.css'), import('./styles/components/theme-studio.css'), import('./styles/components/saler-inbox.css'), import('./styles/components/editor.css'), import('./styles/components/sourcing.css'), import('./styles/components/profile.css'), import('./pages/dev/GalleryPage.ts')]).then(([, , , , , , , , , , , , , , page]) => page),
+              load: () => Promise.all([import('./styles/components/saler.css'), import('./styles/components/supplier.css'), import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./styles/components/payout-protection.css'), import('./styles/components/wishlist.css'), import('./styles/components/customer-following.css'), import('./styles/components/customer-addresses.css'), import('./styles/components/audit-explorer.css'), import('./styles/components/theme-studio.css'), import('./styles/components/saler-inbox.css'), import('./styles/components/editor.css'), import('./styles/components/sourcing.css'), import('./styles/components/profile.css'), import('./pages/dev/GalleryPage.ts')]).then(([, , , , , , , , , , , , , , , , page]) => page),
             },
             {
               path: '/dev/craft',

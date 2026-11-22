@@ -72,6 +72,12 @@
      saler-inbox.css         UnifiedInboxPage
      editor.css              the seven pages/editor/* pages
      sourcing.css            SourcingCatalogPage (and its AddToStoreDrawer)
+     supplier.css            every route whose page reaches a supplier-* class (supplier hub,
+                             editor pages, KYC, the incentive/kit/payout pages of both roles)
+     saler.css               every route whose page reaches a saler-* class (partner hub,
+                             social kits, admin partner rewards)
+     For the two role sheets, find the routes with an import graph, not by folder: editor and admin
+     pages borrow their classes too.
      profile.css             via styles/loadProfileStyles.ts — ProfilePage
    WHY: returns.css was shipping twice (here AND in ReturnsPage's chunk), and the entry CSS was
    0.07KB under the 70KB gate. A new consumer of these classes MUST import the sheet, or it renders
@@ -97,7 +103,6 @@
 @import './components/notification-prefs.css';
 
 /* Prompt 11.1: Supplier & Manufacturer Hub, Simple Mode, Stock, Orders to Pack, Fulfilment & Help */
-@import './components/supplier.css';
 
 /* Editor Portal: Dashboard, Banners, Stories, Academy, What's New, Help Center, Translations */
 
@@ -105,7 +110,6 @@
 @import './components/admin-pages.css';
 
 /* Explooro Partner Portal: Products, Showroom Status, Orders, Flyer Studio, Withdrawals, Quests & Leaderboard */
-@import './components/saler.css';
 @import './components/chat.css';
 @import './components/referrals.css';
 
