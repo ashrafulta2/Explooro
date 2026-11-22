@@ -262,6 +262,12 @@
 .home-band--dark .home-band__cta, .home-band--plain .home-band__cta { background: var(--brand); color: var(--brand-contrast); }
 .home-band__cta:hover, .home-band__cta:focus-visible { filter: brightness(1.1); }
 
+/* ── Home band ads (BandAdRotator.ts) ── WHY here and not in the lazy sponsored sheet: every panel is wrapped
+   before any ad arrives, and the wrapper must already stretch its panel to the row (the side column's
+   `contain: size` gives it no height of its own). The ad cards' looks are in sponsored-slot.css. */
+.band-ad-rotator { position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); min-width: 0; }
+.band-ad-rotator > * { grid-area: 1 / 1; }
+
 .home-top__welcome { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-4); background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); }
 .home-top__welcome-title { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
 .home-top__welcome-links { display: flex; flex-wrap: wrap; gap: var(--space-2); }
@@ -270,7 +276,7 @@
 
 @media (max-width: 1023px) {
   .home-top__main { grid-template-columns: minmax(0, 1fr) 220px; }
-  .home-top__earn, .home-top__main--for-you .home-band--left { display: none; }
+  .home-top__earn, .home-top__main--for-you .home-band--left, .band-ad-rotator--narrow-hidden { display: none; }
   .home-top__main--band { grid-template-columns: minmax(0, 1fr); }
   .home-band { min-height: 0; }
   .home-band__rows, .home-band__metrics, .home-band__tiles { flex: none; }

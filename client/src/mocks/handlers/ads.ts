@@ -9,6 +9,10 @@
 
 
 import type { MockRoute } from '../types.ts';
+import { getMockSessionUser } from './auth.ts';
+
+/** Kept equal to HOME_BAND_AD_VIEWER_ROLES in server/src/services/ads.service.ts (server/test/homeBandAds.test.js). */
+export const MOCK_HOME_BAND_VIEWER_ROLES = ['customer', 'saler', 'supplier'];
 
 const PREPAID_MODELS = ['FLAT_DAILY', 'FLAT_SLOT', 'CPS'];
 
@@ -239,6 +243,31 @@ let mockAdProducts: Record<string, any>[] = [
     allowed_roles: ['saler', 'supplier'],
     rate_card: { cps_rate: 0.35, min_quantity: 1000, max_quantity: 200000, min_days: 1, max_days: 1, service_fee_percent: 0, vat_percent: 0, tier_discounts: { ...DEFAULT_TIER_DISCOUNTS } },
   },
+  // Home Top Band — mirrors migration 111.
+  ...([
+    [11, 'center', 'Centre', 'মাঝখান', '🏆', 3000, 41, 'The widest panel at the very top of the home page', 'হোম পেজের একদম উপরের সবচেয়ে চওড়া প্যানেল', 'wide 16:9', 'চওড়া ১৬:৯'],
+    [12, 'left', 'Left', 'বাম', '◧', 2000, 42, 'A tall panel at the top left of the home page', 'হোম পেজের উপরে বাম পাশের লম্বা প্যানেল', 'tall 3:4', 'লম্বা ৩:৪'],
+    [13, 'right', 'Right', 'ডান', '◨', 2000, 43, 'A tall panel at the top right of the home page', 'হোম পেজের উপরে ডান পাশের লম্বা প্যানেল', 'tall 3:4', 'লম্বা ৩:৪'],
+  ] as const).map(([id, pos, en, bn, icon, rate, sort, tagEn, tagBn, imgEn, imgBn]) => ({
+    id,
+    key: `home_band_${pos}`,
+    name_en: `Home Top Band — ${en}`,
+    name_bn: `হোম টপ ব্যান্ড — ${bn}`,
+    tagline_en: tagEn,
+    tagline_bn: tagBn,
+    description_en: `Your ad takes turns with the ${en.toLowerCase()} panel at the top of the home page. Use a ${imgEn} image. Reserved by the day; three ads share the panel.`,
+    description_bn: `হোম পেজের উপরের ${bn} প্যানেলে আপনার বিজ্ঞাপন পালা করে দেখানো হয়। ${imgBn} ছবি দিন। দিন হিসেবে সংরক্ষিত; একটি প্যানেলে দিনে তিনটি বিজ্ঞাপন।`,
+    icon,
+    placement: `HOME_BAND_${pos.toUpperCase()}`,
+    pricing_model: 'FLAT_DAILY',
+    badge_key: 'PREMIUM',
+    requires_product: false,
+    requires_review: true,
+    is_enabled: true,
+    sort_order: sort,
+    allowed_roles: ['saler', 'supplier'],
+    rate_card: { daily_rate: rate, min_days: 1, max_days: 14, slots_per_period: 3, service_fee_percent: 0, vat_percent: 0, tier_discounts: { ...DEFAULT_TIER_DISCOUNTS } },
+  })),
 ];
 
 let mockAdCampaigns = [
@@ -842,6 +871,38 @@ const adsHandlers = [
         product_id: null,
       };
       return { status: 200, body: { placements: placement === 'HOME_HERO' ? [row] : [] } };
+    },
+  },
+  {
+    method: 'GET',
+    path: '/ads/reserved/home-band',
+    handler() {
+      // Mirrors adsService.listHomeBandPlacements: staff see none, everyone else one booked ad per panel,
+      // so the rotation can be seen in mock mode. No image, so the text design shows.
+      const roles = getMockSessionUser()?.roles || [];
+      const panels = { left: [], center: [], right: [] };
+      if (!roles.every((r) => MOCK_HOME_BAND_VIEWER_ROLES.includes(r))) return { status: 200, body: { panels } };
+      const rows = {
+        left: ['Fresh stock every morning', 'Vegetables and fish from Jessore, delivered in Dhaka the same day.'],
+        center: ['Eid Collection — up to 30% off', 'Panjabi, saree and gift sets from verified suppliers. Free delivery inside Dhaka this week.'],
+        right: ['Bulk packaging, half price', 'Boxes, poly mailers and tape for your shop.'],
+      };
+      for (const [i, position] of (['left', 'center', 'right'] as const).entries()) {
+        panels[position] = [{
+          slot_index: 0,
+          campaign_id: 9201 + i,
+          title: rows[position][0],
+          placement: `HOME_BAND_${position.toUpperCase()}`,
+          creative_id: 9301 + i,
+          headline: rows[position][0],
+          description: rows[position][1],
+          banner_image_url: null,
+          call_to_action: position === 'center' ? 'GET_OFFER' : 'SHOP_NOW',
+          destination_url: '/',
+          product_id: null,
+        }];
+      }
+      return { status: 200, body: { panels } };
     },
   },
   // Mirrors server adDensity.service.ts: same envelope, same bounds, strict writes, stale check.

@@ -1008,6 +1008,11 @@
       "go_to_slide": "Show slide {{n}}",
       "sponsored": "Sponsored",
       "spotlight_cta": "View offer",
+      "band_ads": {
+        "dots_label": "Panel and sponsored offers",
+        "show_panel": "Show this panel",
+        "show_ad": "Show sponsored offer {{n}}"
+      },
       "slide_flash": {
         "title": "Flash sales",
         "sub": "Limited-time prices from verified suppliers. Grab them before the timer ends.",

@@ -64,6 +64,8 @@ import { PageAvailabilityRow } from '../../components/admin/PageAvailabilityRow.
 import { attachSearchSuggest } from '../../components/search/SearchSuggest.ts';
 import { FlashSaleWidget } from '../../components/product/FlashSaleWidget.ts';
 import { HomeTop } from '../../components/home/HomeTop.ts';
+import { BandAdCard, BandAdRotator } from '../../components/home/BandAdRotator.ts';
+import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.ts';
 import { ProductRail, ProductRailSkeleton } from '../../components/product/ProductRail.ts';
 import { ImageGallery } from '../../components/product/ImageGallery.ts';
 import { VariantSelector } from '../../components/product/VariantSelector.ts';
@@ -889,6 +891,41 @@ function renderHomeTop() {
   return wrap;
 }
 
+// Home Top Band ads (migration 111): the two card shapes, with and without an image, and a panel
+// taking turns with a booked ad. The image is an inline SVG so the gallery needs no network.
+function renderBandAds() {
+  const wrap = document.createDocumentFragment();
+  loadSponsoredStyles();
+  const svg = (w, h) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><rect width="${w}" height="${h}" fill="#1f6f4a"/><circle cx="${w * 0.7}" cy="${h * 0.4}" r="${Math.min(w, h) * 0.25}" fill="#f2c94c"/></svg>`)}`;
+  const ad = (image) => ({
+    campaignId: 'demo', creativeId: null, headline: 'Eid Collection — up to 30% off',
+    description: 'Panjabi, saree and gift sets from verified suppliers.', bannerImageUrl: image,
+    callToAction: 'GET_OFFER', destinationUrl: '/', productId: null, placement: 'HOME_BAND_CENTER',
+    campaign_id: 'demo', campaign_name: 'demo', creative: { image_url: image, target_url: '/' },
+  });
+  const box = (width, node) => {
+    const frame = document.createElement('div');
+    frame.style.cssText = `display:grid;width:${width};height:360px;max-width:100%`;
+    frame.append(node);
+    return frame;
+  };
+  const nav = { onNavigate: () => {} };
+  wrap.append(subgroup('BandAdCard — side panels (tall, 3:4 image)'));
+  wrap.append(specimen('tall, image', box('260px', BandAdCard(ad(svg(600, 800)), 'left', nav))));
+  wrap.append(specimen('tall, text only', box('260px', BandAdCard(ad(''), 'right', nav))));
+  wrap.append(subgroup('BandAdCard — centre panel (wide, 16:9 image)'));
+  wrap.append(specimen('wide, image', box('760px', BandAdCard(ad(svg(1200, 675)), 'center', nav))));
+  wrap.append(specimen('wide, text only', box('760px', BandAdCard(ad(''), 'center', nav))));
+  wrap.append(subgroup('BandAdRotator — a panel taking turns with its ad (use the dots)'));
+  const panel = document.createElement('section');
+  panel.className = 'home-band home-band--brand home-band--left';
+  panel.innerHTML = '<p class="home-band__kicker">Fulfilment</p><h2 class="home-band__title">Ready to ship</h2>';
+  const rotator = BandAdRotator(panel, 'left', nav);
+  rotator.addAds([ad(svg(600, 800))]);
+  wrap.append(specimen('left panel + 1 ad', box('260px', rotator.el)));
+  return wrap;
+}
+
 function renderFlashSaleWidget() {
   const wrap = document.createDocumentFragment();
   wrap.append(subgroup('FlashSaleWidget — only flagged deals, countdown to the earliest real flash_ends_at'));
@@ -1460,6 +1497,7 @@ export function buildGalleryEntries(detachedNodes) {
     { id: 'category-pills', label: 'CategoryPills', group: 'Product Discovery', render: renderCategoryPills },
     { id: 'search-suggest', label: 'SearchSuggest (typeahead)', group: 'Product Discovery', render: renderSearchSuggest },
     { id: 'home-top', label: 'HomeTop', group: 'Product Discovery', render: renderHomeTop },
+    { id: 'band-ads', label: 'Home band ads (BandAdCard, BandAdRotator)', group: 'Product Discovery', render: renderBandAds },
     { id: 'flash-sale-widget', label: 'FlashSaleWidget', group: 'Product Discovery', render: renderFlashSaleWidget },
     { id: 'product-rail', label: 'ProductRail (home rails)', group: 'Product Discovery', render: renderProductRail },
     // Prompt 11.3 — Followed Stores & Product Drops Feed

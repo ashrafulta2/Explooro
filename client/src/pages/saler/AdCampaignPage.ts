@@ -72,6 +72,24 @@ const money = (n) => `৳${Number(n || 0).toLocaleString('en-US', { minimumFract
 const count = (n) => Number(n || 0).toLocaleString('en-US');
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
+/**
+ * The help line under the banner image field. The home band formats (migration 111) are drawn to a
+ * fixed panel shape (components/home/BandAdRotator.ts), so they say which shape of image fits.
+ */
+export function bannerHelp(placement: string, isBn: boolean): string {
+  if (placement === 'HOME_BAND_CENTER') {
+    return isBn
+      ? 'ঐচ্ছিক। চওড়া ১৬:৯ ছবি দিন (যেমন ১২০০×৬৭৫), ছবি ডান পাশে আর লেখা বাম পাশে বসবে। ছবি না দিলে শুধু লেখার রঙিন কার্ড দেখানো হবে।'
+      : 'Optional. Use a wide 16:9 image (e.g. 1200×675); it sits on the right with your text on the left. Without one, a coloured text card is shown.';
+  }
+  if (placement === 'HOME_BAND_LEFT' || placement === 'HOME_BAND_RIGHT') {
+    return isBn
+      ? 'ঐচ্ছিক। লম্বা ৩:৪ ছবি দিন (যেমন ৬০০×৮০০), ছবি উপরে আর লেখা নিচে বসবে। ছবি না দিলে শুধু লেখার রঙিন কার্ড দেখানো হবে।'
+      : 'Optional. Use a tall 3:4 image (e.g. 600×800); it sits on top with your text below. Without one, a coloured text card is shown.';
+  }
+  return isBn ? 'ঐচ্ছিক। না দিলে আপনার পণ্যের ছবি ব্যবহার করা হবে।' : 'Optional. Without one we use your product photo.';
+}
+
 export class AdCampaignPage {
   tab: string;
   products: any[] = [];
@@ -807,7 +825,7 @@ export class AdCampaignPage {
         <div class="field__control">
           <input id="ad-f-banner" class="input" type="url" data-field="banner_image_url" value="${escapeHtml(f.banner_image_url)}" placeholder="https://…" />
         </div>
-        <p class="field__help">${isBn ? 'ঐচ্ছিক। না দিলে আপনার পণ্যের ছবি ব্যবহার করা হবে।' : 'Optional. Without one we use your product photo.'}</p>
+        <p class="field__help">${bannerHelp(p.placement, isBn)}</p>
       </div>
     `;
   }

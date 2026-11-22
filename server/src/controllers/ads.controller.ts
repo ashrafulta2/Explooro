@@ -252,6 +252,20 @@ export async function listReservedPlacements(req, reply) {
   return reply.send({ placements });
 }
 
+export async function listHomeBandPlacements(req, reply) {
+  const db = req.db || req.server?.db;
+  const cache = req.cache || req.server?.cache;
+  const { date } = req.query || {};
+
+  const panels = await adsService.listHomeBandPlacements(db, cache, {
+    viewerId: req.user?.id || null,
+    viewerRoles: req.user?.roles || [],
+    date: date || null,
+  });
+
+  return reply.send({ panels });
+}
+
 export async function listAdProductsForAdmin(req, reply) {
   const db = req.db || req.server?.db;
   const { days } = req.query || {};

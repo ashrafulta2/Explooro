@@ -22,6 +22,15 @@ export interface ReservedRow {
 }
 
 /** A reserved placement in the shape SponsoredSlot renders, plus the legacy fields older callers read. */
+/** The three panels of the home page's top band (server: adsService.HOME_BAND_PLACEMENTS). */
+export const HOME_BAND_POSITIONS = ['left', 'center', 'right'] as const;
+export type HomeBandPosition = (typeof HOME_BAND_POSITIONS)[number];
+export const HOME_BAND_PLACEMENTS: Record<HomeBandPosition, string> = {
+  left: 'HOME_BAND_LEFT',
+  center: 'HOME_BAND_CENTER',
+  right: 'HOME_BAND_RIGHT',
+};
+
 export interface ReservedPlacement {
   campaignId: number | string;
   creativeId: number | string | null;
@@ -79,6 +88,25 @@ export const adsApi = {
     const res = await api.get(`/ads/reserved?${params.toString()}`);
     const rows = res?.placements ?? res?.data?.placements ?? (Array.isArray(res?.data) ? res.data : []);
     return { data: rows.map(normalizeReserved) };
+  },
+
+  /**
+   * Today's booked ads for the three panels of the home page's top band, in one request.
+   * The server decides from the session whether this viewer sees them (staff never do).
+   * Never rejects: an empty answer leaves the band exactly as it was.
+   */
+  async listHomeBandPlacements(): Promise<Record<HomeBandPosition, ReservedPlacement[]>> {
+    const empty: Record<HomeBandPosition, ReservedPlacement[]> = { left: [], center: [], right: [] };
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const res = await api.get(`/ads/reserved/home-band?date=${today}`);
+      const panels = res?.panels ?? res?.data?.panels ?? {};
+      for (const position of HOME_BAND_POSITIONS) {
+        const rows = Array.isArray(panels[position]) ? panels[position] : [];
+        empty[position] = rows.map(normalizeReserved);
+      }
+    } catch { /* an ad must never break the home page */ }
+    return empty;
   },
 
   /**

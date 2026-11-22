@@ -95,6 +95,12 @@ export default async function adsRoutes(app) {
     preHandler: [requireModule],
   }, adsController.listReservedPlacements);
 
+  // The three panels of the home page's top band (migration 111). Signed-in is optional, but who is
+  // asking matters: staff are never shown these ads (adsService.seesHomeBandAds).
+  app.get('/ads/reserved/home-band', {
+    preHandler: [requireModule, viewerIfSignedIn],
+  }, adsController.listHomeBandPlacements);
+
   app.post('/ads/impressions', {
     preHandler: [requireModule],
   }, adsController.recordImpression);

@@ -2082,6 +2082,9 @@ html:where([data-ui-style='macos']) .sponsored-slot:hover .sponsored-product-car
     box-shadow: var(--mac-focus);
   }
 }
+html:where([data-ui-style='macos']) .band-ad__cta {
+  font-weight: var(--weight-medium);
+}
 
 /* ── components/store.css ── */
 html:where([data-ui-style='macos']) .store-builder__preset-btn {

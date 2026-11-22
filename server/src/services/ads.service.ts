@@ -1188,6 +1188,41 @@ export async function listReservedPlacements(db, cache, { placement, categoryId 
   return rows;
 }
 
+/** The three panels of the home page's top band and the placement each one sells (migration 111). */
+export const HOME_BAND_PLACEMENTS = Object.freeze({
+  left: 'HOME_BAND_LEFT',
+  center: 'HOME_BAND_CENTER',
+  right: 'HOME_BAND_RIGHT',
+} as const);
+
+// WHY only these account types see home band ads: staff (admin, moderator, editor, finance, …) open the
+// home page to work, and an ad taking turns with their queue figures would hide the number they came
+// for. Advertisers buy reach to shoppers, Explooro partners and suppliers, which is exactly this list.
+// A guest (no session) is a shopper.
+export const HOME_BAND_AD_VIEWER_ROLES = Object.freeze(['customer', 'saler', 'supplier']);
+
+/** Pure. Whether a viewer with these roles is shown home band ads; a guest has no roles. */
+export function seesHomeBandAds(roles: unknown): boolean {
+  const list = Array.isArray(roles) ? roles : [];
+  return list.every((r) => HOME_BAND_AD_VIEWER_ROLES.includes(r));
+}
+
+/**
+ * Today's booked ads for all three home band panels in one call, keyed by panel.
+ * The viewer's roles come from the session, never from the request.
+ */
+export async function listHomeBandPlacements(db, cache, { viewerId = null, viewerRoles = [], date = null }: Record<string, any> = {}) {
+  const empty = { left: [], center: [], right: [] };
+  if (!seesHomeBandAds(viewerRoles)) return empty;
+  const entries = await Promise.all(
+    Object.entries(HOME_BAND_PLACEMENTS).map(async ([position, placement]) => [
+      position,
+      await listReservedPlacements(db, cache, { placement, date, viewerId }),
+    ]),
+  );
+  return { ...empty, ...Object.fromEntries(entries) };
+}
+
 /**
  * Lists pending campaigns for admin review.
  */

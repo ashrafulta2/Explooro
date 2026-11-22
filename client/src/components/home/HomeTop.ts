@@ -18,8 +18,9 @@
 
 import { t } from '../../services/i18n.ts';
 import { api } from '../../core/api.ts';
-import { adsApi } from '../../services/ads.api.ts';
-import type { ReservedPlacement } from '../../services/ads.api.ts';
+import { adsApi, HOME_BAND_POSITIONS } from '../../services/ads.api.ts';
+import type { HomeBandPosition, ReservedPlacement } from '../../services/ads.api.ts';
+import { BandAdRotator } from './BandAdRotator.ts';
 import { isFeatureEnabled } from '../../services/featureFlags.ts';
 import { loadSponsoredStyles } from '../../styles/loadSponsoredStyles.ts';
 import { ICONS } from '../ui/icons.ts';
@@ -263,12 +264,33 @@ export function HomeTop({ role, isAuthenticated, onNavigate, onSelectFeed }: Hom
   }
 
   const main = el('div', `home-top__main${fullBand ? ' home-top__main--band' : ''}${band && !fullBand ? ' home-top__main--for-you' : ''}`);
-  if (fullBand) {
-    main.append(...['left', 'center', 'right'].map((position) => band.panels[position]));
-  } else {
-    main.append(band ? band.panels.left : earn, slider, side);
-  }
+  const panels: Record<HomeBandPosition, HTMLElement> = fullBand
+    ? { left: band.panels.left, center: band.panels.center, right: band.panels.right }
+    : { left: band ? band.panels.left : earn, center: slider, right: side };
+
+  // Home Top Band ads (migration 111): each panel is wrapped now and takes turns with the ads booked for
+  // it once they arrive. The server decides from the session whether this viewer sees them (staff never
+  // do), so the band itself makes no role check. WHY after first paint: the band never waits on the network.
+  const rotators = HOME_BAND_POSITIONS.filter((p) => panels[p]).map((position) => {
+    // The left panel of the default layout is hidden on narrow screens; its ads must hide with it.
+    const narrowHidden = !fullBand && position === 'left';
+    const rotator = BandAdRotator(panels[position], position, { onNavigate, className: narrowHidden ? 'band-ad-rotator--narrow-hidden' : '' });
+    cleanups.push(rotator.cleanup);
+    main.append(rotator.el);
+    return { position, rotator };
+  });
   root.append(main);
+
+  if (isFeatureEnabled('sponsored_ads')) {
+    let adsAlive = true;
+    cleanups.push(() => { adsAlive = false; });
+    adsApi.listHomeBandPlacements().then(async (booked) => {
+      if (!adsAlive || !HOME_BAND_POSITIONS.some((p) => booked[p].length)) return;
+      await loadSponsoredStyles();
+      if (!adsAlive) return;
+      for (const { position, rotator } of rotators) rotator.addAds(booked[position]);
+    }).catch(() => {});
+  }
 
   if (band) {
     let alive = true;

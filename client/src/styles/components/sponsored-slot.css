@@ -256,3 +256,53 @@
     width: 100%;
   }
 }
+
+/* ── Home band ads: a booked ad taking turns with a panel of the home top band (BandAdRotator.ts) ── */
+/* WHY `contain: size`: the card adds no height of its own, so it is drawn to exactly the panel's size and a
+   rotation never changes the band's height. The tall card is for the side panels (3:4 image), the wide one
+   for the centre (16:9 image). */
+/* WHY the incoming frame fades in ON TOP while the outgoing one stays fully opaque until it is covered: a plain
+   cross-fade showed both frames' text half-transparent over each other, which read as a garbled mess. */
+.band-ad-rotator.is-rotating > .band-ad,
+.band-ad-rotator.is-rotating > .band-ad-rotator__panel { z-index: 0; opacity: 0; visibility: hidden; transition: opacity 0s linear var(--dur-base), visibility 0s linear var(--dur-base); }
+.band-ad-rotator.is-rotating > .is-shown { z-index: 1; opacity: 1; visibility: visible; transition: opacity var(--dur-base) var(--ease-standard); }
+.band-ad-rotator__dots { position: absolute; left: 50%; bottom: calc(-1 * var(--space-3) + 2px); transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; }
+.band-ad-rotator__dot { width: 8px; height: 8px; padding: 0; border-radius: var(--radius-full); border: 1px solid var(--text-secondary); background: transparent; cursor: pointer; }
+.band-ad-rotator__dot[aria-current='true'] { width: 18px; background: var(--text-secondary); }
+
+.band-ad { contain: size; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); background: var(--surface-1); color: var(--text-primary); box-sizing: border-box; }
+.band-ad--wide { flex-direction: row-reverse; }
+.band-ad__media { position: relative; flex: 1 1 0; min-height: 0; min-width: 0; background: var(--surface-2, var(--surface-1)); }
+.band-ad--wide .band-ad__media { flex: 1.25 1 0; }
+.band-ad__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.band-ad__body { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-4); min-width: 0; }
+.band-ad--wide .band-ad__body { flex: 1 1 0; justify-content: center; padding: var(--space-6); }
+/* WHY solid ramp steps, not the warning tokens .sponsored-tag uses: the warning tint is translucent and fell to
+   3.07:1 on the brand-filled text card. Dark on white / white on dark clears 4.5:1 on every surface and theme. */
+.band-ad__tag { padding: 2px 8px; border-radius: var(--radius-sm); background: var(--neutral-800); color: var(--neutral-0); font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.02em; }
+.band-ad__title { margin: 0; font-size: var(--text-lg); font-weight: 700; line-height: 1.3; color: inherit; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.band-ad--wide .band-ad__title { font-size: var(--text-2xl); line-height: var(--leading-2xl); }
+.band-ad__sub { margin: 0; font-size: var(--text-sm); color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.band-ad--wide .band-ad__sub { -webkit-line-clamp: 3; }
+.band-ad__cta { margin-top: auto; align-self: stretch; padding: var(--space-2) var(--space-3); border: 0; border-radius: var(--radius-md); background: var(--brand); color: var(--brand-contrast); font: inherit; font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.band-ad--wide .band-ad__cta { margin-top: var(--space-2); align-self: flex-start; padding: var(--space-2) var(--space-5); }
+.band-ad__cta:hover, .band-ad__cta:focus-visible { filter: brightness(1.1); }
+
+/* No image (or one that failed to load): a solid brand card with the headline set large. */
+.band-ad--text { background: var(--brand); border-color: var(--brand); color: var(--brand-contrast); }
+.band-ad--text .band-ad__body { flex: 1; justify-content: center; }
+.band-ad--text .band-ad__title { font-size: var(--text-xl); -webkit-line-clamp: 5; }
+.band-ad--text.band-ad--wide .band-ad__title { font-size: var(--text-2xl); }
+.band-ad--text .band-ad__sub { color: var(--brand-contrast); -webkit-line-clamp: 4; }
+.band-ad--text .band-ad__cta { background: var(--neutral-800); color: var(--neutral-0); }
+.band-ad--text .band-ad__tag { background: var(--neutral-0); color: var(--neutral-800); }
+
+/* Stacked band (tablet and phone): the panel has no fixed height, so give the ad one; the wide card turns tall. */
+@media (max-width: 1023px) {
+  .band-ad { min-height: 14rem; }
+  .band-ad--wide { flex-direction: column; }
+  .band-ad--wide .band-ad__body { padding: var(--space-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .band-ad-rotator.is-rotating > .band-ad, .band-ad-rotator.is-rotating > .band-ad-rotator__panel { transition: none; }
+}
