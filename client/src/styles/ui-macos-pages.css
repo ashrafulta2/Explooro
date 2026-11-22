@@ -2216,6 +2216,14 @@ html:where([data-ui-style='macos']) .supplier-quick-actions-panel__title {
 html:where([data-ui-style='macos']) .supplier-action-tile:hover {
   transform: translateY(-1px);
 }
+html:where([data-ui-style='macos']) .supplier-chip--warning.supplier-chip--active {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .supplier-chip--danger.supplier-chip--active {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
 html:where([data-ui-style='macos']) .supplier-table th {
   text-transform: none;
   letter-spacing: normal;
@@ -2288,6 +2296,26 @@ html:where([data-ui-style='macos']) .supplier-form-field label {
     outline: none;
     box-shadow: var(--mac-focus);
   }
+}
+html:where([data-ui-style='macos']) .kyc-tone--success {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .kyc-tone--warning {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .kyc-tone--danger {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .kyc-tone--info {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .kyc-done-mark {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
 }
 
 /* ── components/surfaces.css ── */

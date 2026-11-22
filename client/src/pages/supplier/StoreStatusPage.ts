@@ -340,7 +340,7 @@ export default function StoreStatusPage(root: HTMLElement) {
         <div class="supplier-kpi-card__value text-primary" style="font-size: 1.3rem; margin: 4px 0;">
           📍 ${store.district}
         </div>
-        <span class="text-xs text-muted text-truncate" style="max-width: 200px;" title="${store.address}">${store.address}</span>
+        <span class="text-xs text-muted truncate" style="max-width: 200px;" title="${store.address}">${store.address}</span>
       </div>
 
       <div class="supplier-kpi-card" style="padding: 16px;">

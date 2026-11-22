@@ -450,21 +450,24 @@
   background: var(--brand, #334155);
   /* WHY: --brand is an amber fill (#ffbc00); white text on it is 1.7:1 (fails AA). --brand-contrast
      is the token paired with the brand fill (9.8:1). The warning/danger variants below have dark
-     saturated fills, so they override back to white text. */
+     saturated fills, get their own soft status pills below. */
   color: var(--brand-contrast, #1f1f1f);
   border-color: var(--brand, #334155);
 }
 
+/* WHY: --warning / --danger are text-role tokens. Filled under fixed white they read as mustard in
+   light mode and as white-on-pale in dark mode (--warning is warning-300 there). Status pills are
+   *-bg + text + *-border, like every other status badge. */
 .supplier-chip--warning.supplier-chip--active {
-  background: var(--warning);
-  color: #ffffff; /* white on --warning (#916000) = 5.4:1 */
-  border-color: var(--warning);
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: var(--warning-border);
 }
 
 .supplier-chip--danger.supplier-chip--active {
-  background: var(--danger);
-  color: #ffffff; /* white on --danger (#cc0002) = 5.9:1 */
-  border-color: var(--danger);
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
 }
 
 /* ── Data Tables & Wrappers ── */
@@ -905,12 +908,12 @@
 }
 
 .supplier-batch-card--urgent {
-  border-color: var(--warning);
+  border-color: var(--warning-border);
   background: color-mix(in srgb, var(--warning-500) 3%, transparent);
 }
 
 .supplier-batch-card--expired {
-  border-color: var(--danger);
+  border-color: var(--danger-border);
   background: color-mix(in srgb, var(--danger-500) 3%, transparent);
 }
 
@@ -1450,3 +1453,16 @@
   .supplier-mode-banner { flex-wrap: wrap; gap: var(--space-3, 12px); }
   .supplier-mode-banner__content { min-width: 0; flex: 1 1 200px; }
 }
+
+/* Identity check (KYC) page, shared by suppliers and Explooro partners. WHY: its markup used palette
+   names (bg-emerald-subtle, text-rose-dark, …) that no stylesheet defines, so every status banner and
+   the step tracker rendered with no colour. Tones are status tokens, so they follow the theme. */
+.kyc-tone { color: var(--text-primary); border: var(--border-width) solid var(--border-subtle); border-radius: var(--radius-md); }
+.kyc-tone--success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+.kyc-tone--warning { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning); }
+.kyc-tone--danger { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger); }
+.kyc-tone--info { background: var(--info-bg); border-color: var(--info-border); color: var(--info); }
+.kyc-step { border-bottom: 2px solid var(--border-subtle); color: var(--text-muted); }
+.kyc-step--current { border-bottom-color: var(--brand); color: var(--text-brand); font-weight: 700; }
+.kyc-step--done { border-bottom-color: var(--success); color: var(--success); }
+.kyc-done-mark { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; margin-inline: auto; border-radius: var(--radius-full); font-size: var(--text-3xl, 1.875rem); background: var(--success-bg); color: var(--success); border: var(--border-width) solid var(--success-border); }

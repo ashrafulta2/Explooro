@@ -100,7 +100,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
         <div class="space-y-3 text-xs">
           <div>
             <label class="font-semibold block mb-1">${t('kyc.rejection_reason_received')}:</label>
-            <p class="p-2 rounded bg-rose-subtle text-rose-dark border border-rose font-medium">
+            <p class="p-2 rounded kyc-tone kyc-tone--danger border font-medium">
               ${kycStatus?.rejection_reason || t('kyc.plain.reason_mismatch')}
             </p>
           </div>
@@ -159,14 +159,14 @@ export default function KycSubmissionPage(root: HTMLElement) {
 
     if (kycStatus.status === 'VERIFIED') {
       return `
-        <div class="p-4 mb-6 rounded-lg bg-emerald-subtle border border-emerald flex items-center justify-between">
+        <div class="p-4 mb-6 rounded-lg kyc-tone kyc-tone--success border flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="text-2xl">🛡️</span>
             <div>
-              <h3 class="font-bold text-emerald-dark flex items-center gap-2">
-                ${t('kyc.verified_title')} <span class="badge badge--emerald" title="${t('kyc.plain.verified_badge_tip')}">✓ ${t('kyc.plain.verified_badge')}</span>
+              <h3 class="font-bold flex items-center gap-2">
+                ${t('kyc.verified_title')} <span class="badge badge--success" title="${t('kyc.plain.verified_badge_tip')}">✓ ${t('kyc.plain.verified_badge')}</span>
               </h3>
-              <p class="text-xs text-emerald-dark opacity-90">${t('kyc.verified_desc')} • ${t('kyc.plain.verified_on', { date: formatDate(kycStatus.verified_at) })}</p>
+              <p class="text-xs opacity-90">${t('kyc.verified_desc')} • ${t('kyc.plain.verified_on', { date: formatDate(kycStatus.verified_at) })}</p>
             </div>
           </div>
         </div>
@@ -175,11 +175,11 @@ export default function KycSubmissionPage(root: HTMLElement) {
 
     if (kycStatus.status === 'UNDER_REVIEW' || kycStatus.status === 'PENDING') {
       return `
-        <div class="p-4 mb-6 rounded-lg bg-amber-subtle border border-amber flex items-center gap-3">
+        <div class="p-4 mb-6 rounded-lg kyc-tone kyc-tone--warning border flex items-center gap-3">
           <span class="text-2xl">⏳</span>
           <div>
-            <h3 class="font-bold text-amber-dark">${t('kyc.under_review_title')}</h3>
-            <p class="text-xs text-amber-dark opacity-90">${t('kyc.under_review_desc')}</p>
+            <h3 class="font-bold">${t('kyc.under_review_title')}</h3>
+            <p class="text-xs opacity-90">${t('kyc.under_review_desc')}</p>
           </div>
         </div>
       `;
@@ -187,12 +187,12 @@ export default function KycSubmissionPage(root: HTMLElement) {
 
     if (kycStatus.status === 'REJECTED') {
       return `
-        <div class="p-4 mb-6 rounded-lg bg-rose-subtle border border-rose flex items-center justify-between">
+        <div class="p-4 mb-6 rounded-lg kyc-tone kyc-tone--danger border flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="text-2xl">❌</span>
             <div>
-              <h3 class="font-bold text-rose-dark">${t('kyc.rejected_title')}</h3>
-              <p class="text-xs text-rose-dark opacity-90 mb-1">${t('kyc.plain.reason_label', { reason: kycStatus.rejection_reason || t('kyc.plain.reason_unclear') })}</p>
+              <h3 class="font-bold">${t('kyc.rejected_title')}</h3>
+              <p class="text-xs opacity-90 mb-1">${t('kyc.plain.reason_label', { reason: kycStatus.rejection_reason || t('kyc.plain.reason_unclear') })}</p>
               <span class="text-xs text-secondary">${t('kyc.plain.rejected_next')}</span>
             </div>
           </div>
@@ -203,11 +203,11 @@ export default function KycSubmissionPage(root: HTMLElement) {
 
     if (kycStatus.status === 'APPEALED') {
       return `
-        <div class="p-4 mb-6 rounded-lg bg-indigo-subtle border border-indigo flex items-center gap-3">
+        <div class="p-4 mb-6 rounded-lg kyc-tone kyc-tone--info border flex items-center gap-3">
           <span class="text-2xl">⚖️</span>
           <div>
-            <h3 class="font-bold text-indigo-dark">${t('kyc.appeal_in_progress_title')}</h3>
-            <p class="text-xs text-indigo-dark opacity-90">${t('kyc.appeal_in_progress_desc')}</p>
+            <h3 class="font-bold">${t('kyc.appeal_in_progress_title')}</h3>
+            <p class="text-xs opacity-90">${t('kyc.appeal_in_progress_desc')}</p>
           </div>
         </div>
       `;
@@ -230,7 +230,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
         ${steps
           .map(
             (s) => `
-          <div class="p-2 border-b-2 text-center ${currentStep === s.num ? 'border-primary font-bold text-primary' : currentStep > s.num ? 'border-emerald text-emerald' : 'border-border text-tertiary'}">
+          <div class="kyc-step p-2 text-center ${currentStep === s.num ? 'kyc-step--current' : currentStep > s.num ? 'kyc-step--done' : 'kyc-step--todo'}">
             <span class="block">${s.num < currentStep ? '✓' : `0${s.num}`}</span>
             <span>${s.label}</span>
           </div>
@@ -245,7 +245,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
     if (kycStatus?.status === 'VERIFIED') {
       return `
         <div class="card p-6 text-center text-xs space-y-3">
-          <div class="w-16 h-16 rounded-full bg-emerald-subtle text-emerald text-3xl flex items-center justify-center mx-auto">✓</div>
+          <div class="kyc-done-mark">✓</div>
           <h3 class="text-base font-bold">${t('kyc.verified_headline')}</h3>
           <p class="text-secondary max-w-md mx-auto">${t('kyc.verified_details')}</p>
         </div>
@@ -270,19 +270,19 @@ export default function KycSubmissionPage(root: HTMLElement) {
               <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-nid-front">
                 <span class="text-2xl block mb-1">🪪</span>
                 <span class="font-semibold block">${t('kyc.upload_nid_front')}</span>
-                <span class="text-tertiary text-xxs">${t('kyc.plain.photo_hint')}</span>
+                <span class="text-muted text-xxs">${t('kyc.plain.photo_hint')}</span>
               </div>
               <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-nid-back">
                 <span class="text-2xl block mb-1">🪪</span>
                 <span class="font-semibold block">${t('kyc.upload_nid_back')}</span>
-                <span class="text-tertiary text-xxs">${t('kyc.plain.photo_hint')}</span>
+                <span class="text-muted text-xxs">${t('kyc.plain.photo_hint')}</span>
               </div>
             </div>
 
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-selfie">
               <span class="text-2xl block mb-1">🤳</span>
               <span class="font-semibold block">${t('kyc.upload_selfie')}</span>
-              <span class="text-tertiary text-xxs">${t('kyc.plain.selfie_hint')}</span>
+              <span class="text-muted text-xxs">${t('kyc.plain.selfie_hint')}</span>
             </div>
           </div>
 
@@ -325,7 +325,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-trade-license">
               <span class="text-2xl block mb-1">📄</span>
               <span class="font-semibold block">${t('kyc.upload_trade_license_doc')}</span>
-              <span class="text-tertiary text-xxs">${t('kyc.plain.licence_doc_hint')}</span>
+              <span class="text-muted text-xxs">${t('kyc.plain.licence_doc_hint')}</span>
             </div>
           </div>
 
@@ -354,7 +354,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-facility">
               <span class="text-2xl block mb-1">🏭</span>
               <span class="font-semibold block">${t('kyc.upload_facility_photos')}</span>
-              <span class="text-tertiary text-xxs">${t('kyc.plain.facility_hint')}</span>
+              <span class="text-muted text-xxs">${t('kyc.plain.facility_hint')}</span>
             </div>
           </div>
 
@@ -382,7 +382,7 @@ export default function KycSubmissionPage(root: HTMLElement) {
             <div class="p-4 border border-dashed rounded text-center cursor-pointer bg-surface-subtle" id="drop-bank-statement">
               <span class="text-2xl block mb-1">🏦</span>
               <span class="font-semibold block">${t('kyc.upload_bank_cheque')}</span>
-              <span class="text-tertiary text-xxs">${t('kyc.plain.bank_doc_hint')}</span>
+              <span class="text-muted text-xxs">${t('kyc.plain.bank_doc_hint')}</span>
             </div>
           </div>
 
