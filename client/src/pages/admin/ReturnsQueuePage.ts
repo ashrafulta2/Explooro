@@ -418,7 +418,7 @@ export default function ReturnsQueuePage(root: HTMLElement) {
                   ${
                     ret.status === 'APPROVED' || ret.status === 'PICKUP_SCHEDULED' || ret.status === 'RECEIVED'
                       ? `
-                    <button class="btn-inspect-pass" data-id="${ret.id}" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--success, #059669); color: #ffffff; cursor: pointer;">
+                    <button class="btn-inspect-pass" data-id="${ret.id}" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--success); color: var(--text-inverse); cursor: pointer;">
                       🔍 ${t('returns.btn_inspect_pass', 'Pass Physical Inspection')}
                     </button>
                     <button class="btn-inspect-fail" data-id="${ret.id}" style="padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 6px; border: 1px solid var(--warning-border, #d97706); background: var(--warning-bg, rgba(217, 119, 6, 0.08)); color: var(--warning, #d97706); cursor: pointer;">
@@ -431,7 +431,7 @@ export default function ReturnsQueuePage(root: HTMLElement) {
                   ${
                     ret.status === 'INSPECTED'
                       ? `
-                    <button class="btn-execute-refund" data-id="${ret.id}" style="padding: 6px 18px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--success, #059669); color: #ffffff; cursor: pointer;">
+                    <button class="btn-execute-refund" data-id="${ret.id}" style="padding: 6px 18px; font-size: 12px; font-weight: 700; border-radius: 6px; border: none; background: var(--success); color: var(--text-inverse); cursor: pointer;">
                       💰 ${t('returns.btn_execute_refund', 'Execute Refund & Clawback')}
                     </button>
                   `

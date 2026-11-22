@@ -203,7 +203,7 @@ export default function FinanceDashboardPage(root: HTMLElement, { navigate }: Pa
           <!-- Pending Payout Liability -->
           <div class="card finance-kpi-card">
             <div class="finance-kpi-card__label">${t('finance_admin.kpi_payout_liability')}</div>
-            <div class="finance-kpi-card__val text-purple font-bold">${formatCurrency(m.pending_payout_liability)}</div>
+            <div class="finance-kpi-card__val text-info font-bold">${formatCurrency(m.pending_payout_liability)}</div>
             <div class="finance-kpi-card__hint">${t('finance_admin.kpi_payout_hint')}</div>
           </div>
 

@@ -252,6 +252,9 @@ html:where([data-ui-style='macos']) .admin-table th {
   text-transform: none;
   letter-spacing: normal;
 }
+html:where([data-ui-style='macos']) :where(.admin-page, .admin-order-drawer) :where(.bg-danger-soft) {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .badge--success {
   background: color-mix(in srgb, var(--success-bg) 70%, transparent);
   border-color: transparent;
@@ -274,8 +277,15 @@ html:where([data-ui-style='macos']) .btn--danger-outline:hover:not(:disabled) {
 html:where([data-ui-style='macos']) .split-pill__lbl {
   text-transform: none;
 }
+html:where([data-ui-style='macos']) .split-visual-bar__platform {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+}
 html:where([data-ui-style='macos']) .split-breakdown-chip__title {
   text-transform: none;
+}
+html:where([data-ui-style='macos']) .split-sim-note--warn {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
 }
 html:where([data-ui-style='macos']) .pricing-conflicts[data-state='warning'] {
   background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
@@ -510,6 +520,9 @@ html:where([data-ui-style='macos']) .catalog-stat-card__label {
     outline: none;
     box-shadow: var(--mac-focus);
   }
+}
+html:where([data-ui-style='macos']) .catalog-bulk-bar {
+  background: color-mix(in srgb, var(--info-bg) 70%, transparent);
 }
 html:where([data-ui-style='macos']) .catalog-table th {
   text-transform: none;
@@ -2294,6 +2307,10 @@ html:where([data-ui-style='macos']) .system-health__tab-btn {
 }
 html:where([data-ui-style='macos']) .system-health__tab-badge {
   font-weight: 700;
+}
+html:where([data-ui-style='macos']) .admin-cancel-note {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
 }
 html:where([data-ui-style='macos']) .system-vital-card:hover {
   transform: translateY(-1px);

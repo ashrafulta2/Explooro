@@ -117,17 +117,17 @@ export default function AdminLiveCommercePage(root: HTMLElement, { navigate }: P
       <div class="system-infra-grid mt-4">
         ${streams.map((s) => `
           <div class="system-infra-card p-4">
-            <div class="relative rounded-lg overflow-hidden mb-3" style="height: 180px; background: #111;">
+            <div class="admin-live-thumb">
               <img class="livestream-thumb" src="${s.thumbnail}" alt="Thumbnail" data-id="${s.id}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.85;" />
-              <div class="absolute top-2 left-2 flex items-center gap-1 bg-red-600 text-white font-bold text-xs px-2 py-1 rounded">
-                <span class="system-health__pulse-dot" style="background: #fff;"></span>
+              <div class="admin-live-thumb__tag">
+                <span class="system-health__pulse-dot"></span>
                 LIVE
               </div>
-              <div class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded font-mono">
+              <div class="admin-live-thumb__viewers">
                 👥 ${formatNumber(s.viewers_count)}
               </div>
-              <div class="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur text-white text-xs p-2 rounded">
-                <div class="text-warning font-bold">📌 Pinned Deal:</div>
+              <div class="admin-live-thumb__pinned">
+                <div class="admin-live-thumb__pinned-label">📌 Pinned Deal:</div>
                 <div class="truncate">${s.pinned_product}</div>
               </div>
             </div>

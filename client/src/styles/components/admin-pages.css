@@ -540,6 +540,25 @@
 .text-success { color: var(--success); }
 .text-warning { color: var(--warning); }
 .text-danger { color: var(--danger); }
+.text-info { color: var(--info); }
+.text-xxs { font-size: var(--text-2xs); line-height: var(--leading-2xs); }
+
+/* Surface & border utilities. WHY: several admin pages were written with these class names and no
+   rule existed, so their panels rendered with no background, no border and no tint. Every value is a
+   role token, so they follow the master seed and dark mode; never add a palette name (emerald-600).
+   Scoped to admin pages (and the orders drawer, which renders outside the page) because this sheet
+   is global and customer/partner pages use the same class names with their own intent. */
+:where(.admin-page, .admin-order-drawer) :where(.bg-surface-0) { background: var(--surface-0); }
+:where(.admin-page, .admin-order-drawer) :where(.bg-surface-1) { background: var(--surface-1); }
+:where(.admin-page, .admin-order-drawer) :where(.bg-surface-2) { background: var(--surface-2); }
+:where(.admin-page, .admin-order-drawer) :where(.bg-danger-soft) { background: var(--danger-bg); }
+:where(.admin-page, .admin-order-drawer) :where(.border) { border: var(--border-width) solid var(--border-subtle); }
+:where(.admin-page, .admin-order-drawer) :where(.border-t) { border-top: var(--border-width) solid var(--border-subtle); }
+:where(.admin-page, .admin-order-drawer) :where(.border-b) { border-bottom: var(--border-width) solid var(--border-subtle); }
+:where(.admin-page, .admin-order-drawer) :where(.border-dashed) { border-style: dashed; }
+:where(.admin-page, .admin-order-drawer) :where(.border-border-subtle) { border-color: var(--border-subtle); }
+:where(.admin-page, .admin-order-drawer) :where(.rounded-lg) { border-radius: var(--radius-md); }
+:where(.admin-page, .admin-order-drawer) :where(.rounded-xl) { border-radius: var(--radius-lg); }
 
 /* Badges for Admin Interfaces */
 .badge {
@@ -859,8 +878,9 @@
 }
 
 .split-visual-bar__platform {
-  background: var(--success);
-  color: var(--neutral-950);
+  /* WHY: --success is a text token; filled under near-black text it read as dark-on-dark in light mode */
+  background: var(--success-bg);
+  color: var(--success);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -914,7 +934,8 @@
 }
 
 .split-sim-note--warn {
-  border-color: var(--warning);
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
   color: var(--text-primary);
 }
 

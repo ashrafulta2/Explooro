@@ -454,7 +454,7 @@ export default function SystemHealthPage(root: HTMLElement, { navigate }: PageCo
               </div>
               <div class="system-infra-card__row">
                 <span class="system-infra-card__key">${isBn ? 'ডেড-লেটার কিউ (DLQ)' : 'Dead-Letter Queue'}</span>
-                <span class="system-infra-card__val ${webhooks.dlq_depth > 0 ? 'text-amber' : ''}">${webhooks.dlq_depth || 0}</span>
+                <span class="system-infra-card__val ${webhooks.dlq_depth > 0 ? 'text-warning' : ''}">${webhooks.dlq_depth || 0}</span>
               </div>
             </div>
             </div>

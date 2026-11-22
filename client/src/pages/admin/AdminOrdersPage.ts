@@ -209,7 +209,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
               const isCurrent = idx === currentIdx;
               return `
                 <div class="flex flex-col items-center gap-1 z-10">
-                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${isPassed ? 'bg-emerald-600 text-white' : 'bg-surface-2 text-muted'}">
+                  <div class="admin-stage-dot${isPassed ? ' admin-stage-dot--done' : ''}">
                     ${isPassed ? '✓' : idx + 1}
                   </div>
                   <span class="text-xs font-semibold ${isCurrent ? 'text-primary font-bold' : 'text-muted'}">${stage}</span>
@@ -219,7 +219,7 @@ export default function AdminOrdersPage(root: HTMLElement, { navigate }: PageCon
           </div>
         </div>
       ` : `
-        <div class="p-3 bg-rose-50 border border-rose-200 text-danger text-sm rounded-lg">
+        <div class="admin-cancel-note">
           ⚠️ ${isBn ? 'এই অর্ডারটি বাতিল করা হয়েছে এবং ইনভেন্টরি স্টক ফিরিয়ে দেওয়া হয়েছে।' : 'This order has been cancelled and stock inventory restored.'}
         </div>
       `}
