@@ -30,8 +30,6 @@
    layout stays in the entry bundle, because seven pages render those drawers. */
 @import './components/admin-drawer-form.css';
 /* Prompt 3.3: admin-users.css is imported by UsersPage.ts and UserDetailPage.ts directly to code-split into route chunk */
-@import './components/audit-explorer.css';
-@import './components/theme-studio.css';
 @import './components/media.css';
 /* Prompt 4.5: product discovery components */
 @import './components/product.css';
@@ -39,7 +37,6 @@
 /* Prompt 4.4 (plan A): TopBar typeahead + /search results page */
 @import './components/search.css';
 /* Prompt 4.7: saler sourcing & profit calculator components */
-@import './components/sourcing.css';
 /* Prompt 4.8: virtual storefront & builder components */
 @import './components/store.css';
 /* Prompt 5.1: server-side cart & wishlist components */
@@ -66,11 +63,20 @@
      system-health.css    via styles/loadSystemHealthStyles.ts — SystemHealthPage + the 13 admin
                           pages that borrow .system-table / .system-panel / .system-infra-card
                           (dynamic, because node:test imports those pages and can't load .css)
+     In main.ts route load() (awaited, so no unstyled flash), plus the dev gallery route:
+     wishlist.css            WishlistPage
+     customer-following.css  FollowingFeedPage
+     customer-addresses.css  AddressesPage
+     audit-explorer.css      AuditLogPage
+     theme-studio.css        ThemeStudioPage
+     saler-inbox.css         UnifiedInboxPage
+     editor.css              the seven pages/editor/* pages
+     sourcing.css            SourcingCatalogPage (and its AddToStoreDrawer)
+     profile.css             via styles/loadProfileStyles.ts — ProfilePage
    WHY: returns.css was shipping twice (here AND in ReturnsPage's chunk), and the entry CSS was
    0.07KB under the 70KB gate. A new consumer of these classes MUST import the sheet, or it renders
    unstyled on a cold load of that route. */
 /* Customer saved items (wishlist) listing page */
-@import './components/wishlist.css';
 /* Prompt 10.1: interactive live stream commerce */
 @import './components/live.css';
 /* Prompt 10.2: AI service layer & conversational assistants */
@@ -82,9 +88,7 @@
 /* Catalog & Product Governance */
 @import './components/catalog-products.css';
 /* Prompt 11.3: Followed Stores Feed & Social Commerce Hub */
-@import './components/customer-following.css';
 /* Customer Saved Delivery Addresses Book */
-@import './components/customer-addresses.css';
 /* Customer Dashboard Hub & 1-Click Explooro Partner Upgrade */
 @import './components/customer-dashboard.css';
 @import './components/customer-become-saler.css';
@@ -96,19 +100,16 @@
 @import './components/supplier.css';
 
 /* Editor Portal: Dashboard, Banners, Stories, Academy, What's New, Help Center, Translations */
-@import './components/editor.css';
 
 /* Admin Governance Pages (Categories, Batches, Warehouses, Orders, Courier, Ledger, Escrow, Ads, Quests, Groups, Sessions) */
 @import './components/admin-pages.css';
 
 /* Explooro Partner Portal: Products, Showroom Status, Orders, Flyer Studio, Withdrawals, Quests & Leaderboard */
 @import './components/saler.css';
-@import './components/saler-inbox.css';
 @import './components/chat.css';
 @import './components/referrals.css';
 
 /* My Profile: the account menu's self-service profile page */
-@import './components/profile.css';
 
 /* Universal Floating Bottom Horizontal Scrollbar */
 @import './components/floating-scroll.css';

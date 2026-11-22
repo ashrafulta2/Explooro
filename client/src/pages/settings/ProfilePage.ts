@@ -39,6 +39,7 @@ import {
   getDistrictsByDivision,
   getUpazilasByDistrict,
 } from '../../data/bangladeshGeo.ts';
+import { loadProfileStyles } from '../../styles/loadProfileStyles.ts';
 import type { PageContext } from '../types.ts';
 
 // Matches media.service.ts's avatar ceiling. Checked here so an oversized pick fails instantly
@@ -93,6 +94,8 @@ function readFileAsDataUrl(file) {
 }
 
 export default function ProfilePage(root: HTMLElement, { navigate }: PageContext = {}) {
+  // WHY: profile.css is split out of main.css; the router waits on this load (core/styleGate.ts).
+  loadProfileStyles();
   const nav = (url, opts = {}) => {
     if (typeof navigate === 'function') navigate(url, opts);
     else {

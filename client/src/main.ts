@@ -218,7 +218,7 @@ async function bootRouterDemo() {
         // WHY the stylesheet is loaded here and not imported by the page: salerPages.test.js imports
         // every Explooro partner page under plain node, which cannot load a .css file. Importing it from the
         // route keeps the CSS out of the entry bundle (70KB budget) and the page importable.
-        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./pages/saler/SourcingCatalogPage.ts')]).then(([, , page]) => page),
+        load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/sourcing.css'), import('./pages/saler/SourcingCatalogPage.ts')]).then(([, , , page]) => page),
       },
       {
         path: '/saler/incentives',
@@ -545,7 +545,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/editor/EditorDashboardPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/EditorDashboardPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/dashboard',
@@ -553,7 +553,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/editor/EditorDashboardPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/EditorDashboardPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/banners',
@@ -561,7 +561,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.banner.publish',
         module: 'core',
-        load: () => import('./pages/editor/BannersManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/BannersManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/stories',
@@ -569,7 +569,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.story.curate',
         module: 'content_commerce',
-        load: () => import('./pages/editor/StoriesManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/StoriesManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/academy',
@@ -577,7 +577,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
-        load: () => import('./pages/editor/AcademyManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/AcademyManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/whats-new',
@@ -585,7 +585,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.announcement.publish',
         module: 'whats_new',
-        load: () => import('./pages/editor/WhatsNewManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/WhatsNewManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/help-center',
@@ -593,7 +593,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.help.manage',
         module: 'core',
-        load: () => import('./pages/editor/HelpCenterManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/HelpCenterManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/help',
@@ -601,7 +601,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.help.manage',
         module: 'core',
-        load: () => import('./pages/editor/HelpCenterManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/HelpCenterManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/editor/translations',
@@ -609,7 +609,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.i18n.update',
         module: 'i18n',
-        load: () => import('./pages/editor/TranslationManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/TranslationManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/localization',
@@ -617,7 +617,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.i18n.update',
         module: 'i18n',
-        load: () => import('./pages/editor/TranslationManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/TranslationManagerPage.ts')]).then(([, page]) => page),
       },
       // Prompt 11.1: Supplier / Manufacturer Dashboard & Operational Pages
       {
@@ -914,7 +914,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'wishlist',
-        load: () => import('./pages/customer/WishlistPage.ts'),
+        load: () => Promise.all([import('./styles/components/wishlist.css'), import('./pages/customer/WishlistPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/account/following',
@@ -922,7 +922,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'follow_feed',
-        load: () => import('./pages/customer/FollowingFeedPage.ts'),
+        load: () => Promise.all([import('./styles/components/customer-following.css'), import('./pages/customer/FollowingFeedPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/account/reviews',
@@ -979,7 +979,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/AddressesPage.ts'),
+        load: () => Promise.all([import('./styles/components/customer-addresses.css'), import('./pages/customer/AddressesPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/customer/addresses',
@@ -987,7 +987,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/AddressesPage.ts'),
+        load: () => Promise.all([import('./styles/components/customer-addresses.css'), import('./pages/customer/AddressesPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/addresses',
@@ -995,7 +995,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: null,
         module: 'core',
-        load: () => import('./pages/customer/AddressesPage.ts'),
+        load: () => Promise.all([import('./styles/components/customer-addresses.css'), import('./pages/customer/AddressesPage.ts')]).then(([, page]) => page),
       },
       // Prompt 11.4: Super Admin Executive Dashboard & System Health
       {
@@ -1254,7 +1254,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.banner.publish',
         module: 'core',
-        load: () => import('./pages/editor/BannersManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/BannersManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/content/stories',
@@ -1262,7 +1262,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.story.curate',
         module: 'content_commerce',
-        load: () => import('./pages/editor/StoriesManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/StoriesManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/content/academy',
@@ -1270,7 +1270,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.academy.manage',
         module: 'seller_academy',
-        load: () => import('./pages/editor/AcademyManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/AcademyManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/content/whats-new',
@@ -1278,7 +1278,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.announcement.publish',
         module: 'whats_new',
-        load: () => import('./pages/editor/WhatsNewManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/WhatsNewManagerPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/content/translations',
@@ -1286,7 +1286,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'content.i18n.update',
         module: 'i18n',
-        load: () => import('./pages/editor/TranslationManagerPage.ts'),
+        load: () => Promise.all([import('./styles/components/editor.css'), import('./pages/editor/TranslationManagerPage.ts')]).then(([, page]) => page),
       },
 
       // Admin Live Stream & Security
@@ -1508,7 +1508,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.audit.view',
         module: 'core',
-        load: () => import('./pages/admin/AuditLogPage.ts'),
+        load: () => Promise.all([import('./styles/components/audit-explorer.css'), import('./pages/admin/AuditLogPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/audit',
@@ -1516,7 +1516,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'security.audit.view',
         module: 'core',
-        load: () => import('./pages/admin/AuditLogPage.ts'),
+        load: () => Promise.all([import('./styles/components/audit-explorer.css'), import('./pages/admin/AuditLogPage.ts')]).then(([, page]) => page),
       },
       // Prompt 3.5: Theme & Color Studio
       {
@@ -1525,7 +1525,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.theme.view',
         module: 'theme_studio',
-        load: () => import('./pages/admin/ThemeStudioPage.ts'),
+        load: () => Promise.all([import('./styles/components/theme-studio.css'), import('./pages/admin/ThemeStudioPage.ts')]).then(([, page]) => page),
       },
       {
         path: '/admin/theme',
@@ -1533,7 +1533,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'platform.theme.view',
         module: 'core',
-        load: () => import('./pages/admin/ThemeStudioPage.ts'),
+        load: () => Promise.all([import('./styles/components/theme-studio.css'), import('./pages/admin/ThemeStudioPage.ts')]).then(([, page]) => page),
       },
       // Prompt 6.3: Admin Payout Queue
       {
@@ -1886,7 +1886,7 @@ async function bootRouterDemo() {
         requiresAuth: true,
         permission: 'chat.thread.view_own',
         module: 'whatsapp_bridge',
-        load: () => import('./pages/saler/UnifiedInboxPage.ts'),
+        load: () => Promise.all([import('./styles/components/saler-inbox.css'), import('./pages/saler/UnifiedInboxPage.ts')]).then(([, page]) => page),
       },
       // Prompt 8.2: Notification Preferences
       {
@@ -2167,7 +2167,7 @@ async function bootRouterDemo() {
               title: 'Component Gallery — Explooro (dev)',
               permission: null,
               module: 'core',
-              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./styles/components/payout-protection.css'), import('./pages/dev/GalleryPage.ts')]).then(([, , , , , page]) => page),
+              load: () => Promise.all([import('./styles/components/supplier-scorecard.css'), import('./styles/components/sourcing-sponsored.css'), import('./styles/components/incentive.css'), import('./styles/components/sample-kit.css'), import('./styles/components/payout-protection.css'), import('./styles/components/wishlist.css'), import('./styles/components/customer-following.css'), import('./styles/components/customer-addresses.css'), import('./styles/components/audit-explorer.css'), import('./styles/components/theme-studio.css'), import('./styles/components/saler-inbox.css'), import('./styles/components/editor.css'), import('./styles/components/sourcing.css'), import('./styles/components/profile.css'), import('./pages/dev/GalleryPage.ts')]).then(([, , , , , , , , , , , , , , page]) => page),
             },
             {
               path: '/dev/craft',

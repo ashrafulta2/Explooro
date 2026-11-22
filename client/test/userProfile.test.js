@@ -36,6 +36,22 @@ const mocksIndexSrc = read('src/mocks/index.ts');
  * Every /account/* surface, and the three names each one is known by: the BEM prefix its markup
  * used before the migration, the class its root element still carries, and its stylesheet.
  */
+// A split page sheet reaches the browser one of three ways, each after main.css (so it still
+// overrides account-shell.css): a static import in the page module, an import beside the page in
+// its main.ts route load() (awaited before the page mounts), or a styles/load*Styles.ts loader the
+// page calls (held by core/styleGate.ts). Pages imported by node:test cannot use the first.
+function loadsOwnSheet(pageJs, css) {
+  const sheet = `styles/components/${css}\\.css`;
+  const js = read(pageJs);
+  if (new RegExp(`import '[^']*${sheet}'`).test(js)) return true;
+  const page = pageJs.replace(/^src\//, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (new RegExp(`load: \\(\\) => Promise\\.all\\(\\[[^\\]]*import\\('\\./${sheet}'\\)[^\\]]*import\\('\\./${page}'\\)`).test(mainSrc)) return true;
+  for (const m of js.matchAll(/import \{[^}]*\} from '[^']*styles\/(load\w+Styles)\.ts'/g)) {
+    if (new RegExp(`import\\('\\./components/${css}\\.css'\\)`).test(read(`src/styles/${m[1]}.ts`))) return true;
+  }
+  return false;
+}
+
 const ACCOUNT_PAGES = [
   { prefix: 'profile-page', rootClass: 'profile-page', css: 'profile', js: 'src/pages/settings/ProfilePage.ts' },
   { prefix: 'notif-prefs-page', rootClass: 'notif-prefs-page', css: 'notification-prefs', js: 'src/pages/settings/NotificationPreferencesPage.ts' },
@@ -153,8 +169,11 @@ test('2. The page is actually reachable', async (t) => {
 });
 
 test('3. Styling is wired up', async (t) => {
-  await t.test('main.css imports profile.css and the shared account shell', () => {
-    assert.match(mainCss, /@import '\.\/components\/profile\.css';/);
+  await t.test('profile.css is loaded and main.css imports the shared account shell', () => {
+    assert.ok(
+      /@import '\.\/components\/profile\.css';/.test(mainCss) || loadsOwnSheet('src/pages/settings/ProfilePage.ts', 'profile'),
+      'profile.css is in neither main.css nor loaded by ProfilePage'
+    );
     assert.match(mainCss, /@import '\.\/components\/account-shell\.css';/);
   });
 
@@ -193,11 +212,7 @@ test('3. Styling is wired up', async (t) => {
       // code-splits it out of the entry bundle entirely and it loads after main.css anyway.
       // That is the pattern worth copying when the CSS budget gets tight again — see the note in
       // client/vite.config.js.
-      assert.match(
-        read(page.js),
-        new RegExp(`import '[^']*styles/components/${page.css}\\.css'`),
-        `${page.css}.css is in neither main.css nor its own page module`
-      );
+      assert.ok(loadsOwnSheet(page.js, page.css), `${page.css}.css is in neither main.css nor loaded by ${page.js}`);
     }
   });
 
