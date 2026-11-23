@@ -8,9 +8,17 @@ Fill-in templates for the four documents published at **/admin/platform/legal**:
 | [privacy.md](privacy.md) | `privacy` | Everyone |
 | [refund.md](refund.md) | `refund` | Read only (part of the Terms) |
 | [partner-agreement.md](partner-agreement.md) | `partner_agreement` | Explooro partners |
+| [supplier-agreement.md](supplier-agreement.md) | `supplier_agreement` (**not on the platform yet**) | Suppliers |
 
-Version 1 of each document is already live (seeded by migrations 104 and 106). These templates
-are the fuller, standard version to complete and publish as the next version.
+Version 1 of the first four documents is already live (seeded by migrations 104 and 106). These
+templates are the fuller, standard version to complete and publish as the next version.
+
+The supplier agreement has no `doc_key` yet: /admin/platform/legal cannot publish it and suppliers
+are never asked to agree. Adding it means a migration (the `legal_documents` CHECK and a version 1
+row), a `{ key: 'supplier_agreement', acceptedBy: ['supplier'] }` entry in both
+`server/src/config/legal.ts` and `client/src/config/legal.ts`, the mock in
+`client/src/mocks/handlers/legal.ts`, the page strings in both locales, and
+`server/test/legal.test.js`. Until then, sign it with suppliers outside the platform.
 
 ## The three kinds of marking
 
