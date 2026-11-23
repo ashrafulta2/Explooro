@@ -17,6 +17,7 @@ import { Checkbox } from '../ui/Checkbox.ts';
 import { acceptLegal, getPendingLegal, type PendingLegalDoc } from '../../services/legal.api.ts';
 import { logout } from '../../services/session.ts';
 import { toast } from '../../services/toast.ts';
+import { appStore } from '../../state/appStore.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import '../../styles/components/legal.css';
 
@@ -144,7 +145,12 @@ export function LegalAcceptModal(initial: PendingLegalDoc[], {
   }
 
   draw();
-  return modal;
+  /** Closes the dialog for good, without signing out (the session has already ended). */
+  const dismiss = () => {
+    leaving = true;
+    modal.closeModal(false, { force: true });
+  };
+  return Object.assign(modal, { dismiss });
 }
 
 let open = false;
@@ -161,10 +167,22 @@ export async function checkAndPromptLegal(options: LegalAcceptOptions = {}): Pro
   }
   if (pending.length === 0) return false;
   open = true;
-  LegalAcceptModal(pending, {
+  let unsubscribe: (() => void) | null = null;
+  const finish = () => { open = false; unsubscribe?.(); unsubscribe = null; };
+  const modal = LegalAcceptModal(pending, {
     ...options,
-    onAccepted: () => { open = false; options.onAccepted?.(); },
-    onSignedOut: () => { open = false; (options.onSignedOut ?? (() => window.location.assign('/login')))(); },
-  }).openModal();
+    onAccepted: () => { finish(); options.onAccepted?.(); },
+    onSignedOut: () => { finish(); (options.onSignedOut ?? (() => window.location.assign('/login')))(); },
+  });
+  // WHY: the session can end under the dialog (a 401 the API could not refresh past sends the
+  // user to /login). The documents were the old account's to agree to, so the dialog goes too,
+  // or it sits over the sign-in form and its Escape handler keeps reopening it.
+  unsubscribe = appStore.subscribe((s) => {
+    if (open && !s.auth?.isAuthenticated) {
+      finish();
+      modal.dismiss();
+    }
+  });
+  modal.openModal();
   return true;
 }

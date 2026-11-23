@@ -24,7 +24,7 @@ import { initI18n, t, subscribe as subscribeLang } from './services/i18n.ts';
 import { initGenieSettings } from './services/genieSettings.ts';
 
 // Prompt 2.8 — real session and permission service.
-import { initSession, isUserAuthenticated } from './services/session.ts';
+import { initSession, isUserAuthenticated, endSessionLocally } from './services/session.ts';
 
 // Prompt 3.2 — live feature flags and DOM module scanner.
 import { initFeatureFlags, scanDomForModuleGates } from './services/featureFlags.ts';
@@ -2243,6 +2243,11 @@ async function bootRouterDemo() {
 
   // api.js dispatches this after a 401 it could not refresh past (see core/api.js).
   window.addEventListener('explooro:auth-required', () => {
+    // The store must forget the account BEFORE the login page renders, or the shell keeps the
+    // signed-in sidebar, avatar and cart badge around the sign-in form.
+    endSessionLocally();
+    // A second 401 while already on the sign-in page would nest ?redirect=/login inside itself.
+    if (window.location.pathname === '/login' || window.location.pathname === '/auth/login') return;
     router.navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
   });
 

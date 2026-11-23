@@ -13,6 +13,7 @@ import { pickMessage } from '../../core/api.ts';
 import { t } from '../../services/i18n.ts';
 import { toast } from '../../services/toast.ts';
 import { homePathForRoles } from '../../config/navigation.ts';
+import { appStore } from '../../state/appStore.ts';
 import { Button } from '../../components/ui/Button.ts';
 import { getExplooroLogoSvg, formatExplooroBrandText } from '../../components/ui/icons.ts';
 import type { PageContext } from '../types.ts';
@@ -29,6 +30,14 @@ export default function LoginPage(container: HTMLElement, { query = {}, navigate
    *  step resolves the role's own home. */
   const redirectQuery = explicitRedirect ? `&redirect=${encodeURIComponent(explicitRedirect)}` : '';
   const redirectQueryFirst = explicitRedirect ? `?redirect=${encodeURIComponent(explicitRedirect)}` : '';
+
+  // WHY: a signed-in user who opens /login (a bookmark, the back button, a stale link) got the
+  // sign-in form inside their own signed-in shell. They already have a session, so send them on.
+  const auth = appStore.get().auth;
+  if (auth?.isAuthenticated) {
+    navigate(landingPath(auth), { replace: true });
+    return () => {};
+  }
 
   const wrapper = document.createElement('div');
   wrapper.className = 'auth-container';

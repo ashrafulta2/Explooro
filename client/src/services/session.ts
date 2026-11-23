@@ -276,6 +276,21 @@ export async function logout() {
   updateStoreAuth(null, []);
 }
 
+/**
+ * Drops the session in this tab only, without calling the server. For a 401 the API could not
+ * refresh past: the server has already ended the session, so `/auth/logout` would only 401 again.
+ */
+// WHY: the 401 handler used to clear just the access token and send the user to /login, so the
+// store still said "signed in" — the sign-in form showed next to the old account's sidebar,
+// avatar and cart badge.
+export function endSessionLocally() {
+  if (refreshTimer) clearTimeout(refreshTimer);
+  refreshTimer = null;
+  clearAccessToken();
+  clearPermissions();
+  updateStoreAuth(null, []);
+}
+
 export function getCurrentUser(): SessionUser | null {
   return currentUser;
 }
