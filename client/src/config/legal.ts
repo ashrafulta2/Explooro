@@ -6,7 +6,7 @@
  */
 
 export interface LegalDocLink {
-  key: 'terms' | 'privacy' | 'refund' | 'partner_agreement';
+  key: 'terms' | 'privacy' | 'refund' | 'partner_agreement' | 'supplier_agreement';
   /** The URL segment under /legal/. */
   slug: string;
   path: string;
@@ -19,6 +19,7 @@ export const LEGAL_DOCS: readonly LegalDocLink[] = Object.freeze([
   { key: 'privacy', slug: 'privacy', path: '/legal/privacy', labelKey: 'legal.link.privacy' },
   { key: 'refund', slug: 'refund', path: '/legal/refund', labelKey: 'legal.link.refund' },
   { key: 'partner_agreement', slug: 'partner-agreement', path: '/legal/partner-agreement', labelKey: 'legal.link.partner_agreement' },
+  { key: 'supplier_agreement', slug: 'supplier-agreement', path: '/legal/supplier-agreement', labelKey: 'legal.link.supplier_agreement' },
 ]);
 
 export function legalDocBySlug(slug: string | null | undefined): LegalDocLink | null {

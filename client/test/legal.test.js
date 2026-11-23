@@ -115,7 +115,7 @@ describe('4. wiring', () => {
     const keys = (o, p = '') => Object.entries(o).flatMap(([k, v]) => (v && typeof v === 'object' ? keys(v, `${p}${k}.`) : [`${p}${k}`]));
     assert.deepEqual(keys(en.legal), keys(bn.legal));
     assert.deepEqual(keys(en.admin.legal), keys(bn.admin.legal));
-    for (const k of ['accept_legal', 'accept_legal_partner', 'accept_legal_required']) {
+    for (const k of ['accept_legal', 'accept_legal_partner', 'accept_legal_supplier', 'accept_legal_required']) {
       assert.ok(en.auth.register[k] && bn.auth.register[k], k);
     }
     for (const d of LEGAL_DOCS) {
@@ -128,6 +128,7 @@ describe('4. wiring', () => {
     for (const dict of [en, bn]) {
       assert.match(dict.auth.register.accept_legal, /\{\{terms\}\}[\s\S]*\{\{privacy\}\}/);
       assert.match(dict.auth.register.accept_legal_partner, /\{\{terms\}\}[\s\S]*\{\{privacy\}\}[\s\S]*\{\{partner\}\}/);
+      assert.match(dict.auth.register.accept_legal_supplier, /\{\{terms\}\}[\s\S]*\{\{privacy\}\}[\s\S]*\{\{supplier\}\}/);
     }
   });
 });

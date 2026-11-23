@@ -259,6 +259,6 @@ describe('7. email codes need a way to send email', () => {
 describe('8. the legal pages are prerendered', () => {
   test('every document path is in the prerender config', () => {
     const paths = prerenderConfig.routes.map((r) => r.path);
-    for (const p of ['/legal/terms', '/legal/privacy', '/legal/refund', '/legal/partner-agreement']) assert.ok(paths.includes(p), p);
+    for (const p of ['/legal/terms', '/legal/privacy', '/legal/refund', '/legal/partner-agreement', '/legal/supplier-agreement']) assert.ok(paths.includes(p), p);
   });
 });

@@ -942,6 +942,7 @@
       "login_link": "Sign In",
       "accept_legal": "I agree to the {{terms}} and the {{privacy}}.",
       "accept_legal_partner": "I agree to the {{terms}}, the {{privacy}} and the {{partner}}.",
+      "accept_legal_supplier": "I agree to the {{terms}}, the {{privacy}} and the {{supplier}}.",
       "accept_legal_required": "Please tick the box to agree to the terms before you sign up."
     },
     "otp": {
@@ -6035,12 +6036,13 @@
     },
     "legal": {
       "title": "Legal Documents",
-      "subtitle": "The terms, privacy policy, refund policy and partner agreement every visitor can read, and who has agreed to them.",
+      "subtitle": "The terms, privacy policy, refund policy, partner agreement and supplier agreement every visitor can read, and who has agreed to them.",
       "doc": {
         "terms": "Terms of Use",
         "privacy": "Privacy Policy",
         "refund": "Refund & Return Policy",
-        "partner_agreement": "Explooro Partner Agreement"
+        "partner_agreement": "Explooro Partner Agreement",
+        "supplier_agreement": "Explooro Supplier Agreement"
       },
       "role": {
         "saler": "Explooro partners",
@@ -9004,7 +9006,8 @@
       "terms": "Terms of Use",
       "privacy": "Privacy Policy",
       "refund": "Refund & Return Policy",
-      "partner_agreement": "Explooro Partner Agreement"
+      "partner_agreement": "Explooro Partner Agreement",
+      "supplier_agreement": "Explooro Supplier Agreement"
     },
     "other_documents": "Other documents",
     "meta": "Version {{version}} · In effect from {{date}}",

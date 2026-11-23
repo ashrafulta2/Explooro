@@ -942,6 +942,7 @@
       "login_link": "সাইন ইন করুন",
       "accept_legal": "আমি {{terms}} ও {{privacy}}-তে সম্মতি দিচ্ছি।",
       "accept_legal_partner": "আমি {{terms}}, {{privacy}} ও {{partner}}-তে সম্মতি দিচ্ছি।",
+      "accept_legal_supplier": "আমি {{terms}}, {{privacy}} ও {{supplier}}-তে সম্মতি দিচ্ছি।",
       "accept_legal_required": "সাইন আপের আগে শর্তাবলিতে সম্মতি দিতে বক্সে টিক দিন।"
     },
     "otp": {
@@ -6035,12 +6036,13 @@
     },
     "legal": {
       "title": "আইনি নথি",
-      "subtitle": "যে শর্তাবলি, গোপনীয়তা নীতি, রিফান্ড নীতি ও পার্টনার চুক্তি সবাই পড়তে পারেন, এবং কে কে তাতে সম্মতি দিয়েছেন।",
+      "subtitle": "যে শর্তাবলি, গোপনীয়তা নীতি, রিফান্ড নীতি, পার্টনার চুক্তি ও সরবরাহকারী চুক্তি সবাই পড়তে পারেন, এবং কে কে তাতে সম্মতি দিয়েছেন।",
       "doc": {
         "terms": "ব্যবহারের শর্তাবলি",
         "privacy": "গোপনীয়তা নীতি",
         "refund": "রিফান্ড ও রিটার্ন নীতি",
-        "partner_agreement": "Explooro শপ পার্টনার চুক্তি"
+        "partner_agreement": "Explooro শপ পার্টনার চুক্তি",
+        "supplier_agreement": "Explooro সরবরাহকারী চুক্তি"
       },
       "role": {
         "saler": "শপ পার্টনার",
@@ -9004,7 +9006,8 @@
       "terms": "ব্যবহারের শর্তাবলি",
       "privacy": "গোপনীয়তা নীতি",
       "refund": "রিফান্ড ও রিটার্ন নীতি",
-      "partner_agreement": "Explooro শপ পার্টনার চুক্তি"
+      "partner_agreement": "Explooro শপ পার্টনার চুক্তি",
+      "supplier_agreement": "Explooro সরবরাহকারী চুক্তি"
     },
     "other_documents": "অন্যান্য নথি",
     "meta": "সংস্করণ {{version}} · {{date}} থেকে কার্যকর",

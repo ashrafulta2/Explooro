@@ -10,14 +10,15 @@
 import type { MockRoute } from '../types.ts';
 
 const STORAGE_KEY = 'explooro:mock:legal';
-const KEYS = ['terms', 'privacy', 'refund', 'partner_agreement'];
-const PATHS = { terms: '/legal/terms', privacy: '/legal/privacy', refund: '/legal/refund', partner_agreement: '/legal/partner-agreement' };
-const ACCEPTED_BY = { terms: 'all', privacy: 'all', refund: null, partner_agreement: ['saler'] };
+const KEYS = ['terms', 'privacy', 'refund', 'partner_agreement', 'supplier_agreement'];
+const PATHS = { terms: '/legal/terms', privacy: '/legal/privacy', refund: '/legal/refund', partner_agreement: '/legal/partner-agreement', supplier_agreement: '/legal/supplier-agreement' };
+const ACCEPTED_BY = { terms: 'all', privacy: 'all', refund: null, partner_agreement: ['saler'], supplier_agreement: ['supplier'] };
 const TITLES = {
   terms: ['Terms of Use', 'ব্যবহারের শর্তাবলি'],
   privacy: ['Privacy Policy', 'গোপনীয়তা নীতি'],
   refund: ['Refund & Return Policy', 'রিফান্ড ও রিটার্ন নীতি'],
   partner_agreement: ['Explooro Partner Agreement', 'Explooro শপ পার্টনার চুক্তি'],
+  supplier_agreement: ['Explooro Supplier Agreement', 'Explooro সরবরাহকারী চুক্তি'],
 };
 
 const bodyEn = (title) => `This is the mock-mode stand-in for the ${title}. The real text is served by the API (migration 104).
@@ -61,7 +62,18 @@ function load() {
     const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed?.documents)) return parsed;
+      if (Array.isArray(parsed?.documents)) {
+        // WHY: a browser that saved state before a document existed (the supplier agreement,
+        // migration 112) would have no version of it, and every list here would crash on it.
+        const fresh = seed().documents;
+        for (const key of KEYS) {
+          if (!parsed.documents.some((d) => d.doc_key === key)) {
+            const maxId = Math.max(0, ...parsed.documents.map((d) => d.id));
+            parsed.documents.push({ ...fresh.find((d) => d.doc_key === key), id: maxId + 1 });
+          }
+        }
+        return parsed;
+      }
     }
   } catch {
     // Private browsing: start from the seed.

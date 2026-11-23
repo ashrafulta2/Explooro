@@ -326,8 +326,9 @@ export default function RegisterPage(container: HTMLElement, { query = {}, param
 
   /** Fills "{{terms}}"-style slots in the sentence with links. */
   function renderLegalLabel() {
-    const sentence = t(selectedRole === 'saler' ? 'auth.register.accept_legal_partner' : 'auth.register.accept_legal');
-    const slots = { terms: 'terms', privacy: 'privacy', partner: 'partner_agreement' };
+    const sentence = t(selectedRole === 'saler' ? 'auth.register.accept_legal_partner'
+      : selectedRole === 'supplier' ? 'auth.register.accept_legal_supplier' : 'auth.register.accept_legal');
+    const slots = { terms: 'terms', privacy: 'privacy', partner: 'partner_agreement', supplier: 'supplier_agreement' };
     legalLabel.replaceChildren(...sentence.split(/(\{\{\w+\}\})/).filter(Boolean).map((part) => {
       const m = part.match(/^\{\{(\w+)\}\}$/);
       return m && slots[m[1]] ? legalLink(slots[m[1]]) : document.createTextNode(part);

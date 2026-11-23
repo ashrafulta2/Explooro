@@ -60,6 +60,14 @@ export const prerenderConfig = {
       ogType: 'article',
     },
     {
+      path: '/legal/supplier-agreement',
+      title: 'Explooro Supplier Agreement — Explooro',
+      description: 'What a supplier is responsible for, how supplier prices, flash sales and returns work, and how suppliers are paid.',
+      heading: 'Explooro Supplier Agreement',
+      bodyText: 'The agreement every supplier accepts before selling products on Explooro.',
+      ogType: 'article',
+    },
+    {
       path: '/categories',
       title: 'Product Categories — Explooro Wholesale & Retail',
       description: 'Browse authentic Bangladesh handlooms, organic honey, electronics, beauty, and home crafts directly from verified manufacturers.',

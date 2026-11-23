@@ -22,7 +22,10 @@ import legalRoutes from '../src/routes/legal.routes.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
-const MIGRATION = read('../src/db/migrations/104_legal_documents.sql');
+const MIGRATION_104 = read('../src/db/migrations/104_legal_documents.sql');
+// 112 replaces 104's CHECK to add the supplier agreement and seeds its version 1.
+const MIGRATION_112 = read('../src/db/migrations/112_supplier_agreement.sql');
+const MIGRATION = [MIGRATION_104, MIGRATION_112].join(' ');
 const norm = (sql) => String(sql).trim().replace(/\s+/g, ' ');
 
 /** A db that answers by SQL text and records every query. */
@@ -45,7 +48,8 @@ describe('1. one list of documents', () => {
   });
 
   test('the migration CHECK allows exactly these keys and seeds version 1 of each', () => {
-    const check = MIGRATION.match(/doc_key\s+TEXT NOT NULL CHECK \(doc_key IN \(([^)]+)\)\)/);
+    // WHY the newest migration's list: 112 drops 104's CHECK and adds the one in force.
+    const check = MIGRATION_112.match(/CHECK \(doc_key IN \(([^)]+)\)\)/);
     assert.ok(check);
     assert.deepEqual(check[1].split(',').map((s) => s.trim().replace(/'/g, '')), [...LEGAL_DOC_KEYS]);
     for (const key of LEGAL_DOC_KEYS) assert.match(MIGRATION, new RegExp(`\\(\\s*'${key}', 1,`), key);
@@ -66,6 +70,7 @@ describe('1. one list of documents', () => {
   test('who agrees to what', () => {
     assert.deepEqual(docsToAccept(['customer']).map((d) => d.key), ['terms', 'privacy']);
     assert.deepEqual(docsToAccept(['saler']).map((d) => d.key), ['terms', 'privacy', 'partner_agreement']);
+    assert.deepEqual(docsToAccept(['supplier']).map((d) => d.key), ['terms', 'privacy', 'supplier_agreement']);
     assert.ok(!docsToAccept(['admin', 'saler', 'supplier']).some((d) => d.key === 'refund'));
   });
 });

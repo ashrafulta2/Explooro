@@ -1,9 +1,6 @@
 # Supplier Agreement — template
 
-- **doc_key:** `supplier_agreement` — **does not exist yet.** The platform publishes only `terms`,
-  `privacy`, `refund` and `partner_agreement` (the CHECK in migration 104 and
-  `server/src/config/legal.ts`). Until a `supplier_agreement` key is added (migration, both
-  `config/legal.ts` files, the mock and `server/test/legal.test.js`), sign this outside the platform.
+- **doc_key:** `supplier_agreement` (migration 112 seeds a plain version 1; publish this as version 2)
 - **Title (English):** Explooro Supplier Agreement
 - **Title (Bangla):** Explooro সরবরাহকারী চুক্তি
 - **Everyone must agree again:** yes (only suppliers would be asked)

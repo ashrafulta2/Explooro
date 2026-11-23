@@ -12,7 +12,7 @@
  */
 
 export interface LegalDocDef {
-  key: 'terms' | 'privacy' | 'refund' | 'partner_agreement';
+  key: 'terms' | 'privacy' | 'refund' | 'partner_agreement' | 'supplier_agreement';
   path: string;
   acceptedBy: 'all' | string[] | null;
 }
@@ -22,6 +22,7 @@ export const LEGAL_DOCS: readonly LegalDocDef[] = Object.freeze([
   { key: 'privacy', path: '/legal/privacy', acceptedBy: 'all' },
   { key: 'refund', path: '/legal/refund', acceptedBy: null },
   { key: 'partner_agreement', path: '/legal/partner-agreement', acceptedBy: ['saler'] },
+  { key: 'supplier_agreement', path: '/legal/supplier-agreement', acceptedBy: ['supplier'] },
 ]);
 
 export const LEGAL_DOC_KEYS = Object.freeze(LEGAL_DOCS.map((d) => d.key));

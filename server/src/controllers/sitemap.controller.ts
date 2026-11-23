@@ -181,6 +181,7 @@ export async function getStaticSitemap(req, reply) {
     { path: '/legal/privacy', changefreq: 'yearly', priority: '0.3' },
     { path: '/legal/refund', changefreq: 'yearly', priority: '0.3' },
     { path: '/legal/partner-agreement', changefreq: 'yearly', priority: '0.3' },
+    { path: '/legal/supplier-agreement', changefreq: 'yearly', priority: '0.3' },
   ];
 
   const entries = staticRoutes.map((r) =>
