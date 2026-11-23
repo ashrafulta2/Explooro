@@ -22,6 +22,16 @@ export const LEGAL_DOCS: readonly LegalDocLink[] = Object.freeze([
   { key: 'supplier_agreement', slug: 'supplier-agreement', path: '/legal/supplier-agreement', labelKey: 'legal.link.supplier_agreement' },
 ]);
 
+/**
+ * How many points each document asks a lawyer to check before launch, drawn on /admin/platform/legal
+ * from admin.legal.review.<key>.<n> (1-based). They were the [[LAWYER]] notes in
+ * docs/legal-templates, kept out of the published text by migration 113.
+ * WHY a count and not an array in the locales: the i18n engine reads strings.
+ */
+export const LEGAL_REVIEW_POINTS: Readonly<Record<LegalDocLink['key'], number>> = Object.freeze({
+  terms: 4, privacy: 3, refund: 1, partner_agreement: 1, supplier_agreement: 2,
+});
+
 export function legalDocBySlug(slug: string | null | undefined): LegalDocLink | null {
   return LEGAL_DOCS.find((d) => d.slug === slug) ?? null;
 }

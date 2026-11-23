@@ -1542,6 +1542,27 @@ html:where([data-ui-style='macos']) .legal-admin__warning {
   background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
   border-color: transparent;
 }
+html:where([data-ui-style='macos']) .legal-admin__field--missing input {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .legal-admin__review {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border: var(--border-width) solid transparent;
+}
+html:where([data-ui-style='macos']) .legal-token--filled {
+  background: color-mix(in srgb, var(--success-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .legal-token--fallback {
+  background: color-mix(in srgb, var(--warning-bg) 70%, transparent);
+  border-color: transparent;
+}
+html:where([data-ui-style='macos']) .legal-token--empty,
+html:where([data-ui-style='macos']) .legal-token--unknown {
+  background: color-mix(in srgb, var(--danger-bg) 70%, transparent);
+  border-color: transparent;
+}
 
 /* ── components/live.css ── */
 html:where([data-ui-style='macos']) .live-indicator-chip {

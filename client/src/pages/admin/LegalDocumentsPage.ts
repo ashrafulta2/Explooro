@@ -2,8 +2,12 @@
  * LegalDocumentsPage.ts — /admin/platform/legal: the terms, privacy policy, refund policy and
  * Explooro partner agreement (migration 104, services/legal.service.ts).
  *
- *   * Company details: the name, licence, address and contact the documents show ({{company.*}}).
- *     Warned about while any is empty, because the documents read "—" in their place.
+ *   * Company details: every value the documents show through a {{company.*}} token (name,
+ *     licence, DBID, contacts, time limits, …), in the blocks the API's `company_fields` names.
+ *     Required ones are warned about and outlined while empty, because the text reads "—" there.
+ *     Saving them changes every document at once and asks nobody to agree again.
+ *   * "Show where details go": the current text with each token marked filled / default / empty,
+ *     and the points a lawyer should confirm (migration 113 left them out of the text).
  *   * Each document: its versions, how many people agreed to each, and "Publish a new version".
  *     A published version is never edited. The new version starts from the current text; ticking
  *     "everyone must agree again" asks every account it applies to on their next visit.
@@ -25,11 +29,15 @@ import { toast } from '../../services/toast.ts';
 import { t, getLanguage } from '../../services/i18n.ts';
 import { formatDate, formatRelativeTime, formatNumber } from '../../services/format.ts';
 import { escapeHtml } from '../../services/html.ts';
+import { renderLegalText, markLegalTokens } from '../../services/legalText.ts';
+import { LEGAL_REVIEW_POINTS } from '../../config/legal.ts';
 import { loadSystemHealthStyles } from '../../styles/loadSystemHealthStyles.ts';
 import type { PageContext } from '../types.ts';
 import '../../styles/components/legal.css';
 
-const COMPANY_FIELD_ORDER = ['legal_name', 'trade_license', 'address_en', 'address_bn', 'support_email', 'support_phone'];
+/** The blocks of the details form, in order. Which field sits in which comes from the API. */
+const FIELD_GROUPS = ['identity', 'contact', 'operations', 'time'];
+
 
 export default function LegalDocumentsPage(root: HTMLElement, { navigate }: PageContext = {}) {
   loadSystemHealthStyles();
@@ -41,6 +49,8 @@ export default function LegalDocumentsPage(root: HTMLElement, { navigate }: Page
   let isLoading = true;
   /** The document whose new-version form is open, if any. */
   let editing: string | null = null;
+  /** The documents whose marked preview is open, and in which language. */
+  const previewing = new Map<string, 'en' | 'bn'>();
 
   const lang = () => (getLanguage() === 'bn' ? 'bn' : 'en');
   const canPublish = () => data?.can_publish !== false && can('platform.legal.publish');
@@ -105,22 +115,40 @@ export default function LegalDocumentsPage(root: HTMLElement, { navigate }: Page
 
   function companyCard() {
     const section = panel('admin.legal.company_title', 'admin.legal.company_desc');
-    const grid = document.createElement('div');
-    grid.className = 'group-buy-settings__grid';
+    const specs = data.company_fields || {};
+    const order = Object.keys(specs);
     const fields = {};
-    for (const f of COMPANY_FIELD_ORDER) {
-      const input = Input({
-        label: t(`admin.legal.company.${f}`),
-        hint: t(`admin.legal.company.${f}_hint`),
-        type: f === 'support_email' ? 'email' : f === 'support_phone' ? 'tel' : 'text',
-        name: `company_${f}`,
-        value: data.company?.[f] ?? '',
-        maxLength: data.company_fields?.[f]?.max ?? 200,
-      });
-      input.input.disabled = !canPublish();
-      fields[f] = input;
-      grid.append(input);
+    for (const group of FIELD_GROUPS) {
+      const inGroup = order.filter((f) => specs[f].group === group);
+      if (!inGroup.length) continue;
+      const heading = document.createElement('h3');
+      heading.className = 'legal-admin__group-title';
+      heading.textContent = t(`admin.legal.group.${group}`);
+      const grid = document.createElement('div');
+      grid.className = 'group-buy-settings__grid';
+      for (const f of inGroup) {
+        const spec = specs[f];
+        const isNumber = spec.kind === 'days' || spec.kind === 'years';
+        const input = Input({
+          label: t(`admin.legal.company.${f}`) + (spec.required ? ' *' : ''),
+          hint: t(`admin.legal.company.${f}_hint`),
+          type: spec.kind === 'email' ? 'email' : spec.kind === 'tel' ? 'tel' : 'text',
+          inputmode: isNumber ? 'numeric' : undefined,
+          suffix: isNumber ? t(`admin.legal.unit.${spec.kind}`) : undefined,
+          name: `company_${f}`,
+          value: data.company?.[f] ?? '',
+          maxLength: spec.max ?? 200,
+        });
+        input.input.disabled = !canPublish();
+        // WHY marked here as well as in the warning: the warning names the field, this shows it.
+        if (spec.required && !data.company?.[f]) input.classList.add('legal-admin__field--missing');
+        fields[f] = input;
+        grid.append(input);
+      }
+      section.append(heading, grid);
     }
+    const grid = document.createElement('div');
+    grid.className = 'group-buy-settings__grid mt-3';
     const reason = reasonInput('company_reason');
     grid.append(reason);
 
@@ -133,7 +161,7 @@ export default function LegalDocumentsPage(root: HTMLElement, { navigate }: Page
         if (!reasonOk(reason)) return;
         save.disabled = true;
         try {
-          const body = Object.fromEntries(COMPANY_FIELD_ORDER.map((f) => [f, fields[f].value.trim()]));
+          const body = Object.fromEntries(order.map((f) => [f, fields[f].value.trim()]));
           const res = await saveLegalCompany({ ...body, reason: reason.value.trim() });
           toast.success((lang() === 'bn' ? res?.message_bn : res?.message_en) || t('admin.legal.saved'));
           await loadData();
@@ -254,6 +282,49 @@ export default function LegalDocumentsPage(root: HTMLElement, { navigate }: Page
     return form;
   }
 
+  /** The current text with every {{token}} marked: filled, default, empty or filled by the platform. */
+  function markedPreview(doc, previewLang: 'en' | 'bn') {
+    const wrap = document.createElement('div');
+    wrap.className = 'legal-admin__preview mt-3';
+    const bar = document.createElement('div');
+    bar.className = 'legal-admin__preview-bar';
+    const legend = document.createElement('p');
+    legend.className = 'legal-admin__legend text-xs';
+    legend.innerHTML = ['filled', 'fallback', 'empty', 'auto']
+      .map((s) => `<mark class="legal-token legal-token--${s}">${escapeHtml(t(`admin.legal.mark.${s}`))}</mark>`).join(' ');
+    const other = previewLang === 'en' ? 'bn' : 'en';
+    bar.append(legend, Button({
+      label: t(`admin.legal.preview_in_${other}`),
+      variant: 'ghost',
+      size: 'sm',
+      onClick: () => { previewing.set(doc.key, other); render(); },
+    }));
+    const body = document.createElement('div');
+    body.className = 'legal-page__body legal-admin__preview-body';
+    body.lang = previewLang;
+    const text = previewLang === 'bn' ? doc.current?.body_bn : doc.current?.body_en;
+    body.innerHTML = markLegalTokens(renderLegalText(text).html, {
+      company: data.company || {},
+      fields: data.company_fields || {},
+      lang: previewLang,
+      auto: { 'returns.window_days': data.return_window_days },
+      labelOf: (field) => t(`admin.legal.company.${field in (data.company_fields || {}) ? field : `${field}_en`}`),
+    });
+    wrap.append(bar, body);
+    return wrap;
+  }
+
+  /** What a lawyer should confirm in this document before launch. Not part of the text. */
+  function reviewList(doc) {
+    const n = LEGAL_REVIEW_POINTS[doc.key] ?? 0;
+    if (!n) return null;
+    const box = document.createElement('details');
+    box.className = 'legal-admin__review mt-3';
+    const items = Array.from({ length: n }, (_, i) => `<li>${escapeHtml(t(`admin.legal.review.${doc.key}.${i + 1}`))}</li>`).join('');
+    box.innerHTML = `<summary>${escapeHtml(t('admin.legal.review_title', { count: n }))}</summary><ul>${items}</ul>`;
+    return box;
+  }
+
   function documentCard(doc) {
     const section = document.createElement('section');
     section.className = 'admin-panel mt-4';
@@ -282,12 +353,28 @@ export default function LegalDocumentsPage(root: HTMLElement, { navigate }: Page
     view.target = '_blank';
     view.rel = 'noopener';
     actions.append(view);
+    if (cur) {
+      const open = previewing.has(doc.key);
+      actions.append(Button({
+        label: t(open ? 'admin.legal.preview_hide' : 'admin.legal.preview_show'),
+        variant: 'secondary',
+        size: 'sm',
+        onClick: () => {
+          if (open) previewing.delete(doc.key);
+          else previewing.set(doc.key, lang());
+          render();
+        },
+      }));
+    }
     if (canPublish() && editing !== doc.key) {
       actions.append(Button({ label: t('admin.legal.new_version'), variant: 'secondary', size: 'sm', onClick: () => { editing = doc.key; render(); } }));
     }
     head.append(actions);
     section.append(head);
     if (doc.versions.length) section.append(versionsTable(doc));
+    const review = reviewList(doc);
+    if (review) section.append(review);
+    if (previewing.has(doc.key)) section.append(markedPreview(doc, previewing.get(doc.key)));
     if (editing === doc.key) section.append(publishForm(doc));
     return section;
   }

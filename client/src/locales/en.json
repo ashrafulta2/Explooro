@@ -6054,7 +6054,7 @@
       "missing_title": "Company details are missing",
       "missing_desc": "The documents show \"—\" where these belong: {{fields}}. Fill them in before launch.",
       "company_title": "Company details",
-      "company_desc": "The name, licence, address and contact the documents show. Changing them updates every document at once and does not ask anyone to agree again.",
+      "company_desc": "Every detail the documents show: name, registration, contacts, data and the time limits they promise. Fields marked * are needed before launch. Saving updates every document at once and does not ask anyone to agree again.",
       "company": {
         "legal_name": "Registered company name",
         "legal_name_hint": "As on the trade licence, for example \"Explooro Limited\".",
@@ -6067,7 +6067,73 @@
         "support_email": "Support email",
         "support_email_hint": "Where people send privacy and account requests.",
         "support_phone": "Support phone",
-        "support_phone_hint": "For example +8801XXXXXXXXX."
+        "support_phone_hint": "For example +8801XXXXXXXXX.",
+        "business_type_en": "Type of business (English)",
+        "business_type_en_hint": "As the documents name it after the company, e.g. \"private limited company\", \"proprietorship\" or \"partnership firm\".",
+        "business_type_bn": "Type of business (Bangla)",
+        "business_type_bn_hint": "Optional, e.g. \"প্রাইভেট লিমিটেড কোম্পানি\". The Bangla documents use the English one when empty.",
+        "dbid": "Digital Business Identity (DBID)",
+        "dbid_hint": "The DBID number from the Ministry of Commerce, shown in the Terms of Use.",
+        "tax_ids": "e-TIN / VAT BIN",
+        "tax_ids_hint": "e.g. \"e-TIN 123456789012, BIN 001234567-0101\". Shown in the Terms of Use.",
+        "support_hours_en": "Support hours (English)",
+        "support_hours_en_hint": "e.g. \"Saturday to Thursday, 10am to 8pm\".",
+        "support_hours_bn": "Support hours (Bangla)",
+        "support_hours_bn_hint": "Optional, e.g. \"শনিবার থেকে বৃহস্পতিবার, সকাল ১০টা থেকে রাত ৮টা\".",
+        "privacy_email": "Privacy contact email",
+        "privacy_email_hint": "Optional. Named in the Privacy Policy; the support email is used when empty.",
+        "partner_support": "Partner support contact",
+        "partner_support_hint": "Optional email or WhatsApp number for Explooro partners; the support phone is used when empty.",
+        "supplier_support": "Supplier support contact",
+        "supplier_support_hint": "Optional email or WhatsApp number for suppliers; the support phone is used when empty.",
+        "service_providers_en": "Service providers who handle personal data (English)",
+        "service_providers_en_hint": "The companies or kinds of company, e.g. \"our SMS gateway, bKash, Nagad, our cloud hosting and image storage\".",
+        "service_providers_bn": "Service providers (Bangla)",
+        "service_providers_bn_hint": "Optional. The Bangla Privacy Policy uses the English list when empty.",
+        "data_location_en": "Where data is stored (English)",
+        "data_location_en_hint": "Completes \"stored on servers …\", e.g. \"in Bangladesh\" or \"in Singapore, with Amazon Web Services\".",
+        "data_location_bn": "Where data is stored (Bangla)",
+        "data_location_bn_hint": "Optional, e.g. \"বাংলাদেশে\".",
+        "supplier_documents_en": "Documents a supplier must give (English)",
+        "supplier_documents_en_hint": "e.g. \"the owner's NID, trade licence, e-TIN, and a BSTI or DGDA licence for food, cosmetics or medicine\".",
+        "supplier_documents_bn": "Documents a supplier must give (Bangla)",
+        "supplier_documents_bn_hint": "Optional. The Bangla agreement uses the English list when empty.",
+        "court_city_en": "City whose courts decide disputes (English)",
+        "court_city_en_hint": "Optional. \"Dhaka\" is used when empty.",
+        "court_city_bn": "City whose courts decide disputes (Bangla)",
+        "court_city_bn_hint": "Optional. \"ঢাকা\" is used when empty.",
+        "complaint_reply_days": "Reply to a complaint within",
+        "complaint_reply_days_hint": "Working days. Terms of Use.",
+        "complaint_resolve_days": "Resolve a complaint within",
+        "complaint_resolve_days_hint": "Working days. Terms of Use.",
+        "return_review_days": "Decide a return request within",
+        "return_review_days_hint": "Working days. Refund & Return Policy.",
+        "return_check_days": "Check a returned product within",
+        "return_check_days_hint": "Working days after it is back. Refund & Return Policy.",
+        "return_appeal_days": "Answer a second look at a refused return within",
+        "return_appeal_days_hint": "Working days. Refund & Return Policy.",
+        "refund_days": "Refund within",
+        "refund_days_hint": "Working days after the product reaches us. Check it against the Digital Commerce Operation Guidelines 2021.",
+        "not_received_days": "Report a parcel marked delivered but not received within",
+        "not_received_days_hint": "Days. Refund & Return Policy.",
+        "privacy_reply_days": "Answer a privacy request within",
+        "privacy_reply_days_hint": "Days. Privacy Policy.",
+        "records_years": "Keep order and payment records for",
+        "records_years_hint": "Years, as tax and business law requires. Ask your accountant.",
+        "id_docs_years": "Keep identity documents after a partner or supplier leaves for",
+        "id_docs_years_hint": "Years. Privacy Policy.",
+        "partner_explain_days": "Time a partner gets to explain before a penalty",
+        "partner_explain_days_hint": "Days. Partner Agreement.",
+        "reward_claim_days": "Time a partner has to question a reward",
+        "reward_claim_days_hint": "Days after it is paid. Partner Agreement.",
+        "notice_days": "Notice to end a partnership or supplier agreement",
+        "notice_days_hint": "Days. Partner and Supplier Agreements.",
+        "supplier_dispatch_days": "A supplier sends an order within",
+        "supplier_dispatch_days_hint": "Working days of the order. Supplier Agreement.",
+        "supplier_details_days": "A supplier reports changed details within",
+        "supplier_details_days_hint": "Days. Supplier Agreement.",
+        "supplier_return_check_days": "A supplier reports a problem with a returned product within",
+        "supplier_return_check_days_hint": "Days of receiving it. Supplier Agreement."
       },
       "company_save": "Save company details",
       "saved": "Saved.",
@@ -6109,7 +6175,51 @@
       "col_when": "When",
       "col_who": "Who",
       "col_change": "Change",
-      "col_reason": "Reason"
+      "col_reason": "Reason",
+      "group": {
+        "identity": "Company and registration",
+        "contact": "Contact",
+        "operations": "Data, suppliers and disputes",
+        "time": "Time limits the documents promise"
+      },
+      "unit": {
+        "days": "days",
+        "years": "years"
+      },
+      "mark": {
+        "filled": "Filled in",
+        "fallback": "Default in use",
+        "empty": "Empty: fill in Company details",
+        "auto": "Set by the platform"
+      },
+      "preview_show": "Show where details go",
+      "preview_hide": "Hide preview",
+      "preview_in_en": "Show in English",
+      "preview_in_bn": "Show in Bangla",
+      "review_title": "Check with your lawyer before launch ({{count}})",
+      "review": {
+        "terms": {
+          "1": "Which registrations (DBID, trade licence, e-TIN/BIN) the Digital Commerce Operation Guidelines 2021 require the platform to show.",
+          "2": "That the \"marketplace\" position (the sale is between customer and supplier) matches how the company is registered.",
+          "3": "That the Vault, as a stored balance, needs no separate licence from Bangladesh Bank.",
+          "4": "That the delivery times shown at checkout meet the delivery deadlines in the Digital Commerce Operation Guidelines 2021."
+        },
+        "privacy": {
+          "1": "Which personal data protection law of Bangladesh is in force at publication, and whether the policy must name it.",
+          "2": "Whether storing data outside Bangladesh needs consent or permission.",
+          "3": "Which authority, if any, people can complain to about their data."
+        },
+        "refund": {
+          "1": "That refunding into the Explooro Vault meets the refund deadlines and methods in the Digital Commerce Operation Guidelines 2021."
+        },
+        "partner_agreement": {
+          "1": "Whether tax must be deducted at source from partner rewards, and above what amount (ask your accountant)."
+        },
+        "supplier_agreement": {
+          "1": "Whether Explooro must deduct VAT or tax at source from supplier sales, and who issues the customer's VAT invoice.",
+          "2": "That the delivery section matches how delivery money moves between customer, supplier and courier."
+        }
+      }
     }
   },
   "admin_catalog": {

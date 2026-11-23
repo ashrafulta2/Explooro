@@ -41,6 +41,8 @@ const ERROR_STATUS = {
   BACKUP_NOT_FOUND: 404,
   CONFLICT: 409,
   PRECONDITION_CHANGED: 409,
+  // A legal version still carrying a [[FILL]]/[[CHOOSE]]/[[LAWYER]] marking (legal.service validatePublish).
+  LEGAL_MARKING_LEFT: 422,
   MEDIA_TOO_LARGE: 413,
   MEDIA_TYPE_REJECTED: 415,
   RATE_LIMITED: 429,

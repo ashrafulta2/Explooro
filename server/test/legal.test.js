@@ -18,6 +18,8 @@ import Fastify from 'fastify';
 import * as legal from '../src/services/legal.service.ts';
 import { LEGAL_DOCS, LEGAL_DOC_KEYS, docsToAccept } from '../src/config/legal.ts';
 import { LEGAL_DOCS as CLIENT_DOCS } from '../../client/src/config/legal.ts';
+import { COMPANY_FIELDS as MOCK_COMPANY_FIELDS } from '../../client/src/mocks/handlers/legal.ts';
+import { COMPANY_FALLBACK_FIELDS } from '../../client/src/services/legalText.ts';
 import legalRoutes from '../src/routes/legal.routes.ts';
 import errorHandlerPlugin from '../src/plugins/errorHandler.ts';
 
@@ -25,7 +27,10 @@ const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const MIGRATION_104 = read('../src/db/migrations/104_legal_documents.sql');
 // 112 replaces 104's CHECK to add the supplier agreement and seeds its version 1.
 const MIGRATION_112 = read('../src/db/migrations/112_supplier_agreement.sql');
-const MIGRATION = [MIGRATION_104, MIGRATION_112].join(' ');
+// 113 adds the business details and version 2 of every document (the full Bangladesh text).
+const MIGRATION_113 = read('../src/db/migrations/113_legal_full_bangladesh.sql');
+const MIGRATION = [MIGRATION_104, MIGRATION_112, MIGRATION_113].join(' ');
+const bodiesOf = (sql) => [...sql.matchAll(/\$(en|bn)\$([\s\S]*?)\$\1\$/g)].map((m) => ({ lang: m[1], text: m[2] }));
 const norm = (sql) => String(sql).trim().replace(/\s+/g, ' ');
 
 /** A db that answers by SQL text and records every query. */
@@ -88,8 +93,90 @@ describe('2. rendering', () => {
     assert.equal(legal.renderBody('{{company.legal_name}} {{company.ceo}} {{x.y}}', { company: {} }), 'Explooro {{company.ceo}} {{x.y}}');
   });
 
-  test('missing company fields are listed, the Bangla address is optional', () => {
-    assert.deepEqual(legal.missingCompanyFields(company), ['support_phone']);
+  test('missing company fields are listed; no _bn half and no optional field is ever required', () => {
+    const missing = legal.missingCompanyFields(company);
+    assert.ok(missing.includes('support_phone'));
+    assert.ok(missing.includes('dbid'));
+    assert.ok(!missing.includes('address_bn'));
+    assert.ok(!missing.includes('privacy_email'));
+    assert.ok(!missing.some((f) => f.endsWith('_bn')));
+    for (const [f, spec] of Object.entries(legal.COMPANY_FIELDS)) {
+      if (f.endsWith('_bn')) assert.equal(spec.required, false, f);
+    }
+  });
+
+  test('a pair reads through one token, Bangla falling back to English; numbers get Bangla digits', () => {
+    const c = { ...company, business_type_en: 'private limited company', business_type_bn: '', support_hours_en: '10am', support_hours_bn: 'সকাল ১০টা', records_years: '6' };
+    assert.equal(legal.renderBody('{{company.business_type}}', { company: c }, 'bn'), 'private limited company');
+    assert.equal(legal.renderBody('{{company.support_hours}}', { company: c }, 'bn'), 'সকাল ১০টা');
+    assert.equal(legal.renderBody('{{company.records_years}}', { company: c }, 'en'), '6');
+    assert.equal(legal.renderBody('{{company.records_years}}', { company: c }, 'bn'), '৬');
+  });
+
+  test('optional contacts and the courts fall back instead of reading "—"', () => {
+    const c = { ...company, support_phone: '+8801700000000' };
+    assert.equal(legal.renderBody('{{company.privacy_email}}', { company: c }), 'help@example.test');
+    assert.equal(legal.renderBody('{{company.partner_support}} {{company.supplier_support}}', { company: c }), '+8801700000000 +8801700000000');
+    assert.equal(legal.renderBody('{{company.court_city}}', { company: c }, 'en'), 'Dhaka');
+    assert.equal(legal.renderBody('{{company.court_city}}', { company: c }, 'bn'), 'ঢাকা');
+    assert.equal(legal.renderBody('{{company.court_city}}', { company: { ...c, court_city_en: 'Chattogram' } }, 'bn'), 'Chattogram');
+  });
+
+  test('the admin preview falls back exactly where the server does', () => {
+    assert.deepEqual(Object.keys(COMPANY_FALLBACK_FIELDS).sort(), Object.keys(legal.COMPANY_FALLBACKS).sort());
+  });
+
+  test('the mock offers exactly the server\'s detail fields', () => {
+    assert.deepEqual(MOCK_COMPANY_FIELDS, legal.COMPANY_FIELDS);
+  });
+});
+
+describe('2b. the full Bangladesh text (migration 113)', () => {
+  const v2 = bodiesOf(MIGRATION_113);
+
+  test('every document gets version 2, once, in both languages', () => {
+    for (const key of LEGAL_DOC_KEYS) {
+      assert.match(MIGRATION_113, new RegExp(`SELECT '${key}', COALESCE\\(MAX\\(version\\), 0\\) \\+ 1`), key);
+      assert.match(MIGRATION_113, new RegExp(`HAVING NOT EXISTS \\(SELECT 1 FROM legal_documents WHERE doc_key = '${key}'`), key);
+    }
+    assert.equal(v2.length, LEGAL_DOC_KEYS.length * 2);
+  });
+
+  test('no fill-in marking reaches a reader', () => {
+    for (const b of v2) assert.doesNotMatch(b.text, /\[\[(FILL|CHOOSE|LAWYER)/);
+  });
+
+  test('every token in the text is one the server fills', () => {
+    const returns = new Set(['window_days', 'max_courier_refund', 'pickup_fee']);
+    for (const b of v2) {
+      for (const [, group, field] of b.text.matchAll(/\{\{\s*([a-z_]+)\.([a-z_]+)\s*\}\}/g)) {
+        if (group === 'returns') assert.ok(returns.has(field), `returns.${field}`);
+        else {
+          assert.equal(group, 'company', `${group}.${field}`);
+          assert.notEqual(legal.companyValue({}, field, b.lang), null, `company.${field}`);
+        }
+      }
+    }
+  });
+
+  test('every detail field is used by some document (none is a dead form box)', () => {
+    const text = v2.map((b) => b.text).join('\n');
+    for (const f of Object.keys(legal.COMPANY_FIELDS)) {
+      const token = f.replace(/_(en|bn)$/, '');
+      assert.ok(text.includes(`{{company.${token}}}`), f);
+    }
+  });
+
+  test('the starting values cover every new field, and only time limits start filled', () => {
+    const m = MIGRATION_113.match(/SET value_json = '([^']+)'::jsonb \|\| value_json/);
+    assert.ok(m);
+    const start = JSON.parse(m[1]);
+    const original = ['legal_name', 'trade_license', 'address_en', 'address_bn', 'support_email', 'support_phone'];
+    assert.deepEqual(Object.keys(start).sort(), Object.keys(legal.COMPANY_FIELDS).filter((f) => !original.includes(f)).sort());
+    for (const [f, v] of Object.entries(start)) {
+      if (v) assert.equal(legal.COMPANY_FIELDS[f].kind, 'days', f);
+    }
+    assert.doesNotThrow(() => legal.validateCompany(start));
   });
 });
 
@@ -99,6 +186,15 @@ describe('3. company details are strict', () => {
     assert.throws(() => legal.validateCompany({ legal_name: 'x'.repeat(201) }), (e) => e.code === 'VALIDATION_FAILED');
     assert.throws(() => legal.validateCompany({ support_email: 'not-an-email' }), (e) => e.details?.field === 'support_email');
     assert.deepEqual(legal.validateCompany({ legal_name: '  Explooro Ltd  ' }).legal_name, 'Explooro Ltd');
+  });
+
+  test('time limits are whole numbers within bounds; any email field is checked', () => {
+    assert.throws(() => legal.validateCompany({ refund_days: 'ten' }), (e) => e.details?.field === 'refund_days');
+    assert.throws(() => legal.validateCompany({ refund_days: '0' }), (e) => e.details?.field === 'refund_days');
+    assert.throws(() => legal.validateCompany({ records_years: '31' }), (e) => e.details?.field === 'records_years');
+    assert.throws(() => legal.validateCompany({ privacy_email: 'nope' }), (e) => e.details?.field === 'privacy_email');
+    assert.equal(legal.validateCompany({ refund_days: '007' }).refund_days, '7');
+    assert.equal(legal.validateCompany({ refund_days: '' }).refund_days, '');
   });
 
   test('a save needs a reason and is audited with before and after', async () => {
@@ -241,6 +337,12 @@ describe('6. publishing', () => {
     const { requires_reacceptance, ...noChoice } = input;
     await assert.rejects(legal.publishVersion(publishDb(1), null, { key: 'terms', input: noChoice, reason: 'Lawyer review edits' }), (e) => e.details?.field === 'requires_reacceptance');
     await assert.rejects(legal.publishVersion(publishDb(1), null, { key: 'nope', input, reason: 'Lawyer review edits' }), (e) => e.code === 'NOT_FOUND');
+    // A template marking left in would reach every reader as written.
+    for (const mark of ['[[FILL: DBID]]', '[[CHOOSE: a / b]]', '[[LAWYER: check]]']) {
+      const marked = { ...input, body_bn: `${input.body_bn} ${mark}` };
+      await assert.rejects(legal.publishVersion(publishDb(1), null, { key: 'terms', input: marked, reason: 'Lawyer review edits' }),
+        (e) => e.code === 'LEGAL_MARKING_LEFT' && e.details?.field === 'body_bn', mark);
+    }
   });
 
   test('a stale publish rolls back and writes nothing', async () => {

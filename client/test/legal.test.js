@@ -11,8 +11,9 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { renderLegalText, headingId } from '../src/services/legalText.ts';
-import { LEGAL_DOCS, legalDocBySlug } from '../src/config/legal.ts';
+import { renderLegalText, headingId, markLegalTokens } from '../src/services/legalText.ts';
+import { LEGAL_DOCS, LEGAL_REVIEW_POINTS, legalDocBySlug } from '../src/config/legal.ts';
+import { COMPANY_FIELDS } from '../src/mocks/handlers/legal.ts';
 import { navItems } from '../src/config/navigation.ts';
 import { LOCKED_PATHS } from '../src/services/pageAccess.ts';
 import en from '../src/locales/en.json' with { type: 'json' };
@@ -122,6 +123,37 @@ describe('4. wiring', () => {
       const [ns, , name] = d.labelKey.split('.');
       assert.ok(en[ns].link[name] && bn[ns].link[name], d.labelKey);
     }
+  });
+
+  test('every detail field, block and lawyer point the admin page draws has both strings', () => {
+    for (const [f, spec] of Object.entries(COMPANY_FIELDS)) {
+      for (const dict of [en, bn]) {
+        assert.ok(dict.admin.legal.company[f] && dict.admin.legal.company[`${f}_hint`], f);
+        assert.ok(dict.admin.legal.group[spec.group], spec.group);
+        if (spec.kind === 'days' || spec.kind === 'years') assert.ok(dict.admin.legal.unit[spec.kind], spec.kind);
+      }
+    }
+    for (const d of LEGAL_DOCS) {
+      const n = LEGAL_REVIEW_POINTS[d.key];
+      assert.ok(Number.isInteger(n), d.key);
+      for (const dict of [en, bn]) {
+        assert.equal(Object.keys(dict.admin.legal.review[d.key] || {}).length, n, d.key);
+        for (let i = 1; i <= n; i++) assert.ok(dict.admin.legal.review[d.key][i], `${d.key}.${i}`);
+      }
+    }
+  });
+
+  test('the marked preview shows filled, default, empty and platform values, escaped', () => {
+    const fields = { legal_name: { max: 200, group: 'identity', kind: 'text', required: true }, dbid: { max: 60, group: 'identity', kind: 'text', required: true },
+      court_city_en: { max: 60, group: 'operations', kind: 'text', required: false }, court_city_bn: { max: 60, group: 'operations', kind: 'text', required: false } };
+    const html = markLegalTokens('{{company.legal_name}} {{company.dbid}} {{company.court_city}} {{returns.window_days}} {{company.nope}}', {
+      company: { legal_name: '<b>X</b>', dbid: '' }, fields, lang: 'bn', auto: { 'returns.window_days': 7 }, labelOf: (f) => `L:${f}`,
+    });
+    assert.match(html, /legal-token--filled[^>]*>&lt;b&gt;X&lt;\/b&gt;</);
+    assert.match(html, /legal-token--empty[^>]*>\[L:dbid\]</);
+    assert.match(html, /legal-token--fallback[^>]*>ঢাকা</);
+    assert.match(html, /legal-token--auto[^>]*>7</);
+    assert.match(html, /legal-token--unknown/);
   });
 
   test('the sign-up sentence keeps its link slots in both locales', () => {

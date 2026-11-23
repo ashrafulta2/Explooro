@@ -25,15 +25,81 @@ const COMPANY_META = {
   labelBn: 'আইনি নথিতে দেখানো কোম্পানির তথ্য',
 };
 
-/** Field bounds. Shapes of what an admin types, not business numbers. */
+/**
+ * The details the documents name, each filled into the text through a {{company.<field>}} token
+ * (migration 104, widened by 113). One spec drives the server's checks, the admin form (sent as
+ * `company_fields`) and the "still empty" warning. client/src/mocks/handlers/legal.ts keeps a copy;
+ * server/test/legal.test.js fails if the two drift.
+ *
+ *   group     which block of the admin form it sits in
+ *   kind      text | email | tel | days | years (days and years are whole numbers)
+ *   required  warned about while empty, because the documents read "—" in its place
+ *
+ * A pair named <x>_en / <x>_bn is read through one token, {{company.<x>}}: the Bangla text falls
+ * back to the English value, so only the _en half is ever required.
+ * WHY the time limits live here and not in the text: they are business numbers the owner may change
+ * at any time, and saving a value never asks anyone to agree again (publishing a version does).
+ */
 export const COMPANY_FIELDS = Object.freeze({
-  legal_name: { max: 200 },
-  trade_license: { max: 60 },
-  address_en: { max: 300 },
-  address_bn: { max: 300 },
-  support_email: { max: 120 },
-  support_phone: { max: 30 },
+  legal_name: { max: 200, group: 'identity', kind: 'text', required: true },
+  business_type_en: { max: 120, group: 'identity', kind: 'text', required: true },
+  business_type_bn: { max: 120, group: 'identity', kind: 'text', required: false },
+  trade_license: { max: 60, group: 'identity', kind: 'text', required: true },
+  dbid: { max: 60, group: 'identity', kind: 'text', required: true },
+  tax_ids: { max: 120, group: 'identity', kind: 'text', required: true },
+  address_en: { max: 300, group: 'identity', kind: 'text', required: true },
+  address_bn: { max: 300, group: 'identity', kind: 'text', required: false },
+
+  support_email: { max: 120, group: 'contact', kind: 'email', required: true },
+  support_phone: { max: 30, group: 'contact', kind: 'tel', required: true },
+  support_hours_en: { max: 120, group: 'contact', kind: 'text', required: true },
+  support_hours_bn: { max: 120, group: 'contact', kind: 'text', required: false },
+  privacy_email: { max: 120, group: 'contact', kind: 'email', required: false },
+  partner_support: { max: 120, group: 'contact', kind: 'text', required: false },
+  supplier_support: { max: 120, group: 'contact', kind: 'text', required: false },
+
+  service_providers_en: { max: 500, group: 'operations', kind: 'text', required: true },
+  service_providers_bn: { max: 500, group: 'operations', kind: 'text', required: false },
+  data_location_en: { max: 200, group: 'operations', kind: 'text', required: true },
+  data_location_bn: { max: 200, group: 'operations', kind: 'text', required: false },
+  supplier_documents_en: { max: 500, group: 'operations', kind: 'text', required: true },
+  supplier_documents_bn: { max: 500, group: 'operations', kind: 'text', required: false },
+  court_city_en: { max: 60, group: 'operations', kind: 'text', required: false },
+  court_city_bn: { max: 60, group: 'operations', kind: 'text', required: false },
+
+  complaint_reply_days: { max: 3, group: 'time', kind: 'days', required: true },
+  complaint_resolve_days: { max: 3, group: 'time', kind: 'days', required: true },
+  return_review_days: { max: 3, group: 'time', kind: 'days', required: true },
+  return_check_days: { max: 3, group: 'time', kind: 'days', required: true },
+  return_appeal_days: { max: 3, group: 'time', kind: 'days', required: true },
+  refund_days: { max: 3, group: 'time', kind: 'days', required: true },
+  not_received_days: { max: 3, group: 'time', kind: 'days', required: true },
+  privacy_reply_days: { max: 3, group: 'time', kind: 'days', required: true },
+  records_years: { max: 2, group: 'time', kind: 'years', required: true },
+  id_docs_years: { max: 2, group: 'time', kind: 'years', required: true },
+  partner_explain_days: { max: 3, group: 'time', kind: 'days', required: true },
+  reward_claim_days: { max: 3, group: 'time', kind: 'days', required: true },
+  notice_days: { max: 3, group: 'time', kind: 'days', required: true },
+  supplier_dispatch_days: { max: 3, group: 'time', kind: 'days', required: true },
+  supplier_details_days: { max: 3, group: 'time', kind: 'days', required: true },
+  supplier_return_check_days: { max: 3, group: 'time', kind: 'days', required: true },
+} as Record<string, { max: number; group: string; kind: string; required: boolean }>);
+
+/** Bounds of the whole-number fields. Shapes of what an admin types, not business numbers. */
+export const NUMBER_BOUNDS = Object.freeze({ days: { min: 1, max: 365 }, years: { min: 1, max: 30 } });
+
+/**
+ * What an empty optional field reads as instead of "—". WHY each: privacy questions go to the
+ * support email and partner/supplier questions to the support phone until a separate contact
+ * exists, and Dhaka is where the company is sued if the owner names no other city.
+ */
+export const COMPANY_FALLBACKS = Object.freeze({
+  privacy_email: (c) => c.support_email,
+  partner_support: (c) => c.support_phone,
+  supplier_support: (c) => c.support_phone,
+  court_city: (_c, lang) => (lang === 'bn' ? 'ঢাকা' : 'Dhaka'),
 });
+
 export const PUBLISH_LIMITS = Object.freeze({
   title: { min: 3, max: 200 },
   body: { min: 200, max: 60000 },
@@ -80,25 +146,34 @@ export async function loadCompany(db) {
   return { company: resolveCompany(readJson(row?.value_json)), updated_at: row?.updated_at ?? null };
 }
 
-/** The fields still empty. The admin page warns about each one before launch. */
+/** The required fields still empty. The admin page warns about each one before launch. */
 export function missingCompanyFields(company) {
-  // WHY address_bn is not required: the Bangla text falls back to the English address.
-  return Object.keys(COMPANY_FIELDS).filter((f) => f !== 'address_bn' && !company[f]);
+  // WHY the _bn halves are never required: the Bangla text falls back to the English value.
+  return Object.entries(COMPANY_FIELDS).filter(([f, spec]) => spec.required && !company[f]).map(([f]) => f);
 }
 
 /** Strict write: a wrong type or an over-long value is refused, never trimmed to fit. */
 export function validateCompany(input) {
   if (!input || typeof input !== 'object') throw bad('company', 'Send the company details.', 'কোম্পানির তথ্য পাঠান।');
   const out: Record<string, string> = {};
-  for (const [field, { max }] of Object.entries(COMPANY_FIELDS)) {
+  for (const [field, { max, kind }] of Object.entries(COMPANY_FIELDS)) {
     const v = input[field] ?? '';
     if (typeof v !== 'string') throw bad(field, `${field} must be text.`, `${field} লেখা হতে হবে।`);
     const s = v.trim();
     if (s.length > max) throw bad(field, `${field} can be at most ${max} characters.`, `${field} সর্বোচ্চ ${max} অক্ষর হতে পারে।`);
+    if (s && kind === 'email' && !EMAIL_RE.test(s)) {
+      throw bad(field, 'Enter a valid email address.', 'সঠিক ইমেইল ঠিকানা লিখুন।');
+    }
+    if (s && (kind === 'days' || kind === 'years')) {
+      const { min, max: top } = NUMBER_BOUNDS[kind];
+      const n = Number(s);
+      if (!/^\d+$/.test(s) || n < min || n > top) {
+        throw bad(field, `${field} must be a whole number from ${min} to ${top}.`, `${field} ${min} থেকে ${top}-এর মধ্যে একটি পূর্ণ সংখ্যা হতে হবে।`);
+      }
+      out[field] = String(n);
+      continue;
+    }
     out[field] = s;
-  }
-  if (out.support_email && !EMAIL_RE.test(out.support_email)) {
-    throw bad('support_email', 'Enter a valid email address.', 'সঠিক ইমেইল ঠিকানা লিখুন।');
   }
   return out;
 }
@@ -144,6 +219,20 @@ export async function updateCompany(db, auditService, { company, reason, userId 
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 
+/** The value a {{company.<field>}} token reads as, or null for a field that does not exist. */
+export function companyValue(company: Record<string, string>, field: string, lang = 'en'): string | null {
+  if (field === 'legal_name') return company.legal_name || 'Explooro';
+  const paired = `${field}_en` in COMPANY_FIELDS;
+  if (!paired && !(field in COMPANY_FIELDS)) return null;
+  let v = paired
+    ? (lang === 'bn' ? (company[`${field}_bn`] || company[`${field}_en`]) : company[`${field}_en`])
+    : company[field];
+  if (!v && COMPANY_FALLBACKS[field]) v = COMPANY_FALLBACKS[field](company, lang);
+  if (!v) return UNSET;
+  const kind = COMPANY_FIELDS[field]?.kind;
+  return lang === 'bn' && (kind === 'days' || kind === 'years') ? toBnDigits(v) : v;
+}
+
 /**
  * Fills {{company.*}} and {{returns.window_days}}. Unknown tokens are left as written, so a typo in
  * a new version shows up in the admin preview instead of vanishing.
@@ -151,12 +240,8 @@ export async function updateCompany(db, auditService, { company, reason, userId 
 export function renderBody(body, { company = {} as Record<string, string>, returnWindowDays = null as number | null, returnShipping = null as Record<string, number> | null } = {}, lang = 'en') {
   return String(body ?? '').replace(TOKEN_RE, (whole, group, field) => {
     if (group === 'company') {
-      if (field === 'legal_name') return company.legal_name || 'Explooro';
-      if (field === 'address') {
-        const addr = lang === 'bn' ? (company.address_bn || company.address_en) : company.address_en;
-        return addr || UNSET;
-      }
-      if (field in COMPANY_FIELDS) return company[field] || UNSET;
+      const v = companyValue(company, field, lang);
+      if (v != null) return v;
     }
     if (group === 'returns' && field === 'window_days' && returnWindowDays != null) {
       return lang === 'bn' ? toBnDigits(returnWindowDays) : String(returnWindowDays);
@@ -369,6 +454,9 @@ function textField(input, field, { min, max }, label) {
 }
 
 /** Strict: every field present and within bounds; `base_version` must still be the newest. */
+/** A fill-in marking from docs/legal-templates ([[FILL: …]], [[CHOOSE: …]], [[LAWYER: …]]). */
+const MARKING_RE = /\[\[(FILL|CHOOSE|LAWYER)\b/;
+
 export function validatePublish(input, currentVersion) {
   const out = {
     title_en: textField(input, 'title_en', PUBLISH_LIMITS.title, 'English title'),
@@ -379,6 +467,13 @@ export function validatePublish(input, currentVersion) {
     change_note_bn: textField(input, 'change_note_bn', PUBLISH_LIMITS.changeNote, 'Bangla change note'),
     requires_reacceptance: input?.requires_reacceptance,
   };
+  // WHY refused, not warned: a marking left in reaches every reader exactly as written.
+  for (const field of ['body_en', 'body_bn']) {
+    if (MARKING_RE.test(out[field])) {
+      throw new AppError('LEGAL_MARKING_LEFT', 'The text still has a [[FILL]], [[CHOOSE]] or [[LAWYER]] marking. Complete it before publishing.',
+        'লেখায় এখনো [[FILL]], [[CHOOSE]] বা [[LAWYER]] চিহ্ন আছে। প্রকাশের আগে তা পূরণ করুন।', { field });
+    }
+  }
   if (typeof out.requires_reacceptance !== 'boolean') {
     throw bad('requires_reacceptance', 'Say whether everyone must agree again.', 'সবাইকে আবার সম্মতি দিতে হবে কিনা জানান।');
   }

@@ -1,6 +1,10 @@
 # Legal document templates
 
-Fill-in templates for the four documents published at **/admin/platform/legal**:
+**The live text is in the app.** Migration 113 published these five templates as version 2 of each
+document. After that, the app is the source of truth: edit the details at
+**/admin/platform/legal**, and publish new versions there. These files are the marked-up working
+copy, useful to send to a lawyer, because they still show every decision (`[[CHOOSE]]`) and every
+point to check (`[[LAWYER]]`).
 
 | File | `doc_key` | Who must agree |
 | :--- | :--- | :--- |
@@ -10,37 +14,46 @@ Fill-in templates for the four documents published at **/admin/platform/legal**:
 | [partner-agreement.md](partner-agreement.md) | `partner_agreement` | Explooro partners |
 | [supplier-agreement.md](supplier-agreement.md) | `supplier_agreement` | Suppliers |
 
-Version 1 of each document is already live (seeded by migrations 104, 106 and, for the supplier
-agreement, 112). These templates are the fuller, standard version to complete and publish as the
-next version.
+## How each marking became part of the app (migration 113)
 
-## The three kinds of marking
-
-| Marking | Meaning | What you do |
+| Marking | In the published text | Where the owner changes it |
 | :--- | :--- | :--- |
-| `[[FILL: ...]]` | Information only you know (a licence number, a name, a date) | Replace the whole `[[...]]` with the real value |
-| `[[CHOOSE: A / B]]` | A business decision with standard options | Keep one option, delete the rest and the brackets |
-| `[[LAWYER: ...]]` | A point a Bangladeshi lawyer must confirm | Ask, fix the sentence if needed, then delete the note |
+| `[[FILL: ...]]` | A `{{company.<field>}}` token | The *Company details* card at /admin/platform/legal. Any time; it changes every document at once and asks nobody to agree again |
+| `[[CHOOSE: A / B]]` | The option that matches what the platform does today (below) | Publish a new version with the other option |
+| `[[LAWYER: ...]]` | Left out of the text | Listed on each document's card as *Check with your lawyer before launch* |
 
-Before publishing, search the text for `[[`. **Nothing marked `[[` may remain.** If one is
-missed it is shown to users exactly as written, so it is easy to spot but embarrassing.
+On the admin page, **Show where details go** draws the current text with every token marked:
+green filled, yellow default in use, red still empty, grey set by the platform. Required details
+that are empty are also listed at the top of the page and outlined in the form.
 
-## Do not touch `{{...}}`
+### The choices migration 113 made
 
-`{{company.legal_name}}`, `{{company.address}}`, `{{company.trade_license}}`,
-`{{company.support_email}}`, `{{company.support_phone}}`, `{{returns.window_days}}`,
-`{{returns.max_courier_refund}}` and `{{returns.pickup_fee}}` are filled in automatically by the
-platform when the document is shown. Fill the company details once in the *Company details* card
-on /admin/platform/legal; the return numbers come from the returns settings. Never type those
-values into the text, or the document will drift from what the platform really does.
+| Document | Choice |
+| :--- | :--- |
+| Terms | Customers spend Vault money on Explooro (no withdrawal to bKash/Nagad); no arbitration clause before court |
+| Privacy | No advertising cookies from other companies (true as of 2026-11-23: no analytics or pixel script is loaded) |
+| Refund | Refunds go to the Vault only; no "refund to bKash/Nagad on request" line; no extra non-returnable category |
+| Partner Agreement | Partners advertise with the Explooro name only through Explooro's ad tools |
+| Supplier Agreement | Parcels go the way the supplier's shipments page shows (courier or sent by hand); no extra fee line; courts, not arbitration; no extra banned category |
 
-## Publishing
+### The details (tokens) and their form fields
 
-1. Complete every `[[...]]` in both the English and the Bangla body.
-2. At /admin/platform/legal, choose the document, paste the title and the two bodies.
-3. Tick **everyone must agree again** only when what people agree to has changed (the first time
-   you publish these templates, it has).
-4. Write a short change note, e.g. "Full version reviewed by our lawyer."
+`{{company.X}}` reads field `X`, or for a pair the `X_en` / `X_bn` fields (the Bangla text falls back
+to English). The full list, with each field's bounds and whether it is required, is
+`COMPANY_FIELDS` in `server/src/services/legal.service.ts`. Time limits start at the figures these
+templates suggested; everything only the owner knows (business type, DBID, e-TIN/BIN, support hours,
+service providers, data location, supplier documents, record-keeping years) starts empty.
+
+Never type these values into a document's text. `{{returns.window_days}}`,
+`{{returns.max_courier_refund}}` and `{{returns.pickup_fee}}` come from the returns settings.
+
+## Publishing a new version
+
+1. At /admin/platform/legal, open the document and choose **Publish a new version**. It starts
+   from the current text, tokens included.
+2. Tick **everyone must agree again** only when what people agree to has changed.
+3. The server refuses a text that still contains `[[FILL`, `[[CHOOSE` or `[[LAWYER`
+   (`LEGAL_MARKING_LEFT`), so a marking copied from these files can never reach a reader.
 
 The text format is small: `## Heading`, blank-line paragraphs, `- ` list items and `**bold**`.
 Nothing else is rendered.
