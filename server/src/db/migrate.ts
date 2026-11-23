@@ -4,6 +4,8 @@
  * `npm run migrate`        applies every pending .sql file in server/src/db/migrations, in
  *                          filename order, each inside its own transaction, and records it in
  *                          `_migrations` along with a sha256 checksum of its contents.
+ *                          Then adds any role, permission or role grant from the permission
+ *                          catalog the database lacks (permissionSync.ts).
  * `npm run migrate:status` lists applied vs. pending without changing anything.
  *
  * Applied migrations are immutable (docs/erd.md §13 rule 3): if a file that already ran has
@@ -21,6 +23,7 @@ import '../config/loadEnvFile.ts';
 import { loadEnv } from '../config/env.ts';
 import { createDbPool } from '../config/db.ts';
 import { checksumOf, compareApplied } from './migrationChecksum.ts';
+import { syncPermissions } from './permissionSync.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
@@ -118,13 +121,22 @@ async function run() {
 
     if (pending.length === 0) {
       console.log('No pending migrations.');
-      return;
     }
 
     for (const name of pending) {
       await applyMigration(pool, name, contents.get(name));
       console.log(`Applied ${name}`);
     }
+
+    // WHY even with nothing pending: new permissions arrive through the seed, not a migration (see
+    // permissionSync.ts), so an up-to-date schema can still be missing them.
+    const added = await syncPermissions(pool);
+    const total = added.roles + added.permissions + added.grants;
+    console.log(
+      total === 0
+        ? 'Permissions already match the catalog.'
+        : `Added from the permission catalog: ${added.permissions} permission(s), ${added.grants} role grant(s), ${added.roles} role(s).`
+    );
   } finally {
     await pool.end();
   }

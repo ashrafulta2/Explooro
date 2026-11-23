@@ -156,7 +156,7 @@ The ones that trip people up most:
 | Task | Answer |
 | :--- | :--- |
 | Change the profit split / escrow days / any business number | **Configuration, not code** — `platform_settings` or a module setting. Never hardcode |
-| Add a permission | `docs/permission-catalog.json`, then re-seed. Never invent a key in code |
+| Add a permission | `docs/permission-catalog.json`, then `node scripts/generate-role-permission-seed.mjs` and `npm run migrate` (its last step adds any permission or role grant the database lacks, `server/src/db/permissionSync.ts`). Never invent a key in code |
 | Make an action need Admin approval | Set its `risk_tier` to `HIGH` in the catalog. The maker-checker flow is automatic |
 | Change what an ad format costs | **Configuration, not code** — `/admin/growth/ad-pricing` edits the `ad_products.rate_card` JSONB behind `growth.ad.govern` (HIGH risk, delegable, so it can be handed to one staff member). Never a constant: `services/adPricing.ts` only ever reads a stored rate card |
 | Add a new kind of ad the platform sells | One `ad_products` row (see the seed block in `server/src/db/migrations/041_ad_marketplace.sql`). If it prices like one of the five existing models (CPC, CPM, FLAT_DAILY, FLAT_SLOT, CPS) that is the whole change — the Explooro partner's Ad Store, the wizard's fields and the quote engine all branch on `pricing_model`. A genuinely new *model* is the only case that touches `services/adPricing.ts` |

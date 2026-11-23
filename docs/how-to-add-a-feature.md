@@ -71,7 +71,9 @@ field, not by writing approval code.
 `LOW` entries omit `plain_en` / `plain_bn` by rule: they are role defaults and never appear in a
 Request Access modal.
 
-Re-seed: `npm run migrate` (Prompt 2.2's loader validates the catalog and fails on any violation).
+Regenerate the seed with `node scripts/generate-role-permission-seed.mjs`, then run `npm run migrate`:
+its last step applies that seed, so the new permission and its role grants reach every database
+that migrates, even one with no pending migration (`server/src/db/permissionSync.ts`).
 
 ---
 
