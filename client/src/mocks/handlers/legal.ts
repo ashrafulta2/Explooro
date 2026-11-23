@@ -8,6 +8,29 @@
  */
 
 import type { MockRoute } from '../types.ts';
+import { companyTokenState } from '../../services/legalText.ts';
+
+const BN_DIGITS = '০১২৩৪৫৬৭৮৯';
+/** The mock's return window, as GET /admin/platform/legal reports it. */
+const MOCK_RETURN_WINDOW_DAYS = 7;
+
+/**
+ * Fills the {{tokens}} the way legal.service.ts renderBody does, for the public page.
+ * WHY: without it a mock reader sees raw {{company.dbid}}; only the admin preview marks tokens.
+ */
+function fillTokens(body: string, lang: 'en' | 'bn'): string {
+  const digits = (v: string) => (lang === 'bn' ? v.replace(/[0-9]/g, (d) => BN_DIGITS[Number(d)]) : v);
+  return String(body ?? '').replace(/\{\{\s*([a-z_]+)\.([a-z_]+)\s*\}\}/g, (whole, group, field) => {
+    if (group === 'returns' && field === 'window_days') return digits(String(MOCK_RETURN_WINDOW_DAYS));
+    if (group !== 'company') return whole;
+    // WHY `state` is read at call time: this runs per request, after the module's `state` exists.
+    const token = companyTokenState(field, { company: state.company, fields: COMPANY_FIELDS, lang, labelOf: (f) => f });
+    if (token.state === 'unknown') return whole;
+    if (token.state === 'empty') return '—';
+    const kind = COMPANY_FIELDS[field]?.kind;
+    return kind === 'days' || kind === 'years' ? digits(token.value) : token.value;
+  });
+}
 
 const STORAGE_KEY = 'explooro:mock:legal';
 const KEYS = ['terms', 'privacy', 'refund', 'partner_agreement', 'supplier_agreement'];
@@ -197,7 +220,7 @@ const routes: MockRoute[] = [
         data: {
           id: doc.id, key: doc.doc_key, path: PATHS[doc.doc_key], version: doc.version,
           is_current: doc.version === all[0].version, current_version: all[0].version,
-          title_en: doc.title_en, title_bn: doc.title_bn, body_en: doc.body_en, body_bn: doc.body_bn,
+          title_en: doc.title_en, title_bn: doc.title_bn, body_en: fillTokens(doc.body_en, 'en'), body_bn: fillTokens(doc.body_bn, 'bn'),
           change_note_en: doc.change_note_en, change_note_bn: doc.change_note_bn, published_at: doc.published_at,
           versions: all.map((d) => ({ version: d.version, published_at: d.published_at })),
         },
